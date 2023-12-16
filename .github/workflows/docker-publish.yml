@@ -5,6 +5,10 @@ name: Docker
 # separate terms of service, privacy policy, and support
 # documentation.
 
+concurrency: 
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main, develop]
