@@ -1,3 +1,5 @@
+name: Lint and test
+
 on:
   push:
   pull_request:

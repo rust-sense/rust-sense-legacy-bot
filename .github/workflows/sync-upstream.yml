@@ -1,5 +1,9 @@
 name: Sync Fork
 
+concurrency:
+  group: sync_fork
+  cancel-in-progress: true
+
 on:
   schedule:
     - cron: '*/30 * * * *' # every 30 minutes
