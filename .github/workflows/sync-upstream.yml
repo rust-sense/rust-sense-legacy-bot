@@ -1,22 +1,89 @@
-name: Sync Fork
+name: Update from upstream
 
-concurrency:
-  group: sync_fork
-  cancel-in-progress: true
+# This workflow keeps the repo up to date with changes from the upstream repo (REMOTE_URL)
+# It duplicates the REMOTE_BRANCH (into UPDATE_BRANCH) and tries to merge it into the 
+# this repos default branch (which is checked out here)
+# Note that this requires a PAT (Personal Access Token) - at best from a servicing account
+# Also note that you should have at least once merged the upstream repo into the current repo manually
+# otherwise a "refusing to merge unrelated histories" error might occur.
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # every 30 minutes
-  workflow_dispatch: # on button click
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+env:
+  UPDATE_BRANCH: upstream-updates
+  REMOTE_URL: https://github.com/alexemanuelol/rustplusplus
+  REMOTE_BRANCH: master
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  sync:
+  update:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: tgymnich/fork-sync@v1.9
+      - uses: actions/checkout@v3
         with:
-          owner: alexemanuelol
-          repo: rustplusplus
-          base: main
-          head: master
+          # Required because otherwise there are always changes detected when executing diff/rev-list
+          fetch-depth: 0
+      
+      - name: Init Git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Main workflow
+        id: main
+        run: |
+          echo "Adding remote upstream repo"
+          git remote add upstream ${{ env.REMOTE_URL }}
+          
+          echo "Fetching remote upstream repo"
+          git fetch upstream
+          
+          echo "Deleting local branch that will contain the updates - if present"
+          git branch -D ${{ env.UPDATE_BRANCH }} || true
+          
+          echo "Checking if the remote upstream repo has new commits"
+          git rev-list ..upstream/${{ env.REMOTE_BRANCH }}
+
+          if [ $(git rev-list --count ..upstream/${{ env.REMOTE_BRANCH }}) -eq 0 ]; then
+            echo "There are no commits new commits on the upstream repo"
+            
+            echo "Deleting origin branch that contains the updates - if present"
+            git push -f origin --delete ${{ env.UPDATE_BRANCH }} || true
+            
+            echo "abort=1" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Found new commits on the upstream repo"
+          
+          echo "Creating update branch"
+          git branch ${{ env.UPDATE_BRANCH }} upstream/${{ env.REMOTE_BRANCH }}
+          git branch --unset-upstream ${{ env.UPDATE_BRANCH }}
+          
+          echo "Pushing update branch"
+          git push -f -u origin ${{ env.UPDATE_BRANCH }}
+          
+          echo "Getting current branch"
+          current_branch=$(git branch --show-current)
+          echo "Current branch is $current_branch"
+          echo "current_branch=$current_branch" >> $GITHUB_OUTPUT
+
+          echo "abort=0" >> $GITHUB_OUTPUT
+          
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        if: steps.main.outputs.abort == 0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: ${{ env.UPDATE_BRANCH }}
+          destination_branch: ${{ steps.main.outputs.current_branch }}
+          pr_title: "Update from upstream"
+          pr_body: "An automated PR to sync changes from the upstream into this repo"
+          
