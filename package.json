@@ -37,7 +37,12 @@
         "ts-node": "^10.9.1",
         "winston": "^3.10.0"
     },
+    "resolutions": {
+        "jpeg-js": "0.4.4",
+        "protobufjs": "7.2.4"
+    },
     "devDependencies": {
-        "typescript": "^5.2.2"
+        "typescript": "^5.2.2",
+        "prettier": "^3.0.3"
     }
 }
