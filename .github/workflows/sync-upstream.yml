@@ -7,6 +7,10 @@ name: Update from upstream
 # Also note that you should have at least once merged the upstream repo into the current repo manually
 # otherwise a "refusing to merge unrelated histories" error might occur.
 
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: true
+
 on:
   schedule:
     - cron: '0 0 * * 1'
