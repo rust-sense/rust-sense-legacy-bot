@@ -45,6 +45,13 @@ jobs:
             packages: write
 
         steps:
+            - name: Download digests - if it exists
+              uses: actions/download-artifact@v4
+              continue-on-error: true
+              with:
+                  name: digests
+                  path: /tmp/digests
+
             - name: Checkout repository
               uses: actions/checkout@v4
 
@@ -84,6 +91,10 @@ jobs:
                   digest="${{ steps.build.outputs.digest }}"
                   touch "/tmp/digests/${digest#sha256:}"
 
+            - name: Delete digests artifact
+              uses: geekyeggo/delete-artifact@v2
+              with:
+                  name: digests
             - name: Upload digest
               uses: actions/upload-artifact@v4
               with:
@@ -135,6 +146,10 @@ jobs:
                   docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
                       $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
+            - name: Delete digests artifact
+              uses: geekyeggo/delete-artifact@v2
+              with:
+                  name: digests
             - name: Inspect image
               run: |
                   docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
