@@ -29,13 +29,15 @@ jobs:
             fail-fast: true
 
             matrix:
-                platform:
-                    - linux/amd64
-                    - linux/arm64
+                type:
+                    - linux-amd64
+                    - linux-arm64
                 include:
-                    - platform: linux/amd64
-                      runner: ubuntu-latest
-                    - platform: linux/arm64
+                    - type: linux-amd64
+                      docker-platform: linux/amd64
+                      runner: ubuntu-22.04
+                    - type: linux-arm64
+                      docker-platform: linux/arm64
                       runner: arc-jamezrin-rustplusplus-spiced-set
 
         runs-on: ${{ matrix.runner }}
@@ -74,7 +76,7 @@ jobs:
               with:
                   context: .
                   push: ${{ github.event_name != 'pull_request' }}
-                  platforms: ${{ matrix.platform }}
+                  platforms: ${{ matrix.docker-platform }}
                   labels: ${{ steps.meta.outputs.labels }}
                   outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
@@ -87,7 +89,7 @@ jobs:
             - name: Upload digest
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ matrix.platform }}-digests
+                  name: ${{ matrix.type }}-digests
                   path: /tmp/digests/*
                   if-no-files-found: error
                   retention-days: 1
