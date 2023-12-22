@@ -1,0 +1,159 @@
+/*
+    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    https://github.com/alexemanuelol/rustplusplus
+
+*/
+
+const _ = require('lodash');
+const Builder = require('@discordjs/builders');
+
+const Config = require('../../config/index.js');
+const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordTools = require('../discordTools/discordTools.js');
+const InstanceUtils = require('../util/instanceUtils.js');
+const instanceUtils = require('../util/instanceUtils.js');
+const Constants = require('../util/constants.js');
+
+module.exports = {
+    name: 'customintl',
+
+    getData(client, guildId) {
+        return new Builder.SlashCommandBuilder()
+            .setName('customintl')
+            .setDescription(client.intlGet(guildId, 'commandsCustomIntlDesc'))
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('set')
+                    .setDescription(client.intlGet(guildId, 'commandsCustomIntlSetDesc'))
+                    .addStringOption((option) =>
+                        option
+                            .setName('key')
+                            .setDescription(client.intlGet(guildId, 'commandsCustomIntlSetKeyDesc'))
+                            .setRequired(true),
+                    )
+                    .addStringOption((option) =>
+                        option
+                            .setName('text')
+                            .setDescription(client.intlGet(guildId, 'commandsCustomIntlSetTextDesc'))
+                            .setRequired(true),
+                    ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('reset')
+                    .setDescription(client.intlGet(guildId, 'commandsCustomIntlResetDesc'))
+                    .addStringOption((option) =>
+                        option
+                            .setName('key')
+                            .setDescription(client.intlGet(guildId, 'commandsCustomIntlResetKeyDesc'))
+                            .setRequired(true),
+                    ),
+            );
+    },
+
+    async execute(client, interaction) {
+        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        client.logInteraction(interaction, verifyId, 'slashCommand');
+
+        if (!(await client.validatePermissions(interaction))) return;
+        await interaction.deferReply({ ephemeral: true });
+
+        switch (interaction.options.getSubcommand()) {
+            case 'set':
+                setCustomIntl(client, interaction, verifyId);
+                break;
+
+            case 'reset':
+                resetCustomIntl(client, interaction, verifyId);
+                break;
+
+            default:
+                break;
+        }
+    },
+};
+
+async function setCustomIntl(client, interaction, verifyId) {
+    const guildId = interaction.guildId;
+
+    if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        const str = client.intlGet(interaction.guildId, 'missingPermission');
+        client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str);
+        return;
+    }
+
+    const messageKey = interaction.options.getString('key');
+    const messageText = interaction.options.getString('text');
+
+    const guildInstance = client.getInstance(guildId);
+
+    const defaultIntl = client.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE)
+    if (!(messageKey in defaultIntl.messages)) {
+        const str = client.intlGet(guildId, 'customIntlSetKeyDoesNotExist', {
+            key: messageKey,
+        });
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(guildId, 'warningCap'), str);
+        return;
+    }
+
+    guildInstance.customIntlMessages[messageKey] = messageText;
+    client.loadGuildCustomIntl(guildId, guildInstance, messageKey, messageText);
+    client.setInstance(guildId, guildInstance);
+
+    const str = client.intlGet(interaction.guildId, 'customIntlSetSuccess', {
+        key: messageKey,
+    });
+    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(null, 'infoCap'), str);
+}
+
+async function resetCustomIntl(client, interaction, verifyId) {
+    const guildId = interaction.guildId;
+
+    if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        const str = client.intlGet(interaction.guildId, 'missingPermission');
+        client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str);
+        return;
+    }
+
+    const messageKey = interaction.options.getString('key');
+
+    const guildInstance = client.getInstance(guildId);
+
+    if (!(messageKey in guildInstance.customIntlMessages)) {
+        const str = client.intlGet(guildId, 'customIntlResetKeyNotCustomized', {
+            key: messageKey,
+        });
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(guildId, 'warningCap'), str);
+        return;
+    }
+
+    delete guildInstance.customIntlMessages[messageKey];
+    delete client.customGuildIntl[guildId][messageKey];
+    client.setInstance(guildId, guildInstance);
+
+    const str = client.intlGet(interaction.guildId, 'customIntlResetSuccess', {
+        key: messageKey,
+    });
+    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(null, 'infoCap'), str);
+}

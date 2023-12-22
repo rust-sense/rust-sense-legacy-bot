@@ -5,3 +5,6 @@ credentials
 maps
 logs
 temp
+
+.rtx.local.toml
+.rtx.*.local.toml
