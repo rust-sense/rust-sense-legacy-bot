@@ -7,3 +7,5 @@ logs
 temp
 .idea
 dist
+.rtx.local.toml
+.rtx.*.local.toml
