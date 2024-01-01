@@ -98,7 +98,7 @@ module.exports = {
 async function setCustomIntl(client, interaction, verifyId) {
     const guildId = interaction.guildId;
 
-    if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+    if (!client.isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);
@@ -134,7 +134,7 @@ async function setCustomIntl(client, interaction, verifyId) {
 async function resetCustomIntl(client, interaction, verifyId) {
     const guildId = interaction.guildId;
 
-    if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+    if (!client.isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);
