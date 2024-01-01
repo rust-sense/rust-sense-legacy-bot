@@ -124,12 +124,12 @@ class Time {
         }
 
         const time = this.time;
-        // @ts-expect-error TS(2769): No overload matches this call.
+        // @ts-expect-error TS(2769) FIXME: No overload matches this call.
         const closest = Object.keys(object).map(Number).reduce(function (a, b) {
             return (Math.abs(b - time) < Math.abs(a - time) ? b : a);
         });
 
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
         return TimeLib.secondsToFullScale(object[closest], ignore);
     }
 }

@@ -20,27 +20,27 @@
 
 import Items from './Items';
 
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsBuildin... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsBuildin... Remove this comment to see the full error message
 import RustlabsBuildingBlocks from '../staticFiles/rustlabsBuildingBlocks.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsOther.j... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsOther.j... Remove this comment to see the full error message
 import RustlabsOther from '../staticFiles/rustlabsOther.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsCraftDa... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsCraftDa... Remove this comment to see the full error message
 import CraftData from '../staticFiles/rustlabsCraftData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsResearc... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsResearc... Remove this comment to see the full error message
 import ResearchData from '../staticFiles/rustlabsResearchData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsRecycle... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsRecycle... Remove this comment to see the full error message
 import RecycleData from '../staticFiles/rustlabsRecycleData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsDurabil... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsDurabil... Remove this comment to see the full error message
 import DurabilityData from '../staticFiles/rustlabsDurabilityData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsSmeltin... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsSmeltin... Remove this comment to see the full error message
 import SmeltingData from '../staticFiles/rustlabsSmeltingData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsDespawn... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsDespawn... Remove this comment to see the full error message
 import DespawnData from '../staticFiles/rustlabsDespawnData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsStackDa... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsStackDa... Remove this comment to see the full error message
 import StackData from '../staticFiles/rustlabsStackData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsDecayDa... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsDecayDa... Remove this comment to see the full error message
 import DecayData from '../staticFiles/rustlabsDecayData.json';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/rustlabsUpkeepD... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/rustlabsUpkeepD... Remove this comment to see the full error message
 import UpkeepData from '../staticFiles/rustlabsUpkeepData.json';
 import Utils from '../util/utils.js';
 
@@ -220,42 +220,42 @@ class RustLabs {
      */
     getArrayOrderedByChoice(array, orderedBy = null) {
         switch (orderedBy) {
-            // @ts-expect-error TS(2678): Type '"quantityHighFirst"' is not comparable to ty... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"quantityHighFirst"' is not comparable to ty... Remove this comment to see the full error message
             case 'quantityHighFirst': {
                 return this.getArrayOrderedBy(array, 'quantity', false);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"quantityLowFirst"' is not comparable to typ... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"quantityLowFirst"' is not comparable to typ... Remove this comment to see the full error message
             case 'quantityLowFirst': {
                 return this.getArrayOrderedBy(array, 'quantity', true);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"timeHighFirst"' is not comparable to type '... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"timeHighFirst"' is not comparable to type '... Remove this comment to see the full error message
             case 'timeHighFirst': {
                 return this.getArrayOrderedBy(array, 'time', false);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"timeLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"timeLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
             case 'timeLowFirst': {
                 return this.getArrayOrderedBy(array, 'time', true);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"fuelHighFirst"' is not comparable to type '... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"fuelHighFirst"' is not comparable to type '... Remove this comment to see the full error message
             case 'fuelHighFirst': {
                 return this.getArrayOrderedBy(array, 'fuel', false);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"fuelLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"fuelLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
             case 'fuelLowFirst': {
                 return this.getArrayOrderedBy(array, 'fuel', true);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"sulfurHighFirst"' is not comparable to type... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"sulfurHighFirst"' is not comparable to type... Remove this comment to see the full error message
             case 'sulfurHighFirst': {
                 return this.getArrayOrderedBy(array, 'sulfur', false);
             } break;
 
-            // @ts-expect-error TS(2678): Type '"sulfurLowFirst"' is not comparable to type ... Remove this comment to see the full error message
+            // @ts-expect-error TS(2678) FIXME: Type '"sulfurLowFirst"' is not comparable to type ... Remove this comment to see the full error message
             case 'sulfurLowFirst': {
                 return this.getArrayOrderedBy(array, 'sulfur', true);
             } break;
@@ -386,14 +386,14 @@ class RustLabs {
         const mergedItems = [];
         for (const item of items) {
             const itemId = (typeof (item.itemId) === 'string') ? item.itemId : item.itemId.toString();
-            // @ts-expect-error TS(2339): Property 'itemId' does not exist on type 'never'.
+            // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
             const found = mergedItems.find(e => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
             if (found === undefined) {
-                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+                // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 mergedItems.push({ itemId: itemId, quantity: item.quantity, itemIsBlueprint: item.itemIsBlueprint });
             }
             else {
-                // @ts-expect-error TS(2339): Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
+                // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                 found.quantity += item.quantity;
             }
         }
@@ -406,7 +406,7 @@ class RustLabs {
             const expandedItems = [];
             for (const item of recycleData) {
                 if (!this.hasRecycleDetails(item.itemId)) {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     expandedItems.push(item);
                     continue;
                 }
@@ -419,36 +419,36 @@ class RustLabs {
                         for (let i = 0; i < item.quantity; i++) {
                             if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability) continue;
 
-                            // @ts-expect-error TS(2339): Property 'itemId' does not exist on type 'never'.
+                            // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
                             const found = expandedItems.find(e => e.itemId === recycleItem.id);
                             if (found === undefined) {
                                 expandedItems.push({
-                                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+                                    // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                                     itemId: recycleItem.id,
-                                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+                                    // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                                     quantity: recycleItem.quantity,
-                                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
+                                    // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
                                     itemIsBlueprint: false
                                 });
                             }
                             else {
-                                // @ts-expect-error TS(2339): Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
+                                // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                                 found.quantity += recycleItem.quantity;
                             }
                         }
                     }
                 }
                 else {
-                    // @ts-expect-error TS(2339): Property 'itemId' does not exist on type 'never'.
+                    // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
                     const found = expandedItems.find(e => e.itemId === item.itemId &&
-                        // @ts-expect-error TS(2339): Property 'itemIsBlueprint' does not exist on type ... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2339) FIXME: Property 'itemIsBlueprint' does not exist on type ... Remove this comment to see the full error message
                         e.itemIsBlueprint === item.itemIsBlueprint);
                     if (found === undefined) {
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         expandedItems.push(item);
                     }
                     else {
-                        // @ts-expect-error TS(2339): Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                         found.quantity += item.quantity;
                     }
                 }
@@ -500,7 +500,7 @@ class RustLabs {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
                 if (this.durabilityData['other'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"other"' is not assignable to type 'null'.
+                    // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 }
                 else {
@@ -513,7 +513,7 @@ class RustLabs {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
                 if (this.durabilityData['buildingBlocks'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 }
                 else {
@@ -537,11 +537,11 @@ class RustLabs {
         if (!foundName) return null;
 
         let content = [];
-        // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+        // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
         for (const item of this.durabilityData[type][foundName]) {
             if (group !== null && item.group !== group) continue;
             if (which !== null && item.which !== which) continue;
-            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             content.push(item);
         }
 
@@ -568,7 +568,7 @@ class RustLabs {
         for (const item of this.durabilityData['items'][id]) {
             if (group !== null && item.group !== group) continue;
             if (which !== null && item.which !== which) continue;
-            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             content.push(item);
         }
 
@@ -623,7 +623,7 @@ class RustLabs {
         if (!this.items.hasOwnProperty(id)) return null;
         const fromParameterSmeltingDetails = new Object();
         for (const [smeltingTool, smeltingDetails] of Object.entries(this.smeltingData)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             for (const details of smeltingDetails) {
                 if (details.fromId === id) {
                     if (!fromParameterSmeltingDetails.hasOwnProperty(smeltingTool)) {
@@ -742,7 +742,7 @@ class RustLabs {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
                 if (this.decayData['other'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"other"' is not assignable to type 'null'.
+                    // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 }
                 else {
@@ -755,7 +755,7 @@ class RustLabs {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
                 if (this.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 }
                 else {
@@ -778,7 +778,7 @@ class RustLabs {
 
         if (!foundName) return null;
 
-        // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+        // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
         return [type, foundName, foundName, this.decayData[type][foundName]];
     }
 
@@ -826,7 +826,7 @@ class RustLabs {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
                 if (this.upkeepData['other'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"other"' is not assignable to type 'null'.
+                    // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 }
                 else {
@@ -839,7 +839,7 @@ class RustLabs {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
                 if (this.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
-                    // @ts-expect-error TS(2322): Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 }
                 else {
@@ -862,7 +862,7 @@ class RustLabs {
 
         if (!foundName) return null;
 
-        // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+        // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
         return [type, foundName, foundName, this.upkeepData[type][foundName]];
     }
 

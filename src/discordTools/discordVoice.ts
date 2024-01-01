@@ -20,9 +20,9 @@
 */
 import { getVoiceConnection, createAudioPlayer, createAudioResource } from '@discordjs/voice';
 
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/actors.json'. C... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/actors.json'. C... Remove this comment to see the full error message
 import Actors from '../staticFiles/actors.json';
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 export default {

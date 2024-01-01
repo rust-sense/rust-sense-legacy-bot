@@ -57,7 +57,7 @@ export default {
             }
 
             if (Array.isArray(message)) {
-                // @ts-expect-error TS(2488): Type 'never' must have a '[Symbol.iterator]()' met... Remove this comment to see the full error message
+                // @ts-expect-error TS(2488) FIXME: Type 'never' must have a '[Symbol.iterator]()' met... Remove this comment to see the full error message
                 for (const msg of message) {
                     handleMessage(rustplus, msg, trademarkString, messageMaxLength)
                 }
@@ -79,7 +79,7 @@ function handleMessage(rustplus, message, trademarkString, maxLength) {
 
     const strings = message.match(new RegExp(`.{1,${maxLength}}(\\s|$)`, 'g'));
 
-    // @ts-expect-error TS(2531): Object is possibly 'null'.
+    // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
     for (const str of strings) {
         rustplus.inGameChatQueue.push(`${trademarkString}${str}`);
     }

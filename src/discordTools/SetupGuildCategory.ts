@@ -31,7 +31,7 @@ export default async (client, guild) => {
     }
     if (category === undefined) {
         category = await DiscordTools.addCategory(guild.id, 'rustplusplus');
-        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+        // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         instance.channelId.category = category.id;
         client.setInstance(guild.id, instance);
     }
@@ -39,7 +39,7 @@ export default async (client, guild) => {
     const perms = PermissionHandler.getPermissionsReset(client, guild, false);
 
     try {
-        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+        // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         await category.permissionOverwrites.set(perms);
     }
     catch (e) {

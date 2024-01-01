@@ -26,7 +26,7 @@ import Path from 'path';
 import { IntlMessageFormat } from 'intl-messageformat';
 import Battlemetrics from '../structures/Battlemetrics';
 import Cctv from './Cctv';
-// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools';
@@ -260,7 +260,7 @@ class DiscordBot extends Discord.Client {
         const channel = DiscordTools.getTextChannelById(interaction.guildId, interaction.channelId);
         const args = new Object();
         args['guild'] = `${interaction.member.guild.name} (${interaction.member.guild.id})`;
-        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+        // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         args['channel'] = `${channel.name} (${interaction.channelId})`;
         args['user'] = `${interaction.user.username} (${interaction.user.id})`;
         args[type === 'slashCommand' ? 'command' : 'customid'] =
@@ -310,7 +310,7 @@ class DiscordBot extends Discord.Client {
         const members = await guild.members.fetch();
         const memberIds = [];
         for (const member of members) {
-            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             memberIds.push(member[0]);
         }
 
@@ -318,9 +318,9 @@ class DiscordBot extends Discord.Client {
         for (const [steamId, content] of Object.entries(credentials)) {
             if (steamId === 'hoster') continue;
 
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (!memberIds.includes(content.discordUserId)) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 steamIdRemoveCredentials.push(steamId);
             }
         }
@@ -360,14 +360,14 @@ class DiscordBot extends Discord.Client {
         );
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     readGeneralSettingsTemplate() {
         return JSON.parse(
             Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
         );
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
         const rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
 
@@ -380,7 +380,7 @@ class DiscordBot extends Discord.Client {
         return rustplus;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     createRustplusInstancesFromConfig() {
         const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
 
@@ -403,7 +403,7 @@ class DiscordBot extends Discord.Client {
         });
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     resetRustplusVariables(guildId) {
         this.activeRustplusInstances[guildId] = false;
         this.rustplusReconnecting[guildId] = false;
@@ -419,12 +419,12 @@ class DiscordBot extends Discord.Client {
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     isJpgImageChanged(guildId, map) {
         return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     findAvailableTrackerId(guildId) {
         const instance = this.getInstance(guildId);
 
@@ -436,7 +436,7 @@ class DiscordBot extends Discord.Client {
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     findAvailableGroupId(guildId, serverId) {
         const instance = this.getInstance(guildId);
 
@@ -451,7 +451,7 @@ class DiscordBot extends Discord.Client {
     /**
      *  Check if Battlemetrics instances are missing/not required/need update.
      */
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async updateBattlemetricsInstances() {
         const activeInstances = [];
 
@@ -464,9 +464,9 @@ class DiscordBot extends Discord.Client {
                 if (instance.serverList[activeServer].battlemetricsId !== null) {
                     /* A Battlemetrics ID exist. */
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     if (!activeInstances.includes(battlemetricsId)) {
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         activeInstances.push(battlemetricsId);
                         if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
                             /* Update */
@@ -489,14 +489,14 @@ class DiscordBot extends Discord.Client {
                         this.setInstance(guildId, instance);
 
                         if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             if (!activeInstances.includes(bmInstance.id)) {
-                                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                                 activeInstances.push(bmInstance.id);
                                 await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
                             }
                         } else {
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             activeInstances.push(bmInstance.id);
                             this.battlemetricsInstances[bmInstance.id] = bmInstance;
                         }
@@ -505,21 +505,21 @@ class DiscordBot extends Discord.Client {
             }
 
             for (const [trackerId, content] of Object.entries(instance.trackers)) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 if (!activeInstances.includes(content.battlemetricsId)) {
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     activeInstances.push(content.battlemetricsId);
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
                         /* Update */
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();
                     } else {
                         /* Add */
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         const bmInstance = new Battlemetrics(content.battlemetricsId);
                         await bmInstance.setup();
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
                     }
                 }
@@ -527,14 +527,14 @@ class DiscordBot extends Discord.Client {
         }
 
         /* Find instances that are no longer required and delete them. */
-        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+        // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
         const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
         for (const id of remove) {
             delete this.battlemetricsInstances[id];
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionReply(interaction, content) {
         try {
             return await interaction.reply(content);
@@ -549,7 +549,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionEditReply(interaction, content) {
         try {
             return await interaction.editReply(content);
@@ -564,7 +564,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionUpdate(interaction, content) {
         try {
             return await interaction.update(content);
@@ -579,7 +579,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageEdit(message, content) {
         try {
             return await message.edit(content);
@@ -590,7 +590,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageSend(channel, content) {
         try {
             return await channel.send(content);
@@ -601,7 +601,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageReply(message, content) {
         try {
             return await message.reply(content);
@@ -612,7 +612,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async validatePermissions(interaction) {
         const instance = this.getInstance(interaction.guildId);
 
@@ -639,14 +639,14 @@ class DiscordBot extends Discord.Client {
         return true;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     readGeneralSettingsTemplate() {
         return JSON.parse(
             Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
         );
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
         const rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
 
@@ -659,7 +659,7 @@ class DiscordBot extends Discord.Client {
         return rustplus;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     createRustplusInstancesFromConfig() {
         const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
 
@@ -682,7 +682,7 @@ class DiscordBot extends Discord.Client {
         });
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     resetRustplusVariables(guildId) {
         this.activeRustplusInstances[guildId] = false;
         this.rustplusReconnecting[guildId] = false;
@@ -698,12 +698,12 @@ class DiscordBot extends Discord.Client {
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     isJpgImageChanged(guildId, map) {
         return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     findAvailableTrackerId(guildId) {
         const instance = this.getInstance(guildId);
 
@@ -715,7 +715,7 @@ class DiscordBot extends Discord.Client {
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     findAvailableGroupId(guildId, serverId) {
         const instance = this.getInstance(guildId);
 
@@ -730,7 +730,7 @@ class DiscordBot extends Discord.Client {
     /**
      *  Check if Battlemetrics instances are missing/not required/need update.
      */
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async updateBattlemetricsInstances() {
         const activeInstances = [];
 
@@ -743,9 +743,9 @@ class DiscordBot extends Discord.Client {
                 if (instance.serverList[activeServer].battlemetricsId !== null) {
                     /* A Battlemetrics ID exist. */
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     if (!activeInstances.includes(battlemetricsId)) {
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         activeInstances.push(battlemetricsId);
                         if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
                             /* Update */
@@ -768,14 +768,14 @@ class DiscordBot extends Discord.Client {
                         this.setInstance(guildId, instance);
 
                         if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             if (!activeInstances.includes(bmInstance.id)) {
-                                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                                 activeInstances.push(bmInstance.id);
                                 await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
                             }
                         } else {
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             activeInstances.push(bmInstance.id);
                             this.battlemetricsInstances[bmInstance.id] = bmInstance;
                         }
@@ -784,21 +784,21 @@ class DiscordBot extends Discord.Client {
             }
 
             for (const [trackerId, content] of Object.entries(instance.trackers)) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 if (!activeInstances.includes(content.battlemetricsId)) {
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     activeInstances.push(content.battlemetricsId);
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
                         /* Update */
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();
                     } else {
                         /* Add */
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         const bmInstance = new Battlemetrics(content.battlemetricsId);
                         await bmInstance.setup();
-                        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
                     }
                 }
@@ -806,14 +806,14 @@ class DiscordBot extends Discord.Client {
         }
 
         /* Find instances that are no longer required and delete them. */
-        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+        // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
         const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
         for (const id of remove) {
             delete this.battlemetricsInstances[id];
         }
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionReply(interaction, content) {
         try {
             return await interaction.reply(content);
@@ -828,7 +828,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionEditReply(interaction, content) {
         try {
             return await interaction.editReply(content);
@@ -843,7 +843,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async interactionUpdate(interaction, content) {
         try {
             return await interaction.update(content);
@@ -858,7 +858,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageEdit(message, content) {
         try {
             return await message.edit(content);
@@ -869,7 +869,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageSend(channel, content) {
         try {
             return await channel.send(content);
@@ -880,7 +880,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async messageReply(message, content) {
         try {
             return await message.reply(content);
@@ -891,7 +891,7 @@ class DiscordBot extends Discord.Client {
         return undefined;
     }
 
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     async validatePermissions(interaction) {
         const instance = this.getInstance(interaction.guildId);
 

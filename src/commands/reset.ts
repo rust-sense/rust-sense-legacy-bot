@@ -20,7 +20,7 @@
 
 import Builder from '@discordjs/builders';
 
-// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
@@ -154,7 +154,7 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
                     await require('../discordTools/SetupServerList')(client, guild);
@@ -176,7 +176,7 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
                     await require('../discordTools/SetupSettingsMenu')(client, guild, true);
@@ -201,7 +201,7 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
                     
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
                     const rustplus = client.rustplusInstances[guild.id];
@@ -246,7 +246,7 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
                     const rustplus = client.rustplusInstances[guild.id];
@@ -271,7 +271,7 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
                     await require('../discordTools/SetupTrackers')(client, guild);

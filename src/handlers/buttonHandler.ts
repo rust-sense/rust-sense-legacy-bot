@@ -20,7 +20,7 @@
 
 import Discord from 'discord.js';
 
-// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
@@ -483,16 +483,16 @@ export default async (client, interaction) => {
 
         const groupsToUpdate = [];
         for (const [entityId, content] of Object.entries(server.switches)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (!content.reachable) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.switches, content.messageId);
                 delete server.switches[entityId];
 
                 for (const [groupId, groupContent] of Object.entries(server.switchGroups)) {
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     if (groupContent.switches.includes(`${entityId}`) && !groupsToUpdate.includes(groupId)) {
-                        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         groupsToUpdate.push(groupId);
                     }
                 }
@@ -504,18 +504,18 @@ export default async (client, interaction) => {
         }
 
         for (const [entityId, content] of Object.entries(server.alarms)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (!content.reachable) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.alarms, content.messageId)
                 delete server.alarms[entityId];
             }
         }
 
         for (const [entityId, content] of Object.entries(server.storageMonitors)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (!content.reachable) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.storageMonitors, content.messageId)
                 delete server.storageMonitors[entityId];
             }
@@ -647,7 +647,7 @@ export default async (client, interaction) => {
         }
 
         for (const [entityId, content] of Object.entries(server.alarms)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             await DiscordTools.deleteMessageById(guildId, instance.channelId.alarms, content.messageId);
         }
 
@@ -756,9 +756,9 @@ export default async (client, interaction) => {
         }
 
         for (const [groupId, content] of Object.entries(server.switchGroups)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (content.switches.includes(ids.entityId.toString())) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 server.switchGroups[groupId].switches = content.switches.filter(e => e !== ids.entityId.toString());
                 client.setInstance(guildId, instance);
                 await DiscordMessages.sendSmartSwitchGroupMessage(guildId, ids.serverId, groupId);

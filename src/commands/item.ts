@@ -60,7 +60,7 @@ export default {
 			if (!foundName) {
 				foundName = client.rustlabs.getClosestOtherNameByName(itemItemName);
 				if (foundName) {
-// @ts-expect-error TS(2322): Type '"other"' is not assignable to type 'null'.
+// @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
 					type = 'other';
 				}
 			}
@@ -68,7 +68,7 @@ export default {
 			if (!foundName) {
 				foundName = client.rustlabs.getClosestBuildingBlockNameByName(itemItemName);
 				if (foundName) {
-// @ts-expect-error TS(2322): Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
+// @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
 					type = 'buildingBlocks';
 				}
 			}
@@ -76,7 +76,7 @@ export default {
 			if (!foundName) {
 				foundName = client.items.getClosestItemIdByName(itemItemName);
 				if (foundName) {
-// @ts-expect-error TS(2322): Type '"items"' is not assignable to type 'null'.
+// @ts-expect-error TS(2322) FIXME: Type '"items"' is not assignable to type 'null'.
 					type = 'items';
 				}
 			}

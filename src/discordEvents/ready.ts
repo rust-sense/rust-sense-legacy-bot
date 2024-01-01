@@ -22,7 +22,7 @@ import Discord from 'discord.js';
 
 import Path from 'path';
 import BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
-// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 export default {

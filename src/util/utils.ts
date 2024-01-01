@@ -37,12 +37,12 @@ export default {
         let counter = 1;
         for (const arg of args) {
             if (counter === n) {
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 newArgs.push(remain);
                 break;
             }
             remain = remain.slice(arg.length).trim();
-            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             newArgs.push(arg);
             counter += 1;
         }
@@ -96,11 +96,11 @@ function levenshteinDistance(s1, s2) {
     const dp = [];
 
     for (let i = 0; i <= m; i++) {
-        // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'never'.
+        // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'never'.
         dp[i] = [i];
     }
     for (let j = 0; j <= n; j++) {
-        // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'never'.
+        // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'never'.
         dp[0][j] = j;
     }
 
@@ -110,7 +110,7 @@ function levenshteinDistance(s1, s2) {
                 dp[i][j] = dp[i - 1][j - 1];
             }
             else {
-                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'never'.
+                // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'never'.
                 dp[i][j] = 1 + Math.min(
                     dp[i - 1][j],
                     dp[i][j - 1],

@@ -22,7 +22,7 @@ import Discord from 'discord.js';
 
 import Path from 'path';
 import Constants from '../util/constants.js';
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import DiscordButtons from './discordButtons.js';
 import DiscordEmbeds from './discordEmbeds.js';
@@ -379,7 +379,7 @@ export default {
         }
 
         if (message.message.includes('@everyone')) {
-            // @ts-expect-error TS(2339): Property 'content' does not exist on type '{ embed... Remove this comment to see the full error message
+            // @ts-expect-error TS(2339) FIXME: Property 'content' does not exist on type '{ embed... Remove this comment to see the full error message
             content.content = '@everyone';
         }
 

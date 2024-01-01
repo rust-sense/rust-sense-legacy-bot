@@ -114,20 +114,20 @@ export default {
         const instance = client.getInstance(guildId);
 
         let list = [];
-        // @ts-expect-error TS(2322): Type 'any[]' is not assignable to type 'never[]'.
+        // @ts-expect-error TS(2322) FIXME: Type 'any[]' is not assignable to type 'never[]'.
         list = [...module.exports.getListOfCommandKeywords(client, guildId)];
         for (const [id, value] of Object.entries(instance.serverList[serverId].alarms)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             list.push(value.command);
         }
 
         for (const [id, value] of Object.entries(instance.serverList[serverId].switches)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             list.push(value.command);
         }
 
         for (const [id, value] of Object.entries(instance.serverList[serverId].switchGroups)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             list.push(value.command);
         }
 

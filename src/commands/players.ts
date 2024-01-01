@@ -192,20 +192,20 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
 
 	for (const name of bmInstance.players[playerId]['nameChangeHistory']) {
 		if (!profileNames.some(e => e['name'] === name['from'])) {
-// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+// @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
 			profileNames.push({ name: name['from'], lastSeen: name['time'] });
 		}
 	}
 
 	for (const name of data) {
 		if (!profileNames.some(e => e['name'] === name['name'])) {
-// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+// @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
 			profileNames.push({ name: name['name'], lastSeen: name['lastSeen'] });
 		}
 	}
 
 	if (!profileNames.some(e => e['name'] === userName)) {
-// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+// @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
 		profileNames.unshift({ name: userName, lastSeen: null });
 	}
 
@@ -234,30 +234,30 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
 
 	let nameChangeHistoryNameCharacters = 0, nameChangeHistoryTimeCharacters = 0;
 	for (const entity of profileNames) {
-// @ts-expect-error TS(2339): Property 'name' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'name' does not exist on type 'never'.
 		const name = `${entity.name}\n`;
 
 		let time = null;
-// @ts-expect-error TS(2339): Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
 		if (entity.lastSeen === null) {
-// @ts-expect-error TS(2322): Type '"​\n"' is not assignable to type 'null'.
+// @ts-expect-error TS(2322) FIXME: Type '"​\n"' is not assignable to type 'null'.
 			time = '\u200B\n';
 		}
 		else {
-// @ts-expect-error TS(2339): Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
 			const unixTime = Math.floor(new Date(entity.lastSeen).getTime() / 1000);
-// @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
+// @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
 			time = `${DiscordTools.getDiscordFormattedDate(unixTime)}\n`;
 		}
 
 		if ((nameChangeHistoryNameCharacters + name.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
-// @ts-expect-error TS(2531): Object is possibly 'null'.
+// @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
 			(nameChangeHistoryTimeCharacters + time.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS) {
 			break;
 		}
 
 		nameChangeHistoryNameCharacters += name.length;
-// @ts-expect-error TS(2531): Object is possibly 'null'.
+// @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
 		nameChangeHistoryTimeCharacters += time.length;
 
 		nameChangeHistoryName += name;

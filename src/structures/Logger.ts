@@ -21,7 +21,7 @@
 import Colors from "colors";
 
 import Winston from "winston";
-// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 class Logger {
@@ -78,7 +78,7 @@ class Logger {
                 );
 
                 if (level === 'error' && Config.general.showCallStackError) {
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     for (const line of (new Error().stack.split(/\r?\n/))) {
                         this.logger.log({ level: level, message: `${time} | ${line}` });
                         console.log(Colors.green(`${time} `) + Colors.red(line));
@@ -102,7 +102,7 @@ class Logger {
                 );
 
                 if (level === 'error' && Config.general.showCallStackError) {
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     for (const line of (new Error().stack.split(/\r?\n/))) {
                         this.logger.log({
                             level: level,

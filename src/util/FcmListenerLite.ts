@@ -60,7 +60,7 @@ export default async (client, guild, steamId) => {
     client.fcmListenersLite[guild.id][steamId] =
         await PushReceiver.listen(credentials[steamId].fcm_credentials, async ({ notification, persistentId }) => {
             /* Create a delay so that buffered notifications are ignored. */
-            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+            // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             if ((new Date() - startTime) < 10000) return;
 
             /* Parse the notification body. */

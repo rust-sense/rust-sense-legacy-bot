@@ -20,7 +20,7 @@
 
 import Discord from 'discord.js';
 
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import TextInput from './discordTextInputs.js';
 
@@ -28,9 +28,9 @@ export default {
     getModal: function (options = {}) {
         const modal = new Discord.ModalBuilder();
 
-        // @ts-expect-error TS(2339): Property 'customId' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'customId' does not exist on type '{}'.
         if (options.hasOwnProperty('customId')) modal.setCustomId(options.customId);
-        // @ts-expect-error TS(2339): Property 'title' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'title' does not exist on type '{}'.
         if (options.hasOwnProperty('title')) modal.setTitle(options.title.slice(0, 45));
 
         return modal;

@@ -54,7 +54,7 @@ export default {
 					string = client.intlGet(interaction.guildId, 'offline');
 				}
 				else {
-// @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+// @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
 					const seconds = (new Date() - client.uptimeBot) / 1000;
 					string = Timer.secondsToFullScale(seconds);
 				}
@@ -66,7 +66,7 @@ export default {
 					break;
 				}
 
-// @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+// @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
 				const seconds = (new Date() - rustplus.uptimeServer) / 1000;
 				string = Timer.secondsToFullScale(seconds);
 			} break;

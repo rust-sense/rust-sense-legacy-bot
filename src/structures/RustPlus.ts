@@ -23,7 +23,7 @@ import Fs from 'fs';
 import Path from 'path';
 import RustPlusLib from '@liamcottle/rustplus.js';
 import Translate from 'translate';
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import Constants from '../util/constants.js';
 import Decay from '../util/decay.js';
@@ -175,7 +175,7 @@ class RustPlus extends RustPlusLib {
         const instance = Client.client.getInstance(this.guildId);
 
         for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             this.markers[name] = { x: location.x, y: location.y, location: location.location };
         }
     }
@@ -773,7 +773,7 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
                         time: time,
                         location: cargoShip.location.string
@@ -793,7 +793,7 @@ class RustPlus extends RustPlusLib {
                         });
                     }
                     else {
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         strings.push(Client.client.intlGet(this.guildId, 'cargoLeavingMapAt', {
                             location: cargoShip.location.string
                         }));
@@ -806,7 +806,7 @@ class RustPlus extends RustPlusLib {
                         });
                     }
                     else {
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         strings.push(Client.client.intlGet(this.guildId, 'cargoLocatedAt', {
                             location: cargoShip.location.string
                         }));
@@ -825,7 +825,7 @@ class RustPlus extends RustPlusLib {
                 }
             }
             else {
-                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCargoShipWasOut) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLast', {
@@ -853,7 +853,7 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     strings.push(Client.client.intlGet(this.guildId, 'chinook47Located', {
                         location: ch47.location.string
                     }));
@@ -867,7 +867,7 @@ class RustPlus extends RustPlusLib {
                     Client.client.intlGet(this.guildId, 'chinook47NotOnMap');
             }
             else {
-                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCH47WasOut) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLast', {
@@ -875,7 +875,7 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     strings.push(Client.client.intlGet(this.guildId, 'timeSinceChinook47OnMap', {
                         time: Timer.secondsToFullScale(secondsSince)
                     }));
@@ -897,11 +897,11 @@ class RustPlus extends RustPlusLib {
             command.toLowerCase().startsWith(`${commandConnectionsEn}`)) {
             let number = null;
             if (command.toLowerCase().startsWith(`${commandConnections}`)) {
-                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandConnections}`.length).trim());
             }
             else {
-                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandConnectionsEn}`.length).trim());
             }
 
@@ -915,7 +915,7 @@ class RustPlus extends RustPlusLib {
                 if (counter === 6) break;
                 if (number === counter) return event;
 
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 strings.push(event);
                 counter += 1;
             }
@@ -951,7 +951,7 @@ class RustPlus extends RustPlusLib {
                         if (counter === 6) break;
                         if (number === counter) return event;
 
-                        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         strings.push(event);
                         counter += 1;
                     }
@@ -988,12 +988,12 @@ class RustPlus extends RustPlusLib {
         let itemSearchName = null, itemSearchQuantity = null;
         if (isNaN(lastWord)) {
             itemSearchName = command;
-            // @ts-expect-error TS(2322): Type '1' is not assignable to type 'null'.
+            // @ts-expect-error TS(2322) FIXME: Type '1' is not assignable to type 'null'.
             itemSearchQuantity = 1;
         }
         else {
             itemSearchName = restString;
-            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+            // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             itemSearchQuantity = parseInt(lastWord);
         }
 
@@ -1022,14 +1022,14 @@ class RustPlus extends RustPlusLib {
             str += `(${craftDetails[2].timeString}): `;
         }
         else {
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             const time = Timer.secondsToFullScale(craftDetails[2].time * quantity, '', true);
             str += `x${quantity} (${time}): `;
         }
 
         for (const ingredient of craftDetails[2].ingredients) {
             const ingredientName = Client.client.items.getName(ingredient.id);
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             str += `${ingredientName} x${ingredient.quantity * quantity}, `;
         }
 
@@ -1056,11 +1056,11 @@ class RustPlus extends RustPlusLib {
             command.toLowerCase().startsWith(`${commandDeathsEn}`)) {
             let number = null;
             if (command.toLowerCase().startsWith(`${commandDeaths}`)) {
-                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandDeaths}`.length).trim());
             }
             else {
-                // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandDeathsEn}`.length).trim());
             }
 
@@ -1077,7 +1077,7 @@ class RustPlus extends RustPlusLib {
                 let str = `${event.time} - ${event.name}: `;
                 if (event.location === null) {
                     if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
-                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
                 }
                 else {
@@ -1088,7 +1088,7 @@ class RustPlus extends RustPlusLib {
                         distance: distance, direction: direction, grid: grid
                     });
                     if (counter === number) return str;
-                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     strings.push(str);
                 }
 
@@ -1128,7 +1128,7 @@ class RustPlus extends RustPlusLib {
                     let str = `${event.time} - `;
                     if (event.location === null) {
                         if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
-                        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
                     }
                     else {
@@ -1139,7 +1139,7 @@ class RustPlus extends RustPlusLib {
                             distance: distance, direction: direction, grid: grid
                         });
                         if (counter === number) return str;
-                        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                        // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         strings.push(str);
                     }
 
@@ -1178,7 +1178,7 @@ class RustPlus extends RustPlusLib {
         }
         else {
             decayItemName = restString;
-            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+            // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             decayItemHp = parseInt(lastWord);
         }
 
@@ -1247,85 +1247,85 @@ class RustPlus extends RustPlusLib {
 
         const details = decayDetails[3];
 
-        // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         const hp = decayItemHp === null ? details.hp : decayItemHp;
-        // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         if (hp > details.hp) {
-            // @ts-expect-error TS(2552): Cannot find name 'client'. Did you mean 'Client'?
+            // @ts-expect-error TS(2552) FIXME: Cannot find name 'client'. Did you mean 'Client'?
             const str = client.intlGet(this.guildId, 'hpExceedMax', {
                 hp: hp,
-                // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+                // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
                 max: details.hp
             });
             return str;
         }
 
-        // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         const decayMultiplier = hp / details.hp;
 
-        // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         let decayString = `${itemName} (${hp}/${details.hp}) `;
         const decayStrings = [];
-        // @ts-expect-error TS(2339): Property 'decayString' does not exist on type 'nev... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'decayString' does not exist on type 'nev... Remove this comment to see the full error message
         if (details.decayString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'decay')}: `;
-            // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
             if (hp === details.hp) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayString}`);
             }
             else {
-                // @ts-expect-error TS(2339): Property 'decay' does not exist on type 'never'.
+                // @ts-expect-error TS(2339) FIXME: Property 'decay' does not exist on type 'never'.
                 const time = Timer.secondsToFullScale(Math.floor(details.decay * decayMultiplier));
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339): Property 'decayOutsideString' does not exist on ty... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'decayOutsideString' does not exist on ty... Remove this comment to see the full error message
         if (details.decayOutsideString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'outside')}: `;
-            // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
             if (hp === details.hp) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayOutsideString}`);
             }
             else {
-                // @ts-expect-error TS(2339): Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
+                // @ts-expect-error TS(2339) FIXME: Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayOutside * decayMultiplier));
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339): Property 'decayInsideString' does not exist on typ... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'decayInsideString' does not exist on typ... Remove this comment to see the full error message
         if (details.decayInsideString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'inside')}: `;
-            // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
             if (hp === details.hp) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayInsideString}`);
             }
             else {
-                // @ts-expect-error TS(2339): Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
+                // @ts-expect-error TS(2339) FIXME: Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayInside * decayMultiplier));
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339): Property 'decayUnderwaterString' does not exist on... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'decayUnderwaterString' does not exist on... Remove this comment to see the full error message
         if (details.decayUnderwaterString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'underwater')}: `;
-            // @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
             if (hp === details.hp) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayUnderwaterString}`);
             }
             else {
-                // @ts-expect-error TS(2339): Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
+                // @ts-expect-error TS(2339) FIXME: Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayUnderwater * decayMultiplier));
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
@@ -1459,7 +1459,7 @@ class RustPlus extends RustPlusLib {
         let counter = 0;
         for (const e of this.events[event]) {
             if (counter === 5 || counter === number) break;
-            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             strings.push(e);
             counter += 1;
         }
@@ -1480,7 +1480,7 @@ class RustPlus extends RustPlusLib {
                 });
             }
             else {
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 strings.push(Client.client.intlGet(this.guildId, 'patrolHelicopterLocatedAt', {
                     location: patrolHelicopter.location.string
                 }));
@@ -1496,7 +1496,7 @@ class RustPlus extends RustPlusLib {
                     Client.client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
             }
             else if (wasOnMap !== null && wasDestroyed === null) {
-                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - wasOnMap) / 1000;
                 if (isInfoChannel) {
                     const timeSince = Timer.secondsToFullScale(secondsSince, 's');
@@ -1513,9 +1513,9 @@ class RustPlus extends RustPlusLib {
             }
             else if (wasOnMap !== null && wasDestroyed !== null) {
                 if (isInfoChannel) {
-                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000, 's');
-                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceDestroyed = Timer.secondsToFullScale((new Date() - wasDestroyed) / 1000, 's');
                     return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedShort', {
                         time1: timeSinceOnMap,
@@ -1525,9 +1525,9 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000);
-                    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceDestroyed = Timer.secondsToFullScale((new Date() - wasDestroyed) / 1000);
                     return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedLong', {
                         time1: timeSinceOnMap,
@@ -1554,7 +1554,7 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
                         time: time,
                         location: this.mapMarkers.crateLargeOilRigLocation
@@ -1569,7 +1569,7 @@ class RustPlus extends RustPlusLib {
                     Client.client.intlGet(this.guildId, 'noDataOnLargeOilRig');
             }
             else {
-                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceLargeOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
@@ -1852,9 +1852,9 @@ class RustPlus extends RustPlusLib {
                             (orderItemId === parseInt(itemId) || orderCurrencyId === parseInt(itemId))) ||
                             (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
                             (orderType === 'sell' && orderItemId === parseInt(itemId))) {
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             if (locations.includes(vendingMachine.location.location)) continue;
-                            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             locations.push(vendingMachine.location.location);
                         }
                     }
@@ -1937,7 +1937,7 @@ class RustPlus extends RustPlusLib {
                 const names = { all: '', buy: '', sell: '' };
                 for (const [ot, itemIds] of Object.entries(instance.marketSubscriptionList)) {
                     let counter = 0;
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     for (const itemId of itemIds) {
                         if (counter === 0) names[ot] += `${Client.client.intlGet(this.guildId, ot)}: `;
                         names[ot] += `${Client.client.items.getName(itemId)} (${itemId}), `;
@@ -1992,7 +1992,7 @@ class RustPlus extends RustPlusLib {
 
             const strings = [];
             for (const [id, note] of Object.entries(instance.serverList[this.serverId].notes)) {
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 strings.push(`${id}: ${note}`);
             }
             return strings;
@@ -2110,7 +2110,7 @@ class RustPlus extends RustPlusLib {
             }
 
             for (const playerId of bmInstance.getOnlinePlayerIdsOrderedByTime()) {
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 if (bmInstance.players[playerId]['name'].includes(name)) foundPlayers.push(playerId);
             }
 
@@ -2213,7 +2213,7 @@ class RustPlus extends RustPlusLib {
                             return curr;
                         }
                     });
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     closestPlayers.push(player);
                     players = players.filter(e => e.steamId !== player.steamId);
                 }
@@ -2221,9 +2221,9 @@ class RustPlus extends RustPlusLib {
 
             let string = '';
             for (const player of closestPlayers) {
-                // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+                // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                 const distance = Math.floor(Map.getDistance(player.x, player.y, caller.x, caller.y));
-                // @ts-expect-error TS(2339): Property 'name' does not exist on type 'never'.
+                // @ts-expect-error TS(2339) FIXME: Property 'name' does not exist on type 'never'.
                 string += `${player.name} (${distance}m [${player.pos.location}]), `;
             }
 
@@ -2278,12 +2278,12 @@ class RustPlus extends RustPlusLib {
         let itemSearchName = null, itemSearchQuantity = null;
         if (isNaN(lastWord)) {
             itemSearchName = command;
-            // @ts-expect-error TS(2322): Type '1' is not assignable to type 'null'.
+            // @ts-expect-error TS(2322) FIXME: Type '1' is not assignable to type 'null'.
             itemSearchQuantity = 1;
         }
         else {
             itemSearchName = restString;
-            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
+            // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             itemSearchQuantity = parseInt(lastWord);
         }
 
@@ -2433,7 +2433,7 @@ class RustPlus extends RustPlusLib {
                     });
                 }
                 else {
-                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
                         time: time,
                         location: this.mapMarkers.crateSmallOilRigLocation
@@ -2448,7 +2448,7 @@ class RustPlus extends RustPlusLib {
                     Client.client.intlGet(this.guildId, 'noDataOnSmallOilRig');
             }
             else {
-                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+                // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceSmallOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
@@ -2580,13 +2580,13 @@ class RustPlus extends RustPlusLib {
 
             const strings = [];
             for (const [id, content] of Object.entries(this.timers)) {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 const timeLeft = Timer.getTimeLeftOfTimer(content.timer);
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 strings.push(Client.client.intlGet(this.guildId, 'timeLeftTimer', {
                     id: parseInt(id),
                     time: timeLeft,
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     message: content.message
                 }));
             }
@@ -2621,7 +2621,7 @@ class RustPlus extends RustPlusLib {
                     timer: new Timer.timer(
                         () => {
                             this.sendInGameMessage(Client.client.intlGet(this.guildId, 'timer',
-                                // @ts-expect-error TS(2554): Expected 1 arguments, but got 2.
+                                // @ts-expect-error TS(2554) FIXME: Expected 1 arguments, but got 2.
                                 { message: message }), 'TIMER');
                             delete this.timers[id]
                         },
@@ -2672,10 +2672,10 @@ class RustPlus extends RustPlusLib {
                 language = command.slice(`${commandTrEn} ${commandLanguageEn} `.length).trim();
             }
 
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             if (language in Languages) {
                 return Client.client.intlGet(this.guildId, 'languageCode', {
-                    // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+                    // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
                     code: Languages[language]
                 });
             }
@@ -2735,13 +2735,13 @@ class RustPlus extends RustPlusLib {
         }
         catch (e) {
             const regex = new RegExp('The language "(.*?)"');
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             const invalidLanguage = regex.exec(e.message);
 
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             if (invalidLanguage.length === 2) {
                 return Client.client.intlGet(this.guildId, 'languageLangNotSupported', {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
+                    // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
                     language: invalidLanguage[1]
                 });
             }
@@ -2781,14 +2781,14 @@ class RustPlus extends RustPlusLib {
         let cupboardFound = false;
         const strings = [];
         for (const [key, value] of Object.entries(instance.serverList[this.serverId].storageMonitors)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (value.type !== 'toolCupboard') continue;
 
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (value.upkeep) {
                 cupboardFound = true;
                 const upkeepStr = Client.client.intlGet(this.guildId, 'upkeep').toLowerCase();
-                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 strings.push(`${value.name} [${key}] ${upkeepStr}: ${value.upkeep}`);
             }
         }
@@ -2803,7 +2803,7 @@ class RustPlus extends RustPlusLib {
         let uptimeServer = this.uptimeServer;
 
         if (uptimeBot !== null) {
-            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+            // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             const seconds = (new Date() - uptimeBot) / 1000;
             uptimeBot = Timer.secondsToFullScale(seconds);
         }
@@ -2812,7 +2812,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (uptimeServer !== null) {
-            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+            // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             const seconds = (new Date() - uptimeServer) / 1000;
             uptimeServer = Timer.secondsToFullScale(seconds);
         }

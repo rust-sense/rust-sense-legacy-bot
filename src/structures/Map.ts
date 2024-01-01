@@ -24,7 +24,7 @@ import Gm from 'gm';
 import Jimp from 'jimp';
 import Path from 'path';
 import Constants from '../util/constants.js';
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 class Map {
@@ -336,10 +336,10 @@ class Map {
 
     async setupMapMarkerImages() {
         for (const [marker, content] of Object.entries(this.mapMarkerImageMeta)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             content.jimp = await Jimp.read(content.image);
             if (marker !== 'map') {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 content.jimp.resize(content.size, content.size);
             }
         }
@@ -410,15 +410,15 @@ class Map {
 
             try {
                 const markerImageMeta = this.getMarkerImageMetaByType(marker.type);
-                // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+                // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
                 const size = this.mapMarkerImageMeta[markerImageMeta].size;
 
                 /* Rotate */
-                // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+                // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
                 this.mapMarkerImageMeta[markerImageMeta].jimp.rotate(marker.rotation);
 
                 this.mapMarkerImageMeta.map.jimp.composite(
-                    // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+                    // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
                     this.mapMarkerImageMeta[markerImageMeta].jimp, x - (size / 2), y - (size / 2)
                 );
             }
@@ -456,7 +456,7 @@ class Map {
             image.stroke(Constants.COLOR_CARGO_TRACER, 2);
             for (const [id, coords] of Object.entries(this.rustplus.cargoShipTracers)) {
                 let prev = null;
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 for (const point of coords) {
                     if (prev === null) {
                         prev = point;
@@ -473,7 +473,7 @@ class Map {
             image.stroke(Constants.COLOR_PATROL_HELICOPTER_TRACER, 2);
             for (const [id, coords] of Object.entries(this.rustplus.patrolHelicopterTracers)) {
                 let prev = null;
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 for (const point of coords) {
                     if (prev === null) {
                         prev = point;
@@ -496,7 +496,7 @@ class Map {
 
     getMarkerImageMetaByType(type) {
         for (const [marker, content] of Object.entries(this.mapMarkerImageMeta)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (content.type === type) {
                 return marker;
             }
@@ -508,7 +508,7 @@ class Map {
         const matches = [];
         for (const monument of this.monuments) {
             if (monument.token === monumentName) {
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 matches.push(monument);
             }
         }
@@ -529,7 +529,7 @@ class Map {
                     reject(err);
                 }
                 else {
-                    // @ts-expect-error TS(2794): Expected 1 arguments, but got 0. Did you forget to... Remove this comment to see the full error message
+                    // @ts-expect-error TS(2794) FIXME: Expected 1 arguments, but got 0. Did you forget to... Remove this comment to see the full error message
                     resolve()
                 }
             })

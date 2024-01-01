@@ -18,7 +18,7 @@
 
 */
 
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 export default {
@@ -55,7 +55,7 @@ export default {
                         Client.client.intlGet(rustplus.guildId, 'northOfGrid');
                     str += ` ${module.exports.getGridPosLettersX(x, correctedMapSize)}`;
                 }
-                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
                 pos.location = str;
             }
         }
@@ -72,7 +72,7 @@ export default {
             }
         }
 
-        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
+        // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
         pos.string = `${pos.location}${pos.monument !== null ? ` (${pos.monument})` : ''}`;
 
         return pos;

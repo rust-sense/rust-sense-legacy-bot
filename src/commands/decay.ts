@@ -147,13 +147,13 @@ export default {
 
 		const details = decayDetails[3];
 
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 		const hp = decayItemHp === null ? details.hp : decayItemHp;
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 		if (hp > details.hp) {
 			const str = client.intlGet(guildId, 'hpExceedMax', {
 				hp: hp,
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 				max: details.hp
 			});
 			await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
@@ -161,72 +161,72 @@ export default {
 			return;
 		}
 
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 		const decayMultiplier = hp / details.hp;
 
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 		let decayString = `${itemName} (${hp}/${details.hp}) `;
 		const decayStrings = [];
-// @ts-expect-error TS(2339): Property 'decayString' does not exist on type 'nev... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayString' does not exist on type 'nev... Remove this comment to see the full error message
 		if (details.decayString !== null) {
 			const str = `${client.intlGet(guildId, 'decay')}: `;
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 			if (hp === details.hp) {
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${details.decayString}`);
 			}
 			else {
-// @ts-expect-error TS(2339): Property 'decay' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'decay' does not exist on type 'never'.
 				const time = Timer.secondsToFullScale(Math.floor(details.decay * decayMultiplier));
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${time}`);
 			}
 		}
 
-// @ts-expect-error TS(2339): Property 'decayOutsideString' does not exist on ty... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayOutsideString' does not exist on ty... Remove this comment to see the full error message
 		if (details.decayOutsideString !== null) {
 			const str = `${client.intlGet(guildId, 'outside')}: `;
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 			if (hp === details.hp) {
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${details.decayOutsideString}`);
 			}
 			else {
-// @ts-expect-error TS(2339): Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
 				const time = Timer.secondsToFullScale(Math.floor(details.decayOutside * decayMultiplier));
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${time}`);
 			}
 		}
 
-// @ts-expect-error TS(2339): Property 'decayInsideString' does not exist on typ... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayInsideString' does not exist on typ... Remove this comment to see the full error message
 		if (details.decayInsideString !== null) {
 			const str = `${client.intlGet(guildId, 'inside')}: `;
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 			if (hp === details.hp) {
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${details.decayInsideString}`);
 			}
 			else {
-// @ts-expect-error TS(2339): Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
 				const time = Timer.secondsToFullScale(Math.floor(details.decayInside * decayMultiplier));
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${time}`);
 			}
 		}
 
-// @ts-expect-error TS(2339): Property 'decayUnderwaterString' does not exist on... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayUnderwaterString' does not exist on... Remove this comment to see the full error message
 		if (details.decayUnderwaterString !== null) {
 			const str = `${client.intlGet(guildId, 'underwater')}: `;
-// @ts-expect-error TS(2339): Property 'hp' does not exist on type 'never'.
+// @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
 			if (hp === details.hp) {
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${details.decayUnderwaterString}`);
 			}
 			else {
-// @ts-expect-error TS(2339): Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
+// @ts-expect-error TS(2339) FIXME: Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
 				const time = Timer.secondsToFullScale(Math.floor(details.decayUnderwater * decayMultiplier));
-// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
+// @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 				decayStrings.push(`${str}${time}`);
 			}
 		}

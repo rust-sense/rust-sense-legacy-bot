@@ -21,7 +21,7 @@
 import Discord from 'discord.js';
 
 import Constants from '../util/constants.js';
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 const SUCCESS = Discord.ButtonStyle.Success;
@@ -34,17 +34,17 @@ export default {
     getButton: function (options = {}) {
         const button = new Discord.ButtonBuilder();
 
-        // @ts-expect-error TS(2339): Property 'customId' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'customId' does not exist on type '{}'.
         if (options.hasOwnProperty('customId')) button.setCustomId(options.customId);
-        // @ts-expect-error TS(2339): Property 'label' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'label' does not exist on type '{}'.
         if (options.hasOwnProperty('label')) button.setLabel(options.label);
-        // @ts-expect-error TS(2339): Property 'style' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'style' does not exist on type '{}'.
         if (options.hasOwnProperty('style')) button.setStyle(options.style);
-        // @ts-expect-error TS(2339): Property 'url' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'url' does not exist on type '{}'.
         if (options.hasOwnProperty('url') && options.url !== '') button.setURL(options.url);
-        // @ts-expect-error TS(2339): Property 'emoji' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'emoji' does not exist on type '{}'.
         if (options.hasOwnProperty('emoji')) button.setEmoji(options.emoji);
-        // @ts-expect-error TS(2339): Property 'disabled' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type '{}'.
         if (options.hasOwnProperty('disabled')) button.setDisabled(options.disabled);
 
         return button;
@@ -57,11 +57,11 @@ export default {
 
         if (state === null) {
             if (instance.activeServer === serverId && Client.client.activeRustplusInstances[guildId]) {
-                // @ts-expect-error TS(2322): Type '1' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type '1' is not assignable to type 'null'.
                 state = 1;
             }
             else {
-                // @ts-expect-error TS(2322): Type '0' is not assignable to type 'null'.
+                // @ts-expect-error TS(2322) FIXME: Type '0' is not assignable to type 'null'.
                 state = 0;
             }
         }

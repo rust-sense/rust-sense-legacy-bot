@@ -20,9 +20,9 @@
 
 import Axios from 'axios';
 
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
-// @ts-expect-error TS(2732): Cannot find module '../staticFiles/RandomUsernames... Remove this comment to see the full error message
+// @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/RandomUsernames... Remove this comment to see the full error message
 import RandomUsernames from '../staticFiles/RandomUsernames.json';
 const Utils = require = require('../util/utils.js');
 
@@ -339,9 +339,9 @@ class Battlemetrics {
             if (!name['attributes'].hasOwnProperty('lastSeen')) continue;
 
             parsed.push({
-                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+                // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 'name': name['attributes']['identifier'],
-                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
+                // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 'lastSeen': name['attributes']['lastSeen']
             });
         }
@@ -431,13 +431,13 @@ class Battlemetrics {
     #formatTime(timestamp) {
         const date = new Date(timestamp);
         const now = Date.now();
-        // @ts-expect-error TS(2363): The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
+        // @ts-expect-error TS(2363) FIXME: The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
         const diffMs = now - date;
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
         const hoursStr = diffHours.toString().padStart(2, '0');
         const minutesStr = diffMinutes.toString().padStart(2, '0');
-        // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
+        // @ts-expect-error TS(2345) FIXME: Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
         return [parseInt(diffMs / 1000), `${hoursStr}:${minutesStr}`];
     }
 
@@ -455,14 +455,14 @@ class Battlemetrics {
 
         const response = await this.#request(api_call);
 
-        // @ts-expect-error TS(2339): Property 'status' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'status' does not exist on type '{}'.
         if (response.status !== 200) {
             Client.client.log(Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: api_call }), 'error');
             return null;
         }
 
-        // @ts-expect-error TS(2339): Property 'data' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type '{}'.
         return response.data;
     }
 
@@ -496,12 +496,12 @@ class Battlemetrics {
      *  flag will be set to false.
      */
     async updateStreamerMode() {
-        // @ts-expect-error TS(2345): Argument of type '30' is not assignable to paramet... Remove this comment to see the full error message
+        // @ts-expect-error TS(2345) FIXME: Argument of type '30' is not assignable to paramet... Remove this comment to see the full error message
         const data = await this.request(this.GET_SERVER_MOST_TIME_PLAYED_API_CALL(this.id, 30));
         if (!data) return;
 
         const parsed = this.#parseMostTimePlayedApiResponse(data);
-        // @ts-expect-error TS(2339): Property 'players' does not exist on type 'Object'... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'players' does not exist on type 'Object'... Remove this comment to see the full error message
         for (const player of parsed.players) {
             if (!RandomUsernames.RandomUsernames.includes(player.name)) this.streamerMode = false;
         }
@@ -518,7 +518,7 @@ class Battlemetrics {
         const search = this.SEARCH_SERVER_NAME_API_CALL(name);
         const response = await this.#request(search);
 
-        // @ts-expect-error TS(2339): Property 'status' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'status' does not exist on type '{}'.
         if (response.status !== 200) {
             Client.client.log(Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: search }), 'error');
@@ -526,7 +526,7 @@ class Battlemetrics {
         }
 
         /* Find the correct server. */
-        // @ts-expect-error TS(2339): Property 'data' does not exist on type '{}'.
+        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type '{}'.
         for (const server of response.data.data) {
             if (server.attributes.name === originalName) {
                 return server.id;
@@ -574,7 +574,7 @@ class Battlemetrics {
 
         /* Server parameter evaluation */
 
-        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'never'.
+        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type 'never'.
         const attributes = data.data.attributes;
         this.serverEvaluation = new Object();
         this.#evaluateServerParameter('server_name', this.server_name, attributes.name, firstTime);
@@ -653,7 +653,7 @@ class Battlemetrics {
         this.onlinePlayers = [];
         this.offlinePlayers = [];
 
-        // @ts-expect-error TS(2339): Property 'included' does not exist on type 'never'... Remove this comment to see the full error message
+        // @ts-expect-error TS(2339) FIXME: Property 'included' does not exist on type 'never'... Remove this comment to see the full error message
         const included = data.included;
         for (const entity of included) {
             if (entity.type !== 'player') continue;
@@ -744,7 +744,7 @@ class Battlemetrics {
         }
 
         for (const [playerId, content] of Object.entries(this.players)) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             if (content['status'] === false) this.offlinePlayers.push(playerId);
         }
 
@@ -845,7 +845,7 @@ class Battlemetrics {
      *  @param {string} playerId The id of the player to get offline time from.
      *  @return {Array} index 0: seconds offline, index 1: The formatted offline time of a player.
      */
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     getOfflineTime(playerId) {
         if (!this.lastUpdateSuccessful || !this.players.hasOwnProperty(playerId) ||
             !this.players[playerId]['logoutDate']) {
@@ -863,7 +863,7 @@ class Battlemetrics {
         const unordered = [];
         for (const playerId of this.onlinePlayers) {
             const seconds = this.#formatTime(this.players[playerId]['updatedAt']);
-            // @ts-expect-error TS(2322): Type 'string | number' is not assignable to type '... Remove this comment to see the full error message
+            // @ts-expect-error TS(2322) FIXME: Type 'string | number' is not assignable to type '... Remove this comment to see the full error message
             unordered.push([seconds !== null ? seconds[0] : 0, playerId]);
         }
         const ordered = unordered.sort(function (a, b) { return b[0] - a[0] })
@@ -878,7 +878,7 @@ class Battlemetrics {
         const unordered = [];
         for (const playerId of this.offlinePlayers) {
             const seconds = this.#formatTime(this.players[playerId]['logoutDate']);
-            // @ts-expect-error TS(2322): Type 'string | number' is not assignable to type '... Remove this comment to see the full error message
+            // @ts-expect-error TS(2322) FIXME: Type 'string | number' is not assignable to type '... Remove this comment to see the full error message
             unordered.push([seconds !== null ? seconds[0] : 0, playerId]);
         }
         const ordered = unordered.sort(function (a, b) { return a[0] - b[0] })
@@ -890,7 +890,7 @@ class Battlemetrics {
      *  @param {string} playerId The id of the player to get offline time from.
      *  @return {Array} index 0: seconds offline, index 1: The formatted offline time of a player.
      */
-    // @ts-expect-error TS(2393): Duplicate function implementation.
+    // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     getOfflineTime(playerId) {
         if (!this.lastUpdateSuccessful || !this.players.hasOwnProperty(playerId) ||
             !this.players[playerId]['logoutDate']) {

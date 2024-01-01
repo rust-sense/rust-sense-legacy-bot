@@ -18,7 +18,7 @@
 
 */
 
-// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
+// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 import Player from './Player.js';
@@ -167,7 +167,7 @@ class Team {
 
         for (const player of team.members) {
             if (!this.isPlayerInTeam(player.steamId.toString())) {
-                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 newPlayers.push(player.steamId.toString());
             }
         }

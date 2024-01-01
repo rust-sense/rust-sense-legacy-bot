@@ -30,7 +30,7 @@ class Items {
         this._items = JSON.parse(Fs.readFileSync(
             Path.join(__dirname, '..', 'staticFiles', 'items.json'), 'utf8'));
 
-        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
         this._itemNames = Object.values(this.items).map(item => item.name);
     }
 
@@ -64,7 +64,7 @@ class Items {
     getClosestItemIdByName(name) {
         const closestString = Utils.findClosestString(name, this.itemNames);
         if (closestString !== null) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             const id = Object.entries(this.items).find(([key, value]) => value.name === closestString);
             return id ? id[0] : null;
         }
