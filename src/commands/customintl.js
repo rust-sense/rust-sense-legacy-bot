@@ -196,15 +196,15 @@ async function showCustomIntl(client, interaction) {
         ) {
             fieldIndex += 1;
 
-            keyString.push('');
-            messageString.push('');
+            keyStrings.push('');
+            messageStrings.push('');
 
             keyStringsCharacters = 0;
             messageStringsCharacters = 0;
         }
 
         keyStringsCharacters += keyString.length;
-        messageStringsCharacters += messageStringsCharacters.length;
+        messageStringsCharacters += messageString.length;
 
         totalCharacters += keyString.length + messageString.length;
 
