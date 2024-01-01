@@ -20,10 +20,21 @@
 
 import RustPlusLib from '@liamcottle/rustplus.js';
 
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 class RustPlusLite extends RustPlusLib {
+    guildId: any;
+    isActive: any;
+    logger: any;
+    on: any;
+    port: any;
+    rustplus: any;
+    sendRequestAsync: any;
+    server: any;
+    serverId: any;
     constructor(guildId, logger, rustplus, serverIp, appPort, steamId, playerToken) {
         super(serverIp, appPort, steamId, playerToken);
 
@@ -38,9 +49,13 @@ class RustPlusLite extends RustPlusLib {
     }
 
     loadRustPlusLiteEvents() {
+        // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
         this.on('connected', (...args) => rustPlusLiteConnectedEvent(this, ...args));
+        // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
         this.on('connecting', (...args) => rustPlusLiteConnectingEvent(this, ...args));
+        // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
         this.on('disconnected', (...args) => rustPlusLiteDisconnectedEvent(this, ...args));
+        // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
         this.on('error', (...args) => rustPlusLiteErrorEvent(this, ...args));
     }
 

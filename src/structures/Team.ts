@@ -18,11 +18,18 @@
 
 */
 
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 import Player from './Player.js';
 
 class Team {
+    _allOffline: any;
+    _allOnline: any;
+    _leaderSteamId: any;
+    _players: any;
+    _rustplus: any;
+    _teamSize: any;
     constructor(team, rustplus) {
         this._leaderSteamId = team.leaderSteamId.toString();
         this._players = [];
@@ -74,8 +81,8 @@ class Team {
 
         let unhandled = this.players.slice();
         /* Add new players and update existing players */
-        for (let player of team.members) {
-            let steamId = player.steamId.toString();
+        for (const player of team.members) {
+            const steamId = player.steamId.toString();
             if (this.players.some(e => e.steamId === steamId)) {
                 this.getPlayer(steamId).updatePlayer(player);
                 unhandled = unhandled.filter(e => e.steamId !== steamId);
@@ -96,21 +103,21 @@ class Team {
         }
 
         /* Remove players that have left */
-        for (let player of unhandled) {
+        for (const player of unhandled) {
             this.removePlayer(player);
         }
 
         /* Update variables */
         this.allOnline = true;
         this.allOffline = true;
-        for (let player of this.players) {
+        for (const player of this.players) {
             this.allOnline = (this.allOnline && player.isOnline);
             this.allOffline = (this.allOffline && !player.isOnline);
         }
 
         this.teamSize = this.players.length;
 
-        let player = this.getPlayer(this.leaderSteamId);
+        const player = this.getPlayer(this.leaderSteamId);
         if (player !== null) {
             player.teamLeader = true;
         }
@@ -130,14 +137,14 @@ class Team {
     }
 
     getPlayer(steamId) {
-        for (let player of this.players) {
+        for (const player of this.players) {
             if (player.steamId === steamId) return player;
         }
         return null;
     }
 
     isPlayerInTeam(steamId) {
-        let player = this.getPlayer(steamId);
+        const player = this.getPlayer(steamId);
         if (player !== null) return true;
         return false;
     }
@@ -149,17 +156,18 @@ class Team {
     }
 
     async changeLeadership(steamId) {
-        let player = this.getPlayer(steamId);
+        const player = this.getPlayer(steamId);
         if (player !== null) {
             await player.assignLeader();
         }
     }
 
     getNewPlayers(team) {
-        let newPlayers = [];
+        const newPlayers = [];
 
-        for (let player of team.members) {
+        for (const player of team.members) {
             if (!this.isPlayerInTeam(player.steamId.toString())) {
+                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 newPlayers.push(player.steamId.toString());
             }
         }
@@ -170,8 +178,8 @@ class Team {
     getLeftPlayers(team) {
         let leftPlayers = this.players.map(function (e) { return e.steamId; });
 
-        for (let player of team.members) {
-            let steamId = player.steamId.toString();
+        for (const player of team.members) {
+            const steamId = player.steamId.toString();
             if (this.players.some(e => e.steamId === steamId)) {
                 leftPlayers = leftPlayers.filter(e => e !== steamId);
             }

@@ -22,6 +22,7 @@ import Discord from 'discord.js';
 
 import Fs from 'fs';
 import Path from 'path';
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import Constants from '../util/constants.js';
 import Languages from '../util/languages.js';
@@ -30,14 +31,19 @@ export default {
     getSelectMenu: function (options = {}) {
         const selectMenu = new Discord.StringSelectMenuBuilder();
 
+        // @ts-expect-error TS(2339): Property 'customId' does not exist on type '{}'.
         if (options.hasOwnProperty('customId')) selectMenu.setCustomId(options.customId);
+        // @ts-expect-error TS(2339): Property 'placeholder' does not exist on type '{}'... Remove this comment to see the full error message
         if (options.hasOwnProperty('placeholder')) selectMenu.setPlaceholder(options.placeholder);
         if (options.hasOwnProperty('options')) {
+            // @ts-expect-error TS(2339): Property 'options' does not exist on type '{}'.
             for (const option of options.options) {
                 option.description = option.description.substring(0, Constants.SELECT_MENU_MAX_DESCRIPTION_CHARACTERS);
             }
+            // @ts-expect-error TS(2339): Property 'options' does not exist on type '{}'.
             selectMenu.setOptions(options.options);
         }
+        // @ts-expect-error TS(2339): Property 'disabled' does not exist on type '{}'.
         if (options.hasOwnProperty('disabled')) selectMenu.setDisabled(options.disabled);
 
         return selectMenu;
@@ -53,10 +59,13 @@ export default {
             let langLong = Object.keys(Languages).find(e => Languages[e] === langShort)
             if (!langLong) langLong = Client.client.intlGet(guildId, 'unknown');
             options.push({
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 label: `${langLong} (${langShort})`,
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 description: Client.client.intlGet(guildId, 'setBotLanguage', {
                     language: `${langLong} (${langShort})`
                 }),
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 value: langShort
             });
         }

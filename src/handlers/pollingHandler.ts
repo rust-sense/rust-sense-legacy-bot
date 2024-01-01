@@ -34,13 +34,13 @@ import VendingMachines from '../handlers/vendingMachineHandler.js';
 export default {
     pollingHandler: async function (rustplus, client) {
         /* Poll information such as info, mapMarkers, teamInfo and time */
-        let info = await rustplus.getInfoAsync();
+        const info = await rustplus.getInfoAsync();
         if (!(await rustplus.isResponseValid(info))) return;
-        let mapMarkers = await rustplus.getMapMarkersAsync();
+        const mapMarkers = await rustplus.getMapMarkersAsync();
         if (!(await rustplus.isResponseValid(mapMarkers))) return;
-        let teamInfo = await rustplus.getTeamInfoAsync();
+        const teamInfo = await rustplus.getTeamInfoAsync();
         if (!(await rustplus.isResponseValid(teamInfo))) return;
-        let time = await rustplus.getTimeAsync();
+        const time = await rustplus.getTimeAsync();
         if (!(await rustplus.isResponseValid(time))) return;
 
         if (rustplus.isFirstPoll) {

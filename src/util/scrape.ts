@@ -43,7 +43,7 @@ export default {
             return null;
         }
 
-        let png = response.data.match(/<img src="(.*_full.jpg)(.*?(?="))/);
+        const png = response.data.match(/<img src="(.*_full.jpg)(.*?(?="))/);
         if (png) {
             return png[1];
         }
@@ -61,8 +61,8 @@ export default {
             return null;
         }
 
-        let regex = new RegExp(`class="actual_persona_name">(.+?)</span>`, 'gm');
-        let data = regex.exec(response.data);
+        const regex = new RegExp(`class="actual_persona_name">(.+?)</span>`, 'gm');
+        const data = regex.exec(response.data);
         if (data) {
             return Utils.decodeHtml(data[1]);
         }

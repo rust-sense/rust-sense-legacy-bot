@@ -64,6 +64,7 @@ async function checkBotLeaveVoice(client, oldState, newState) {
         channel = newState.channel;
     }
 
+    // @ts-expect-error TS(2339): Property 'members' does not exist on type 'never'.
     if (condition && channel && channel.members.size === 1) {
         client.voiceLeaveTimeouts[guildId] = setTimeout(botLeaveVoiceTimeout.bind(null, guildId),
             Constants.BOT_LEAVE_VOICE_CHAT_TIMEOUT_MS);

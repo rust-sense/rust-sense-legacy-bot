@@ -21,6 +21,7 @@
 import _ from 'lodash';
 
 import Builder from '@discordjs/builders';
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
@@ -136,6 +137,7 @@ async function addCredentials(client, interaction, verifyId) {
     const steamId = interaction.options.getString('steam_id');
     const isHoster = interaction.options.getBoolean('host') || Object.keys(credentials).length === 1;
 
+    // @ts-expect-error TS(2367): This condition will always return 'true' since the... Remove this comment to see the full error message
     if (Object.keys(credentials) !== 1 && isHoster) {
         if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');

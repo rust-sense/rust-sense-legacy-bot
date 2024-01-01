@@ -22,6 +22,7 @@ import Discord from 'discord.js';
 
 import Path from 'path';
 import BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 export default {
@@ -60,7 +61,7 @@ export default {
 
         client.uptimeBot = new Date();
 
-        for (let guildArray of client.guilds.cache) {
+        for (const guildArray of client.guilds.cache) {
             const guild = guildArray[1];
 
             try {

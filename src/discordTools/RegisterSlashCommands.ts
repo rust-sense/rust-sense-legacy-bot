@@ -23,6 +23,7 @@ import Fs from "fs";
 import Path from 'path';
 import Rest from '@discordjs/rest';
 import Types from 'discord-api-types/v9';
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 export default async (client, guild) => {
@@ -31,6 +32,7 @@ export default async (client, guild) => {
 
     for (const file of commandFiles) {
         const command = require(`../commands/${file}`);
+        // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
         commands.push(command.getData(client, guild.id).toJSON());
     }
 

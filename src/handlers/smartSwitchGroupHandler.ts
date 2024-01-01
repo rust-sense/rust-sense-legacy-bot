@@ -30,6 +30,7 @@ export default {
         const instance = client.getInstance(guildId);
 
         for (const [groupId, content] of Object.entries(instance.serverList[serverId].switchGroups)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             if (content.switches.includes(`${switchId}`)) {
                 await DiscordMessages.sendSmartSwitchGroupMessage(guildId, serverId, groupId);
             }
@@ -40,10 +41,12 @@ export default {
     getGroupsFromSwitchList: function (client, guildId, serverId, switches) {
         const instance = client.getInstance(guildId);
 
-        let groupsId = [];
-        for (let entity of switches) {
+        const groupsId = [];
+        for (const entity of switches) {
             for (const [groupId, content] of Object.entries(instance.serverList[serverId].switchGroups)) {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (content.switches.includes(entity) && !groupsId.includes(groupId)) {
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     groupsId.push(groupId);
                 }
             }
@@ -65,10 +68,14 @@ export default {
                     delete rustplus.currentSwitchTimeouts[entityId];
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (value && !content.active) {
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     actionSwitches.push(entityId);
                 }
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 else if (!value && content.active) {
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     actionSwitches.push(entityId);
                 }
             }

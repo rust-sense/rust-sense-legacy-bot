@@ -62,10 +62,11 @@ export default async (client, guild) => {
         steamId: hoster
     }));
 
-    let startTime = new Date();
+    const startTime = new Date();
     client.fcmListeners[guild.id] =
         await PushReceiver.listen(credentials[hoster].fcm_credentials, async ({ notification, persistentId }) => {
             /* Create a delay so that buffered notifications are ignored. */
+            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             if ((new Date() - startTime) < 5000) return;
 
             /* Parse the notification body. */
@@ -224,6 +225,7 @@ async function pairingServer(client, guild, full, data, body) {
         storageMonitors: server ? server.storageMonitors : {},
         markers: server ? server.markers : {},
         switchGroups: server ? server.switchGroups : {},
+        // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
         messageId: (message !== undefined) ? message.id : null,
         battlemetricsId: battlemetricsId,
         connect: (!bmInstance.lastUpdateSuccessful) ? null :
@@ -436,6 +438,7 @@ async function alarmAlarm(client, guild, full, data, body) {
 
     if ((!rustplus || (rustplus && (rustplus.serverId !== serverId))) &&
         instance.generalSettings.fcmAlarmNotificationEnabled) {
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         server.alarms[entityId].lastTrigger = Math.floor(new Date() / 1000);
         client.setInstance(guild.id, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
@@ -452,6 +455,7 @@ async function alarmRaidAlarm(client, guild, full, data, body) {
 
     const files = [];
     if (body.img === '') {
+        // @ts-expect-error TS(2345): Argument of type 'AttachmentBuilder' is not assign... Remove this comment to see the full error message
         files.push(new Discord.AttachmentBuilder(Path.join(__dirname, '..', `resources/images/rocket.png`)));
     }
 

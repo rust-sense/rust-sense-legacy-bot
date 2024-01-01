@@ -24,9 +24,19 @@ import Gm from 'gm';
 import Jimp from 'jimp';
 import Path from 'path';
 import Constants from '../util/constants.js';
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 class Map {
+    _background: any;
+    _font: any;
+    _height: any;
+    _mapMarkerImageMeta: any;
+    _monumentInfo: any;
+    _monuments: any;
+    _oceanMargin: any;
+    _rustplus: any;
+    _width: any;
     constructor(map, rustplus) {
         this._width = map.width;
         this._height = map.height;
@@ -326,8 +336,10 @@ class Map {
 
     async setupMapMarkerImages() {
         for (const [marker, content] of Object.entries(this.mapMarkerImageMeta)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             content.jimp = await Jimp.read(content.image);
             if (marker !== 'map') {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 content.jimp.resize(content.size, content.size);
             }
         }
@@ -340,14 +352,14 @@ class Map {
             return;
         }
 
-        for (let monument of this.monuments) {
-            let x = monument.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
-            let n = this.height - 2 * this.oceanMargin;
-            let y = this.height - (monument.y * (n / this.rustplus.info.mapSize) + this.oceanMargin);
+        for (const monument of this.monuments) {
+            const x = monument.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
+            const n = this.height - 2 * this.oceanMargin;
+            const y = this.height - (monument.y * (n / this.rustplus.info.mapSize) + this.oceanMargin);
 
             try {
                 if (monument.token === "train_tunnel_display_name") {
-                    let size = this.mapMarkerImageMeta.tunnels.size;
+                    const size = this.mapMarkerImageMeta.tunnels.size;
                     this.mapMarkerImageMeta.map.jimp.composite(
                         this.mapMarkerImageMeta.tunnels.jimp, x - (size / 2), y - (size / 2)
                     );
@@ -362,9 +374,9 @@ class Map {
                     /* Compensate for the text placement */
                     if (monument.token === 'DungeonBase') continue;
 
-                    let name = (this.monumentInfo.hasOwnProperty(monument.token)) ?
+                    const name = (this.monumentInfo.hasOwnProperty(monument.token)) ?
                         this.monumentInfo[monument.token].map : monument.token;
-                    let comp = name.length * 5;
+                    const comp = name.length * 5;
                     this.mapMarkerImageMeta.map.jimp.print(
                         this.font, x - comp, y - 10, name);
                 }
@@ -382,12 +394,12 @@ class Map {
             return;
         }
 
-        let mapMarkers = await this.rustplus.getMapMarkersAsync();
+        const mapMarkers = await this.rustplus.getMapMarkersAsync();
         if (!(await this.rustplus.isResponseValid(mapMarkers))) return;
 
-        for (let marker of mapMarkers.mapMarkers.markers) {
+        for (const marker of mapMarkers.mapMarkers.markers) {
             let x = marker.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
-            let n = this.height - 2 * this.oceanMargin;
+            const n = this.height - 2 * this.oceanMargin;
             let y = this.height - (marker.y * (n / this.rustplus.info.mapSize) + this.oceanMargin);
 
             /* Compensate rotations */
@@ -397,13 +409,16 @@ class Map {
             }
 
             try {
-                let markerImageMeta = this.getMarkerImageMetaByType(marker.type);
-                let size = this.mapMarkerImageMeta[markerImageMeta].size;
+                const markerImageMeta = this.getMarkerImageMetaByType(marker.type);
+                // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
+                const size = this.mapMarkerImageMeta[markerImageMeta].size;
 
                 /* Rotate */
+                // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
                 this.mapMarkerImageMeta[markerImageMeta].jimp.rotate(marker.rotation);
 
                 this.mapMarkerImageMeta.map.jimp.composite(
+                    // @ts-expect-error TS(2538): Type 'null' cannot be used as an index type.
                     this.mapMarkerImageMeta[markerImageMeta].jimp, x - (size / 2), y - (size / 2)
                 );
             }
@@ -441,6 +456,7 @@ class Map {
             image.stroke(Constants.COLOR_CARGO_TRACER, 2);
             for (const [id, coords] of Object.entries(this.rustplus.cargoShipTracers)) {
                 let prev = null;
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 for (const point of coords) {
                     if (prev === null) {
                         prev = point;
@@ -457,6 +473,7 @@ class Map {
             image.stroke(Constants.COLOR_PATROL_HELICOPTER_TRACER, 2);
             for (const [id, coords] of Object.entries(this.rustplus.patrolHelicopterTracers)) {
                 let prev = null;
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 for (const point of coords) {
                     if (prev === null) {
                         prev = point;
@@ -479,6 +496,7 @@ class Map {
 
     getMarkerImageMetaByType(type) {
         for (const [marker, content] of Object.entries(this.mapMarkerImageMeta)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             if (content.type === type) {
                 return marker;
             }
@@ -487,9 +505,10 @@ class Map {
     }
 
     getMonumentsByName(monumentName) {
-        let matches = [];
-        for (let monument of this.monuments) {
+        const matches = [];
+        for (const monument of this.monuments) {
             if (monument.token === monumentName) {
+                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 matches.push(monument);
             }
         }
@@ -510,6 +529,7 @@ class Map {
                     reject(err);
                 }
                 else {
+                    // @ts-expect-error TS(2794): Expected 1 arguments, but got 0. Did you forget to... Remove this comment to see the full error message
                     resolve()
                 }
             })

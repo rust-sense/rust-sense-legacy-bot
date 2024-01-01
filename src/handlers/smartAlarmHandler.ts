@@ -82,6 +82,7 @@ export default {
         }
 
         const lastTriggerDate = new Date(alarms[entityId].lastTrigger * 1000);
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         const timeSinceTriggerSeconds = Math.floor((new Date() - lastTriggerDate) / 1000);
         const time = Timer.secondsToFullScale(timeSinceTriggerSeconds);
 

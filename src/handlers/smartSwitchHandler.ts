@@ -51,6 +51,7 @@ export default {
                         client.setInstance(guildId, instance);
 
                         await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         changedSwitches.push(entityId);
                     }
                 }
@@ -60,6 +61,7 @@ export default {
                         client.setInstance(guildId, instance);
 
                         await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                        // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         changedSwitches.push(entityId);
                     }
                 }
@@ -69,6 +71,7 @@ export default {
         /* Go through all Smart Switches and see if the auto day/night setting is on and if it just became day/night */
         if (rustplus.time.isTurnedDay(time)) {
             for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches)) {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (content.autoDayNightOnOff === 1) {
                     instance.serverList[serverId].switches[entityId].active = true;
                     client.setInstance(guildId, instance);
@@ -90,8 +93,10 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 else if (content.autoDayNightOnOff === 2) {
                     instance.serverList[serverId].switches[entityId].active = false;
                     client.setInstance(guildId, instance);
@@ -113,12 +118,14 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
         }
         else if (rustplus.time.isTurnedNight(time)) {
             for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches)) {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (content.autoDayNightOnOff === 1) {
                     instance.serverList[serverId].switches[entityId].active = false;
                     client.setInstance(guildId, instance);
@@ -140,8 +147,10 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 else if (content.autoDayNightOnOff === 2) {
                     instance.serverList[serverId].switches[entityId].active = true;
                     client.setInstance(guildId, instance);
@@ -163,13 +172,16 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
         }
 
         for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             if (content.autoDayNightOnOff === 3) { /* AUTO-ON */
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (content.active) continue;
 
                 instance.serverList[serverId].switches[entityId].active = true;
@@ -192,9 +204,12 @@ export default {
                 client.setInstance(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 changedSwitches.push(entityId);
             }
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             else if (content.autoDayNightOnOff === 4) { /* AUTO-OFF */
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if (!content.active) continue;
 
                 instance.serverList[serverId].switches[entityId].active = false;
@@ -217,16 +232,20 @@ export default {
                 client.setInstance(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 changedSwitches.push(entityId);
             }
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             else if (content.autoDayNightOnOff === 5 && content.location !== null) { /* AUTO-ON-PROXIMITY */
                 let shouldBeOn = false;
                 for (const player of rustplus.team.players) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     if (Map.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
                         shouldBeOn = true;
                     }
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                     instance.serverList[serverId].switches[entityId].active = shouldBeOn;
                     client.setInstance(guildId, instance);
@@ -248,17 +267,21 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             else if (content.autoDayNightOnOff === 6 && content.location !== null) { /* AUTO-OFF-PROXIMITY */
                 let shouldBeOn = true;
                 for (const player of rustplus.team.players) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     if (Map.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
                         shouldBeOn = false;
                     }
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                     instance.serverList[serverId].switches[entityId].active = shouldBeOn;
                     client.setInstance(guildId, instance);
@@ -280,15 +303,18 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             else if (content.autoDayNightOnOff === 7) { /* AUTO-ON-ANY-ONLINE */
                 let shouldBeOn = false;
                 for (const player of rustplus.team.players) {
                     if (player.isOnline) shouldBeOn = true;
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                     instance.serverList[serverId].switches[entityId].active = shouldBeOn;
                     client.setInstance(guildId, instance);
@@ -310,15 +336,18 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             else if (content.autoDayNightOnOff === 8) { /* AUTO-OFF-ANY-ONLINE */
                 let shouldBeOn = true;
                 for (const player of rustplus.team.players) {
                     if (player.isOnline) shouldBeOn = false;
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                     instance.serverList[serverId].switches[entityId].active = shouldBeOn;
                     client.setInstance(guildId, instance);
@@ -340,15 +369,16 @@ export default {
                     client.setInstance(guildId, instance);
 
                     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+                    // @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     changedSwitches.push(entityId);
                 }
             }
         }
 
-        let groupsId = SmartSwitchGroupHandler.getGroupsFromSwitchList(
+        const groupsId = SmartSwitchGroupHandler.getGroupsFromSwitchList(
             client, guildId, serverId, changedSwitches);
 
-        for (let groupId of groupsId) {
+        for (const groupId of groupsId) {
             await DiscordMessages.sendSmartSwitchGroupMessage(guildId, serverId, groupId);
         }
     },

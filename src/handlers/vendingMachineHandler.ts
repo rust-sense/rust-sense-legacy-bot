@@ -81,7 +81,9 @@ export default {
                     const currencyName = client.items.getName(currencyId);
 
                     const items = [];
+                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     if (subscriptionList[orderType].includes(itemId)) items.push(itemName)
+                    // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     if (subscriptionList[orderType].includes(currencyId)) items.push(currencyName)
 
                     const str = client.intlGet(guildId, 'itemAvailableInVendingMachine', {

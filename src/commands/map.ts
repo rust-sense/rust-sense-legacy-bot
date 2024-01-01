@@ -86,10 +86,12 @@ export default {
 
 		let file = null;
 		if (interaction.options.getSubcommand() === 'clean') {
+// @ts-expect-error TS(2322): Type 'AttachmentBuilder' is not assignable to type... Remove this comment to see the full error message
 			file = new Discord.AttachmentBuilder(
 				Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_clean.png`));
 		}
 		else {
+// @ts-expect-error TS(2322): Type 'AttachmentBuilder' is not assignable to type... Remove this comment to see the full error message
 			file = new Discord.AttachmentBuilder(
 				Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_full.png`));
 		}

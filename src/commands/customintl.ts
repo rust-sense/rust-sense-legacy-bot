@@ -21,6 +21,7 @@
 import _ from 'lodash';
 
 import Builder from '@discordjs/builders';
+// @ts-expect-error TS(2307): Cannot find module '../../config/index.js' or its ... Remove this comment to see the full error message
 import Config from '../../config/index.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
@@ -86,6 +87,7 @@ export default {
                 break;
 
             case 'show':
+                // @ts-expect-error TS(2554): Expected 2 arguments, but got 3.
                 showCustomIntl(client, interaction, verifyId);
                 break;
 
@@ -177,7 +179,7 @@ async function showCustomIntl(client, interaction) {
     let totalCharacters = title.length + keyFieldName.length + messageFieldName.length;
     let fieldIndex = 0;
 
-    let keyStrings = [''],
+    const keyStrings = [''],
         messageStrings = [''];
     let keyStringsCharacters = 0,
         messageStringsCharacters = 0;
@@ -215,13 +217,19 @@ async function showCustomIntl(client, interaction) {
     const fields = [];
     for (let i = 0; i < fieldIndex + 1; i++) {
         fields.push({
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             name: i === 0 ? keyFieldName : '\u200B',
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             value: keyStrings[i] !== '' ? keyStrings[i] : client.intlGet(guildId, 'empty'),
+            // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
             inline: true,
         });
         fields.push({
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             name: i === 0 ? messageFieldName : '\u200B',
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             value: messageStrings[i] !== '' ? messageStrings[i] : client.intlGet(guildId, 'empty'),
+            // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
             inline: true,
         });
     }

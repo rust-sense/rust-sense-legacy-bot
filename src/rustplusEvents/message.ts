@@ -183,6 +183,7 @@ async function messageBroadcastEntityChangedSmartAlarm(rustplus, client, message
     client.setInstance(rustplus.guildId, instance);
 
     if (active) {
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         server.alarms[entityId].lastTrigger = Math.floor(new Date() / 1000);
         client.setInstance(rustplus.guildId, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(rustplus.guildId, serverId, entityId);

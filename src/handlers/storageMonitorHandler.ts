@@ -24,7 +24,7 @@ import DiscordMessages from '../discordTools/discordMessages.js';
 
 export default {
     handler: async function (rustplus, client) {
-        let instance = client.getInstance(rustplus.guildId);
+        const instance = client.getInstance(rustplus.guildId);
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 

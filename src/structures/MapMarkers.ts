@@ -24,6 +24,32 @@ import Map from '../util/map.js';
 import Timer from '../util/timer';
 
 class MapMarkers {
+    _cargoShips: any;
+    _ch47s: any;
+    _client: any;
+    _genericRadiuses: any;
+    _markers: any;
+    _patrolHelicopters: any;
+    _players: any;
+    _rustplus: any;
+    _types: any;
+    _vendingMachines: any;
+    cargoShipEgressTimers: any;
+    crateLargeOilRigLocation: any;
+    crateLargeOilRigTimer: any;
+    crateSmallOilRigLocation: any;
+    crateSmallOilRigTimer: any;
+    foundItems: any;
+    knownVendingMachines: any;
+    patrolHelicopterDestroyedLocation: any;
+    subscribedItemsId: any;
+    timeSinceCH47WasOut: any;
+    timeSinceCargoShipWasOut: any;
+    timeSinceLargeOilRigWasTriggered: any;
+    timeSincePatrolHelicopterWasDestroyed: any;
+    timeSincePatrolHelicopterWasOnMap: any;
+    timeSinceSmallOilRigWasTriggered: any;
+    validCrateMonuments: any;
     constructor(mapMarkers, rustplus, client) {
         this._markers = mapMarkers.markers;
 
@@ -135,9 +161,10 @@ class MapMarkers {
             return [];
         }
 
-        let markersOfType = [];
-        for (let marker of markers) {
+        const markersOfType = [];
+        for (const marker of markers) {
             if (marker.type === type) {
+                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 markersOfType.push(marker);
             }
         }
@@ -155,6 +182,7 @@ class MapMarkers {
 
     isMarkerPresentByTypeId(type, id, markers = null) {
         if (markers) {
+            // @ts-expect-error TS(2339): Property 'some' does not exist on type 'never'.
             return markers.some(e => e.id === id);
         }
         else {
@@ -163,9 +191,10 @@ class MapMarkers {
     }
 
     getNewMarkersOfTypeId(type, markers) {
-        let newMarkersOfType = [];
+        const newMarkersOfType = [];
 
-        for (let marker of this.getMarkersOfType(type, markers)) {
+        for (const marker of this.getMarkersOfType(type, markers)) {
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             if (!this.isMarkerPresentByTypeId(type, marker.id)) {
                 newMarkersOfType.push(marker);
             }
@@ -177,8 +206,10 @@ class MapMarkers {
     getLeftMarkersOfTypeId(type, markers) {
         let leftMarkersOfType = this.getType(type).slice();
 
-        for (let marker of this.getMarkersOfType(type, markers)) {
+        for (const marker of this.getMarkersOfType(type, markers)) {
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             if (this.isMarkerPresentByTypeId(type, marker.id)) {
+                // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
                 leftMarkersOfType = leftMarkersOfType.filter(e => e.id !== marker.id);
             }
         }
@@ -187,10 +218,11 @@ class MapMarkers {
     }
 
     getRemainingMarkersOfTypeId(type, markers) {
-        let remainingMarkersOfType = [];
+        const remainingMarkersOfType = [];
 
-        for (let marker of markers) {
+        for (const marker of markers) {
             if (this.isMarkerPresentByTypeId(type, marker.id)) {
+                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 remainingMarkersOfType.push(marker);
             }
         }
@@ -200,6 +232,7 @@ class MapMarkers {
 
     isMarkerPresentByTypeXY(type, x, y, markers = null) {
         if (markers) {
+            // @ts-expect-error TS(2339): Property 'some' does not exist on type 'never'.
             return markers.some(e => e.x === x && e.y === y);
         }
         else {
@@ -208,9 +241,10 @@ class MapMarkers {
     }
 
     getNewMarkersOfTypeXY(type, markers) {
-        let newMarkersOfType = [];
+        const newMarkersOfType = [];
 
-        for (let marker of this.getMarkersOfType(type, markers)) {
+        for (const marker of this.getMarkersOfType(type, markers)) {
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             if (!this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
                 newMarkersOfType.push(marker);
             }
@@ -222,8 +256,10 @@ class MapMarkers {
     getLeftMarkersOfTypeXY(type, markers) {
         let leftMarkersOfType = this.getType(type).slice();
 
-        for (let marker of this.getMarkersOfType(type, markers)) {
+        for (const marker of this.getMarkersOfType(type, markers)) {
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             if (this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
+                // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
                 leftMarkersOfType = leftMarkersOfType.filter(e => e.x !== marker.x) || e.y !== marker.y;
             }
         }
@@ -232,10 +268,11 @@ class MapMarkers {
     }
 
     getRemainingMarkersOfTypeXY(type, markers) {
-        let remainingMarkersOfType = [];
+        const remainingMarkersOfType = [];
 
-        for (let marker of markers) {
+        for (const marker of markers) {
             if (this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
+                // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                 remainingMarkersOfType.push(marker);
             }
         }
@@ -258,50 +295,59 @@ class MapMarkers {
     }
 
     updatePlayers(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeId(this.types.Player, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.Player, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.Player, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeId(this.types.Player, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeId(this.types.Player, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.Player, mapMarkers.markers);
 
         /* Player markers that are new. */
-        for (let marker of newMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+        for (const marker of newMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
+            // @ts-expect-error TS(2339): Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             this.players.push(marker);
         }
 
         /* Player markers that have left. */
-        for (let marker of leftMarkers) {
+        for (const marker of leftMarkers) {
             this.players = this.players.filter(e => e.id !== marker.id);
         }
 
         /* Player markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            let player = this.getMarkerByTypeId(this.types.Player, marker.id);
+        for (const marker of remainingMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
+            const player = this.getMarkerByTypeId(this.types.Player, marker.id);
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             player.x = marker.x;
+            // @ts-expect-error TS(2339): Property 'y' does not exist on type 'never'.
             player.y = marker.y;
             player.location = pos;
         }
     }
 
     updateVendingMachines(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeXY(this.types.VendingMachine, mapMarkers.markers);
 
         /* VendingMachine markers that are new. */
-        for (let marker of newMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+        for (const marker of newMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
+            // @ts-expect-error TS(2339): Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             if (!this.rustplus.isFirstPoll) {
+                // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
                 if (!this.knownVendingMachines.some(e => e.x === marker.x && e.y === marker.y)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.vendingMachineDetectedSetting,
@@ -311,55 +357,67 @@ class MapMarkers {
                 }
             }
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             this.knownVendingMachines.push({ x: marker.x, y: marker.y });
             this.vendingMachines.push(marker);
         }
 
         /* VendingMachine markers that have left. */
-        for (let marker of leftMarkers) {
+        for (const marker of leftMarkers) {
+            // @ts-expect-error TS(2304): Cannot find name 'e'.
             this.vendingMachines = this.vendingMachines.filter(e => e.x !== marker.x) || e.y !== marker.y;
         }
 
         /* VendingMachine markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            let vendingMachine = this.getMarkerByTypeXY(this.types.VendingMachine, marker.x, marker.y);
+        for (const marker of remainingMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const vendingMachine = this.getMarkerByTypeXY(this.types.VendingMachine, marker.x, marker.y);
 
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             vendingMachine.id = marker.id;
             vendingMachine.location = pos;
         }
     }
 
     updateCH47s(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
 
         /* CH47 markers that are new. */
-        for (let marker of newMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+        for (const marker of newMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
+            // @ts-expect-error TS(2339): Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
-            let smallOilRig = [], largeOilRig = [];
-            for (let monument of this.rustplus.map.monuments) {
+            const smallOilRig = [], largeOilRig = [];
+            for (const monument of this.rustplus.map.monuments) {
                 if (monument.token === 'oil_rig_small') {
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     smallOilRig.push({ x: monument.x, y: monument.y })
                 }
                 else if (monument.token === 'large_oil_rig') {
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     largeOilRig.push({ x: monument.x, y: monument.y })
                 }
             }
 
             let found = false;
             if (!this.rustplus.isFirstPoll) {
-                for (let oilRig of smallOilRig) {
+                for (const oilRig of smallOilRig) {
+                    // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
                     if (Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
                         Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
                         found = true;
-                        let oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+                        const oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        // @ts-expect-error TS(2339): Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
                         marker.ch47Type = 'smallOilRig';
 
                         this.rustplus.sendEvent(
@@ -375,7 +433,7 @@ class MapMarkers {
                             this.crateSmallOilRigTimer.stop();
                         }
 
-                        let instance = this.client.getInstance(this.rustplus.guildId);
+                        const instance = this.client.getInstance(this.rustplus.guildId);
                         this.crateSmallOilRigTimer = new Timer.timer(
                             this.notifyCrateSmallOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
@@ -390,11 +448,14 @@ class MapMarkers {
             }
 
             if (!found && !this.rustplus.isFirstPoll) {
-                for (let oilRig of largeOilRig) {
+                for (const oilRig of largeOilRig) {
+                    // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
                     if (Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
                         Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
                         found = true;
-                        let oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+                        const oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        // @ts-expect-error TS(2339): Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
                         marker.ch47Type = 'largeOilRig';
 
                         this.rustplus.sendEvent(
@@ -410,7 +471,7 @@ class MapMarkers {
                             this.crateLargeOilRigTimer.stop();
                         }
 
-                        let instance = this.client.getInstance(this.rustplus.guildId);
+                        const instance = this.client.getInstance(this.rustplus.guildId);
                         this.crateLargeOilRigTimer = new Timer.timer(
                             this.notifyCrateLargeOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
@@ -426,9 +487,10 @@ class MapMarkers {
 
             if (!found) {
                 /* Offset that is used to determine if CH47 just spawned */
-                let offset = 4 * Map.gridDiameter;
+                const offset = 4 * Map.gridDiameter;
 
                 /* If CH47 is located outside the grid system + the offset */
+                // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
                 if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.chinook47DetectedSetting,
@@ -443,6 +505,7 @@ class MapMarkers {
                         'chinook',
                         Constants.COLOR_CHINOOK47_LOCATED);
                 }
+                // @ts-expect-error TS(2339): Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
                 marker.ch47Type = 'crate';
             }
 
@@ -450,7 +513,7 @@ class MapMarkers {
         }
 
         /* CH47 markers that have left. */
-        for (let marker of leftMarkers) {
+        for (const marker of leftMarkers) {
             if (marker.ch47Type === 'crate') {
                 this.timeSinceCH47WasOut = new Date();
                 this.rustplus.log(this.client.intlGet(null, 'eventCap'),
@@ -461,36 +524,45 @@ class MapMarkers {
         }
 
         /* CH47 markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            let ch47 = this.getMarkerByTypeId(this.types.CH47, marker.id);
+        for (const marker of remainingMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
+            const ch47 = this.getMarkerByTypeId(this.types.CH47, marker.id);
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             ch47.x = marker.x;
+            // @ts-expect-error TS(2339): Property 'y' does not exist on type 'never'.
             ch47.y = marker.y;
             ch47.location = pos;
         }
     }
 
     updateCargoShips(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
 
         /* CargoShip markers that are new. */
-        for (let marker of newMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+        for (const marker of newMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             this.rustplus.cargoShipTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
+            // @ts-expect-error TS(2339): Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
+            // @ts-expect-error TS(2339): Property 'onItsWayOut' does not exist on type 'nev... Remove this comment to see the full error message
             marker.onItsWayOut = false;
 
             /* Offset that is used to determine if CargoShip just spawned */
-            let offset = 4 * Map.gridDiameter;
+            const offset = 4 * Map.gridDiameter;
 
             /* If CargoShip is located outside the grid system + the offset */
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.cargoShipDetectedSetting,
@@ -498,11 +570,14 @@ class MapMarkers {
                     'cargo',
                     Constants.COLOR_CARGO_SHIP_ENTERS_MAP);
 
-                let instance = this.client.getInstance(this.rustplus.guildId);
+                const instance = this.client.getInstance(this.rustplus.guildId);
+                // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
                 this.cargoShipEgressTimers[marker.id] = new Timer.timer(
                     this.notifyCargoShipEgress.bind(this),
                     instance.serverList[this.rustplus.serverId].cargoShipEgressTimeMs,
+                    // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
                     marker.id);
+                // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
                 this.cargoShipEgressTimers[marker.id].start();
             }
             else {
@@ -517,7 +592,7 @@ class MapMarkers {
         }
 
         /* CargoShip markers that have left. */
-        for (let marker of leftMarkers) {
+        for (const marker of leftMarkers) {
             this.rustplus.sendEvent(
                 this.rustplus.notificationSettings.cargoShipLeftSetting,
                 this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftMap', { location: marker.location.string }),
@@ -536,61 +611,73 @@ class MapMarkers {
         }
 
         /* CargoShip markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            let cargoShip = this.getMarkerByTypeId(this.types.CargoShip, marker.id);
+        for (const marker of remainingMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
+            const cargoShip = this.getMarkerByTypeId(this.types.CargoShip, marker.id);
 
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             this.rustplus.cargoShipTracers[marker.id].push({ x: marker.x, y: marker.y });
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             cargoShip.x = marker.x;
+            // @ts-expect-error TS(2339): Property 'y' does not exist on type 'never'.
             cargoShip.y = marker.y;
             cargoShip.location = pos;
         }
     }
 
     updateGenericRadiuses(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.GenericRadius, mapMarkers.markers);
 
         /* GenericRadius markers that are new. */
-        for (let marker of newMarkers) {
+        for (const marker of newMarkers) {
             this.genericRadiuses.push(marker);
         }
 
         /* GenericRadius markers that have left. */
-        for (let marker of leftMarkers) {
+        for (const marker of leftMarkers) {
             this.genericRadiuses = this.genericRadiuses.filter(e => e.id !== marker.id);
         }
 
         /* GenericRadius markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let genericRadius = this.getMarkerByTypeId(this.types.GenericRadius, marker.id);
+        for (const marker of remainingMarkers) {
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
+            const genericRadius = this.getMarkerByTypeId(this.types.GenericRadius, marker.id);
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             genericRadius.x = marker.x;
+            // @ts-expect-error TS(2339): Property 'y' does not exist on type 'never'.
             genericRadius.y = marker.y;
         }
     }
 
     updatePatrolHelicopters(mapMarkers) {
-        let newMarkers = this.getNewMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
-        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
-        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
+        const newMarkers = this.getNewMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
+        const leftMarkers = this.getLeftMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
+        const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.PatrolHelicopter, mapMarkers.markers);
 
         /* PatrolHelicopter markers that are new. */
-        for (let marker of newMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+        for (const marker of newMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             this.rustplus.patrolHelicopterTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
+            // @ts-expect-error TS(2339): Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             /* Offset that is used to determine if PatrolHelicopter just spawned */
-            let offset = 4 * Map.gridDiameter;
+            const offset = 4 * Map.gridDiameter;
 
             /* If PatrolHelicopter is located outside the grid system + the offset */
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDetectedSetting,
@@ -614,8 +701,8 @@ class MapMarkers {
         }
 
         /* PatrolHelicopter markers that have left. */
-        for (let marker of leftMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
+        for (const marker of leftMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
 
             if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize)) {
                 this.rustplus.sendEvent(
@@ -648,14 +735,19 @@ class MapMarkers {
         }
 
         /* PatrolHelicopter markers that still remains. */
-        for (let marker of remainingMarkers) {
-            let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            let patrolHelicopter = this.getMarkerByTypeId(this.types.PatrolHelicopter, marker.id);
+        for (const marker of remainingMarkers) {
+            const mapSize = this.rustplus.info.correctedMapSize;
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
+            const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
+            const patrolHelicopter = this.getMarkerByTypeId(this.types.PatrolHelicopter, marker.id);
 
+            // @ts-expect-error TS(2339): Property 'id' does not exist on type 'never'.
             this.rustplus.patrolHelicopterTracers[marker.id].push({ x: marker.x, y: marker.y });
 
+            // @ts-expect-error TS(2339): Property 'x' does not exist on type 'never'.
             patrolHelicopter.x = marker.x;
+            // @ts-expect-error TS(2339): Property 'y' does not exist on type 'never'.
             patrolHelicopter.y = marker.y;
             patrolHelicopter.location = pos;
         }
@@ -666,8 +758,8 @@ class MapMarkers {
     /* Timer notification functions */
 
     notifyCargoShipEgress(args) {
-        let id = args[0];
-        let marker = this.getMarkerByTypeId(this.types.CargoShip, id);
+        const id = args[0];
+        const marker = this.getMarkerByTypeId(this.types.CargoShip, id);
 
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.cargoShipEgressSetting,
@@ -686,7 +778,7 @@ class MapMarkers {
     }
 
     notifyCrateSmallOilRigOpen(args) {
-        let oilRigLocation = args[0];
+        const oilRigLocation = args[0];
 
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.lockedCrateOilRigUnlockedSetting,
@@ -704,7 +796,7 @@ class MapMarkers {
     }
 
     notifyCrateLargeOilRigOpen(args) {
-        let oilRigLocation = args[0];
+        const oilRigLocation = args[0];
 
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.lockedCrateOilRigUnlockedSetting,
@@ -726,8 +818,8 @@ class MapMarkers {
     getClosestMonument(x, y) {
         let minDistance = 1000000;
         let closestMonument = null;
-        for (let monument of this.rustplus.map.monuments) {
-            let distance = Map.getDistance(x, y, monument.x, monument.y);
+        for (const monument of this.rustplus.map.monuments) {
+            const distance = Map.getDistance(x, y, monument.x, monument.y);
             if (distance < minDistance && this.validCrateMonuments.includes(monument.token)) {
                 minDistance = distance;
                 closestMonument = monument;
@@ -746,6 +838,7 @@ class MapMarkers {
         this.patrolHelicopters = [];
 
         for (const [id, timer] of Object.entries(this.cargoShipEgressTimers)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             timer.stop();
         }
         this.cargoShipEgressTimers = new Object();

@@ -20,6 +20,7 @@
 
 import DiscordMessages from '../discordTools/discordMessages.js';
 
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 export default {
@@ -53,6 +54,7 @@ export default {
         if (rustplus.mapMarkers) rustplus.mapMarkers.reset();
 
         /* Stop all custom timers */
+        // @ts-expect-error TS(2571): Object is of type 'unknown'.
         for (const [id, timer] of Object.entries(rustplus.timers)) timer.timer.stop();
 
         if (rustplus.isDeleted) return;
@@ -61,6 +63,7 @@ export default {
         if (client.activeRustplusInstances[guildId]) {
             if (!client.rustplusReconnecting[guildId]) {
                 await DiscordMessages.sendServerChangeStateMessage(guildId, serverId, 1);
+                // @ts-expect-error TS(2345): Argument of type '2' is not assignable to paramete... Remove this comment to see the full error message
                 await DiscordMessages.sendServerMessage(guildId, serverId, 2);
             }
 

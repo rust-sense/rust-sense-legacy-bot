@@ -24,6 +24,7 @@ import Fs from 'fs';
 import Path from 'path';
 
 class Cctv {
+    _cctvs: any;
     constructor() {
         this._cctvs = JSON.parse(Fs.readFileSync(
             Path.join(__dirname, '..', 'staticFiles', 'cctv.json'), 'utf8'));
@@ -44,7 +45,6 @@ class Cctv {
         if (!this.cctvExist(monument)) return undefined;
         return this.cctvs[monument].codes;
     }
-
 }
 
 export default Cctv;

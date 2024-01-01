@@ -24,6 +24,20 @@ import Map from '../util/map.js';
 import Time from '../util/timer.js';
 
 class Player {
+    _afkSeconds: any;
+    _deathTime: any;
+    _isAlive: any;
+    _isOnline: any;
+    _lastMovement: any;
+    _name: any;
+    _pos: any;
+    _rustplus: any;
+    _spawnTime: any;
+    _steamId: any;
+    _teamLeader: any;
+    _wentOfflineTime: any;
+    _x: any;
+    _y: any;
     constructor(player, rustplus) {
         this._steamId = player.steamId.toString();
         this._name = player.name;
@@ -100,6 +114,7 @@ class Player {
             !this.isAfk() &&
             !this.isMoved(player) &&
             this.isOnline &&
+            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             ((new Date() - this.lastMovement) / 1000) >= Constants.AFK_TIME_SECONDS);
     }
 
@@ -122,6 +137,7 @@ class Player {
                 this.afkSeconds = 0;
             }
             else {
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 this.afkSeconds = (new Date() - this.lastMovement) / 1000;
             }
         }
@@ -147,22 +163,26 @@ class Player {
         }
     }
 
+    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
     getAfkSeconds() { return (new Date() - this.lastMovement) / 1000; }
     getAfkTime(ignore = '') { return Time.secondsToFullScale(this.getAfkSeconds(), ignore); }
 
     getAliveSeconds() {
         if (this.spawnTime === 0) return 0;
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         return (new Date() - new Date(this.spawnTime * 1000)) / 1000;
     }
     getAliveTime(ignore = '') { return Time.secondsToFullScale(this.getAliveSeconds(), ignore); }
 
     getDeathSeconds() {
         if (this.deathTime === 0) return 0;
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         return (new Date() - new Date(this.deathTime * 1000)) / 1000;
     }
     getDeathTime(ignore = '') { return (Time.secondsToFullScale(this.getDeathSeconds(), ignore)); }
     getOfflineTime(ignore = '') {
         if (this.wentOfflineTime === null) return null;
+        // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
         const seconds = (new Date() - this.wentOfflineTime) / 1000;
         return (Time.secondsToFullScale(seconds, ignore));
     }

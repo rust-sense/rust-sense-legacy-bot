@@ -21,6 +21,17 @@
 import TimeLib from '../util/timer.js';
 
 class Time {
+    _client: any;
+    _dayLengthMinutes: any;
+    _rustplus: any;
+    _startTime: any;
+    _sunrise: any;
+    _sunset: any;
+    _time: any;
+    _timeScale: any;
+    _timeTillActive: any;
+    _timeTillDay: any;
+    _timeTillNight: any;
     constructor(time, rustplus, client) {
         this._dayLengthMinutes = time.dayLengthMinutes;
         this._timeScale = time.timeScale;
@@ -77,7 +88,7 @@ class Time {
     isTurnedNight(time) { return (this.isDay() && !(time.time >= time.sunrise && time.time < time.sunset)); }
 
     loadTimeTillConfig() {
-        let instance = this.client.getInstance(this.rustplus.guildId);
+        const instance = this.client.getInstance(this.rustplus.guildId);
 
         if (instance.serverList[this.rustplus.serverId].timeTillDay !== null) {
             this.timeTillDay = instance.serverList[this.rustplus.serverId].timeTillDay;
@@ -112,14 +123,15 @@ class Time {
             object = this.timeTillDay;
         }
 
-        let time = this.time;
-        let closest = Object.keys(object).map(Number).reduce(function (a, b) {
+        const time = this.time;
+        // @ts-expect-error TS(2769): No overload matches this call.
+        const closest = Object.keys(object).map(Number).reduce(function (a, b) {
             return (Math.abs(b - time) < Math.abs(a - time) ? b : a);
         });
 
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
         return TimeLib.secondsToFullScale(object[closest], ignore);
     }
-
 }
 
 export default Time;

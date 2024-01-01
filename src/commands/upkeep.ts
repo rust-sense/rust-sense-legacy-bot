@@ -142,9 +142,11 @@ export default {
 		const details = upkeepDetails[3];
 
 		const items = [];
+// @ts-expect-error TS(2488): Type 'never' must have a '[Symbol.iterator]()' met... Remove this comment to see the full error message
 		for (const item of details) {
 			const name = client.items.getName(item.id);
 			const quantity = item.quantity;
+// @ts-expect-error TS(2345): Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
 			items.push(`${quantity} ${name}`);
 		}
 

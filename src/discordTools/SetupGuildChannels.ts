@@ -47,24 +47,29 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
     }
     if (channel === undefined) {
         channel = await DiscordTools.addTextChannel(guild.id, name);
+        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
         instance.channelId[idName] = channel.id;
         client.setInstance(guild.id, instance);
 
         try {
+            // @ts-expect-error TS(2532): Object is possibly 'undefined'.
             channel.setParent(parent.id);
         }
         catch (e) {
             client.log(client.intlGet(null, 'errorCap'),
+                // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                 client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
         }
     }
 
     if (instance.firstTime) {
         try {
+            // @ts-expect-error TS(2532): Object is possibly 'undefined'.
             channel.setParent(parent.id);
         }
         catch (e) {
             client.log(client.intlGet(null, 'errorCap'),
+                // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                 client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
         }
     }
@@ -72,6 +77,7 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
     const perms = PermissionHandler.getPermissionsReset(client, guild, permissionWrite);
 
     try {
+        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
         await channel.permissionOverwrites.set(perms);
     }
     catch (e) {
@@ -82,5 +88,6 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
        It is possible to just remove the channels and let the bot recreate them with correct name language */
     //channel.setName(name);
 
+    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
     channel.lockPermissions();
 }

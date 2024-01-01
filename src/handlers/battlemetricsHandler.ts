@@ -42,7 +42,9 @@ export default {
             const bmId = instance.activeServer !== null ?
                 instance.serverList[instance.activeServer].battlemetricsId : null;
             let condition = instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers;
+            // @ts-expect-error TS(2363): The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
             condition &= instance.activeServer !== null;
+            // @ts-expect-error TS(2363): The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
             condition &= bmId !== null;
             condition &= client.battlemetricsInstances.hasOwnProperty(bmId);
             condition &= rustplus && rustplus.isOperational;
@@ -61,12 +63,14 @@ export default {
             }
 
             for (const [trackerId, content] of Object.entries(instance.trackers)) {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const battlemetricsId = content.battlemetricsId;
                 const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
                 if (!bmInstance || !bmInstance.lastUpdateSuccessful) continue;
 
                 if (firstTime || searchSteamProfiles) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const player of content.players) {
                         if (player.steamId === null) continue;
 
@@ -80,6 +84,7 @@ export default {
                         }
                         if (name === null) continue;
 
+                        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
                         name = (content.clanTag !== '' ? `${content.clanTag} ` : '') + `${name}`;
 
                         if (player.name !== name) {
@@ -101,10 +106,12 @@ export default {
                     }
                 }
 
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const trackerPlayerIds = content.players.map(e => e.playerId);
 
                 /* Check if Player just changed name */
                 for (const player of bmInstance.nameChangedPlayers.filter(e => trackerPlayerIds.includes(e.id))) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const playerT of content.players) {
                         if (playerT.playerId !== player.id) continue;
 
@@ -115,16 +122,16 @@ export default {
 
                 /* Check if Player just came online */
                 for (const playerId of trackerPlayerIds.filter(e => bmInstance.newPlayers.includes(e))) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const player of content.players) {
                         if (player.playerId !== playerId) continue;
 
                         const str = client.intlGet(guildId, 'playerJustConnectedTracker', {
                             name: player.name,
+                            // @ts-expect-error TS(2571): Object is of type 'unknown'.
                             tracker: content.name
                         });
-                        await DiscordMessages.sendActivityNotificationMessage(
-                            guildId, content.serverId, Constants.COLOR_ACTIVE, str, null, content.title,
-                            content.everyone);
+                        await DiscordMessages.sendActivityNotificationMessage(guildId, content.serverId, Constants.COLOR_ACTIVE, str, null, content.title, content.everyone);
                         if (rustplus && (rustplus.serverId === content.serverId) && content.inGame) {
                             rustplus.sendInGameMessage(str);
                         }
@@ -133,16 +140,16 @@ export default {
 
                 /* Check if Player just came online */
                 for (const playerId of trackerPlayerIds.filter(e => bmInstance.loginPlayers.includes(e))) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const player of content.players) {
                         if (player.playerId !== playerId) continue;
 
                         const str = client.intlGet(guildId, 'playerJustConnectedTracker', {
                             name: player.name,
+                            // @ts-expect-error TS(2571): Object is of type 'unknown'.
                             tracker: content.name
                         });
-                        await DiscordMessages.sendActivityNotificationMessage(
-                            guildId, content.serverId, Constants.COLOR_ACTIVE, str, null, content.title,
-                            content.everyone);
+                        await DiscordMessages.sendActivityNotificationMessage(guildId, content.serverId, Constants.COLOR_ACTIVE, str, null, content.title, content.everyone);
                         if (rustplus && (rustplus.serverId === content.serverId) && content.inGame) {
                             rustplus.sendInGameMessage(str);
                         }
@@ -151,17 +158,17 @@ export default {
 
                 /* Check if Player just went offline */
                 for (const playerId of trackerPlayerIds.filter(e => bmInstance.logoutPlayers.includes(e))) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const player of content.players) {
                         if (player.playerId !== playerId) continue;
 
                         const str = client.intlGet(guildId, 'playerJustDisconnectedTracker', {
                             name: player.name,
+                            // @ts-expect-error TS(2571): Object is of type 'unknown'.
                             tracker: content.name
                         });
 
-                        await DiscordMessages.sendActivityNotificationMessage(
-                            guildId, content.serverId, Constants.COLOR_INACTIVE, str, null, content.title,
-                            content.everyone);
+                        await DiscordMessages.sendActivityNotificationMessage(guildId, content.serverId, Constants.COLOR_INACTIVE, str, null, content.title, content.everyone);
                         if (rustplus && (rustplus.serverId === content.serverId) && content.inGame) {
                             rustplus.sendInGameMessage(str);
                         }
@@ -193,16 +200,20 @@ export default {
         const battlemetricsIds = [];
         if (battlemetricsIdActiveServer && client.battlemetricsInstances.hasOwnProperty(battlemetricsIdActiveServer) &&
             client.battlemetricsInstances[battlemetricsIdActiveServer].lastUpdateSuccessful) {
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             battlemetricsIds.push(battlemetricsIdActiveServer);
         }
 
         for (const [trackerId, content] of Object.entries(instance.trackers)) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
             const battlemetricsId = content.battlemetricsId;
             const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
             if (!bmInstance || (bmInstance && !bmInstance.lastUpdateSuccessful)) continue;
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             if (battlemetricsIds.includes(battlemetricsId)) continue;
 
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             battlemetricsIds.push(battlemetricsId);
         }
 
@@ -232,7 +243,7 @@ export default {
 
                 let totalCharacters = 50; /* Start of with 50 characters as a base. */
 
-                let oldName = [''], playerId = [''], newName = [''];
+                const oldName = [''], playerId = [''], newName = [''];
                 let oldNameCharacters = 0, playerIdCharacters = 0, newNameCharacters = 0;
                 let fieldIndex = 0;
                 let isEmbedFull = false;
@@ -286,6 +297,7 @@ export default {
 
                 let description = '';
                 if (isEmbedFull) {
+                    // @ts-expect-error TS(2304): Cannot find name 'interaction'.
                     description = client.intlGet(interaction.guildId, 'andMorePlayers', {
                         number: bmInstance.nameChangedPlayers.length - playerCounter
                     });
@@ -294,23 +306,33 @@ export default {
                 const fields = [];
                 for (let i = 0; i < (fieldIndex + 1); i++) {
                     fields.push({
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         name: i === 0 ? oldNameFieldName : '\u200B',
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         value: oldName[i] !== '' ? oldName[i] : client.intlGet(guildId, 'empty'),
+                        // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                         inline: true
                     });
                     fields.push({
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         name: i === 0 ? playerIdFieldName : '\u200B',
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         value: playerId[i] !== '' ? playerId[i] : client.intlGet(guildId, 'empty'),
+                        // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                         inline: true
                     });
                     fields.push({
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         name: i === 0 ? newNameFieldName : '\u200B',
+                        // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                         value: newName[i] !== '' ? newName[i] : client.intlGet(guildId, 'empty'),
+                        // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                         inline: true
                     });
                 }
 
                 await DiscordMessages.sendBattlemetricsEventMessage(guildId, battlemetricsId, title,
+                    // @ts-expect-error TS(2345): Argument of type 'never[]' is not assignable to pa... Remove this comment to see the full error message
                     description, fields);
             }
 
@@ -329,6 +351,7 @@ export default {
                 let playerCounter = 0;
                 for (const playerId of playerIds) {
                     playerCounter += 1;
+                    // @ts-expect-error TS(2538): Type 'unknown' cannot be used as an index type.
                     const name = bmInstance.players[playerId]['name'].replace('[', '(').replace(']', ')');
                     const playerStr = `[${name}](${Constants.BATTLEMETRICS_PROFILE_URL + `${playerId}`})\n`;
 
@@ -350,6 +373,7 @@ export default {
 
                 let description = '';
                 if (isEmbedFull) {
+                    // @ts-expect-error TS(2304): Cannot find name 'interaction'.
                     description = client.intlGet(interaction.guildId, 'andMorePlayers', {
                         number: playerIds.length - playerCounter
                     });
@@ -359,14 +383,18 @@ export default {
                 const outPutFields = [];
                 for (const field of fields) {
                     outPutFields.push({
+                        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                         name: '\u200B',
+                        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                         value: field,
+                        // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                         inline: true
                     });
                     fieldCounter += 1;
                 }
 
                 await DiscordMessages.sendBattlemetricsEventMessage(guildId, battlemetricsId, title,
+                    // @ts-expect-error TS(2345): Argument of type 'never[]' is not assignable to pa... Remove this comment to see the full error message
                     description, outPutFields);
             }
 
@@ -404,7 +432,9 @@ export default {
 
                 let description = '';
                 if (isEmbedFull) {
+                    // @ts-expect-error TS(2304): Cannot find name 'interaction'.
                     description = client.intlGet(interaction.guildId, 'andMorePlayers', {
+                        // @ts-expect-error TS(2304): Cannot find name 'playerIds'.
                         number: playerIds.length - playerCounter
                     });
                 }
@@ -413,14 +443,18 @@ export default {
                 const outPutFields = [];
                 for (const field of fields) {
                     outPutFields.push({
+                        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                         name: '\u200B',
+                        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                         value: field,
+                        // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                         inline: true
                     });
                     fieldCounter += 1;
                 }
 
                 await DiscordMessages.sendBattlemetricsEventMessage(guildId, battlemetricsId, title,
+                    // @ts-expect-error TS(2345): Argument of type 'never[]' is not assignable to pa... Remove this comment to see the full error message
                     description, outPutFields);
             }
         }

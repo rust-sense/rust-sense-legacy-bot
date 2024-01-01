@@ -36,6 +36,7 @@ export default {
             const channel = DiscordTools.getTextChannelById(guild.id, message.channelId);
             client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `userPartOfBlacklistDiscord`, {
                 guild: `${guild.name} (${guild.id})`,
+                // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                 channel: `${channel.name} (${channel.id})`,
                 user: `${message.author.username} (${message.author.id})`,
                 message: message.cleanContent
@@ -51,6 +52,7 @@ export default {
             const channel = DiscordTools.getTextChannelById(guild.id, message.channelId);
             client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `logDiscordMessage`, {
                 guild: `${guild.name} (${guild.id})`,
+                // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                 channel: `${channel.name} (${channel.id})`,
                 user: `${message.author.username} (${message.author.id})`,
                 message: message.cleanContent

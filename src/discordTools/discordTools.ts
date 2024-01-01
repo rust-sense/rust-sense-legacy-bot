@@ -20,6 +20,7 @@
 
 import Discord from 'discord.js';
 
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 export default {
@@ -35,7 +36,7 @@ export default {
     },
 
     getRole: function (guildId, roleId) {
-        let guild = module.exports.getGuild(guildId);
+        const guild = module.exports.getGuild(guildId);
 
         if (guild) {
             try {
@@ -50,7 +51,7 @@ export default {
     },
 
     getUserById: async function (guildId, userId) {
-        let guild = module.exports.getGuild(guildId);
+        const guild = module.exports.getGuild(guildId);
 
         if (guild) {
             try {
@@ -79,6 +80,7 @@ export default {
                     Client.client.intlGet(null, 'couldNotFindChannel', { channel: channelId }), 'error');
             }
 
+            // @ts-expect-error TS(2339): Property 'type' does not exist on type 'never'.
             if (channel && channel.type === Discord.ChannelType.GuildText) {
                 return channel;
             }
@@ -99,6 +101,7 @@ export default {
                     Client.client.intlGet(null, 'couldNotFindChannel', { channel: name }), 'error');
             }
 
+            // @ts-expect-error TS(2339): Property 'type' does not exist on type 'never'.
             if (channel && channel.type === Discord.ChannelType.GuildText) {
                 return channel;
             }
@@ -119,6 +122,7 @@ export default {
                     Client.client.intlGet(null, 'couldNotFindCategory', { category: categoryId }), 'error');
             }
 
+            // @ts-expect-error TS(2339): Property 'type' does not exist on type 'never'.
             if (category && category.type === Discord.ChannelType.GuildCategory) {
                 return category;
             }
@@ -139,6 +143,7 @@ export default {
                     Client.client.intlGet(null, 'couldNotFindCategory', { category: name }), 'error');
             }
 
+            // @ts-expect-error TS(2339): Property 'type' does not exist on type 'never'.
             if (category && category.type === Discord.ChannelType.GuildCategory) {
                 return category;
             }
@@ -288,11 +293,13 @@ export default {
 
             for (let message of messages) {
                 message = message[1];
+                // @ts-expect-error TS(2339): Property 'author' does not exist on type 'never'.
                 if (!message.author.bot) {
                     break;
                 }
 
                 try {
+                    // @ts-expect-error TS(2339): Property 'delete' does not exist on type 'never'.
                     await message.delete();
                 }
                 catch (e) {

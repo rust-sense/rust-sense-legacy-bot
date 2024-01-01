@@ -20,6 +20,7 @@
 
 import Discord from 'discord.js';
 
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import Constants from '../util/constants.js';
 import DiscordTools from './discordTools.js';
@@ -30,15 +31,24 @@ export default {
     getEmbed: function (options = {}) {
         const embed = new Discord.EmbedBuilder();
 
+        // @ts-expect-error TS(2339): Property 'title' does not exist on type '{}'.
         if (options.hasOwnProperty('title')) embed.setTitle(options.title);
+        // @ts-expect-error TS(2339): Property 'color' does not exist on type '{}'.
         if (options.hasOwnProperty('color')) embed.setColor(options.color);
+        // @ts-expect-error TS(2339): Property 'description' does not exist on type '{}'... Remove this comment to see the full error message
         if (options.hasOwnProperty('description')) embed.setDescription(options.description);
+        // @ts-expect-error TS(2339): Property 'thumbnail' does not exist on type '{}'.
         if (options.hasOwnProperty('thumbnail') && options.thumbnail !== '') embed.setThumbnail(options.thumbnail);
+        // @ts-expect-error TS(2339): Property 'image' does not exist on type '{}'.
         if (options.hasOwnProperty('image')) embed.setImage(options.image);
+        // @ts-expect-error TS(2339): Property 'url' does not exist on type '{}'.
         if (options.hasOwnProperty('url') && options.url !== '') embed.setURL(options.url);
+        // @ts-expect-error TS(2339): Property 'author' does not exist on type '{}'.
         if (options.hasOwnProperty('author')) embed.setAuthor(options.author);
+        // @ts-expect-error TS(2339): Property 'footer' does not exist on type '{}'.
         if (options.hasOwnProperty('footer')) embed.setFooter(options.footer);
         if (options.hasOwnProperty('timestamp')) embed.setTimestamp();
+        // @ts-expect-error TS(2339): Property 'fields' does not exist on type '{}'.
         if (options.hasOwnProperty('fields')) embed.setFields(...options.fields);
 
         return embed;
@@ -131,7 +141,7 @@ export default {
 
         let totalCharacters = description.length;
         let fieldIndex = 0
-        let playerName = [''], playerId = [''], playerStatus = [''];
+        const playerName = [''], playerId = [''], playerStatus = [''];
         let playerNameCharacters = 0, playerIdCharacters = 0, playerStatusCharacters = 0;
         for (const player of tracker.players) {
             let name = `${player.name}`;
@@ -207,19 +217,28 @@ export default {
         const fields = [];
         for (let i = 0; i < (fieldIndex + 1); i++) {
             fields.push({
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 name: i === 0 ? `__${Client.client.intlGet(guildId, 'name')}__\n\u200B` : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: playerName[i] !== '' ? playerName[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
             fields.push({
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 name: i === 0 ? `__${Client.client.intlGet(guildId, 'steamId')}__ /\n` +
                     `__${Client.client.intlGet(guildId, 'battlemetricsId')}__` : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: playerId[i] !== '' ? playerId[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
             fields.push({
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 name: i === 0 ? `__${Client.client.intlGet(guildId, 'status')}__\n\u200B` : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: playerStatus[i] !== '' ? playerStatus[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
         }
@@ -244,6 +263,7 @@ export default {
 
         if (entity.lastTrigger !== null) {
             const lastTriggerDate = new Date(entity.lastTrigger * 1000);
+            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             const timeSinceTriggerSeconds = Math.floor((new Date() - lastTriggerDate) / 1000);
             const time = Timer.secondsToFullScale(timeSinceTriggerSeconds);
             description += `${time}`;
@@ -313,17 +333,20 @@ export default {
         if (entity.type === 'toolCupboard') {
             let seconds = 0;
             if (expiry !== 0) {
+                // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 seconds = (new Date(expiry * 1000) - new Date()) / 1000;
             }
 
             let upkeep = null;
             if (seconds === 0) {
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
                 upkeep = `:warning:\`${Client.client.intlGet(guildId, 'decayingCap')}\`:warning:`;
                 instance.serverList[serverId].storageMonitors[entityId].upkeep =
                     Client.client.intlGet(guildId, 'decayingCap');
             }
             else {
-                let upkeepTime = Timer.secondsToFullScale(seconds);
+                const upkeepTime = Timer.secondsToFullScale(seconds);
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'null'.
                 upkeep = `\`${upkeepTime}\``;
                 instance.serverList[serverId].storageMonitors[entityId].upkeep = `${upkeepTime}`;
             }
@@ -794,13 +817,13 @@ export default {
 
         let totalCharacters = title.length + teamMemberFieldName.length + statusFieldName.length + locationFieldName.length + footer.length;
         let fieldIndex = 0;
-        let teammateName = [''], teammateStatus = [''], teammateLocation = [''];
+        const teammateName = [''], teammateStatus = [''], teammateLocation = [''];
         let teammateNameCharacters = 0, teammateStatusCharacters = 0, teammateLocationCharacters = 0;
         for (const player of rustplus.team.players) {
             let name = player.name === '' ? '-' : `[${player.name}](${Constants.STEAM_PROFILES_URL}${player.steamId})`;
             name += (player.teamLeader) ? `${Constants.LEADER_EMOJI}\n` : '\n';
             let status = '';
-            let location = (player.isOnline || player.isAlive) ? `${player.pos.string}\n` : '-\n';
+            const location = (player.isOnline || player.isAlive) ? `${player.pos.string}\n` : '-\n';
 
             if (player.isOnline) {
                 const isAfk = player.getAfkSeconds() >= Constants.AFK_TIME_SECONDS;
@@ -856,18 +879,27 @@ export default {
         const fields = [];
         for (let i = 0; i < (fieldIndex + 1); i++) {
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: i === 0 ? teamMemberFieldName : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: teammateName[i] !== '' ? teammateName[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: i === 0 ? statusFieldName : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: teammateStatus[i] !== '' ? teammateStatus[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: i === 0 ? locationFieldName : '\u200B',
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: teammateLocation[i] !== '' ? teammateLocation[i] : Client.client.intlGet(guildId, 'empty'),
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
         }
@@ -1151,6 +1183,7 @@ export default {
         let items0 = '', quantities0 = '';
         for (const item of recycleDetails[2]) {
             items0 += `${Client.client.items.getName(item.id)}\n`;
+            // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
             quantities0 += (item.probability !== 1) ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
         }
 
@@ -1219,8 +1252,11 @@ export default {
             const hp = details.hpString;
             if (hp !== null) {
                 fields.push({
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     name: Client.client.intlGet(guildId, 'hp'),
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     value: hp,
+                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                     inline: true
                 });
             }
@@ -1248,8 +1284,11 @@ export default {
 
             if (decayString !== '') {
                 fields.push({
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     name: Client.client.intlGet(guildId, 'decay'),
+                    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                     value: decayString,
+                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                     inline: true
                 });
             }
@@ -1259,8 +1298,11 @@ export default {
         if (despawnDetails !== null) {
             const details = despawnDetails[2];
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: Client.client.intlGet(guildId, 'despawnTime'),
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: details.timeString,
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
         }
@@ -1269,8 +1311,11 @@ export default {
         if (stackDetails !== null) {
             const details = stackDetails[2];
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: Client.client.intlGet(guildId, 'stackSize'),
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 value: details.quantity,
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
         }
@@ -1289,8 +1334,11 @@ export default {
             }
 
             fields.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 name: Client.client.intlGet(guildId, 'upkeep'),
+                // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                 value: upkeepString,
+                // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                 inline: true
             });
         }
@@ -1326,8 +1374,11 @@ export default {
 
             if (craftString !== '') {
                 fields.push({
+                    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                     name: Client.client.intlGet(guildId, 'craft') + workbenchString,
+                    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                     value: craftString,
+                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                     inline: true
                 });
             }
@@ -1341,6 +1392,7 @@ export default {
             for (const recycleItem of details) {
                 const name = Client.client.items.getName(recycleItem.id);
                 const quantityProbability = recycleItem.probability !== 1 ?
+                    // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
                     `${parseInt(recycleItem.probability * 100)}%` :
                     `${recycleItem.quantity}x`;
                 recycleString += `${quantityProbability} ${name}\n`;
@@ -1348,8 +1400,11 @@ export default {
 
             if (recycleString !== '') {
                 fields.push({
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     name: Client.client.intlGet(guildId, 'recycle'),
+                    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                     value: recycleString,
+                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                     inline: true
                 });
             }
@@ -1386,8 +1441,11 @@ export default {
 
             if (researchString !== '') {
                 fields.push({
+                    // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                     name: Client.client.intlGet(guildId, 'research'),
+                    // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'never'.
                     value: researchString,
+                    // @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
                     inline: true
                 });
             }

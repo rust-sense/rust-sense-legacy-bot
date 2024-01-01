@@ -22,6 +22,7 @@ export default {
     timer: function (callback, delay, ...args) {
         let id, started, remaining = delay, running = false;
 
+        // @ts-expect-error TS(2339): Property 'start' does not exist on type '{ timer: ... Remove this comment to see the full error message
         this.start = function () {
             started = new Date();
             if (remaining > 0) {
@@ -35,27 +36,37 @@ export default {
             }
         }
 
+        // @ts-expect-error TS(2339): Property 'stop' does not exist on type '{ timer: (... Remove this comment to see the full error message
         this.stop = function () {
             running = false;
             remaining = delay;
             clearTimeout(id);
         }
 
+        // @ts-expect-error TS(2339): Property 'pause' does not exist on type '{ timer: ... Remove this comment to see the full error message
         this.pause = function () {
             running = false;
             clearTimeout(id);
+            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             remaining -= new Date() - started;
         }
 
+        // @ts-expect-error TS(2339): Property 'restart' does not exist on type '{ timer... Remove this comment to see the full error message
         this.restart = function () {
+            // @ts-expect-error TS(2339): Property 'stop' does not exist on type '{ timer: (... Remove this comment to see the full error message
             this.stop();
             remaining = delay;
+            // @ts-expect-error TS(2339): Property 'start' does not exist on type '{ timer: ... Remove this comment to see the full error message
             this.start();
         }
 
+        // @ts-expect-error TS(2339): Property 'getTimeLeft' does not exist on type '{ t... Remove this comment to see the full error message
         this.getTimeLeft = function () {
+            // @ts-expect-error TS(2339): Property 'getStateRunning' does not exist on type ... Remove this comment to see the full error message
             if (this.getStateRunning()) {
+                // @ts-expect-error TS(2339): Property 'pause' does not exist on type '{ timer: ... Remove this comment to see the full error message
                 this.pause();
+                // @ts-expect-error TS(2339): Property 'start' does not exist on type '{ timer: ... Remove this comment to see the full error message
                 this.start();
             }
 
@@ -63,8 +74,10 @@ export default {
             return remaining;
         }
 
+        // @ts-expect-error TS(2339): Property 'isFinished' does not exist on type '{ ti... Remove this comment to see the full error message
         this.isFinished = function () {
             /* If exceeded initial delay value */
+            // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             if ((new Date() - started) > delay) {
                 running = false;
                 return true;
@@ -72,7 +85,9 @@ export default {
             return false;
         }
 
+        // @ts-expect-error TS(2339): Property 'getStateRunning' does not exist on type ... Remove this comment to see the full error message
         this.getStateRunning = function () {
+            // @ts-expect-error TS(2339): Property 'isFinished' does not exist on type '{ ti... Remove this comment to see the full error message
             this.isFinished();
             return running;
         }
@@ -159,7 +174,9 @@ export default {
         let hours = Math.floor(time);
         let minutes = Math.floor((time - hours) * 60);
 
+        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'number'.
         hours = (hours < 10) ? `0${hours}`.toString() : hours.toString();
+        // @ts-expect-error TS(2322): Type 'string' is not assignable to type 'number'.
         minutes = (minutes < 10) ? `0${minutes}`.toString() : minutes.toString();
 
         return `${hours}:${minutes}`;
@@ -174,7 +191,7 @@ export default {
         }
 
         for (const match of matches) {
-            let value = parseInt(match.slice(0, -1));
+            const value = parseInt(match.slice(0, -1));
             switch (match[match.length - 1]) {
                 case 'd': { /* Days */
                     totSeconds += value * 24 * 60 * 60;
@@ -190,9 +207,6 @@ export default {
 
                 case 's': { /* Seconds */
                     totSeconds += value;
-                } break;
-
-                default: {
                 } break;
             }
         }

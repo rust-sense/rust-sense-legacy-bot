@@ -39,36 +39,50 @@ export default {
 
         if (instance.role !== null) {
             if (permissionWrite) {
+                // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
                 roleAllow.push(Discord.PermissionFlagsBits.SendMessages);
             } else {
+                // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
                 roleDeny.push(Discord.PermissionFlagsBits.SendMessages);
             }
 
+            // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
             everyoneDeny.push(Discord.PermissionFlagsBits.ViewChannel);
+            // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
             everyoneDeny.push(Discord.PermissionFlagsBits.SendMessages);
+            // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
             roleAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             perms.push({ id: guild.roles.everyone.id, deny: everyoneDeny });
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             perms.push({ id: instance.role, allow: roleAllow, deny: roleDeny });
 
             if (instance.adminRole !== null) {
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 perms.push({ id: instance.adminRole, allow: roleAllow, deny: roleDeny });
             }
         } else {
             if (permissionWrite) {
+                // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
                 everyoneAllow.push(Discord.PermissionFlagsBits.SendMessages);
             } else {
+                // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
                 everyoneDeny.push(Discord.PermissionFlagsBits.SendMessages);
             }
 
+            // @ts-expect-error TS(2345): Argument of type 'bigint' is not assignable to par... Remove this comment to see the full error message
             everyoneAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             perms.push({ id: guild.roles.everyone.id, allow: everyoneAllow, deny: everyoneDeny });
         }
 
         for (const discordId of instance.blacklist['discordIds']) {
             perms.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 id: discordId,
+                // @ts-expect-error TS(2322): Type 'bigint' is not assignable to type 'never'.
                 deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
             });
         }
@@ -83,20 +97,26 @@ export default {
 
         if (instance.role !== null) {
             perms.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 id: instance.role,
+                // @ts-expect-error TS(2322): Type 'bigint' is not assignable to type 'never'.
                 deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
             });
         }
 
         if (instance.adminRole !== null) {
             perms.push({
+                // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
                 id: instance.adminRole,
+                // @ts-expect-error TS(2322): Type 'bigint' is not assignable to type 'never'.
                 deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
             })
         }
 
         perms.push({
+            // @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
             id: guild.roles.everyone.id,
+            // @ts-expect-error TS(2322): Type 'bigint' is not assignable to type 'never'.
             deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
         });
 
@@ -111,6 +131,7 @@ export default {
         const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
         if (category) {
             const perms = module.exports.getPermissionsReset(client, guild);
+            // @ts-expect-error TS(2339): Property 'permissionOverwrites' does not exist on ... Remove this comment to see the full error message
             await category.permissionOverwrites.set(perms).catch((e) => {});
         }
 
@@ -120,6 +141,7 @@ export default {
             const channel = DiscordTools.getTextChannelById(guild.id, id);
             if (channel) {
                 const perms = module.exports.getPermissionsReset(client, guild, permissionWrite);
+                // @ts-expect-error TS(2339): Property 'permissionOverwrites' does not exist on ... Remove this comment to see the full error message
                 await channel.permissionOverwrites.set(perms).catch((e) => {});
             }
         }

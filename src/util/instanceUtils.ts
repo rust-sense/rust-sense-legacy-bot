@@ -21,6 +21,7 @@
 import Fs from 'fs';
 
 import Path from 'path';
+// @ts-expect-error TS(2691): An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 
 export default {

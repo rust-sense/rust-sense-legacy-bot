@@ -109,6 +109,7 @@ export default async (client, interaction) => {
         const smartSwitchCommand = interaction.fields.getTextInputValue('SmartSwitchCommand');
         let smartSwitchProximity = null;
         try {
+            // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'null'.
             smartSwitchProximity = parseInt(interaction.fields.getTextInputValue('SmartSwitchProximity'));
         }
         catch (e) {
@@ -123,6 +124,7 @@ export default async (client, interaction) => {
         server.switches[ids.entityId].name = smartSwitchName;
 
         if (smartSwitchCommand !== server.switches[ids.entityId].command &&
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartSwitchCommand)) {
             server.switches[ids.entityId].command = smartSwitchCommand;
         }
@@ -153,6 +155,7 @@ export default async (client, interaction) => {
         server.switchGroups[ids.groupId].name = groupName;
 
         if (groupCommand !== server.switchGroups[ids.groupId].command &&
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             !Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId).includes(groupCommand)) {
             server.switchGroups[ids.groupId].command = groupCommand;
         }
@@ -228,6 +231,7 @@ export default async (client, interaction) => {
         server.alarms[ids.entityId].message = smartAlarmMessage;
 
         if (smartAlarmCommand !== server.alarms[ids.entityId].command &&
+            // @ts-expect-error TS(2345): Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
             !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartAlarmCommand)) {
             server.alarms[ids.entityId].command = smartAlarmCommand;
         }
@@ -335,6 +339,7 @@ export default async (client, interaction) => {
             name = await Scrape.scrapeSteamProfileName(client, id);
 
             if (name && bmInstance) {
+                // @ts-expect-error TS(2322): Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
                 playerId = Object.keys(bmInstance.players).find(e => bmInstance.players[e]['name'] === name);
                 if (!playerId) playerId = null;
             }
@@ -345,6 +350,7 @@ export default async (client, interaction) => {
                 name = bmInstance.players[id]['name'];
             }
             else {
+                // @ts-expect-error TS(2322): Type '"-"' is not assignable to type 'null'.
                 name = '-';
             }
         }

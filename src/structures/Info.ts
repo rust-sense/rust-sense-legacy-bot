@@ -23,6 +23,18 @@ import Map from '../util/map.js';
 import Timer from '../util/timer';
 
 class Info {
+    _correctedMapSize: any;
+    _headerImage: any;
+    _map: any;
+    _mapSize: any;
+    _maxPlayers: any;
+    _name: any;
+    _players: any;
+    _queuedPlayers: any;
+    _salt: any;
+    _seed: any;
+    _url: any;
+    _wipeTime: any;
     constructor(info) {
         this._name = info.name;
         this._headerImage = info.headerImage;
@@ -99,6 +111,7 @@ class Info {
         this.correctedMapSize = Map.getCorrectedMapSize(info.mapSize);
     }
 
+    // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
     getSecondsSinceWipe() { return (new Date() - new Date(this.wipeTime * 1000)) / 1000; }
     getTimeSinceWipe(ignore = '') { return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore); }
 }

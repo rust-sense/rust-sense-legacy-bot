@@ -180,8 +180,11 @@ export default {
                         const prevFoundLines = foundLines;
 
                         if ((orderType === 'all' &&
+                            // @ts-expect-error TS(2345): Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                             (orderItemId === parseInt(itemId) || orderCurrencyId === parseInt(itemId))) ||
+                            // @ts-expect-error TS(2345): Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                             (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
+                            // @ts-expect-error TS(2345): Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                             (orderType === 'sell' && orderItemId === parseInt(itemId))) {
                             if (foundLines === '') {
                                 foundLines += '```diff\n';
@@ -367,6 +370,7 @@ export default {
             case 'list': {
                 const names = { all: '', buy: '', sell: '' };
                 for (const [orderType, itemIds] of Object.entries(instance.marketSubscriptionList)) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     for (const itemId of itemIds) {
                         names[orderType] += `\`${client.items.getName(itemId)} (${itemId})\`\n`;
                     }

@@ -21,9 +21,14 @@
 import Colors from "colors";
 
 import Winston from "winston";
+// @ts-expect-error TS(2307): Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 class Logger {
+    guildId: any;
+    logger: any;
+    serverName: any;
+    type: any;
     constructor(logFilePath, type) {
         this.logger = Winston.createLogger({
             transports: [new Winston.transports.File({
@@ -44,20 +49,20 @@ class Logger {
     }
 
     getTime() {
-        let d = new Date();
+        const d = new Date();
 
-        let year = d.getFullYear();
-        let month = d.getMonth() + 1;
-        let date = d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate();
-        let hours = d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours();
-        let minutes = d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes();
-        let seconds = d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds();
+        const year = d.getFullYear();
+        const month = d.getMonth() + 1;
+        const date = d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate();
+        const hours = d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours();
+        const minutes = d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes();
+        const seconds = d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds();
 
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     }
 
     log(title, text, level) {
-        let time = this.getTime();
+        const time = this.getTime();
 
         switch (this.type) {
             case 'default': {
@@ -73,7 +78,8 @@ class Logger {
                 );
 
                 if (level === 'error' && Config.general.showCallStackError) {
-                    for (let line of (new Error().stack.split(/\r?\n/))) {
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    for (const line of (new Error().stack.split(/\r?\n/))) {
                         this.logger.log({ level: level, message: `${time} | ${line}` });
                         console.log(Colors.green(`${time} `) + Colors.red(line));
                     }
@@ -96,7 +102,8 @@ class Logger {
                 );
 
                 if (level === 'error' && Config.general.showCallStackError) {
-                    for (let line of (new Error().stack.split(/\r?\n/))) {
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+                    for (const line of (new Error().stack.split(/\r?\n/))) {
                         this.logger.log({
                             level: level,
                             message: `${time} | ${this.guildId} | ${this.serverName} | ${line}`

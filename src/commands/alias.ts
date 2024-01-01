@@ -149,7 +149,7 @@ async function showAlias(client, interaction) {
 
 	let totalCharacters = title.length + indexFieldName.length + aliasFieldName.length + valueFieldName.length;
 	let fieldIndex = 0;
-	let indexStrings = [''], aliasStrings = [''], valueStrings = [''];
+	const indexStrings = [''], aliasStrings = [''], valueStrings = [''];
 	let indexStringsCharacters = 0, aliasStringsCharacters = 0, valueStringsCharacters = 0;
 	for (const alias of instance.aliases) {
 		const indexString = `${alias.index}\n`;
@@ -189,18 +189,27 @@ async function showAlias(client, interaction) {
 	const fields = [];
 	for (let i = 0; i < (fieldIndex + 1); i++) {
 		fields.push({
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			name: i === 0 ? indexFieldName : '\u200B',
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			value: indexStrings[i] !== '' ? indexStrings[i] : client.intlGet(guildId, 'empty'),
+// @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
 			inline: true
 		});
 		fields.push({
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			name: i === 0 ? aliasFieldName : '\u200B',
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			value: aliasStrings[i] !== '' ? aliasStrings[i] : client.intlGet(guildId, 'empty'),
+// @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
 			inline: true
 		});
 		fields.push({
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			name: i === 0 ? valueFieldName : '\u200B',
+// @ts-expect-error TS(2322): Type 'any' is not assignable to type 'never'.
 			value: valueStrings[i] !== '' ? valueStrings[i] : client.intlGet(guildId, 'empty'),
+// @ts-expect-error TS(2322): Type 'boolean' is not assignable to type 'never'.
 			inline: true
 		});
 	}
