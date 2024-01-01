@@ -22,7 +22,7 @@ const FormatJS = require('@formatjs/intl');
 const Discord = require('discord.js');
 const Fs = require('fs');
 const Path = require('path');
-const {IntlMessageFormat} = require('intl-messageformat');
+const { IntlMessageFormat } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
 const Cctv = require('./Cctv');
@@ -38,542 +38,809 @@ const RustPlus = require('../structures/RustPlus');
 const Constants = require('../util/constants.js');
 
 class DiscordBot extends Discord.Client {
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.logger = new Logger(Path.join(__dirname, '..', '..', 'logs/discordBot.log'), 'default');
+        this.logger = new Logger(Path.join(__dirname, '..', '..', 'logs/discordBot.log'), 'default');
 
-    this.commands = new Discord.Collection();
-    this.fcmListeners = new Object();
-    this.fcmListenersLite = new Object();
-    this.instances = {};
-    
-    this.intlInstances = {};
-    this.customGuildIntl = {};
+        this.commands = new Discord.Collection();
+        this.fcmListeners = new Object();
+        this.fcmListenersLite = new Object();
+        this.instances = {};
 
-    this.rustplusInstances = new Object();
-    this.activeRustplusInstances = new Object();
-    this.rustplusReconnectTimers = new Object();
-    this.rustplusLiteReconnectTimers = new Object();
-    this.rustplusReconnecting = new Object();
-    this.rustplusMaps = new Object();
+        this.intlInstances = {};
+        this.customGuildIntl = {};
 
-    this.uptimeBot = null;
+        this.rustplusInstances = new Object();
+        this.activeRustplusInstances = new Object();
+        this.rustplusReconnectTimers = new Object();
+        this.rustplusLiteReconnectTimers = new Object();
+        this.rustplusReconnecting = new Object();
+        this.rustplusMaps = new Object();
 
-    this.items = new Items();
-    this.rustlabs = new RustLabs();
-    this.cctv = new Cctv();
+        this.uptimeBot = null;
 
-    this.pollingIntervalMs = Config.general.pollingIntervalMs;
+        this.items = new Items();
+        this.rustlabs = new RustLabs();
+        this.cctv = new Cctv();
 
-    this.battlemetricsInstances = new Object();
+        this.pollingIntervalMs = Config.general.pollingIntervalMs;
 
-    this.battlemetricsIntervalId = null;
-    this.battlemetricsIntervalCounter = 0;
+        this.battlemetricsInstances = new Object();
 
-    this.voiceLeaveTimeouts = new Object();
+        this.battlemetricsIntervalId = null;
+        this.battlemetricsIntervalCounter = 0;
 
-    this.loadDiscordCommands();
-    this.loadDiscordEvents();
-    this.setupIntl();
-  }
+        this.voiceLeaveTimeouts = new Object();
 
-  loadDiscordCommands() {
-    const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith('.js'));
-    for (const file of commandFiles) {
-      const command = require(`../commands/${file}`);
-      this.commands.set(command.name, command);
-    }
-  }
-
-  loadDiscordEvents() {
-    const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'discordEvents')).filter((file) =>
-      file.endsWith('.js'),
-    );
-    for (const file of eventFiles) {
-      const event = require(`../discordEvents/${file}`);
-
-      if (event.name === 'rateLimited') {
-        this.rest.on(event.name, (...args) => event.execute(this, ...args));
-      } else if (event.once) {
-        this.once(event.name, (...args) => event.execute(this, ...args));
-      } else {
-        this.on(event.name, (...args) => event.execute(this, ...args));
-      }
-    }
-  }
-
-  setupIntl() {
-    this.localeCache = FormatJS.createIntlCache();
-
-    // Load english intl
-    this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
-
-    // Load bot intl
-    this.checkLocaleIntlLoad(Config.general.language);
-  }
-
-  createIntlForLocale(locale) {
-    const path = Path.join(__dirname, '..', 'languages', `${locale}.json`);
-    const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
-
-    const intlConfig = {
-        locale,
-        messages,
-        defaultLocale: Constants.DEFAULT_LOCALE,
-    };
-
-    return FormatJS.createIntl(intlConfig, this.localeCache);
-  }
-
-  checkLocaleIntlLoad(locale) {
-    if (locale in this.intlInstances) {
-        return this.intlInstances[locale];
+        this.loadDiscordCommands();
+        this.loadDiscordEvents();
+        this.setupIntl();
     }
 
-    const intlInstance = this.createIntlForLocale(locale);
-    this.intlInstances[intlInstance] = intlInstance;
-
-    return intlInstance;
-  }
-
-  loadGuildIntl(guildId, instance) {
-    this.checkLocaleIntlLoad(instance.generalSettings.language);
-
-    for (const [key, message] of Object.entries(instance.customIntlMessages)) {
-        this.loadGuildCustomIntl(guildId, instance, key, message);
-    }
-  }
-
-  loadGuildCustomIntl(guildId, instance, key, message) {
-    if (!(guildId in this.customGuildIntl)) {
-        this.customGuildIntl[guildId] = {};
-    }
-
-    const messageFormat = new IntlMessageFormat(message, instance.generalSettings.language);
-    this.customGuildIntl[guildId][key] = messageFormat;
-  }
-
-  loadGuildsIntlFromCache() {
-    for (const guild of this.guilds.cache) {
-        const guildId = guild[0];
-        const instance = InstanceUtils.readInstanceFile(guildId);
-        this.loadGuildIntl(guildId, instance);
-    }
-  }
-
-  formatWithIntl(intlInstance, id, variables = {}) {
-    const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
-    const defaultMessage = englishIntl.messages[id];
-
-    return intlInstance.formatMessage(
-        { id, defaultMessage }, 
-        variables
-    );
-  } 
-
-  intlGet(guildId, id, variables = {}) {
-    // Bot Intl formatting
-    if (guildId === null) {
-        const intlInstance = this.checkLocaleIntlLoad(Config.general.language);
-        return this.formatWithIntl(intlInstance, id, variables);
-    }
-
-    // English Intl formatting
-    if (guildId === Constants.DEFAULT_LOCALE) {
-        const intlInstance = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
-        return this.formatWithIntl(intlInstance, id, variables);
-    }
-
-    // Guild custom Intl formatting
-    if (guildId in this.customGuildIntl && id in this.customGuildIntl[guildId]) {
-        const messageFormat = this.customGuildIntl[guildId][id];
-        return messageFormat.format(variables);
-    }
-    
-    // Guild Intl instance formatting
-    const instance = this.getInstance(guildId);
-    const intlInstance = this.checkLocaleIntlLoad(instance.generalSettings.language);
-    return this.formatWithIntl(intlInstance, id, variables);
-  }
-
-  build() {
-    this.login(Config.discord.token).catch((error) => {
-      switch (error.code) {
-        case 502:
-          {
-            this.log(
-              this.intlGet(null, 'errorCap'),
-              this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }),
-              'error',
-            );
-          }
-          break;
-
-        case 503:
-          {
-            this.log(
-              this.intlGet(null, 'errorCap'),
-              this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }),
-              'error',
-            );
-          }
-          break;
-
-        default:
-          {
-            this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
-          }
-          break;
-      }
-    });
-  }
-
-  log(title, text, level = 'info') {
-    this.logger.log(title, text, level);
-  }
-
-  logInteraction(interaction, verifyId, type) {
-    const channel = DiscordTools.getTextChannelById(interaction.guildId, interaction.channelId);
-    const args = new Object();
-    args['guild'] = `${interaction.member.guild.name} (${interaction.member.guild.id})`;
-    args['channel'] = `${channel.name} (${interaction.channelId})`;
-    args['user'] = `${interaction.user.username} (${interaction.user.id})`;
-    args[type === 'slashCommand' ? 'command' : 'customid'] =
-      type === 'slashCommand' ? `${interaction.commandName}` : `${interaction.customId}`;
-    args['id'] = `${verifyId}`;
-
-    this.log(this.intlGet(null, 'infoCap'), this.intlGet(null, `${type}Interaction`, args));
-  }
-
-  async setupGuild(guild) {
-    const instance = this.getInstance(guild.id);
-    const firstTime = instance.firstTime;
-
-    await require('../discordTools/RegisterSlashCommands')(this, guild);
-
-    let category = await require('../discordTools/SetupGuildCategory')(this, guild);
-    await require('../discordTools/SetupGuildChannels')(this, guild, category);
-    if (firstTime) {
-      const perms = PermissionHandler.getPermissionsRemoved(this, guild);
-      try {
-        await category.permissionOverwrites.set(perms);
-      } catch (e) {
-        /* Ignore */
-      }
-    } else {
-      await PermissionHandler.resetPermissionsAllChannels(this, guild);
-    }
-
-    require('../util/FcmListener')(this, guild);
-    const credentials = InstanceUtils.readCredentialsFile(guild.id);
-    for (const steamId of Object.keys(credentials)) {
-      if (steamId !== credentials.hoster && steamId !== 'hoster') {
-        require('../util/FcmListenerLite')(this, guild, steamId);
-      }
-    }
-
-    await require('../discordTools/SetupSettingsMenu')(this, guild);
-
-    if (firstTime) await PermissionHandler.resetPermissionsAllChannels(this, guild);
-
-    this.resetRustplusVariables(guild.id);
-  }
-
-  async syncCredentialsWithUsers(guild) {
-    const credentials = InstanceUtils.readCredentialsFile(guild.id);
-
-    const members = await guild.members.fetch();
-    const memberIds = [];
-    for (const member of members) {
-      memberIds.push(member[0]);
-    }
-
-    const steamIdRemoveCredentials = [];
-    for (const [steamId, content] of Object.entries(credentials)) {
-      if (steamId === 'hoster') continue;
-
-      if (!memberIds.includes(content.discordUserId)) {
-        steamIdRemoveCredentials.push(steamId);
-      }
-    }
-
-    for (const steamId of steamIdRemoveCredentials) {
-      if (steamId === credentials.hoster) {
-        if (this.fcmListeners[guild.id]) {
-          this.fcmListeners[guild.id].destroy();
-        }
-        delete this.fcmListeners[guild.id];
-        credentials.hoster = null;
-      } else {
-        if (this.fcmListenersLite[guild.id][steamId]) {
-          this.fcmListenersLite[guild.id][steamId].destroy();
-        }
-        delete this.fcmListenersLite[guild.id][steamId];
-      }
-
-      delete credentials[steamId];
-    }
-
-    InstanceUtils.writeCredentialsFile(guild.id, credentials);
-  }
-
-  getInstance(guildId) {
-    return this.instances[guildId];
-  }
-
-  setInstance(guildId, instance) {
-    this.instances[guildId] = instance;
-    InstanceUtils.writeInstanceFile(guildId, instance);
-  }
-
-  readNotificationSettingsTemplate() {
-    return JSON.parse(
-      Fs.readFileSync(Path.join(__dirname, '..', 'templates/notificationSettingsTemplate.json'), 'utf8'),
-    );
-  }
-
-  readGeneralSettingsTemplate() {
-    return JSON.parse(Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'));
-  }
-
-  createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
-    let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
-
-    /* Add rustplus instance to Object */
-    this.rustplusInstances[guildId] = rustplus;
-    this.activeRustplusInstances[guildId] = true;
-
-    rustplus.build();
-
-    return rustplus;
-  }
-
-  createRustplusInstancesFromConfig() {
-    const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
-
-    files.forEach((file) => {
-      if (!file.endsWith('.json')) return;
-
-      const guildId = file.replace('.json', '');
-      const instance = this.getInstance(guildId);
-      if (!instance) return;
-
-      if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
-        this.createRustplusInstance(
-          guildId,
-          instance.serverList[instance.activeServer].serverIp,
-          instance.serverList[instance.activeServer].appPort,
-          instance.serverList[instance.activeServer].steamId,
-          instance.serverList[instance.activeServer].playerToken,
+    loadDiscordCommands() {
+        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) =>
+            file.endsWith('.js'),
         );
-      }
-    });
-  }
-
-  resetRustplusVariables(guildId) {
-    this.activeRustplusInstances[guildId] = false;
-    this.rustplusReconnecting[guildId] = false;
-    delete this.rustplusMaps[guildId];
-
-    if (this.rustplusReconnectTimers[guildId]) {
-      clearTimeout(this.rustplusReconnectTimers[guildId]);
-      this.rustplusReconnectTimers[guildId] = null;
+        for (const file of commandFiles) {
+            const command = require(`../commands/${file}`);
+            this.commands.set(command.name, command);
+        }
     }
-    if (this.rustplusLiteReconnectTimers[guildId]) {
-      clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
-      this.rustplusLiteReconnectTimers[guildId] = null;
-    }
-  }
 
-  isJpgImageChanged(guildId, map) {
-    return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
-  }
+    loadDiscordEvents() {
+        const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'discordEvents')).filter((file) =>
+            file.endsWith('.js'),
+        );
+        for (const file of eventFiles) {
+            const event = require(`../discordEvents/${file}`);
 
-  findAvailableTrackerId(guildId) {
-    const instance = this.getInstance(guildId);
-
-    while (true) {
-      const randomNumber = Math.floor(Math.random() * 1000);
-      if (!instance.trackers.hasOwnProperty(randomNumber)) {
-        return randomNumber;
-      }
-    }
-  }
-
-  findAvailableGroupId(guildId, serverId) {
-    const instance = this.getInstance(guildId);
-
-    while (true) {
-      const randomNumber = Math.floor(Math.random() * 1000);
-      if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
-        return randomNumber;
-      }
-    }
-  }
-
-  /**
-   *  Check if Battlemetrics instances are missing/not required/need update.
-   */
-  async updateBattlemetricsInstances() {
-    const activeInstances = [];
-
-    /* Check for instances that are missing or need update. */
-    for (const guild of this.guilds.cache) {
-      const guildId = guild[0];
-      const instance = this.getInstance(guildId);
-      const activeServer = instance.activeServer;
-      if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
-        if (instance.serverList[activeServer].battlemetricsId !== null) {
-          /* A Battlemetrics ID exist. */
-          const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
-          if (!activeInstances.includes(battlemetricsId)) {
-            activeInstances.push(battlemetricsId);
-            if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
-              /* Update */
-              await this.battlemetricsInstances[battlemetricsId].evaluation();
+            if (event.name === 'rateLimited') {
+                this.rest.on(event.name, (...args) => event.execute(this, ...args));
+            } else if (event.once) {
+                this.once(event.name, (...args) => event.execute(this, ...args));
             } else {
-              /* Add */
-              const bmInstance = new Battlemetrics(battlemetricsId);
-              await bmInstance.setup();
-              this.battlemetricsInstances[battlemetricsId] = bmInstance;
+                this.on(event.name, (...args) => event.execute(this, ...args));
             }
-          }
+        }
+    }
+
+    setupIntl() {
+        this.localeCache = FormatJS.createIntlCache();
+
+        // Load english intl
+        this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+
+        // Load bot intl
+        this.checkLocaleIntlLoad(Config.general.language);
+    }
+
+    createIntlForLocale(locale) {
+        const path = Path.join(__dirname, '..', 'languages', `${locale}.json`);
+        const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
+
+        const intlConfig = {
+            locale,
+            messages,
+            defaultLocale: Constants.DEFAULT_LOCALE,
+        };
+
+        return FormatJS.createIntl(intlConfig, this.localeCache);
+    }
+
+    checkLocaleIntlLoad(locale) {
+        if (locale in this.intlInstances) {
+            return this.intlInstances[locale];
+        }
+
+        const intlInstance = this.createIntlForLocale(locale);
+        this.intlInstances[intlInstance] = intlInstance;
+
+        return intlInstance;
+    }
+
+    loadGuildIntl(guildId, instance) {
+        this.checkLocaleIntlLoad(instance.generalSettings.language);
+
+        for (const [key, message] of Object.entries(instance.customIntlMessages)) {
+            this.loadGuildCustomIntl(guildId, instance, key, message);
+        }
+    }
+
+    loadGuildCustomIntl(guildId, instance, key, message) {
+        if (!(guildId in this.customGuildIntl)) {
+            this.customGuildIntl[guildId] = {};
+        }
+
+        const messageFormat = new IntlMessageFormat(message, instance.generalSettings.language);
+        this.customGuildIntl[guildId][key] = messageFormat;
+    }
+
+    loadGuildsIntlFromCache() {
+        for (const guild of this.guilds.cache) {
+            const guildId = guild[0];
+            const instance = InstanceUtils.readInstanceFile(guildId);
+            this.loadGuildIntl(guildId, instance);
+        }
+    }
+
+    formatWithIntl(intlInstance, id, variables = {}) {
+        const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+        const defaultMessage = englishIntl.messages[id];
+
+        return intlInstance.formatMessage({ id, defaultMessage }, variables);
+    }
+
+    intlGet(guildId, id, variables = {}) {
+        // Bot Intl formatting
+        if (guildId === null) {
+            const intlInstance = this.checkLocaleIntlLoad(Config.general.language);
+            return this.formatWithIntl(intlInstance, id, variables);
+        }
+
+        // English Intl formatting
+        if (guildId === Constants.DEFAULT_LOCALE) {
+            const intlInstance = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+            return this.formatWithIntl(intlInstance, id, variables);
+        }
+
+        // Guild custom Intl formatting
+        if (guildId in this.customGuildIntl && id in this.customGuildIntl[guildId]) {
+            const messageFormat = this.customGuildIntl[guildId][id];
+            return messageFormat.format(variables);
+        }
+
+        // Guild Intl instance formatting
+        const instance = this.getInstance(guildId);
+        const intlInstance = this.checkLocaleIntlLoad(instance.generalSettings.language);
+        return this.formatWithIntl(intlInstance, id, variables);
+    }
+
+    build() {
+        this.login(Config.discord.token).catch((error) => {
+            switch (error.code) {
+                case 502:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
+                    break;
+
+                case 503:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
+                    break;
+
+                default:
+                    {
+                        this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
+                    }
+                    break;
+            }
+        });
+    }
+
+    log(title, text, level = 'info') {
+        this.logger.log(title, text, level);
+    }
+
+    logInteraction(interaction, verifyId, type) {
+        const channel = DiscordTools.getTextChannelById(interaction.guildId, interaction.channelId);
+        const args = new Object();
+        args['guild'] = `${interaction.member.guild.name} (${interaction.member.guild.id})`;
+        args['channel'] = `${channel.name} (${interaction.channelId})`;
+        args['user'] = `${interaction.user.username} (${interaction.user.id})`;
+        args[type === 'slashCommand' ? 'command' : 'customid'] =
+            type === 'slashCommand' ? `${interaction.commandName}` : `${interaction.customId}`;
+        args['id'] = `${verifyId}`;
+
+        this.log(this.intlGet(null, 'infoCap'), this.intlGet(null, `${type}Interaction`, args));
+    }
+
+    async setupGuild(guild) {
+        const instance = this.getInstance(guild.id);
+        const firstTime = instance.firstTime;
+
+        await require('../discordTools/RegisterSlashCommands')(this, guild);
+
+        let category = await require('../discordTools/SetupGuildCategory')(this, guild);
+        await require('../discordTools/SetupGuildChannels')(this, guild, category);
+        if (firstTime) {
+            const perms = PermissionHandler.getPermissionsRemoved(this, guild);
+            try {
+                await category.permissionOverwrites.set(perms);
+            } catch (e) {
+                /* Ignore */
+            }
         } else {
-          /* Battlemetrics ID is missing, try with server name. */
-          const name = instance.serverList[activeServer].title;
-          const bmInstance = new Battlemetrics(null, name);
-          await bmInstance.setup();
-          if (bmInstance.lastUpdateSuccessful) {
-            /* Found an Id, is it a new Id? */
-            instance.serverList[activeServer].battlemetricsId = bmInstance.id;
-            this.setInstance(guildId, instance);
+            await PermissionHandler.resetPermissionsAllChannels(this, guild);
+        }
 
-            if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
-              if (!activeInstances.includes(bmInstance.id)) {
-                activeInstances.push(bmInstance.id);
-                await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
-              }
-            } else {
-              activeInstances.push(bmInstance.id);
-              this.battlemetricsInstances[bmInstance.id] = bmInstance;
+        require('../util/FcmListener')(this, guild);
+        const credentials = InstanceUtils.readCredentialsFile(guild.id);
+        for (const steamId of Object.keys(credentials)) {
+            if (steamId !== credentials.hoster && steamId !== 'hoster') {
+                require('../util/FcmListenerLite')(this, guild, steamId);
             }
-          }
         }
-      }
 
-      for (const [trackerId, content] of Object.entries(instance.trackers)) {
-        if (!activeInstances.includes(content.battlemetricsId)) {
-          activeInstances.push(content.battlemetricsId);
-          if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
-            /* Update */
-            await this.battlemetricsInstances[content.battlemetricsId].evaluation();
-          } else {
-            /* Add */
-            const bmInstance = new Battlemetrics(content.battlemetricsId);
-            await bmInstance.setup();
-            this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
-          }
+        await require('../discordTools/SetupSettingsMenu')(this, guild);
+
+        if (firstTime) await PermissionHandler.resetPermissionsAllChannels(this, guild);
+
+        this.resetRustplusVariables(guild.id);
+    }
+
+    async syncCredentialsWithUsers(guild) {
+        const credentials = InstanceUtils.readCredentialsFile(guild.id);
+
+        const members = await guild.members.fetch();
+        const memberIds = [];
+        for (const member of members) {
+            memberIds.push(member[0]);
         }
-      }
+
+        const steamIdRemoveCredentials = [];
+        for (const [steamId, content] of Object.entries(credentials)) {
+            if (steamId === 'hoster') continue;
+
+            if (!memberIds.includes(content.discordUserId)) {
+                steamIdRemoveCredentials.push(steamId);
+            }
+        }
+
+        for (const steamId of steamIdRemoveCredentials) {
+            if (steamId === credentials.hoster) {
+                if (this.fcmListeners[guild.id]) {
+                    this.fcmListeners[guild.id].destroy();
+                }
+                delete this.fcmListeners[guild.id];
+                credentials.hoster = null;
+            } else {
+                if (this.fcmListenersLite[guild.id][steamId]) {
+                    this.fcmListenersLite[guild.id][steamId].destroy();
+                }
+                delete this.fcmListenersLite[guild.id][steamId];
+            }
+
+            delete credentials[steamId];
+        }
+
+        InstanceUtils.writeCredentialsFile(guild.id, credentials);
     }
 
-    /* Find instances that are no longer required and delete them. */
-    const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
-    for (const id of remove) {
-      delete this.battlemetricsInstances[id];
-    }
-  }
-
-  async interactionReply(interaction, content) {
-    try {
-      return await interaction.reply(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'interactionReplyFailed', { error: e }), 'error');
+    getInstance(guildId) {
+        return this.instances[guildId];
     }
 
-    return undefined;
-  }
-
-  async interactionEditReply(interaction, content) {
-    try {
-      return await interaction.editReply(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'interactionEditReplyFailed', { error: e }), 'error');
+    setInstance(guildId, instance) {
+        this.instances[guildId] = instance;
+        InstanceUtils.writeInstanceFile(guildId, instance);
     }
 
-    return undefined;
-  }
-
-  async interactionUpdate(interaction, content) {
-    try {
-      return await interaction.update(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'interactionUpdateFailed', { error: e }), 'error');
+    readNotificationSettingsTemplate() {
+        return JSON.parse(
+            Fs.readFileSync(Path.join(__dirname, '..', 'templates/notificationSettingsTemplate.json'), 'utf8'),
+        );
     }
 
-    return undefined;
-  }
-
-  async messageEdit(message, content) {
-    try {
-      return await message.edit(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
+    readGeneralSettingsTemplate() {
+        return JSON.parse(
+            Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
+        );
     }
 
-    return undefined;
-  }
+    createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
+        let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
 
-  async messageSend(channel, content) {
-    try {
-      return await channel.send(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
+        /* Add rustplus instance to Object */
+        this.rustplusInstances[guildId] = rustplus;
+        this.activeRustplusInstances[guildId] = true;
+
+        rustplus.build();
+
+        return rustplus;
     }
 
-    return undefined;
-  }
+    createRustplusInstancesFromConfig() {
+        const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
 
-  async messageReply(message, content) {
-    try {
-      return await message.reply(content);
-    } catch (e) {
-      this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
+        files.forEach((file) => {
+            if (!file.endsWith('.json')) return;
+
+            const guildId = file.replace('.json', '');
+            const instance = this.getInstance(guildId);
+            if (!instance) return;
+
+            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+                this.createRustplusInstance(
+                    guildId,
+                    instance.serverList[instance.activeServer].serverIp,
+                    instance.serverList[instance.activeServer].appPort,
+                    instance.serverList[instance.activeServer].steamId,
+                    instance.serverList[instance.activeServer].playerToken,
+                );
+            }
+        });
     }
 
-    return undefined;
-  }
+    resetRustplusVariables(guildId) {
+        this.activeRustplusInstances[guildId] = false;
+        this.rustplusReconnecting[guildId] = false;
+        delete this.rustplusMaps[guildId];
 
-  async validatePermissions(interaction) {
-    const instance = this.getInstance(interaction.guildId);
-
-    if (
-      instance.blacklist['discordIds'].includes(interaction.user.id) &&
-      !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
-    ) {
-      return false;
+        if (this.rustplusReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusReconnectTimers[guildId]);
+            this.rustplusReconnectTimers[guildId] = null;
+        }
+        if (this.rustplusLiteReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
+            this.rustplusLiteReconnectTimers[guildId] = null;
+        }
     }
 
-    /* If role isn't setup yet, validate as true */
-    if (instance.role === null) return true;
-
-    if (
-      !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) &&
-      !interaction.member.roles.cache.has(instance.role)
-    ) {
-      let role = DiscordTools.getRole(interaction.guildId, instance.role);
-      const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
-      await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-      this.log(this.intlGet(null, 'warningCap'), str);
-      return false;
+    isJpgImageChanged(guildId, map) {
+        return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
     }
-    return true;
-  }
 
-  isAdministrator(interaction) {
-    return interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator);
-  }
+    findAvailableTrackerId(guildId) {
+        const instance = this.getInstance(guildId);
+
+        while (true) {
+            const randomNumber = Math.floor(Math.random() * 1000);
+            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+                return randomNumber;
+            }
+        }
+    }
+
+    findAvailableGroupId(guildId, serverId) {
+        const instance = this.getInstance(guildId);
+
+        while (true) {
+            const randomNumber = Math.floor(Math.random() * 1000);
+            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+                return randomNumber;
+            }
+        }
+    }
+
+    /**
+     *  Check if Battlemetrics instances are missing/not required/need update.
+     */
+    async updateBattlemetricsInstances() {
+        const activeInstances = [];
+
+        /* Check for instances that are missing or need update. */
+        for (const guild of this.guilds.cache) {
+            const guildId = guild[0];
+            const instance = this.getInstance(guildId);
+            const activeServer = instance.activeServer;
+            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
+                if (instance.serverList[activeServer].battlemetricsId !== null) {
+                    /* A Battlemetrics ID exist. */
+                    const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
+                    if (!activeInstances.includes(battlemetricsId)) {
+                        activeInstances.push(battlemetricsId);
+                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                            /* Update */
+                            await this.battlemetricsInstances[battlemetricsId].evaluation();
+                        } else {
+                            /* Add */
+                            const bmInstance = new Battlemetrics(battlemetricsId);
+                            await bmInstance.setup();
+                            this.battlemetricsInstances[battlemetricsId] = bmInstance;
+                        }
+                    }
+                } else {
+                    /* Battlemetrics ID is missing, try with server name. */
+                    const name = instance.serverList[activeServer].title;
+                    const bmInstance = new Battlemetrics(null, name);
+                    await bmInstance.setup();
+                    if (bmInstance.lastUpdateSuccessful) {
+                        /* Found an Id, is it a new Id? */
+                        instance.serverList[activeServer].battlemetricsId = bmInstance.id;
+                        this.setInstance(guildId, instance);
+
+                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+                            if (!activeInstances.includes(bmInstance.id)) {
+                                activeInstances.push(bmInstance.id);
+                                await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
+                            }
+                        } else {
+                            activeInstances.push(bmInstance.id);
+                            this.battlemetricsInstances[bmInstance.id] = bmInstance;
+                        }
+                    }
+                }
+            }
+
+            for (const [trackerId, content] of Object.entries(instance.trackers)) {
+                if (!activeInstances.includes(content.battlemetricsId)) {
+                    activeInstances.push(content.battlemetricsId);
+                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
+                        /* Update */
+                        await this.battlemetricsInstances[content.battlemetricsId].evaluation();
+                    } else {
+                        /* Add */
+                        const bmInstance = new Battlemetrics(content.battlemetricsId);
+                        await bmInstance.setup();
+                        this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
+                    }
+                }
+            }
+        }
+
+        /* Find instances that are no longer required and delete them. */
+        const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
+        for (const id of remove) {
+            delete this.battlemetricsInstances[id];
+        }
+    }
+
+    async interactionReply(interaction, content) {
+        try {
+            return await interaction.reply(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionReplyFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async interactionEditReply(interaction, content) {
+        try {
+            return await interaction.editReply(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionEditReplyFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async interactionUpdate(interaction, content) {
+        try {
+            return await interaction.update(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionUpdateFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async messageEdit(message, content) {
+        try {
+            return await message.edit(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async messageSend(channel, content) {
+        try {
+            return await channel.send(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async messageReply(message, content) {
+        try {
+            return await message.reply(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async validatePermissions(interaction) {
+        const instance = this.getInstance(interaction.guildId);
+
+        if (
+            instance.blacklist['discordIds'].includes(interaction.user.id) &&
+            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
+        ) {
+            return false;
+        }
+
+        /* If role isn't setup yet, validate as true */
+        if (instance.role === null) return true;
+
+        if (
+            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) &&
+            !interaction.member.roles.cache.has(instance.role)
+        ) {
+            let role = DiscordTools.getRole(interaction.guildId, instance.role);
+            const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
+            await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            this.log(this.intlGet(null, 'warningCap'), str);
+            return false;
+        }
+        return true;
+    }
+
+    readGeneralSettingsTemplate() {
+        return JSON.parse(
+            Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
+        );
+    }
+
+    createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
+        let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
+
+        /* Add rustplus instance to Object */
+        this.rustplusInstances[guildId] = rustplus;
+        this.activeRustplusInstances[guildId] = true;
+
+        rustplus.build();
+
+        return rustplus;
+    }
+
+    createRustplusInstancesFromConfig() {
+        const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
+
+        files.forEach((file) => {
+            if (!file.endsWith('.json')) return;
+
+            const guildId = file.replace('.json', '');
+            const instance = this.getInstance(guildId);
+            if (!instance) return;
+
+            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+                this.createRustplusInstance(
+                    guildId,
+                    instance.serverList[instance.activeServer].serverIp,
+                    instance.serverList[instance.activeServer].appPort,
+                    instance.serverList[instance.activeServer].steamId,
+                    instance.serverList[instance.activeServer].playerToken,
+                );
+            }
+        });
+    }
+
+    resetRustplusVariables(guildId) {
+        this.activeRustplusInstances[guildId] = false;
+        this.rustplusReconnecting[guildId] = false;
+        delete this.rustplusMaps[guildId];
+
+        if (this.rustplusReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusReconnectTimers[guildId]);
+            this.rustplusReconnectTimers[guildId] = null;
+        }
+        if (this.rustplusLiteReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
+            this.rustplusLiteReconnectTimers[guildId] = null;
+        }
+    }
+
+    isJpgImageChanged(guildId, map) {
+        return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
+    }
+
+    findAvailableTrackerId(guildId) {
+        const instance = this.getInstance(guildId);
+
+        while (true) {
+            const randomNumber = Math.floor(Math.random() * 1000);
+            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+                return randomNumber;
+            }
+        }
+    }
+
+    findAvailableGroupId(guildId, serverId) {
+        const instance = this.getInstance(guildId);
+
+        while (true) {
+            const randomNumber = Math.floor(Math.random() * 1000);
+            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+                return randomNumber;
+            }
+        }
+    }
+
+    /**
+     *  Check if Battlemetrics instances are missing/not required/need update.
+     */
+    async updateBattlemetricsInstances() {
+        const activeInstances = [];
+
+        /* Check for instances that are missing or need update. */
+        for (const guild of this.guilds.cache) {
+            const guildId = guild[0];
+            const instance = this.getInstance(guildId);
+            const activeServer = instance.activeServer;
+            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
+                if (instance.serverList[activeServer].battlemetricsId !== null) {
+                    /* A Battlemetrics ID exist. */
+                    const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
+                    if (!activeInstances.includes(battlemetricsId)) {
+                        activeInstances.push(battlemetricsId);
+                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                            /* Update */
+                            await this.battlemetricsInstances[battlemetricsId].evaluation();
+                        } else {
+                            /* Add */
+                            const bmInstance = new Battlemetrics(battlemetricsId);
+                            await bmInstance.setup();
+                            this.battlemetricsInstances[battlemetricsId] = bmInstance;
+                        }
+                    }
+                } else {
+                    /* Battlemetrics ID is missing, try with server name. */
+                    const name = instance.serverList[activeServer].title;
+                    const bmInstance = new Battlemetrics(null, name);
+                    await bmInstance.setup();
+                    if (bmInstance.lastUpdateSuccessful) {
+                        /* Found an Id, is it a new Id? */
+                        instance.serverList[activeServer].battlemetricsId = bmInstance.id;
+                        this.setInstance(guildId, instance);
+
+                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+                            if (!activeInstances.includes(bmInstance.id)) {
+                                activeInstances.push(bmInstance.id);
+                                await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
+                            }
+                        } else {
+                            activeInstances.push(bmInstance.id);
+                            this.battlemetricsInstances[bmInstance.id] = bmInstance;
+                        }
+                    }
+                }
+            }
+
+            for (const [trackerId, content] of Object.entries(instance.trackers)) {
+                if (!activeInstances.includes(content.battlemetricsId)) {
+                    activeInstances.push(content.battlemetricsId);
+                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
+                        /* Update */
+                        await this.battlemetricsInstances[content.battlemetricsId].evaluation();
+                    } else {
+                        /* Add */
+                        const bmInstance = new Battlemetrics(content.battlemetricsId);
+                        await bmInstance.setup();
+                        this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
+                    }
+                }
+            }
+        }
+
+        /* Find instances that are no longer required and delete them. */
+        const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
+        for (const id of remove) {
+            delete this.battlemetricsInstances[id];
+        }
+    }
+
+    async interactionReply(interaction, content) {
+        try {
+            return await interaction.reply(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionReplyFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async interactionEditReply(interaction, content) {
+        try {
+            return await interaction.editReply(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionEditReplyFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async interactionUpdate(interaction, content) {
+        try {
+            return await interaction.update(content);
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionUpdateFailed', { error: e }),
+                'error',
+            );
+        }
+
+        return undefined;
+    }
+
+    async messageEdit(message, content) {
+        try {
+            return await message.edit(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async messageSend(channel, content) {
+        try {
+            return await channel.send(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async messageReply(message, content) {
+        try {
+            return await message.reply(content);
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
+        }
+
+        return undefined;
+    }
+
+    async validatePermissions(interaction) {
+        const instance = this.getInstance(interaction.guildId);
+
+        // If user is blacklisted, admin or not, deny the interaction
+        if (instance.blacklist['discordIds'].includes(interaction.user.id)) {
+            return false;
+        }
+
+        // If role isn't setup yet, validate as true
+        if (instance.role === null) {
+            return true;
+        }
+
+        // If either admin or regular, allow the interaction
+        if (!this.isAdministrator(interaction) && !interaction.member.roles.cache.has(instance.role)) {
+            let role = DiscordTools.getRole(interaction.guildId, instance.role);
+            const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
+            await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            this.log(this.intlGet(null, 'warningCap'), str);
+            return false;
+        }
+
+        return true;
+    }
+
+    isAdministrator(interaction) {
+        const instance = this.getInstance(interaction.guildId);
+        return instance.adminRole === null
+            ? interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)
+            : interaction.member.roles.cache.has(instance.adminRole);
+    }
 }
 
 module.exports = DiscordBot;
