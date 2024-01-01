@@ -9,3 +9,4 @@ temp
 dist
 .rtx.local.toml
 .rtx.*.local.toml
+.vscode
