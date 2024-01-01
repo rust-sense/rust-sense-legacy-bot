@@ -24,7 +24,6 @@ import Fs from 'fs';
 import Path from 'path';
 import Utils from '../util/utils.js';
 
-
 /* Constants */
 
 const SLEEP_TIMEOUT_MS = 2000;
@@ -41,65 +40,65 @@ const RUSTLABS_BUILDING_BLOCK_URL = 'https://rustlabs.com/building/';
 const RUSTLABS_ALL_OTHER_URL = 'https://rustlabs.com/group=else';
 const RUSTLABS_OTHER_URL = 'https://rustlabs.com/entity/';
 
+const RUSTLABS_ALL_ITEMS_REGEX = /<a\shref="\/item\/(.*?)"\sclass.*?img\ssrc=.*?img\/.*?\/(.*?)\.png"\salt="(.*?)"/gm;
+const RUSTLABS_ITEM_RECYCLE_AREA_REGEX = /Recycler<\/a><\/td>\n^.*?$\n^.*?$\n<\/td>/gm;
+const RUSTLABS_ITEM_RECYCLE_REGEX =
+    /<a\shref.*?img\/.*?\/(.*?)\.png.*?alt="(.*?)".*?text-in-icon">(.*?)<\/span><\/a>/gm;
 
-const RUSTLABS_ALL_ITEMS_REGEX = /<a\shref="\/item\/(.*?)"\sclass.*?img\ssrc=.*?img\/.*?\/(.*?)\.png"\salt="(.*?)"/gm
-const RUSTLABS_ITEM_RECYCLE_AREA_REGEX = /Recycler<\/a><\/td>\n^.*?$\n^.*?$\n<\/td>/gm
-const RUSTLABS_ITEM_RECYCLE_REGEX = /<a\shref.*?img\/.*?\/(.*?)\.png.*?alt="(.*?)".*?text-in-icon">(.*?)<\/span><\/a>/gm
-
-const RUSTLABS_ITEM_CRAFT_AREA_REGEX = /data-name="craft"\sclass="tab-page(\n|.)*?<\/thead(\n|.)*?<\/tr>/gm
+const RUSTLABS_ITEM_CRAFT_AREA_REGEX = /data-name="craft"\sclass="tab-page(\n|.)*?<\/thead(\n|.)*?<\/tr>/gm;
 const RUSTLABS_ITEM_CRAFT_INGREDIENTS_REGEX =
-    /<a\shref.*?img\/.*?\/(.*?)\.png.*?alt="(.*?)".*?text-in-icon">(.*?)<\/span><\/a>/gm
-const RUSTLABS_ITEM_CRAFT_TIME_REGEX = /^<td\sdata-value="(.*?)">(.*?)<\/td>$/gm
+    /<a\shref.*?img\/.*?\/(.*?)\.png.*?alt="(.*?)".*?text-in-icon">(.*?)<\/span><\/a>/gm;
+const RUSTLABS_ITEM_CRAFT_TIME_REGEX = /^<td\sdata-value="(.*?)">(.*?)<\/td>$/gm;
 
 const RUSTLABS_ITEM_RESEARCH_AREA_REGEX =
-    /data-name="blueprint"\sclass="tab-page(\n|.)*?<table\sclass(\n|.)*?<\/table>/gm
-const RUSTLABS_ITEM_RESEARCH_ROW_REGEX = /<td\sclass="item-cell">(\n|.)*?<\/tr>/gm
+    /data-name="blueprint"\sclass="tab-page(\n|.)*?<table\sclass(\n|.)*?<\/table>/gm;
+const RUSTLABS_ITEM_RESEARCH_ROW_REGEX = /<td\sclass="item-cell">(\n|.)*?<\/tr>/gm;
 const RUSTLABS_ITEM_RESEARCH_TYPE_REGEX =
-    /<td\sclass="item-cell">(\n|.)*?<img\sclass\ssrc="(\n|.)*?img\/(\n|.)*?\/(.*?)\.png/gm
-const RUSTLABS_ITEM_RESEARCH_SCRAP_REGEX = /\/scrap\.png(\n|.)*?class="text-in-icon">(.*?)<\/span>/gm
-const RUSTLABS_ITEM_RESEARCH_TOTAL_SCRAP_REGEX = /<td\sclass="no-padding"\sdata-value="(.*?)">/gm
+    /<td\sclass="item-cell">(\n|.)*?<img\sclass\ssrc="(\n|.)*?img\/(\n|.)*?\/(.*?)\.png/gm;
+const RUSTLABS_ITEM_RESEARCH_SCRAP_REGEX = /\/scrap\.png(\n|.)*?class="text-in-icon">(.*?)<\/span>/gm;
+const RUSTLABS_ITEM_RESEARCH_TOTAL_SCRAP_REGEX = /<td\sclass="no-padding"\sdata-value="(.*?)">/gm;
 
-const RUSTLABS_ITEM_DURABILITY_AREA_REGEX1 = /<tr\sdata-group="(.*?)"\sdata-group2="(.*?)">(\n|.)*?<\/tr>/gm
-const RUSTLABS_ITEM_DURABILITY_AREA_REGEX2 = /<tr\sdata-group="(.*?)">(\n|.)*?<\/tr>/gm
-const RUSTLABS_ITEM_DURABILITY_TOOL_REGEX = /<img\sclass\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)">/gm
-const RUSTLABS_ITEM_DURABILITY_CAPTION_IN_TOOL_REGEX = /caption-in-item-name">(.*?)</gm
-const RUSTLABS_ITEM_DURABILITY_QUANTITY_REGEX = /<td\sclass="no-padding"\sdata-value="(\d{1,7})">(.{1,10})<\/td>/gm
-const RUSTLABS_ITEM_DURABILITY_QUANTITY_APPROX_REGEX = /Approximate\sQuantity">(.*?)</gm
+const RUSTLABS_ITEM_DURABILITY_AREA_REGEX1 = /<tr\sdata-group="(.*?)"\sdata-group2="(.*?)">(\n|.)*?<\/tr>/gm;
+const RUSTLABS_ITEM_DURABILITY_AREA_REGEX2 = /<tr\sdata-group="(.*?)">(\n|.)*?<\/tr>/gm;
+const RUSTLABS_ITEM_DURABILITY_TOOL_REGEX = /<img\sclass\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)">/gm;
+const RUSTLABS_ITEM_DURABILITY_CAPTION_IN_TOOL_REGEX = /caption-in-item-name">(.*?)</gm;
+const RUSTLABS_ITEM_DURABILITY_QUANTITY_REGEX = /<td\sclass="no-padding"\sdata-value="(\d{1,7})">(.{1,10})<\/td>/gm;
+const RUSTLABS_ITEM_DURABILITY_QUANTITY_APPROX_REGEX = /Approximate\sQuantity">(.*?)</gm;
 const RUSTLABS_ITEM_DURABILITY_QUANTITY_GUNS_REGEX =
-    /<img\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)"\sclass="icon-in-text">(.*?)</gm
-const RUSTLABS_ITEM_DURABILITY_TIME_REGEX = /<td\sdata-value="(.*?)">(.*?sec|.*?min)<\/td>/gm
-const RUSTLABS_ITEM_DURABILITY_FUEL_AMOUNT_REGEX = /alt="Fuel\sAmount">(.*?)<\/td>/gm
-const RUSTLABS_ITEM_DURABILITY_SULFUR_AMOUNT_REGEX = /alt="Sulfur\sAmount">(.*?)<\/td>/gm
+    /<img\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)"\sclass="icon-in-text">(.*?)</gm;
+const RUSTLABS_ITEM_DURABILITY_TIME_REGEX = /<td\sdata-value="(.*?)">(.*?sec|.*?min)<\/td>/gm;
+const RUSTLABS_ITEM_DURABILITY_FUEL_AMOUNT_REGEX = /alt="Fuel\sAmount">(.*?)<\/td>/gm;
+const RUSTLABS_ITEM_DURABILITY_SULFUR_AMOUNT_REGEX = /alt="Sulfur\sAmount">(.*?)<\/td>/gm;
 
 const RUSTLABS_ITEM_SMELTING_AREA_REGEX1 =
-    /data-name="smelting"\sclass="tab-page(\n|.)*?<table\sclass(\n|.)*?<thead><tr>\n<th>Process(\n|.)*?<\/table>/gm
-const RUSTLABS_ITEM_SMELTING_AREA_REGEX2 = /<tbody>(\n|.)*?<\/tbody>/gm
-const RUSTLABS_ITEM_SMELTING_AREA_REGEX3 = /<tr>(\n|.)*?<\/tr>/gm
+    /data-name="smelting"\sclass="tab-page(\n|.)*?<table\sclass(\n|.)*?<thead><tr>\n<th>Process(\n|.)*?<\/table>/gm;
+const RUSTLABS_ITEM_SMELTING_AREA_REGEX2 = /<tbody>(\n|.)*?<\/tbody>/gm;
+const RUSTLABS_ITEM_SMELTING_AREA_REGEX3 = /<tr>(\n|.)*?<\/tr>/gm;
 const RUSTLABS_ITEM_SMELTING_REGEX1 =
-    /<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?<\/a><a\shref="\/item\/(\n|.)*?img\/.*?\/wood\.png"(\n|.)*?text-in-icon">(.*?)<\/span(\n|.)*?<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?text-in-icon">(.*?)<(\n|.)*?<td>(.*?sec|.*?min)</gm
-const RUSTLABS_ITEM_SMELTING_REGEX2 = /<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?text-in-icon">(.*?)<\/span(\n|.)*?<td>(.*?sec|.*?min)</gm
+    /<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?<\/a><a\shref="\/item\/(\n|.)*?img\/.*?\/wood\.png"(\n|.)*?text-in-icon">(.*?)<\/span(\n|.)*?<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?text-in-icon">(.*?)<(\n|.)*?<td>(.*?sec|.*?min)</gm;
+const RUSTLABS_ITEM_SMELTING_REGEX2 =
+    /<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?<a\shref="\/item\/(\n|.)*?img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?text-in-icon">(.*?)<\/span(\n|.)*?<td>(.*?sec|.*?min)</gm;
 
-const RUSTLABS_ITEM_DESPAWN_REGEX = /<td>Despawn\stime<\/td>(\n|.)*?<td>(.*?)<\/td>/gm
+const RUSTLABS_ITEM_DESPAWN_REGEX = /<td>Despawn\stime<\/td>(\n|.)*?<td>(.*?)<\/td>/gm;
 
-const RUSTLABS_ITEM_STACK_REGEX = /<td>Stack\sSize<\/td>(\n|.)*?<td>(.*?)<\/td>/gm
+const RUSTLABS_ITEM_STACK_REGEX = /<td>Stack\sSize<\/td>(\n|.)*?<td>(.*?)<\/td>/gm;
 
 const RUSTLABS_ITEM_DECAY_REGEX1 =
-    /<td>Decay<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm
+    /<td>Decay<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm;
 const RUSTLABS_ITEM_DECAY_REGEX2 =
-    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>Decay\stime\sinside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm
+    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>Decay\stime\sinside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm;
 const RUSTLABS_ITEM_DECAY_REGEX3 =
-    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>Decay\stime\sunderwater<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm
+    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>Decay\stime\sunderwater<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm;
 const RUSTLABS_ITEM_DECAY_REGEX4 =
-    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm
+    /<td>Decay\stime\soutside<\/td>(\n|.){1,3}?<td>(.*?)<\/td>(\n|.)*?<td>HP<\/td>(\n|.){1,3}?<td>(.*?)<\/td>/gm;
 
-const RUSTLABS_ITEM_UPKEEP_AREA_REGEX = /<td>Upkeep<\/td>(\n|.)*?<\/tr>/gm
+const RUSTLABS_ITEM_UPKEEP_AREA_REGEX = /<td>Upkeep<\/td>(\n|.)*?<\/tr>/gm;
 const RUSTLABS_ITEM_UPKEEP_REGEX =
-    /img\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?class="icon-in-text">(.*?)</gm
+    /img\ssrc=".*?\/img\/.*?\/(.*?)\.png"\salt="(.*?)"(\n|.)*?class="icon-in-text">(.*?)</gm;
 
-const RUSTLABS_ALL_BUILDING_BLOCKS_REGEX = /\/building\/(.*?)">(.*?)</gm
+const RUSTLABS_ALL_BUILDING_BLOCKS_REGEX = /\/building\/(.*?)">(.*?)</gm;
 
-const RUSTLABS_ALL_OTHER_REGEX = /\/entity\/(.*?)">(.*?)</gm
-
+const RUSTLABS_ALL_OTHER_REGEX = /\/entity\/(.*?)">(.*?)</gm;
 
 /* Global variables */
 
@@ -131,8 +130,7 @@ rustlabsUpkeepData['other'] = new Object();
 async function scrape(url) {
     try {
         return await Axios.get(url);
-    }
-    catch (e) {
+    } catch (e) {
         return {};
     }
 }
@@ -146,8 +144,7 @@ function sleep(ms) {
 function exit(url = null) {
     if (url !== null) {
         console.error(`Failed to get: ${url}. Exiting...`);
-    }
-    else {
+    } else {
         console.error('Something went wrong. Exiting...');
     }
     process.exit(1);
@@ -182,7 +179,7 @@ function parseTime(time) {
         seconds = parseFloat(matches[0][1]);
     }
 
-    totalSeconds = seconds + (minutes * 60) + (hours * 60 * 60);
+    totalSeconds = seconds + minutes * 60 + hours * 60 * 60;
 
     return totalSeconds;
 }
@@ -207,7 +204,7 @@ async function processAllItems() {
         rustlabsItemNames.push([
             Utils.decodeHtml(match[1]).replace('%20', ' '),
             Utils.decodeHtml(match[2]).replace('%20', ' '),
-            Utils.decodeHtml(match[3]).replace('%20', ' ')
+            Utils.decodeHtml(match[3]).replace('%20', ' '),
         ]);
     }
 
@@ -243,9 +240,7 @@ async function processAllItems() {
     }
 }
 
-async function processAllLootContainers() {
-
-}
+async function processAllLootContainers() {}
 
 async function processAllBuildingBlocks() {
     const rustlabsBuildingBlockNames = [];
@@ -259,7 +254,7 @@ async function processAllBuildingBlocks() {
 
         rustlabsBuildingBlockNames.push([
             Utils.decodeHtml(match[1]).replace('%20', ' '),
-            Utils.decodeHtml(match[2]).replace('%20', ' ')
+            Utils.decodeHtml(match[2]).replace('%20', ' '),
         ]);
     }
 
@@ -303,7 +298,7 @@ async function processAllOther() {
 
         rustlabsOtherNames.push([
             Utils.decodeHtml(match[1]).replace('%20', ' '),
-            Utils.decodeHtml(match[2]).replace('%20', ' ')
+            Utils.decodeHtml(match[2]).replace('%20', ' '),
         ]);
     }
 
@@ -335,7 +330,7 @@ async function processAllOther() {
 }
 
 function processItemCraft(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     data = data.match(RUSTLABS_ITEM_CRAFT_AREA_REGEX);
@@ -359,7 +354,7 @@ function processItemCraft(rustlabsName, shortname, name, data) {
         const shortnameSub = match[1];
         const nameSub = Utils.decodeHtml(match[2]);
         let quantity = match[3];
-        const id = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortnameSub && ITEMS[e].name === nameSub);
+        const id = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortnameSub && ITEMS[e].name === nameSub);
         if (id === undefined) exit();
 
         if (shortnameSub.includes('workbench')) {
@@ -371,11 +366,11 @@ function processItemCraft(rustlabsName, shortname, name, data) {
 
         content['ingredients'].push({
             id: id,
-            quantity: parseFloat(quantity)
+            quantity: parseFloat(quantity),
         });
     }
 
-    const timeMatches = data.matchAll(RUSTLABS_ITEM_CRAFT_TIME_REGEX)
+    const timeMatches = data.matchAll(RUSTLABS_ITEM_CRAFT_TIME_REGEX);
     for (const match of timeMatches) {
         if (match.length !== 3) exit();
 
@@ -388,7 +383,7 @@ function processItemCraft(rustlabsName, shortname, name, data) {
 }
 
 function processItemResearch(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     data = data.match(RUSTLABS_ITEM_RESEARCH_AREA_REGEX);
@@ -436,21 +431,19 @@ function processItemResearch(rustlabsName, shortname, name, data) {
 
         if (type === 'research.table') {
             content['researchTable'] = parseFloat(scrap);
-        }
-        else if (type.includes('workbench')) {
+        } else if (type.includes('workbench')) {
             if (alreadyWorkbench) break;
             alreadyWorkbench = true;
 
-            const workbenchId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === type);
+            const workbenchId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === type);
             if (!workbenchId) exit();
 
             content['workbench'] = {
                 type: workbenchId,
                 scrap: parseFloat(scrap),
-                totalScrap: parseFloat(totalScrap)
+                totalScrap: parseFloat(totalScrap),
             };
-        }
-        else {
+        } else {
             exit();
         }
     }
@@ -459,7 +452,7 @@ function processItemResearch(rustlabsName, shortname, name, data) {
 }
 
 function processItemRecycle(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     data = data.match(RUSTLABS_ITEM_RECYCLE_AREA_REGEX);
@@ -478,14 +471,13 @@ function processItemRecycle(rustlabsName, shortname, name, data) {
         const shortnameSub = match[1];
         const nameSub = Utils.decodeHtml(match[2]);
         let quantity = match[3];
-        const id = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortnameSub && ITEMS[e].name === nameSub);
+        const id = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortnameSub && ITEMS[e].name === nameSub);
         if (id === undefined) exit();
 
         let probability = 1;
         if (quantity === '') {
             quantity = 1;
-        }
-        else {
+        } else {
             quantity = quantity.replace('×', '').replace(/,/g, '');
 
             if (quantity.includes('%')) {
@@ -497,7 +489,7 @@ function processItemRecycle(rustlabsName, shortname, name, data) {
         recycleItems.push({
             id: id,
             probability: parseFloat(probability),
-            quantity: parseFloat(quantity)
+            quantity: parseFloat(quantity),
         });
     }
 
@@ -507,9 +499,8 @@ function processItemRecycle(rustlabsName, shortname, name, data) {
 function processItemDurability(rustlabsName, shortname, name, data, type = 'items') {
     let itemId = null;
     if (type === 'items') {
-        itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
-    }
-    else if (type === 'buildingBlocks' || type === 'other') {
+        itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    } else if (type === 'buildingBlocks' || type === 'other') {
         itemId = name;
     }
     if (!itemId) return;
@@ -528,8 +519,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
             return;
         }
         regexType = 2;
-    }
-    else {
+    } else {
         regexType = 1;
     }
 
@@ -546,7 +536,9 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
         }
 
         /* Tool */
-        let toolId = null, toolShortname = null, toolName = null;
+        let toolId = null,
+            toolShortname = null,
+            toolName = null;
         const toolMatches = [...dataMatch.matchAll(RUSTLABS_ITEM_DURABILITY_TOOL_REGEX)];
         if (toolMatches.length !== 0) {
             for (const toolMatch of toolMatches) {
@@ -557,7 +549,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
             }
         }
         if (toolShortname === null || toolName === null) exit();
-        toolId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === toolShortname && ITEMS[e].name === toolName);
+        toolId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === toolShortname && ITEMS[e].name === toolName);
         if (!toolId) exit();
 
         /* Caption in tool name */
@@ -572,7 +564,9 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
         }
 
         /* Quantity, if group 'guns' then use different regex, also if dataMatch includes 'Approximate Quantity' */
-        let quantity = null, quantityTypeShortname = null, quantityTypeName = null;
+        let quantity = null,
+            quantityTypeShortname = null,
+            quantityTypeName = null;
         if (group === 'guns' || group === 'turret') {
             const quantityMatches = [...dataMatch.matchAll(RUSTLABS_ITEM_DURABILITY_QUANTITY_GUNS_REGEX)];
             if (quantityMatches.length !== 0) {
@@ -584,8 +578,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
                     break;
                 }
             }
-        }
-        else if (dataMatch.includes('Approximate Quantity')) {
+        } else if (dataMatch.includes('Approximate Quantity')) {
             const quantityMatches = [...dataMatch.matchAll(RUSTLABS_ITEM_DURABILITY_QUANTITY_APPROX_REGEX)];
             if (quantityMatches.length !== 0) {
                 for (const quantityMatch of quantityMatches) {
@@ -594,8 +587,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
                     break;
                 }
             }
-        }
-        else {
+        } else {
             const quantityMatches = [...dataMatch.matchAll(RUSTLABS_ITEM_DURABILITY_QUANTITY_REGEX)];
             if (quantityMatches.length !== 0) {
                 for (const quantityMatch of quantityMatches) {
@@ -608,14 +600,15 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
         if (quantity === null) exit();
         let quantityTypeId = null;
         if (quantityTypeShortname !== null && quantityTypeName !== null) {
-            quantityTypeId = Object.keys(ITEMS).find(e =>
-                ITEMS[e].shortname === quantityTypeShortname && ITEMS[e].name === quantityTypeName);
+            quantityTypeId = Object.keys(ITEMS).find(
+                (e) => ITEMS[e].shortname === quantityTypeShortname && ITEMS[e].name === quantityTypeName,
+            );
             if (!quantityTypeId) exit();
         }
 
-
         /* Time */
-        let timeString = null, time = null;
+        let timeString = null,
+            time = null;
         const timeMatches = [...dataMatch.matchAll(RUSTLABS_ITEM_DURABILITY_TIME_REGEX)];
         if (timeMatches.length !== 0) {
             for (const timeMatch of timeMatches) {
@@ -660,7 +653,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
             time: time,
             timeString: timeString,
             fuel: fuel,
-            sulfur: sulfur
+            sulfur: sulfur,
         });
     }
 
@@ -668,7 +661,7 @@ function processItemDurability(rustlabsName, shortname, name, data, type = 'item
 }
 
 function processItemSmelting(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     data = data.match(RUSTLABS_ITEM_SMELTING_AREA_REGEX1);
@@ -711,7 +704,7 @@ function processItemSmelting(rustlabsName, shortname, name, data) {
 
                 fromShortname = matches[2];
                 fromName = Utils.decodeHtml(matches[3]);
-                woodQuantity = (fromShortname === 'wood' && fromName === 'Wood') ? 1 : 0;
+                woodQuantity = fromShortname === 'wood' && fromName === 'Wood' ? 1 : 0;
                 toShortname = matches[6];
                 toName = Utils.decodeHtml(matches[7]);
 
@@ -719,28 +712,24 @@ function processItemSmelting(rustlabsName, shortname, name, data) {
                 toProbability = 1;
                 if (toQuantity === '') {
                     toQuantity = 1;
-                }
-                else {
+                } else {
                     toQuantity = toQuantity.replace('×', '').replace(/,/g, '');
 
                     if (toQuantity.includes('%')) {
                         toProbability = parseFloat(`0.${toQuantity.replace('%', '')}`);
                         toQuantity = 1;
-                    }
-                    else {
+                    } else {
                         toQuantity = parseFloat(toQuantity);
                     }
                 }
 
                 time = parseTime(matches[11]);
                 timeString = matches[11];
-            }
-            else {
+            } else {
                 console.log('  - No smelting data found.');
                 return;
             }
-        }
-        else if (matches.length === 1) {
+        } else if (matches.length === 1) {
             matches = matches[0];
             if (matches.length !== 16) exit();
 
@@ -753,17 +742,17 @@ function processItemSmelting(rustlabsName, shortname, name, data) {
             toProbability = 1;
             time = parseTime(matches[15]);
             timeString = matches[15];
-        }
-        else {
+        } else {
             console.log('  - No smelting data found.');
             return;
         }
 
-        const fromId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === fromShortname && ITEMS[e].name === fromName);
+        const fromId = Object.keys(ITEMS).find(
+            (e) => ITEMS[e].shortname === fromShortname && ITEMS[e].name === fromName,
+        );
         if (!fromId) exit();
-        const toId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === toShortname && ITEMS[e].name === toName);
+        const toId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === toShortname && ITEMS[e].name === toName);
         if (!toId) exit();
-
 
         content.push({
             fromId: fromId,
@@ -772,7 +761,7 @@ function processItemSmelting(rustlabsName, shortname, name, data) {
             toQuantity: toQuantity,
             toProbability: toProbability,
             time: time,
-            timeString: timeString
+            timeString: timeString,
         });
     }
 
@@ -780,7 +769,7 @@ function processItemSmelting(rustlabsName, shortname, name, data) {
 }
 
 function processItemDespawn(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     let matches = [...data.matchAll(RUSTLABS_ITEM_DESPAWN_REGEX)];
@@ -799,12 +788,12 @@ function processItemDespawn(rustlabsName, shortname, name, data) {
     const seconds = parseTime(string);
 
     rustlabsDespawnData[itemId] = new Object();
-    rustlabsDespawnData[itemId]["time"] = seconds;
-    rustlabsDespawnData[itemId]["timeString"] = string;
+    rustlabsDespawnData[itemId]['time'] = seconds;
+    rustlabsDespawnData[itemId]['timeString'] = string;
 }
 
 function processItemStack(rustlabsName, shortname, name, data) {
-    const itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    const itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
     if (!itemId) return;
 
     let matches = [...data.matchAll(RUSTLABS_ITEM_STACK_REGEX)];
@@ -822,21 +811,20 @@ function processItemStack(rustlabsName, shortname, name, data) {
     const quantity = matches[2].trim().replace('×', '').replace(/,/g, '');
 
     rustlabsStackData[itemId] = new Object();
-    rustlabsStackData[itemId]["quantity"] = quantity;
+    rustlabsStackData[itemId]['quantity'] = quantity;
 }
 
 function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
     let itemId = null;
     if (type === 'items') {
-        itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
-    }
-    else if (type === 'buildingBlocks' || type === 'other') {
+        itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    } else if (type === 'buildingBlocks' || type === 'other') {
         itemId = name;
     }
     if (!itemId) return;
 
     let decay = null;
-    let decayString = null
+    let decayString = null;
     let decayOutside = null;
     let decayOutsideString = null;
     let decayInside = null;
@@ -856,8 +844,7 @@ function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
                 if (matches.length !== 1) {
                     console.log('  - No decay data found.');
                     return;
-                }
-                else {
+                } else {
                     /* Decay time outside, HP */
                     matches = matches[0];
                     if (matches.length !== 6) {
@@ -871,8 +858,7 @@ function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
                     hpString = matches[5].trim();
                     hp = parseInt(hpString);
                 }
-            }
-            else {
+            } else {
                 /* Decay time outside, Decay time underwater, HP */
                 matches = matches[0];
                 if (matches.length !== 9) {
@@ -889,8 +875,7 @@ function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
                 hpString = matches[8].trim();
                 hp = parseInt(hpString);
             }
-        }
-        else {
+        } else {
             /* Decay time outside, Decay time inside, HP */
             matches = matches[0];
             if (matches.length !== 9) {
@@ -907,8 +892,7 @@ function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
             hpString = matches[8].trim();
             hp = parseInt(hpString);
         }
-    }
-    else {
+    } else {
         /* Decay, HP */
         matches = matches[0];
         if (matches.length !== 6) {
@@ -933,16 +917,15 @@ function processItemDecay(rustlabsName, shortname, name, data, type = 'items') {
         decayUnderwater: decayUnderwater,
         decayUnderwaterString: decayUnderwaterString,
         hp: hp,
-        hpString: hpString
+        hpString: hpString,
     };
 }
 
 function processItemUpkeep(rustlabsName, shortname, name, data, type = 'items') {
     let itemId = null;
     if (type === 'items') {
-        itemId = Object.keys(ITEMS).find(e => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
-    }
-    else if (type === 'buildingBlocks' || type === 'other') {
+        itemId = Object.keys(ITEMS).find((e) => ITEMS[e].shortname === shortname && ITEMS[e].name === name);
+    } else if (type === 'buildingBlocks' || type === 'other') {
         itemId = name;
     }
     if (!itemId) return;
@@ -971,14 +954,15 @@ function processItemUpkeep(rustlabsName, shortname, name, data, type = 'items') 
         const upkeepItemName = Utils.decodeHtml(match[2]);
         const upkeepQuantity = match[4];
 
-        const upkeepItemId = Object.keys(ITEMS).find(e =>
-            ITEMS[e].shortname === upkeepItemShortname && ITEMS[e].name === upkeepItemName);
+        const upkeepItemId = Object.keys(ITEMS).find(
+            (e) => ITEMS[e].shortname === upkeepItemShortname && ITEMS[e].name === upkeepItemName,
+        );
 
         if (!upkeepItemId) return;
 
         content.push({
             id: upkeepItemId,
-            quantity: upkeepQuantity
+            quantity: upkeepQuantity,
         });
     }
 

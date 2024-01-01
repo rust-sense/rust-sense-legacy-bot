@@ -24,10 +24,11 @@ export default {
         client.log(
             client.intlGet(null, 'ratelimited'),
             `Timeout: ${info.timeToReset}, ` +
-            `Limit: ${info.limit}, ` +
-            `Method: ${info.method}, ` +
-            `Path: ${info.url}, ` +
-            `Route: ${info.route}, ` +
-            `Global: ${info.global}`);
+                `Limit: ${info.limit}, ` +
+                `Method: ${info.method}, ` +
+                `Path: ${info.url}, ` +
+                `Route: ${info.route}, ` +
+                `Global: ${info.global}`,
+        );
     },
 };

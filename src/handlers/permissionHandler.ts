@@ -22,10 +22,7 @@ import Discord from 'discord.js';
 
 import DiscordTools from '../discordTools/discordTools.js';
 
-const writeableChannels = [
-    'commands', 
-    'teamchat'
-];
+const writeableChannels = ['commands', 'teamchat'];
 
 export default {
     getPermissionsReset: function (client, guild, permissionWrite = false) {
@@ -110,7 +107,7 @@ export default {
                 id: instance.adminRole,
                 // @ts-expect-error TS(2322) FIXME: Type 'bigint' is not assignable to type 'never'.
                 deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
-            })
+            });
         }
 
         perms.push({

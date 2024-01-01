@@ -32,10 +32,11 @@ const client = new DiscordBot({
         Discord.GatewayIntentBits.GuildMessages,
         Discord.GatewayIntentBits.MessageContent,
         Discord.GatewayIntentBits.GuildMembers,
-        Discord.GatewayIntentBits.GuildVoiceStates],
+        Discord.GatewayIntentBits.GuildVoiceStates,
+    ],
     retryLimit: 2,
     restRequestTimeout: 60000,
-    disableEveryone: false
+    disableEveryone: false,
 });
 
 client.build();
@@ -58,10 +59,14 @@ function createMissingDirectories() {
     }
 }
 
-process.on('unhandledRejection', error => {
-    client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'unhandledRejection', {
-        error: error
-    }), 'error');
+process.on('unhandledRejection', (error) => {
+    client.log(
+        client.intlGet(null, 'errorCap'),
+        client.intlGet(null, 'unhandledRejection', {
+            error: error,
+        }),
+        'error',
+    );
     console.log(error);
 });
 

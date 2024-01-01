@@ -18,7 +18,7 @@
 
 */
 
-import Constants from "../util/constants";
+import Constants from '../util/constants';
 
 export default {
     inGameChatHandler: async function (rustplus, client, message = null) {
@@ -26,7 +26,7 @@ export default {
         const generalSettings = rustplus.generalSettings;
         const commandDelayMs = parseInt(generalSettings.commandDelay) * 1000;
         const trademark = generalSettings.trademark;
-        const trademarkString = (trademark === 'NOT SHOWING') ? '' : `${trademark} | `;
+        const trademarkString = trademark === 'NOT SHOWING' ? '' : `${trademark} | `;
         const messageMaxLength = Constants.MAX_LENGTH_TEAM_MESSAGE - trademarkString.length;
 
         /* Time to write a message from the queue. If message === null, that means that its a timer call. */
@@ -42,8 +42,7 @@ export default {
 
                 await rustplus.sendTeamMessageAsync(messageFromQueue);
                 rustplus.log(client.intlGet(guildId, 'messageCap'), messageFromQueue);
-            }
-            else {
+            } else {
                 clearTimeout(rustplus.inGameChatTimeout);
                 rustplus.inGameChatTimeout = null;
             }
@@ -51,19 +50,17 @@ export default {
 
         /* if there is a new message, add message to queue. */
         if (message !== null) {
-            if (rustplus.team === null || rustplus.team.allOffline ||
-                rustplus.generalSettings.muteInGameBotMessages) {
+            if (rustplus.team === null || rustplus.team.allOffline || rustplus.generalSettings.muteInGameBotMessages) {
                 return;
             }
 
             if (Array.isArray(message)) {
                 // @ts-expect-error TS(2488) FIXME: Type 'never' must have a '[Symbol.iterator]()' met... Remove this comment to see the full error message
                 for (const msg of message) {
-                    handleMessage(rustplus, msg, trademarkString, messageMaxLength)
+                    handleMessage(rustplus, msg, trademarkString, messageMaxLength);
                 }
-            }
-            else if (typeof message === 'string') {
-                handleMessage(rustplus, message, trademarkString, messageMaxLength)
+            } else if (typeof message === 'string') {
+                handleMessage(rustplus, message, trademarkString, messageMaxLength);
             }
         }
 

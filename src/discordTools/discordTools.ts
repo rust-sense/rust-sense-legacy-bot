@@ -27,10 +27,12 @@ export default {
     getGuild: function (guildId) {
         try {
             return Client.client.guilds.cache.get(guildId);
-        }
-        catch (e) {
-            Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'couldNotFindGuild', { guildId: guildId }), 'error');
+        } catch (e) {
+            Client.client.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'couldNotFindGuild', { guildId: guildId }),
+                'error',
+            );
         }
         return undefined;
     },
@@ -41,10 +43,12 @@ export default {
         if (guild) {
             try {
                 return guild.roles.cache.get(roleId);
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindRole', { roleId: roleId }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindRole', { roleId: roleId }),
+                    'error',
+                );
             }
         }
         return undefined;
@@ -58,10 +62,12 @@ export default {
                 const user = await guild.members.fetch(userId);
                 if (user instanceof Map) return await user.get(userId);
                 return user;
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindUser', { userId: userId }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindUser', { userId: userId }),
+                    'error',
+                );
             }
         }
         return undefined;
@@ -74,10 +80,12 @@ export default {
             let channel = undefined;
             try {
                 channel = guild.channels.cache.get(channelId);
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindChannel', { channel: channelId }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindChannel', { channel: channelId }),
+                    'error',
+                );
             }
 
             // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
@@ -94,11 +102,13 @@ export default {
         if (guild) {
             let channel = undefined;
             try {
-                channel = guild.channels.cache.find(c => c.name === name);
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindChannel', { channel: name }), 'error');
+                channel = guild.channels.cache.find((c) => c.name === name);
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindChannel', { channel: name }),
+                    'error',
+                );
             }
 
             // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
@@ -116,10 +126,12 @@ export default {
             let category = undefined;
             try {
                 category = guild.channels.cache.get(categoryId);
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindCategory', { category: categoryId }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindCategory', { category: categoryId }),
+                    'error',
+                );
             }
 
             // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
@@ -136,11 +148,13 @@ export default {
         if (guild) {
             let category = undefined;
             try {
-                category = guild.channels.cache.find(c => c.name === name);
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotFindCategory', { category: name }), 'error');
+                category = guild.channels.cache.find((c) => c.name === name);
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotFindCategory', { category: name }),
+                    'error',
+                );
             }
 
             // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
@@ -162,10 +176,12 @@ export default {
                     const message = await channel.messages.fetch(messageId);
                     if (message instanceof Map) return await message.get(messageId);
                     return message;
-                }
-                catch (e) {
-                    Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                        Client.client.intlGet(null, 'couldNotFindMessage', { message: messageId }), 'error');
+                } catch (e) {
+                    Client.client.log(
+                        Client.client.intlGet(null, 'errorCap'),
+                        Client.client.intlGet(null, 'couldNotFindMessage', { message: messageId }),
+                        'error',
+                    );
                 }
             }
         }
@@ -177,11 +193,12 @@ export default {
 
         try {
             await message.delete();
-        }
-        catch (e) {
-            Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'couldNotDeleteMessage', { message: messageId }), 'error');
-
+        } catch (e) {
+            Client.client.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'couldNotDeleteMessage', { message: messageId }),
+                'error',
+            );
         }
         return undefined;
     },
@@ -194,15 +211,19 @@ export default {
                 return await guild.channels.create({
                     name: name,
                     type: Discord.ChannelType.GuildCategory,
-                    permissionOverwrites: [{
-                        id: guild.roles.everyone.id,
-                        deny: [Discord.PermissionFlagsBits.SendMessages]
-                    }]
+                    permissionOverwrites: [
+                        {
+                            id: guild.roles.everyone.id,
+                            deny: [Discord.PermissionFlagsBits.SendMessages],
+                        },
+                    ],
                 });
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotCreateCategory', { name: name }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotCreateCategory', { name: name }),
+                    'error',
+                );
             }
         }
         return undefined;
@@ -213,10 +234,12 @@ export default {
 
         try {
             await category.delete();
-        }
-        catch (e) {
-            Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'couldNotDeleteCategory', { categoryId: categoryId }), 'error');
+        } catch (e) {
+            Client.client.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'couldNotDeleteCategory', { categoryId: categoryId }),
+                'error',
+            );
             return false;
         }
         return true;
@@ -230,15 +253,19 @@ export default {
                 return await guild.channels.create({
                     name: name,
                     type: Discord.ChannelType.GuildText,
-                    permissionOverwrites: [{
-                        id: guild.roles.everyone.id,
-                        deny: [Discord.PermissionFlagsBits.SendMessages]
-                    }],
+                    permissionOverwrites: [
+                        {
+                            id: guild.roles.everyone.id,
+                            deny: [Discord.PermissionFlagsBits.SendMessages],
+                        },
+                    ],
                 });
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotCreateTextChannel', { name: name }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotCreateTextChannel', { name: name }),
+                    'error',
+                );
             }
         }
         return undefined;
@@ -249,10 +276,12 @@ export default {
 
         try {
             await channel.delete();
-        }
-        catch (e) {
-            Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'couldNotDeleteChannel', { channelId: channelId }), 'error');
+        } catch (e) {
+            Client.client.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'couldNotDeleteChannel', { channelId: channelId }),
+                'error',
+            );
             return false;
         }
         return true;
@@ -266,14 +295,15 @@ export default {
                 try {
                     if (messagesLeft >= 100) {
                         await channel.bulkDelete(100, true);
-                    }
-                    else {
+                    } else {
                         await channel.bulkDelete(messagesLeft, true);
                     }
-                }
-                catch (e) {
-                    Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                        Client.client.intlGet(null, 'couldNotPerformBulkDelete', { channel: channelId }), 'error');
+                } catch (e) {
+                    Client.client.log(
+                        Client.client.intlGet(null, 'errorCap'),
+                        Client.client.intlGet(null, 'couldNotPerformBulkDelete', { channel: channelId }),
+                        'error',
+                    );
                 }
             }
 
@@ -281,10 +311,12 @@ export default {
             let messages = [];
             try {
                 messages = await channel.messages.fetch({ limit: 100 });
-            }
-            catch (e) {
-                Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                    Client.client.intlGet(null, 'couldNotPerformMessagesFetch', { channel: channelId }), 'error');
+            } catch (e) {
+                Client.client.log(
+                    Client.client.intlGet(null, 'errorCap'),
+                    Client.client.intlGet(null, 'couldNotPerformMessagesFetch', { channel: channelId }),
+                    'error',
+                );
             }
 
             if (Object.keys(messages).length === 0) {
@@ -301,10 +333,12 @@ export default {
                 try {
                     // @ts-expect-error TS(2339) FIXME: Property 'delete' does not exist on type 'never'.
                     await message.delete();
-                }
-                catch (e) {
-                    Client.client.log(Client.client.intlGet(null, 'errorCap'),
-                        Client.client.intlGet(null, 'couldNotPerformMessageDelete'), 'error');
+                } catch (e) {
+                    Client.client.log(
+                        Client.client.intlGet(null, 'errorCap'),
+                        Client.client.intlGet(null, 'couldNotPerformMessageDelete'),
+                        'error',
+                    );
                 }
             }
         }

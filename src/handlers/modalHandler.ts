@@ -20,9 +20,9 @@
 
 import Discord from 'discord.js';
 
+import DiscordMessages from '../discordTools/discordMessages.js';
 import Battlemetrics from '../structures/Battlemetrics';
 import Constants from '../util/constants.js';
-import DiscordMessages from '../discordTools/discordMessages.js';
 import Keywords from '../util/keywords.js';
 import Scrape from '../util/scrape.js';
 
@@ -33,12 +33,17 @@ export default async (client, interaction) => {
     const verifyId = Math.floor(100000 + Math.random() * 900000);
     client.logInteraction(interaction, verifyId, 'userModal');
 
-    if (instance.blacklist['discordIds'].includes(interaction.user.id) &&
-        !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'userPartOfBlacklist', {
-            id: `${verifyId}`,
-            user: `${interaction.user.username} (${interaction.user.id})`
-        }));
+    if (
+        instance.blacklist['discordIds'].includes(interaction.user.id) &&
+        !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
+    ) {
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'userPartOfBlacklist', {
+                id: `${verifyId}`,
+                user: `${interaction.user.username} (${interaction.user.id})`,
+            }),
+        );
         return;
     }
 
@@ -53,20 +58,22 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (cargoShipEgressTime && ((cargoShipEgressTime * 1000) !== server.cargoShipEgressTimeMs)) {
+        if (cargoShipEgressTime && cargoShipEgressTime * 1000 !== server.cargoShipEgressTimeMs) {
             server.cargoShipEgressTimeMs = cargoShipEgressTime * 1000;
         }
-        if (oilRigCrateUnlockTime && ((oilRigCrateUnlockTime * 1000) !== server.oilRigLockedCrateUnlockTimeMs)) {
+        if (oilRigCrateUnlockTime && oilRigCrateUnlockTime * 1000 !== server.oilRigLockedCrateUnlockTimeMs) {
             server.oilRigLockedCrateUnlockTimeMs = oilRigCrateUnlockTime * 1000;
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${server.cargoShipEgressTimeMs}, ${server.oilRigLockedCrateUnlockTimeMs}`
-        }));
-    }
-    else if (interaction.customId.startsWith('ServerEdit')) {
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${server.cargoShipEgressTimeMs}, ${server.oilRigLockedCrateUnlockTimeMs}`,
+            }),
+        );
+    } else if (interaction.customId.startsWith('ServerEdit')) {
         const ids = JSON.parse(interaction.customId.replace('ServerEdit', ''));
         const server = instance.serverList[ids.serverId];
         const battlemetricsId = interaction.fields.getTextInputValue('ServerBattlemetricsId');
@@ -74,13 +81,11 @@ export default async (client, interaction) => {
         if (battlemetricsId !== server.battlemetricsId) {
             if (battlemetricsId === '') {
                 server.battlemetricsId = null;
-            }
-            else if (client.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+            } else if (client.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
                 const bmInstance = client.battlemetricsInstances[battlemetricsId];
                 server.battlemetricsId = battlemetricsId;
                 server.connect = `connect ${bmInstance.server_ip}:${bmInstance.server_port}`;
-            }
-            else {
+            } else {
                 const bmInstance = new Battlemetrics(battlemetricsId);
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
@@ -92,17 +97,19 @@ export default async (client, interaction) => {
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${server.battlemetricsId}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${server.battlemetricsId}`,
+            }),
+        );
 
         await DiscordMessages.sendServerMessage(interaction.guildId, ids.serverId);
 
         /* To force search of player name via scrape */
         client.battlemetricsIntervalCounter = 0;
-    }
-    else if (interaction.customId.startsWith('SmartSwitchEdit')) {
+    } else if (interaction.customId.startsWith('SmartSwitchEdit')) {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchEdit', ''));
         const server = instance.serverList[ids.serverId];
         const smartSwitchName = interaction.fields.getTextInputValue('SmartSwitchName');
@@ -111,8 +118,7 @@ export default async (client, interaction) => {
         try {
             // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             smartSwitchProximity = parseInt(interaction.fields.getTextInputValue('SmartSwitchProximity'));
-        }
-        catch (e) {
+        } catch (e) {
             smartSwitchProximity = null;
         }
 
@@ -123,9 +129,11 @@ export default async (client, interaction) => {
 
         server.switches[ids.entityId].name = smartSwitchName;
 
-        if (smartSwitchCommand !== server.switches[ids.entityId].command &&
+        if (
+            smartSwitchCommand !== server.switches[ids.entityId].command &&
             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartSwitchCommand)) {
+            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartSwitchCommand)
+        ) {
             server.switches[ids.entityId].command = smartSwitchCommand;
         }
 
@@ -134,14 +142,16 @@ export default async (client, interaction) => {
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${smartSwitchName}, ${server.switches[ids.entityId].command}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${smartSwitchName}, ${server.switches[ids.entityId].command}`,
+            }),
+        );
 
         await DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId);
-    }
-    else if (interaction.customId.startsWith('GroupEdit')) {
+    } else if (interaction.customId.startsWith('GroupEdit')) {
         const ids = JSON.parse(interaction.customId.replace('GroupEdit', ''));
         const server = instance.serverList[ids.serverId];
         const groupName = interaction.fields.getTextInputValue('GroupName');
@@ -154,21 +164,25 @@ export default async (client, interaction) => {
 
         server.switchGroups[ids.groupId].name = groupName;
 
-        if (groupCommand !== server.switchGroups[ids.groupId].command &&
+        if (
+            groupCommand !== server.switchGroups[ids.groupId].command &&
             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-            !Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId).includes(groupCommand)) {
+            !Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId).includes(groupCommand)
+        ) {
             server.switchGroups[ids.groupId].command = groupCommand;
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${groupName}, ${server.switchGroups[ids.groupId].command}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${groupName}, ${server.switchGroups[ids.groupId].command}`,
+            }),
+        );
 
         await DiscordMessages.sendSmartSwitchGroupMessage(interaction.guildId, ids.serverId, ids.groupId);
-    }
-    else if (interaction.customId.startsWith('GroupAddSwitch')) {
+    } else if (interaction.customId.startsWith('GroupAddSwitch')) {
         const ids = JSON.parse(interaction.customId.replace('GroupAddSwitch', ''));
         const server = instance.serverList[ids.serverId];
         const switchId = interaction.fields.getTextInputValue('GroupAddSwitchId');
@@ -178,8 +192,10 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!Object.keys(server.switches).includes(switchId) ||
-            server.switchGroups[ids.groupId].switches.includes(switchId)) {
+        if (
+            !Object.keys(server.switches).includes(switchId) ||
+            server.switchGroups[ids.groupId].switches.includes(switchId)
+        ) {
             interaction.deferUpdate();
             return;
         }
@@ -187,14 +203,16 @@ export default async (client, interaction) => {
         server.switchGroups[ids.groupId].switches.push(switchId);
         client.setInstance(interaction.guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${switchId}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${switchId}`,
+            }),
+        );
 
         await DiscordMessages.sendSmartSwitchGroupMessage(interaction.guildId, ids.serverId, ids.groupId);
-    }
-    else if (interaction.customId.startsWith('GroupRemoveSwitch')) {
+    } else if (interaction.customId.startsWith('GroupRemoveSwitch')) {
         const ids = JSON.parse(interaction.customId.replace('GroupRemoveSwitch', ''));
         const server = instance.serverList[ids.serverId];
         const switchId = interaction.fields.getTextInputValue('GroupRemoveSwitchId');
@@ -204,18 +222,21 @@ export default async (client, interaction) => {
             return;
         }
 
-        server.switchGroups[ids.groupId].switches =
-            server.switchGroups[ids.groupId].switches.filter(e => e !== switchId);
+        server.switchGroups[ids.groupId].switches = server.switchGroups[ids.groupId].switches.filter(
+            (e) => e !== switchId,
+        );
         client.setInstance(interaction.guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${switchId}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${switchId}`,
+            }),
+        );
 
         await DiscordMessages.sendSmartSwitchGroupMessage(interaction.guildId, ids.serverId, ids.groupId);
-    }
-    else if (interaction.customId.startsWith('SmartAlarmEdit')) {
+    } else if (interaction.customId.startsWith('SmartAlarmEdit')) {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmEdit', ''));
         const server = instance.serverList[ids.serverId];
         const smartAlarmName = interaction.fields.getTextInputValue('SmartAlarmName');
@@ -230,21 +251,25 @@ export default async (client, interaction) => {
         server.alarms[ids.entityId].name = smartAlarmName;
         server.alarms[ids.entityId].message = smartAlarmMessage;
 
-        if (smartAlarmCommand !== server.alarms[ids.entityId].command &&
+        if (
+            smartAlarmCommand !== server.alarms[ids.entityId].command &&
             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartAlarmCommand)) {
+            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartAlarmCommand)
+        ) {
             server.alarms[ids.entityId].command = smartAlarmCommand;
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${smartAlarmName}, ${smartAlarmMessage}, ${server.alarms[ids.entityId].command}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${smartAlarmName}, ${smartAlarmMessage}, ${server.alarms[ids.entityId].command}`,
+            }),
+        );
 
         await DiscordMessages.sendSmartAlarmMessage(interaction.guildId, ids.serverId, ids.entityId);
-    }
-    else if (interaction.customId.startsWith('StorageMonitorEdit')) {
+    } else if (interaction.customId.startsWith('StorageMonitorEdit')) {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorEdit', ''));
         const server = instance.serverList[ids.serverId];
         const storageMonitorName = interaction.fields.getTextInputValue('StorageMonitorName');
@@ -257,14 +282,16 @@ export default async (client, interaction) => {
         server.storageMonitors[ids.entityId].name = storageMonitorName;
         client.setInstance(interaction.guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${storageMonitorName}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${storageMonitorName}`,
+            }),
+        );
 
         await DiscordMessages.sendStorageMonitorMessage(interaction.guildId, ids.serverId, ids.entityId);
-    }
-    else if (interaction.customId.startsWith('TrackerEdit')) {
+    } else if (interaction.customId.startsWith('TrackerEdit')) {
         const ids = JSON.parse(interaction.customId.replace('TrackerEdit', ''));
         const tracker = instance.trackers[ids.trackerId];
         const trackerName = interaction.fields.getTextInputValue('TrackerName');
@@ -289,8 +316,7 @@ export default async (client, interaction) => {
                 tracker.serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
                 tracker.img = Constants.DEFAULT_SERVER_IMG;
                 tracker.title = bmInstance.server_name;
-            }
-            else {
+            } else {
                 const bmInstance = new Battlemetrics(trackerBattlemetricsId);
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
@@ -304,14 +330,16 @@ export default async (client, interaction) => {
         }
         client.setInstance(guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${trackerName}, ${tracker.battlemetricsId}, ${tracker.clanTag}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${trackerName}, ${tracker.battlemetricsId}, ${tracker.clanTag}`,
+            }),
+        );
 
         await DiscordMessages.sendTrackerMessage(interaction.guildId, ids.trackerId);
-    }
-    else if (interaction.customId.startsWith('TrackerAddPlayer')) {
+    } else if (interaction.customId.startsWith('TrackerAddPlayer')) {
         const ids = JSON.parse(interaction.customId.replace('TrackerAddPlayer', ''));
         const tracker = instance.trackers[ids.trackerId];
         const id = interaction.fields.getTextInputValue('TrackerAddPlayerId');
@@ -324,8 +352,10 @@ export default async (client, interaction) => {
         const isSteamId64 = id.length === Constants.STEAMID64_LENGTH ? true : false;
         const bmInstance = client.battlemetricsInstances[tracker.battlemetricsId];
 
-        if ((isSteamId64 && tracker.players.some(e => e.steamId === id)) ||
-            (!isSteamId64 && tracker.players.some(e => e.playerId === id && e.steamId === null))) {
+        if (
+            (isSteamId64 && tracker.players.some((e) => e.steamId === id)) ||
+            (!isSteamId64 && tracker.players.some((e) => e.playerId === id && e.steamId === null))
+        ) {
             interaction.deferUpdate();
             return;
         }
@@ -340,16 +370,14 @@ export default async (client, interaction) => {
 
             if (name && bmInstance) {
                 // @ts-expect-error TS(2322) FIXME: Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
-                playerId = Object.keys(bmInstance.players).find(e => bmInstance.players[e]['name'] === name);
+                playerId = Object.keys(bmInstance.players).find((e) => bmInstance.players[e]['name'] === name);
                 if (!playerId) playerId = null;
             }
-        }
-        else {
+        } else {
             playerId = id;
             if (bmInstance.players.hasOwnProperty(id)) {
                 name = bmInstance.players[id]['name'];
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2322) FIXME: Type '"-"' is not assignable to type 'null'.
                 name = '-';
             }
@@ -358,18 +386,20 @@ export default async (client, interaction) => {
         tracker.players.push({
             name: name,
             steamId: steamId,
-            playerId: playerId
+            playerId: playerId,
         });
         client.setInstance(interaction.guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${id}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${id}`,
+            }),
+        );
 
         await DiscordMessages.sendTrackerMessage(interaction.guildId, ids.trackerId);
-    }
-    else if (interaction.customId.startsWith('TrackerRemovePlayer')) {
+    } else if (interaction.customId.startsWith('TrackerRemovePlayer')) {
         const ids = JSON.parse(interaction.customId.replace('TrackerRemovePlayer', ''));
         const tracker = instance.trackers[ids.trackerId];
         const id = interaction.fields.getTextInputValue('TrackerRemovePlayerId');
@@ -382,24 +412,29 @@ export default async (client, interaction) => {
         }
 
         if (isSteamId64) {
-            tracker.players = tracker.players.filter(e => e.steamId !== id);
-        }
-        else {
-            tracker.players = tracker.players.filter(e => e.playerId !== id || e.steamId !== null);
+            tracker.players = tracker.players.filter((e) => e.steamId !== id);
+        } else {
+            tracker.players = tracker.players.filter((e) => e.playerId !== id || e.steamId !== null);
         }
         client.setInstance(interaction.guildId, instance);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'modalValueChange', {
-            id: `${verifyId}`,
-            value: `${id}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'modalValueChange', {
+                id: `${verifyId}`,
+                value: `${id}`,
+            }),
+        );
 
         await DiscordMessages.sendTrackerMessage(interaction.guildId, ids.trackerId);
     }
 
-    client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'userModalInteractionSuccess', {
-        id: `${verifyId}`
-    }));
+    client.log(
+        client.intlGet(null, 'infoCap'),
+        client.intlGet(null, 'userModalInteractionSuccess', {
+            id: `${verifyId}`,
+        }),
+    );
 
     interaction.deferUpdate();
 };

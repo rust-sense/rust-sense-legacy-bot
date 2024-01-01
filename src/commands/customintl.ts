@@ -18,16 +18,9 @@
 
 */
 
-import _ from 'lodash';
-
 import Builder from '@discordjs/builders';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config/index.js' or its ... Remove this comment to see the full error message
-import Config from '../../config/index.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import DiscordMessages from '../discordTools/discordMessages.js';
-import DiscordTools from '../discordTools/discordTools.js';
-import InstanceUtils from '../util/instanceUtils.js';
-import instanceUtils from '../util/instanceUtils.js';
 import Constants from '../util/constants.js';
 
 export default {

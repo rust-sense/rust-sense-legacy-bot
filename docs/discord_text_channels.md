@@ -2,19 +2,18 @@
 
 ## Discord Text Channels
 
-* [**Information**](discord_text_channels.md#information-channel)
-* [**Servers**](discord_text_channels.md#servers-channel)
-* [**Settings**](discord_text_channels.md#settings-channel)
-* [**Commands**](discord_text_channels.md#commands-channel)
-* [**Events**](discord_text_channels.md#events-channel)
-* [**Teamchat**](discord_text_channels.md#teamchat-channel)
-* [**Switches**](discord_text_channels.md#switches-channel)
-* [**Switchgroups**](discord_text_channels.md#switch-groups-channel)
-* [**Alarms**](discord_text_channels.md#alarms-channel)
-* [**Storagemonitors**](discord_text_channels.md#storagemonitors-channel)
-* [**Activity**](discord_text_channels.md#activity-channel)
-* [**Trackers**](discord_text_channels.md#trackers-channel)
-
+-   [**Information**](discord_text_channels.md#information-channel)
+-   [**Servers**](discord_text_channels.md#servers-channel)
+-   [**Settings**](discord_text_channels.md#settings-channel)
+-   [**Commands**](discord_text_channels.md#commands-channel)
+-   [**Events**](discord_text_channels.md#events-channel)
+-   [**Teamchat**](discord_text_channels.md#teamchat-channel)
+-   [**Switches**](discord_text_channels.md#switches-channel)
+-   [**Switchgroups**](discord_text_channels.md#switch-groups-channel)
+-   [**Alarms**](discord_text_channels.md#alarms-channel)
+-   [**Storagemonitors**](discord_text_channels.md#storagemonitors-channel)
+-   [**Activity**](discord_text_channels.md#activity-channel)
+-   [**Trackers**](discord_text_channels.md#trackers-channel)
 
 ## Information Channel
 
@@ -24,31 +23,32 @@
 <br>
 
 **Server Information** is just that, information about the server such as:
-- Players currently online
-- Time In-Game
-- How long ago Map Wipe was
-- Time till day/night
-- Map Size
-- Map Seed
-- Map Salt
-- Map Name
-- Connect information for join through In-Game console
-<br>
+
+-   Players currently online
+-   Time In-Game
+-   How long ago Map Wipe was
+-   Time till day/night
+-   Map Size
+-   Map Seed
+-   Map Salt
+-   Map Name
+-   Connect information for join through In-Game console
+    <br>
 
 **Event Information** shows event activities In-Game such as:
-- Cargoship
-- Patrol Helicopter
-- Small Oil Rig
-- Large Oil Rig
-- Chinookk 47
-<br>
+
+-   Cargoship
+-   Patrol Helicopter
+-   Small Oil Rig
+-   Large Oil Rig
+-   Chinookk 47
+    <br>
 
 **Team Member Information** shows the entire team. Whos online/offline/afk/alive/dead, location, leader and paired.
 
 ![Discord Text Channel Information](images/channels/information_channel.png)
 
 **Battlemetrics Online Players** shows all online players on the server.
-
 
 ## Servers Channel
 
@@ -61,13 +61,11 @@ There are a few buttons for each server. The `CONNECT` button lets you start a c
 
 ![Discord Text Channel Servers](images/channels/servers_channel.png)
 
-
 ## Settings Channel
 
 > The Settings Channel contain a bunch of different settings for rustplusplus. There are settings for language, voice gender, command prefix, trademark visibility, allow in-game commands, mute in-game, in-game teammate notifications, command delay, Smart Alarm notifications, enable leader command, battlemetrics notifications, wipe detection, vending machine subscription and event notifications.
 
 ![Discord Text Channel Settings](images/channels/settings_channel.png)
-
 
 ## Commands Channel
 
@@ -75,24 +73,22 @@ There are a few buttons for each server. The `CONNECT` button lets you start a c
 
 ![Discord Text Channel Commands](images/channels/commands_channel.png)
 
-
 ## Events Channel
 
 > The Events Channel contains all the event notifications that occurs such as:
 
-- `Cargoship spawn`
-- `Cargoship despawn`
-- `Cargoship enters egress stage`
-- `Patrol Helicopter spawn`
-- `Patrol Helicopter despawn`
-- `Patrol Helicopter destroyed`
-- `Locked Crate at Oil Rig Unlocked`
-- `Oil Rig have been triggered`
-- `Chinook 47 spawn`
-- `New Vending Machine detected`
+-   `Cargoship spawn`
+-   `Cargoship despawn`
+-   `Cargoship enters egress stage`
+-   `Patrol Helicopter spawn`
+-   `Patrol Helicopter despawn`
+-   `Patrol Helicopter destroyed`
+-   `Locked Crate at Oil Rig Unlocked`
+-   `Oil Rig have been triggered`
+-   `Chinook 47 spawn`
+-   `New Vending Machine detected`
 
 ![Discord Text Channel Events](images/channels/events_channel.png)
-
 
 ## Teamchat Channel
 
@@ -100,21 +96,17 @@ There are a few buttons for each server. The `CONNECT` button lets you start a c
 
 ![Discord Text Channel Teamchat](images/channels/teamchat_channel.png)
 
-
 ## Switches Channel
 
 > The Switches Channel lists all the paired Smart Switches. See [Smart Devices](smart_devices.md#smart-switches).
-
 
 ## Switch Groups Channel
 
 > The Switch Groups Channel lists all groups of Smart Switches. See [Smart Devices](smart_devices.md#smart-switch-groups).
 
-
 ## Alarms Channel
 
 > The Alarms Channel lists all the paired Smart Alarms. See [Smart Devices](smart_devices.md#smart-alarms).
-
 
 ## Storagemonitors Channel
 
@@ -125,7 +117,6 @@ There are a few buttons for each server. The `CONNECT` button lets you start a c
 > The Activity Channel is used to display a bunch of different things such as team member joined/ left/ connected/ disconnected/ killed/ offline killed, Not found notifications from Smart Devices, Smart Alarm notifications, Decaying notifications, Tracker information, Server went down/up notifications, facepunch news, Battlemetrics notifications etc...
 
 ![Discord Text Channel Activity](images/channels/activity_channel.png)
-
 
 ## Trackers Channel
 

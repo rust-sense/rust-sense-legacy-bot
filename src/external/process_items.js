@@ -29,10 +29,9 @@ import Fs from 'fs';
 var items = {};
 
 /* Iterate each file in current directory. */
-Fs.readdirSync('.').forEach(file => {
+Fs.readdirSync('.').forEach((file) => {
     /* Check if file is item meta file. */
     if (file.endsWith('.json')) {
-
         /* Read item meta. */
         var item = JSON.parse(Fs.readFileSync(file));
 
@@ -40,7 +39,7 @@ Fs.readdirSync('.').forEach(file => {
         items[item.itemid] = {
             shortname: item.shortname,
             name: item.Name,
-            description: item.Description
+            description: item.Description,
         };
     }
 });

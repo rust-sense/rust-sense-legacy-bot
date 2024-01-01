@@ -44,10 +44,7 @@ import DecayData from '../staticFiles/rustlabsDecayData.json';
 import UpkeepData from '../staticFiles/rustlabsUpkeepData.json';
 import Utils from '../util/utils.js';
 
-const IGNORED_RECYCLE_ITEMS = [
-    '-946369541' /* Low Grade Fuel */
-];
-
+const IGNORED_RECYCLE_ITEMS = ['-946369541' /* Low Grade Fuel */];
 
 class RustLabs {
     _buildingBlocks: any;
@@ -68,7 +65,6 @@ class RustLabs {
     _stackData: any;
     _upkeepData: any;
 
-
     /**
      *  Constructor for the RustLabs Class.
      */
@@ -88,20 +84,9 @@ class RustLabs {
         this._rustlabsBuildingBlocks = RustlabsBuildingBlocks;
         this._rustlabsOther = RustlabsOther;
 
-        this._durabilityGroups = [
-            'explosive',
-            'melee',
-            'throw',
-            'guns',
-            'torpedo',
-            'turret'
-        ];
+        this._durabilityGroups = ['explosive', 'melee', 'throw', 'guns', 'torpedo', 'turret'];
 
-        this._durabilityWhich = [
-            'hard',
-            'soft',
-            'both'
-        ];
+        this._durabilityWhich = ['hard', 'soft', 'both'];
 
         this._orderedBy = [
             'quantityHighFirst',
@@ -111,36 +96,68 @@ class RustLabs {
             'fuelHighFirst',
             'fuelLowFirst',
             'sulfurHighFirst',
-            'sulfurLowFirst'
+            'sulfurLowFirst',
         ];
 
         this._buildingBlocks = Object.keys(this.rustlabsBuildingBlocks);
         this._other = Object.keys(this.rustlabsOther);
     }
 
-
     /***********************************************************************************
      *  Getters
      **********************************************************************************/
 
-    get craftData() { return this._craftData; }
-    get researchData() { return this._researchData; }
-    get recycleData() { return this._recycleData; }
-    get durabilityData() { return this._durabilityData; }
-    get smeltingData() { return this._smeltingData; }
-    get despawnData() { return this._despawnData; }
-    get stackData() { return this._stackData; }
-    get decayData() { return this._decayData; }
-    get upkeepData() { return this._upkeepData; }
-    get items() { return this._items; }
-    get rustlabsBuildingBlocks() { return this._rustlabsBuildingBlocks; }
-    get rustlabsOther() { return this._rustlabsOther; }
-    get durabilityGroups() { return this._durabilityGroups }
-    get durabilityWhich() { return this._durabilityWhich; }
-    get orderedBy() { return this._orderedBy; }
-    get buildingBlocks() { return this._buildingBlocks; }
-    get other() { return this._other; }
-
+    get craftData() {
+        return this._craftData;
+    }
+    get researchData() {
+        return this._researchData;
+    }
+    get recycleData() {
+        return this._recycleData;
+    }
+    get durabilityData() {
+        return this._durabilityData;
+    }
+    get smeltingData() {
+        return this._smeltingData;
+    }
+    get despawnData() {
+        return this._despawnData;
+    }
+    get stackData() {
+        return this._stackData;
+    }
+    get decayData() {
+        return this._decayData;
+    }
+    get upkeepData() {
+        return this._upkeepData;
+    }
+    get items() {
+        return this._items;
+    }
+    get rustlabsBuildingBlocks() {
+        return this._rustlabsBuildingBlocks;
+    }
+    get rustlabsOther() {
+        return this._rustlabsOther;
+    }
+    get durabilityGroups() {
+        return this._durabilityGroups;
+    }
+    get durabilityWhich() {
+        return this._durabilityWhich;
+    }
+    get orderedBy() {
+        return this._orderedBy;
+    }
+    get buildingBlocks() {
+        return this._buildingBlocks;
+    }
+    get other() {
+        return this._other;
+    }
 
     /***********************************************************************************
      *  General functions
@@ -205,10 +222,13 @@ class RustLabs {
      */
     getArrayOrderedBy(array, key, orderedByLow) {
         if (orderedByLow) {
-            return array.sort(function (a, b) { return a[key] - b[key] });
-        }
-        else {
-            return array.sort(function (a, b) { return b[key] - a[key] });
+            return array.sort(function (a, b) {
+                return a[key] - b[key];
+            });
+        } else {
+            return array.sort(function (a, b) {
+                return b[key] - a[key];
+            });
         }
     }
 
@@ -221,51 +241,68 @@ class RustLabs {
     getArrayOrderedByChoice(array, orderedBy = null) {
         switch (orderedBy) {
             // @ts-expect-error TS(2678) FIXME: Type '"quantityHighFirst"' is not comparable to ty... Remove this comment to see the full error message
-            case 'quantityHighFirst': {
-                return this.getArrayOrderedBy(array, 'quantity', false);
-            } break;
+            case 'quantityHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'quantity', false);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"quantityLowFirst"' is not comparable to typ... Remove this comment to see the full error message
-            case 'quantityLowFirst': {
-                return this.getArrayOrderedBy(array, 'quantity', true);
-            } break;
+            case 'quantityLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'quantity', true);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"timeHighFirst"' is not comparable to type '... Remove this comment to see the full error message
-            case 'timeHighFirst': {
-                return this.getArrayOrderedBy(array, 'time', false);
-            } break;
+            case 'timeHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'time', false);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"timeLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
-            case 'timeLowFirst': {
-                return this.getArrayOrderedBy(array, 'time', true);
-            } break;
+            case 'timeLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'time', true);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"fuelHighFirst"' is not comparable to type '... Remove this comment to see the full error message
-            case 'fuelHighFirst': {
-                return this.getArrayOrderedBy(array, 'fuel', false);
-            } break;
+            case 'fuelHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'fuel', false);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"fuelLowFirst"' is not comparable to type 'n... Remove this comment to see the full error message
-            case 'fuelLowFirst': {
-                return this.getArrayOrderedBy(array, 'fuel', true);
-            } break;
+            case 'fuelLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'fuel', true);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"sulfurHighFirst"' is not comparable to type... Remove this comment to see the full error message
-            case 'sulfurHighFirst': {
-                return this.getArrayOrderedBy(array, 'sulfur', false);
-            } break;
+            case 'sulfurHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'sulfur', false);
+                }
+                break;
 
             // @ts-expect-error TS(2678) FIXME: Type '"sulfurLowFirst"' is not comparable to type ... Remove this comment to see the full error message
-            case 'sulfurLowFirst': {
-                return this.getArrayOrderedBy(array, 'sulfur', true);
-            } break;
+            case 'sulfurLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'sulfur', true);
+                }
+                break;
 
-            default: {
-                return array;
-            } break;
+            default:
+                {
+                    return array;
+                }
+                break;
         }
     }
-
 
     /***********************************************************************************
      *  Craft functions
@@ -286,7 +323,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, craftDetails]
      */
     getCraftDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getCraftDetailsById(id);
@@ -301,7 +338,6 @@ class RustLabs {
         if (!this.hasCraftDetails(id)) return null;
         return [id, this.items.items[id], this.craftData[id]];
     }
-
 
     /***********************************************************************************
      *  Research functions
@@ -322,7 +358,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, researchDetails]
      */
     getResearchDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getResearchDetailsById(id);
@@ -337,7 +373,6 @@ class RustLabs {
         if (!this.hasResearchDetails(id)) return null;
         return [id, this.items.items[id], this.researchData[id]];
     }
-
 
     /***********************************************************************************
      *  Recycle functions
@@ -358,7 +393,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, recycleDetails]
      */
     getRecycleDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getRecycleDetailsById(id);
@@ -370,7 +405,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, recycleDetails]
      */
     getRecycleDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasRecycleDetails(id)) return null;
         return [id, this.items.items[id], this.recycleData[id]];
     }
@@ -385,14 +420,13 @@ class RustLabs {
         /* Remove element duplicates */
         const mergedItems = [];
         for (const item of items) {
-            const itemId = (typeof (item.itemId) === 'string') ? item.itemId : item.itemId.toString();
+            const itemId = typeof item.itemId === 'string' ? item.itemId : item.itemId.toString();
             // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
-            const found = mergedItems.find(e => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
+            const found = mergedItems.find((e) => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
             if (found === undefined) {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 mergedItems.push({ itemId: itemId, quantity: item.quantity, itemIsBlueprint: item.itemIsBlueprint });
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                 found.quantity += item.quantity;
             }
@@ -412,15 +446,18 @@ class RustLabs {
                 }
 
                 /* Can the item be recycled further? */
-                if (this.recycleData[item.itemId].length > 0 && !item.itemIsBlueprint &&
-                    !IGNORED_RECYCLE_ITEMS.includes(item.itemId)) {
+                if (
+                    this.recycleData[item.itemId].length > 0 &&
+                    !item.itemIsBlueprint &&
+                    !IGNORED_RECYCLE_ITEMS.includes(item.itemId)
+                ) {
                     noMoreIterations = false;
                     for (const recycleItem of this.recycleData[item.itemId]) {
                         for (let i = 0; i < item.quantity; i++) {
                             if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability) continue;
 
                             // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
-                            const found = expandedItems.find(e => e.itemId === recycleItem.id);
+                            const found = expandedItems.find((e) => e.itemId === recycleItem.id);
                             if (found === undefined) {
                                 expandedItems.push({
                                     // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
@@ -428,26 +465,26 @@ class RustLabs {
                                     // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                                     quantity: recycleItem.quantity,
                                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                                    itemIsBlueprint: false
+                                    itemIsBlueprint: false,
                                 });
-                            }
-                            else {
+                            } else {
                                 // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                                 found.quantity += recycleItem.quantity;
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
-                    const found = expandedItems.find(e => e.itemId === item.itemId &&
-                        // @ts-expect-error TS(2339) FIXME: Property 'itemIsBlueprint' does not exist on type ... Remove this comment to see the full error message
-                        e.itemIsBlueprint === item.itemIsBlueprint);
+                    const found = expandedItems.find(
+                        (e) =>
+                            e.itemId === item.itemId &&
+                            // @ts-expect-error TS(2339) FIXME: Property 'itemIsBlueprint' does not exist on type ... Remove this comment to see the full error message
+                            e.itemIsBlueprint === item.itemIsBlueprint,
+                    );
                     if (found === undefined) {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         expandedItems.push(item);
-                    }
-                    else {
+                    } else {
                         // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                         found.quantity += item.quantity;
                     }
@@ -462,7 +499,6 @@ class RustLabs {
         return recycleData;
     }
 
-
     /***********************************************************************************
      *  Durability functions
      **********************************************************************************/
@@ -473,9 +509,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDurabilityDetails(itemIdOrName) {
-        return this.durabilityData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.durabilityData['items'].hasOwnProperty(itemIdOrName) ||
             this.durabilityData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.durabilityData['other'].hasOwnProperty(itemIdOrName);
+            this.durabilityData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -488,7 +526,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, durabilityDetails]
      */
     getDurabilityDetailsByName(name, group = null, which = null, orderedBy = null) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         if (group !== null && !this.durabilityGroups.includes(group)) return null;
         if (which !== null && !this.durabilityWhich.includes(which)) return null;
         if (orderedBy !== null && !this.orderedBy.includes(orderedBy)) return null;
@@ -502,8 +540,7 @@ class RustLabs {
                 if (this.durabilityData['other'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -515,8 +552,7 @@ class RustLabs {
                 if (this.durabilityData['buildingBlocks'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -527,8 +563,7 @@ class RustLabs {
             if (foundName) {
                 if (this.durabilityData['items'].hasOwnProperty(foundName)) {
                     return this.getDurabilityDetailsById(foundName, group, which, orderedBy);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -558,7 +593,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, durabilityDetails]
      */
     getDurabilityDetailsById(id, group = null, which = null, orderedBy = null) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasDurabilityDetails(id)) return null;
         if (group !== null && !this.durabilityGroups.includes(group)) return null;
         if (which !== null && !this.durabilityWhich.includes(which)) return null;
@@ -576,7 +611,6 @@ class RustLabs {
 
         return ['items', id, this.items.items[id], content];
     }
-
 
     /***********************************************************************************
      *  Smelting functions
@@ -597,7 +631,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, smeltingDetails]
      */
     getSmeltingDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getSmeltingDetailsById(id);
@@ -638,7 +672,6 @@ class RustLabs {
         return fromParameterSmeltingDetails;
     }
 
-
     /***********************************************************************************
      *  Despawn functions
      **********************************************************************************/
@@ -658,7 +691,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, despawnDetails]
      */
     getDespawnDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getDespawnDetailsById(id);
@@ -673,7 +706,6 @@ class RustLabs {
         if (!this.hasDespawnDetails(id)) return null;
         return [id, this.items.items[id], this.despawnData[id]];
     }
-
 
     /***********************************************************************************
      *  Stack functions
@@ -694,7 +726,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, stackDetails]
      */
     getStackDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getStackDetailsById(id);
@@ -710,7 +742,6 @@ class RustLabs {
         return [id, this.items.items[id], this.stackData[id]];
     }
 
-
     /***********************************************************************************
      *  Decay functions
      **********************************************************************************/
@@ -721,9 +752,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDecayDetails(itemIdOrName) {
-        return this.decayData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.decayData['items'].hasOwnProperty(itemIdOrName) ||
             this.decayData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.decayData['other'].hasOwnProperty(itemIdOrName);
+            this.decayData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -733,7 +766,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, decayDetails]
      */
     getDecayDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
 
         let type = null;
 
@@ -744,8 +777,7 @@ class RustLabs {
                 if (this.decayData['other'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -757,8 +789,7 @@ class RustLabs {
                 if (this.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -769,8 +800,7 @@ class RustLabs {
             if (foundName) {
                 if (this.decayData['items'].hasOwnProperty(foundName)) {
                     return this.getDecayDetailsById(foundName);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -788,12 +818,11 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, decayDetails]
      */
     getDecayDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasDecayDetails(id)) return null;
 
         return ['items', id, this.items.items[id], this.decayData['items'][id]];
     }
-
 
     /***********************************************************************************
      *  Upkeep functions
@@ -805,9 +834,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasUpkeepDetails(itemIdOrName) {
-        return this.upkeepData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.upkeepData['items'].hasOwnProperty(itemIdOrName) ||
             this.upkeepData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.upkeepData['other'].hasOwnProperty(itemIdOrName);
+            this.upkeepData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -817,7 +848,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, upkeepDetails]
      */
     getUpkeepDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
 
         let type = null;
 
@@ -828,8 +859,7 @@ class RustLabs {
                 if (this.upkeepData['other'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -841,8 +871,7 @@ class RustLabs {
                 if (this.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -853,8 +882,7 @@ class RustLabs {
             if (foundName) {
                 if (this.upkeepData['items'].hasOwnProperty(foundName)) {
                     return this.getUpkeepDetailsById(foundName);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -872,7 +900,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, upkeepDetails]
      */
     getUpkeepDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasUpkeepDetails(id)) return null;
 
         return ['items', id, this.items.items[id], this.upkeepData['items'][id]];

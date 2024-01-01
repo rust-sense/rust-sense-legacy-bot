@@ -2,14 +2,14 @@
 
 ## Required Software
 
-Program | Version | Download | Note
-------- | ------- | -------- | ----
-`NodeJS` | >= 16.9 | [**here**](https://nodejs.org/en/download/) | Since discordjs v14 is used, the version needs to be at least 16.9.
-`Git` | Any | [**here**](https://git-scm.com/downloads) | &nbsp;
+| Program  | Version | Download                                    | Note                                                                |
+| -------- | ------- | ------------------------------------------- | ------------------------------------------------------------------- |
+| `NodeJS` | >= 16.9 | [**here**](https://nodejs.org/en/download/) | Since discordjs v14 is used, the version needs to be at least 16.9. |
+| `Git`    | Any     | [**here**](https://git-scm.com/downloads)   | &nbsp;                                                              |
 
 ## Optional Software
-To enable step-trace for cargoship and patrol helicopter, [**GraphicsMagick**](http://www.graphicsmagick.org/download.html) needs to be downloaded.
 
+To enable step-trace for cargoship and patrol helicopter, [**GraphicsMagick**](http://www.graphicsmagick.org/download.html) needs to be downloaded.
 
 ## Clone the repository
 

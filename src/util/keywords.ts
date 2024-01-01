@@ -106,7 +106,7 @@ export default {
             client.intlGet('en', 'commandSyntaxUnmute'),
             client.intlGet('en', 'commandSyntaxUpkeep'),
             client.intlGet('en', 'commandSyntaxUptime'),
-            client.intlGet('en', 'commandSyntaxWipe')
+            client.intlGet('en', 'commandSyntaxWipe'),
         ];
     },
 
@@ -132,5 +132,5 @@ export default {
         }
 
         return list;
-    }
+    },
 };

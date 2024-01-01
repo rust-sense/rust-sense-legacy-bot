@@ -30,8 +30,7 @@ export default {
 
         if (rustplus.informationIntervalCounter === 5) {
             rustplus.informationIntervalCounter = 0;
-        }
-        else {
+        } else {
             rustplus.informationIntervalCounter += 1;
         }
     },

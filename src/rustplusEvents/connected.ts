@@ -20,9 +20,9 @@
 
 import DiscordMessages from '../discordTools/discordMessages.js';
 
+import PollingHandler from '../handlers/pollingHandler.js';
 import Info from '../structures/Info';
 import Map from '../structures/Map';
-import PollingHandler from '../handlers/pollingHandler.js';
 
 export default {
     name: 'connected',
@@ -43,8 +43,11 @@ export default {
         /* Request the map. Act as a check to see if connection is truly operational. */
         const map = await rustplus.getMapAsync(3 * 60 * 1000); /* 3 min timeout */
         if (!(await rustplus.isResponseValid(map))) {
-            rustplus.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'somethingWrongWithConnection'), 'error');
+            rustplus.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'somethingWrongWithConnection'),
+                'error',
+            );
 
             instance.activeServer = null;
             client.setInstance(guildId, instance);
@@ -61,7 +64,7 @@ export default {
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
         const info = await rustplus.getInfoAsync();
-        if (await rustplus.isResponseValid(info)) rustplus.info = new Info(info.info)
+        if (await rustplus.isResponseValid(info)) rustplus.info = new Info(info.info);
 
         if (client.rustplusMaps.hasOwnProperty(guildId)) {
             if (client.isJpgImageChanged(guildId, map.map)) {
@@ -70,15 +73,13 @@ export default {
                 await rustplus.map.writeMap(false, true);
                 await DiscordMessages.sendServerWipeDetectedMessage(guildId, serverId);
                 await DiscordMessages.sendInformationMapMessage(guildId);
-            }
-            else {
+            } else {
                 rustplus.map = new Map(map.map, rustplus);
 
                 await rustplus.map.writeMap(false, true);
                 await DiscordMessages.sendInformationMapMessage(guildId);
             }
-        }
-        else {
+        } else {
             rustplus.map = new Map(map.map, rustplus);
 
             await rustplus.map.writeMap(false, true);

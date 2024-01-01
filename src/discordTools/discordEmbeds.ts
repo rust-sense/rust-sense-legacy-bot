@@ -23,9 +23,9 @@ import Discord from 'discord.js';
 // @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
 import Constants from '../util/constants.js';
-import DiscordTools from './discordTools.js';
 import InstanceUtils from '../util/instanceUtils.js';
 import Timer from '../util/timer';
+import DiscordTools from './discordTools.js';
 
 export default {
     getEmbed: function (options = {}) {
@@ -65,12 +65,14 @@ export default {
             description: `**ID**: \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            fields: [{
-                name: Client.client.intlGet(guildId, 'customCommand'),
-                value: `\`${instance.generalSettings.prefix}${entity.command}\``,
-                inline: true
-            }],
-            timestamp: true
+            fields: [
+                {
+                    name: Client.client.intlGet(guildId, 'customCommand'),
+                    value: `\`${instance.generalSettings.prefix}${entity.command}\``,
+                    inline: true,
+                },
+            ],
+            timestamp: true,
         });
     },
 
@@ -93,8 +95,10 @@ export default {
             const bmInstance = Client.client.battlemetricsInstances[bmId];
             if (bmInstance) {
                 description += `__**${Client.client.intlGet(guildId, 'streamerMode')}:**__ `;
-                description += (bmInstance.streamerMode ? Client.client.intlGet(guildId, 'onCap') :
-                    Client.client.intlGet(guildId, 'offCap')) + '\n';
+                description +=
+                    (bmInstance.streamerMode
+                        ? Client.client.intlGet(guildId, 'onCap')
+                        : Client.client.intlGet(guildId, 'offCap')) + '\n';
             }
         }
         description += `\n${server.description}`;
@@ -104,17 +108,20 @@ export default {
             color: Constants.COLOR_DEFAULT,
             description: description,
             thumbnail: `${server.img}`,
-            fields: [{
-                name: Client.client.intlGet(guildId, 'connect'),
-                value: `\`${server.connect === null ?
-                    Client.client.intlGet(guildId, 'unavailable') : server.connect}\``,
-                inline: true
-            },
-            {
-                name: Client.client.intlGet(guildId, 'hoster'),
-                value: `\`${hoster} (${server.steamId})\``,
-                inline: false
-            }]
+            fields: [
+                {
+                    name: Client.client.intlGet(guildId, 'connect'),
+                    value: `\`${
+                        server.connect === null ? Client.client.intlGet(guildId, 'unavailable') : server.connect
+                    }\``,
+                    inline: true,
+                },
+                {
+                    name: Client.client.intlGet(guildId, 'hoster'),
+                    value: `\`${hoster} (${server.steamId})\``,
+                    inline: false,
+                },
+            ],
         });
     },
 
@@ -127,22 +134,33 @@ export default {
         const successful = bmInstance && bmInstance.lastUpdateSuccessful ? true : false;
 
         const battlemetricsLink = `[${battlemetricsId}](${Constants.BATTLEMETRICS_SERVER_URL}${battlemetricsId})`;
-        const serverStatus = !successful ? Constants.NOT_FOUND_EMOJI :
-            (bmInstance.server_status ? Constants.ONLINE_EMOJI : Constants.OFFLINE_EMOJI);
+        const serverStatus = !successful
+            ? Constants.NOT_FOUND_EMOJI
+            : bmInstance.server_status
+              ? Constants.ONLINE_EMOJI
+              : Constants.OFFLINE_EMOJI;
 
         let description = `__**Battlemetrics ID:**__ ${battlemetricsLink}\n`;
         description += `__**${Client.client.intlGet(guildId, 'serverId')}:**__ ${tracker.serverId}\n`;
         description += `__**${Client.client.intlGet(guildId, 'serverStatus')}:**__ ${serverStatus}\n`;
         description += `__**${Client.client.intlGet(guildId, 'streamerMode')}:**__ `;
-        description += (!bmInstance ? Constants.NOT_FOUND_EMOJI : (bmInstance.streamerMode ?
-            Client.client.intlGet(guildId, 'onCap') : Client.client.intlGet(guildId, 'offCap'))) + '\n';
+        description +=
+            (!bmInstance
+                ? Constants.NOT_FOUND_EMOJI
+                : bmInstance.streamerMode
+                  ? Client.client.intlGet(guildId, 'onCap')
+                  : Client.client.intlGet(guildId, 'offCap')) + '\n';
         description += `__**${Client.client.intlGet(guildId, 'clanTag')}:**__ `;
         description += tracker.clanTag !== '' ? `\`${tracker.clanTag}\`` : '';
 
         let totalCharacters = description.length;
-        let fieldIndex = 0
-        const playerName = [''], playerId = [''], playerStatus = [''];
-        let playerNameCharacters = 0, playerIdCharacters = 0, playerStatusCharacters = 0;
+        let fieldIndex = 0;
+        const playerName = [''],
+            playerId = [''],
+            playerStatus = [''];
+        let playerNameCharacters = 0,
+            playerIdCharacters = 0,
+            playerStatusCharacters = 0;
         for (const player of tracker.players) {
             let name = `${player.name}`;
 
@@ -156,24 +174,23 @@ export default {
             const steamIdLink = Constants.GET_STEAM_PROFILE_LINK(player.steamId);
             const bmIdLink = Constants.GET_BATTLEMETRICS_PROFILE_LINK(player.playerId);
 
-            const isNewLine = (player.steamId !== null && player.playerId !== null) ? true : false;
+            const isNewLine = player.steamId !== null && player.playerId !== null ? true : false;
             id += `${player.steamId !== null ? steamIdLink : ''}`;
             id += `${player.steamId !== null && player.playerId !== null ? ' /\n' : ''}`;
             id += `${player.playerId !== null ? bmIdLink : ''}`;
-            id += `${player.steamId === null && player.playerId === null ?
-                Client.client.intlGet(guildId, 'empty') : ''}`;
+            id += `${
+                player.steamId === null && player.playerId === null ? Client.client.intlGet(guildId, 'empty') : ''
+            }`;
             id += '\n';
 
             if (!bmInstance.players.hasOwnProperty(player.playerId) || !successful) {
                 status += `${Constants.NOT_FOUND_EMOJI}\n`;
-            }
-            else {
+            } else {
                 let time = null;
                 if (bmInstance.players[player.playerId]['status']) {
                     time = bmInstance.getOnlineTime(player.playerId);
                     status += `${Constants.ONLINE_EMOJI}`;
-                }
-                else {
+                } else {
                     time = bmInstance.getOfflineTime(player.playerId);
                     status += `${Constants.OFFLINE_EMOJI}`;
                 }
@@ -189,9 +206,11 @@ export default {
                 break;
             }
 
-            if ((playerNameCharacters + name.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
-                (playerIdCharacters + id.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
-                (playerStatusCharacters + status.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS) {
+            if (
+                playerNameCharacters + name.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
+                playerIdCharacters + id.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
+                playerStatusCharacters + status.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS
+            ) {
                 fieldIndex += 1;
 
                 playerName.push('');
@@ -215,23 +234,26 @@ export default {
         }
 
         const fields = [];
-        for (let i = 0; i < (fieldIndex + 1); i++) {
+        for (let i = 0; i < fieldIndex + 1; i++) {
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                 name: i === 0 ? `__${Client.client.intlGet(guildId, 'name')}__\n\u200B` : '\u200B',
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: playerName[i] !== '' ? playerName[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
-                name: i === 0 ? `__${Client.client.intlGet(guildId, 'steamId')}__ /\n` +
-                    `__${Client.client.intlGet(guildId, 'battlemetricsId')}__` : '\u200B',
+                name:
+                    i === 0
+                        ? `__${Client.client.intlGet(guildId, 'steamId')}__ /\n` +
+                          `__${Client.client.intlGet(guildId, 'battlemetricsId')}__`
+                        : '\u200B',
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: playerId[i] !== '' ? playerId[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
@@ -239,7 +261,7 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: playerStatus[i] !== '' ? playerStatus[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
         }
 
@@ -250,7 +272,7 @@ export default {
             thumbnail: `${tracker.img}`,
             footer: { text: `${tracker.title}` },
             fields: fields,
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -275,16 +297,19 @@ export default {
             description: description,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            fields: [{
-                name: Client.client.intlGet(guildId, 'message'),
-                value: `\`${entity.message}\``,
-                inline: true
-            }, {
-                name: Client.client.intlGet(guildId, 'customCommand'),
-                value: `\`${instance.generalSettings.prefix}${entity.command}\``,
-                inline: false
-            }],
-            timestamp: true
+            fields: [
+                {
+                    name: Client.client.intlGet(guildId, 'message'),
+                    value: `\`${entity.message}\``,
+                    inline: true,
+                },
+                {
+                    name: Client.client.intlGet(guildId, 'customCommand'),
+                    value: `\`${instance.generalSettings.prefix}${entity.command}\``,
+                    inline: false,
+                },
+            ],
+            timestamp: true,
         });
     },
 
@@ -303,7 +328,7 @@ export default {
                 description: `${description}\n${Client.client.intlGet(guildId, 'statusNotConnectedToServer')}`,
                 thumbnail: `attachment://${entity.image}`,
                 footer: { text: `${entity.server}` },
-                timestamp: true
+                timestamp: true,
             });
         }
 
@@ -311,24 +336,27 @@ export default {
             return module.exports.getEmbed({
                 title: `${entity.name}${grid}`,
                 color: Constants.COLOR_DEFAULT,
-                description:
-                    `${description}\n${Client.client.intlGet(guildId, 'statusNotElectronicallyConnected')}`,
+                description: `${description}\n${Client.client.intlGet(guildId, 'statusNotElectronicallyConnected')}`,
                 thumbnail: `attachment://${entity.image}`,
                 footer: { text: `${entity.server}` },
-                timestamp: true
+                timestamp: true,
             });
         }
 
-        description += `\n**${Client.client.intlGet(guildId, 'type')}** ` +
-            `\`${entity.type !== null ? Client.client.intlGet(guildId, entity.type) :
-                Client.client.intlGet(guildId, 'unknown')}\``;
+        description +=
+            `\n**${Client.client.intlGet(guildId, 'type')}** ` +
+            `\`${
+                entity.type !== null
+                    ? Client.client.intlGet(guildId, entity.type)
+                    : Client.client.intlGet(guildId, 'unknown')
+            }\``;
 
         const items = rustplus.storageMonitors[entityId].items;
         const expiry = rustplus.storageMonitors[entityId].expiry;
         const capacity = rustplus.storageMonitors[entityId].capacity;
 
         description += `\n**${Client.client.intlGet(guildId, 'slots')}** `;
-        description += `\`(${items.length}/${capacity})\``
+        description += `\`(${items.length}/${capacity})\``;
 
         if (entity.type === 'toolCupboard') {
             let seconds = 0;
@@ -341,10 +369,11 @@ export default {
             if (seconds === 0) {
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
                 upkeep = `:warning:\`${Client.client.intlGet(guildId, 'decayingCap')}\`:warning:`;
-                instance.serverList[serverId].storageMonitors[entityId].upkeep =
-                    Client.client.intlGet(guildId, 'decayingCap');
-            }
-            else {
+                instance.serverList[serverId].storageMonitors[entityId].upkeep = Client.client.intlGet(
+                    guildId,
+                    'decayingCap',
+                );
+            } else {
                 const upkeepTime = Timer.secondsToFullScale(seconds);
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
                 upkeep = `\`${upkeepTime}\``;
@@ -354,12 +383,13 @@ export default {
             Client.client.setInstance(guildId, instance);
         }
 
-        let itemName = '', itemQuantity = '', storageItems = new Object();
+        let itemName = '',
+            itemQuantity = '',
+            storageItems = new Object();
         for (const item of items) {
             if (storageItems.hasOwnProperty(item.itemId)) {
                 storageItems[item.itemId] += item.quantity;
-            }
-            else {
+            } else {
                 storageItems[item.itemId] = item.quantity;
             }
         }
@@ -380,9 +410,9 @@ export default {
             footer: { text: `${entity.server}` },
             fields: [
                 { name: Client.client.intlGet(guildId, 'item'), value: itemName, inline: true },
-                { name: Client.client.intlGet(guildId, 'quantity'), value: itemQuantity, inline: true }
+                { name: Client.client.intlGet(guildId, 'quantity'), value: itemQuantity, inline: true },
             ],
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -390,7 +420,9 @@ export default {
         const instance = Client.client.getInstance(guildId);
         const group = instance.serverList[serverId].switchGroups[groupId];
 
-        let switchName = '', switchId = '', switchActive = '';
+        let switchName = '',
+            switchId = '',
+            switchActive = '';
         for (const groupSwitchId of group.switches) {
             if (instance.serverList[serverId].switches.hasOwnProperty(groupSwitchId)) {
                 const sw = instance.serverList[serverId].switches[groupSwitchId];
@@ -398,15 +430,14 @@ export default {
                 switchName += `${sw.name}${sw.location !== null ? ` ${sw.location}` : ''}\n`;
                 switchId += `${groupSwitchId}\n`;
                 if (sw.reachable) {
-                    switchActive += `${(active) ? Constants.ONLINE_EMOJI : Constants.OFFLINE_EMOJI}\n`;
-                }
-                else {
+                    switchActive += `${active ? Constants.ONLINE_EMOJI : Constants.OFFLINE_EMOJI}\n`;
+                } else {
                     switchActive += `${Constants.NOT_FOUND_EMOJI}\n`;
                 }
-            }
-            else {
-                instance.serverList[serverId].switchGroups[groupId].switches =
-                    instance.serverList[serverId].switchGroups[groupId].switches.filter(e => e !== groupSwitchId);
+            } else {
+                instance.serverList[serverId].switchGroups[groupId].switches = instance.serverList[
+                    serverId
+                ].switchGroups[groupId].switches.filter((e) => e !== groupSwitchId);
             }
         }
         Client.client.setInstance(guildId, instance);
@@ -425,14 +456,14 @@ export default {
                 {
                     name: Client.client.intlGet(guildId, 'customCommand'),
                     value: `\`${instance.generalSettings.prefix}${group.command}\``,
-                    inline: false
+                    inline: false,
                 },
                 { name: Client.client.intlGet(guildId, 'switches'), value: switchName, inline: true },
                 { name: 'ID', value: switchId, inline: true },
-                { name: Client.client.intlGet(guildId, 'status'), value: switchActive, inline: true }
+                { name: Client.client.intlGet(guildId, 'status'), value: switchActive, inline: true },
             ],
 
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -444,10 +475,11 @@ export default {
         return module.exports.getEmbed({
             title: `${entity.name}${grid}`,
             color: Constants.COLOR_INACTIVE,
-            description: `**ID**: \`${entityId}\`\n` +
+            description:
+                `**ID**: \`${entityId}\`\n` +
                 `${Client.client.intlGet(guildId, 'statusNotFound')} ${Constants.NOT_FOUND_EMOJI}`,
             thumbnail: `attachment://${entity.image}`,
-            footer: { text: `${entity.server}` }
+            footer: { text: `${entity.server}` },
         });
     },
 
@@ -456,7 +488,8 @@ export default {
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const grid = entity.location !== null ? ` (${entity.location})` : '';
 
-        let itemName = '', itemQuantity = '';
+        let itemName = '',
+            itemQuantity = '';
         for (const item of items) {
             itemName += `\`${Client.client.items.getName(item.itemId)}\`\n`;
             itemQuantity += `\`${item.quantity}\`\n`;
@@ -467,8 +500,8 @@ export default {
             color: Constants.COLOR_DEFAULT,
             thumbnail: 'attachment://recycler.png',
             footer: { text: `${entity.server} | ${Client.client.intlGet(guildId, 'messageDeletedIn30')}` },
-            description: `**${Client.client.intlGet(guildId, 'name')}** ` +
-                `\`${entity.name}${grid}\`\n**ID** \`${entityId}\``
+            description:
+                `**${Client.client.intlGet(guildId, 'name')}** ` + `\`${entity.name}${grid}\`\n**ID** \`${entityId}\``,
         });
 
         if (itemName === '') itemName = Client.client.intlGet(guildId, 'empty');
@@ -476,7 +509,7 @@ export default {
 
         embed.addFields(
             { name: Client.client.intlGet(guildId, 'item'), value: itemName, inline: true },
-            { name: Client.client.intlGet(guildId, 'quantity'), value: itemQuantity, inline: true }
+            { name: Client.client.intlGet(guildId, 'quantity'), value: itemQuantity, inline: true },
         );
 
         return embed;
@@ -489,13 +522,13 @@ export default {
 
         return module.exports.getEmbed({
             title: Client.client.intlGet(guildId, 'isDecaying', {
-                device: `${entity.name}${grid}`
+                device: `${entity.name}${grid}`,
             }),
             color: Constants.COLOR_INACTIVE,
             description: `**ID** \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -506,13 +539,13 @@ export default {
 
         return module.exports.getEmbed({
             title: Client.client.intlGet(guildId, 'isNoLongerConnected', {
-                device: `${entity.name}${grid}`
+                device: `${entity.name}${grid}`,
             }),
             color: Constants.COLOR_INACTIVE,
             description: `**ID** \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -527,13 +560,13 @@ export default {
         return module.exports.getEmbed({
             title: Client.client.intlGet(guildId, 'smartDeviceNotFound', {
                 device: `${entity.name}${grid}`,
-                user: user.user.username
+                user: user.user.username,
             }),
             color: Constants.COLOR_INACTIVE,
             description: `**ID** \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -548,13 +581,13 @@ export default {
         return module.exports.getEmbed({
             title: Client.client.intlGet(guildId, 'smartDeviceNotFound', {
                 device: `${entity.name}${grid}`,
-                user: user.user.username
+                user: user.user.username,
             }),
             color: Constants.COLOR_INACTIVE,
             description: `**ID** \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -569,13 +602,13 @@ export default {
         return module.exports.getEmbed({
             title: Client.client.intlGet(guildId, 'smartDeviceNotFound', {
                 device: `${entity.name}${grid}`,
-                user: user.user.username
+                user: user.user.username,
             }),
             color: Constants.COLOR_INACTIVE,
             description: `**ID** \`${entityId}\``,
             thumbnail: `attachment://${entity.image}`,
             footer: { text: `${entity.server}` },
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -585,7 +618,7 @@ export default {
             color: Constants.COLOR_DEFAULT,
             description: `${data.message}`,
             thumbnail: Constants.DEFAULT_SERVER_IMG,
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -596,9 +629,9 @@ export default {
             footer: { text: body.name },
             author: {
                 name: Client.client.intlGet(guildId, 'userJustConnected', { name: body.targetName }),
-                iconURL: (png !== null) ? png : Constants.DEFAULT_SERVER_IMG,
-                url: `${Constants.STEAM_PROFILES_URL}${body.targetId}`
-            }
+                iconURL: png !== null ? png : Constants.DEFAULT_SERVER_IMG,
+                url: `${Constants.STEAM_PROFILES_URL}${body.targetId}`,
+            },
         });
     },
 
@@ -609,7 +642,7 @@ export default {
             title: data.title,
             timestamp: true,
             footer: { text: body.name },
-            url: body.targetId !== '' ? `${Constants.STEAM_PROFILES_URL}${body.targetId}` : ''
+            url: body.targetId !== '' ? `${Constants.STEAM_PROFILES_URL}${body.targetId}` : '',
         });
     },
 
@@ -620,7 +653,7 @@ export default {
             footer: { text: body.name },
             title: data.title,
             description: data.message,
-            thumbnail: body.img !== '' ? body.img : 'attachment://rocket.png'
+            thumbnail: body.img !== '' ? body.img : 'attachment://rocket.png',
         });
     },
 
@@ -637,9 +670,9 @@ export default {
             timestamp: true,
             fields: [
                 { name: 'ID', value: `\`${entityId}\``, inline: true },
-                { name: Client.client.intlGet(guildId, 'message'), value: `\`${entity.message}\``, inline: true }]
+                { name: Client.client.intlGet(guildId, 'message'), value: `\`${entity.message}\``, inline: true },
+            ],
         });
-
     },
 
     getEventEmbed: function (guildId, serverId, text, image, color = Constants.COLOR_DEFAULT) {
@@ -650,18 +683,20 @@ export default {
             thumbnail: `attachment://${image}`,
             title: text,
             footer: { text: server.title, iconURL: server.img },
-            timestamp: true
+            timestamp: true,
         });
     },
 
     getActionInfoEmbed: function (color, str, footer = null, ephemeral = true) {
         return {
-            embeds: [module.exports.getEmbed({
-                color: color === 0 ? Constants.COLOR_DEFAULT : Constants.COLOR_INACTIVE,
-                description: `\`\`\`diff\n${(color === 0) ? '+' : '-'} ${str}\n\`\`\``,
-                footer: footer !== null ? { text: footer } : null
-            })],
-            ephemeral: ephemeral
+            embeds: [
+                module.exports.getEmbed({
+                    color: color === 0 ? Constants.COLOR_DEFAULT : Constants.COLOR_INACTIVE,
+                    description: `\`\`\`diff\n${color === 0 ? '+' : '-'} ${str}\n\`\`\``,
+                    footer: footer !== null ? { text: footer } : null,
+                }),
+            ],
+            ephemeral: ephemeral,
         };
     },
 
@@ -670,12 +705,12 @@ export default {
         const server = instance.serverList[serverId];
         return module.exports.getEmbed({
             color: state ? Constants.COLOR_INACTIVE : Constants.COLOR_ACTIVE,
-            title: state ?
-                Client.client.intlGet(guildId, 'serverJustOffline') :
-                Client.client.intlGet(guildId, 'serverJustOnline'),
+            title: state
+                ? Client.client.intlGet(guildId, 'serverJustOffline')
+                : Client.client.intlGet(guildId, 'serverJustOnline'),
             thumbnail: server.img,
             timestamp: true,
-            footer: { text: server.title }
+            footer: { text: server.title },
         });
     },
 
@@ -687,7 +722,7 @@ export default {
             title: Client.client.intlGet(guildId, 'wipeDetected'),
             image: `attachment://${guildId}_map_full.png`,
             timestamp: true,
-            footer: { text: server.title }
+            footer: { text: server.title },
         });
     },
 
@@ -699,7 +734,7 @@ export default {
             title: Client.client.intlGet(guildId, 'serverInvalid'),
             thumbnail: server.img,
             timestamp: true,
-            footer: { text: server.title }
+            footer: { text: server.title },
         });
     },
 
@@ -712,9 +747,9 @@ export default {
             footer: { text: footerTitle },
             author: {
                 name: text,
-                iconURL: (png !== null) ? png : Constants.DEFAULT_SERVER_IMG,
-                url: `${Constants.STEAM_PROFILES_URL}${steamId}`
-            }
+                iconURL: png !== null ? png : Constants.DEFAULT_SERVER_IMG,
+                url: `${Constants.STEAM_PROFILES_URL}${steamId}`,
+            },
         });
     },
 
@@ -724,7 +759,7 @@ export default {
 
         const time = rustplus.getCommandTime(true);
         const timeLeftTitle = Client.client.intlGet(rustplus.guildId, 'timeTill', {
-            event: rustplus.time.isDay() ? Constants.NIGHT_EMOJI : Constants.DAY_EMOJI
+            event: rustplus.time.isDay() ? Constants.NIGHT_EMOJI : Constants.DAY_EMOJI,
         });
         const playersFieldName = Client.client.intlGet(guildId, 'players');
         const timeFieldName = Client.client.intlGet(guildId, 'time');
@@ -742,17 +777,18 @@ export default {
             fields: [
                 { name: playersFieldName, value: `\`${rustplus.getCommandPop(true)}\``, inline: true },
                 { name: timeFieldName, value: `\`${time[0]}\``, inline: true },
-                { name: wipeFieldName, value: `\`${rustplus.getCommandWipe(true)}\``, inline: true }],
-            timestamp: true
+                { name: wipeFieldName, value: `\`${rustplus.getCommandWipe(true)}\``, inline: true },
+            ],
+            timestamp: true,
         });
 
         if (time[1] !== null) {
             embed.addFields(
                 { name: timeLeftTitle, value: `\`${time[1]}\``, inline: true },
                 { name: '\u200B', value: '\u200B', inline: true },
-                { name: '\u200B', value: '\u200B', inline: true });
-        }
-        else {
+                { name: '\u200B', value: '\u200B', inline: true },
+            );
+        } else {
             embed.addFields({ name: '\u200B', value: '\u200B', inline: false });
         }
 
@@ -760,13 +796,14 @@ export default {
             { name: mapSizeFieldName, value: `\`${rustplus.info.mapSize}\``, inline: true },
             { name: mapSeedFieldName, value: `\`${rustplus.info.seed}\``, inline: true },
             { name: mapSaltFieldName, value: `\`${rustplus.info.salt}\``, inline: true },
-            { name: mapFieldName, value: `\`${rustplus.info.map}\``, inline: true });
+            { name: mapFieldName, value: `\`${rustplus.info.map}\``, inline: true },
+        );
 
         if (instance.serverList[rustplus.serverId].connect !== null) {
             embed.addFields({
                 name: Client.client.intlGet(guildId, 'connect'),
                 value: `\`${instance.serverList[rustplus.serverId].connect}\``,
-                inline: false
+                inline: false,
             });
         }
 
@@ -800,8 +837,9 @@ export default {
                 { name: patrolHelicopterFieldName, value: `\`${patrolHelicopterMessage}\``, inline: true },
                 { name: smallOilRigFieldName, value: `\`${smallOilMessage}\``, inline: true },
                 { name: largeOilRigFieldName, value: `\`${largeOilMessage}\``, inline: true },
-                { name: chinook47FieldName, value: `\`${ch47Message}\``, inline: true }],
-            timestamp: true
+                { name: chinook47FieldName, value: `\`${ch47Message}\``, inline: true },
+            ],
+            timestamp: true,
         });
     },
 
@@ -815,45 +853,62 @@ export default {
         const locationFieldName = Client.client.intlGet(guildId, 'location');
         const footer = instance.serverList[rustplus.serverId].title;
 
-        let totalCharacters = title.length + teamMemberFieldName.length + statusFieldName.length + locationFieldName.length + footer.length;
+        let totalCharacters =
+            title.length +
+            teamMemberFieldName.length +
+            statusFieldName.length +
+            locationFieldName.length +
+            footer.length;
         let fieldIndex = 0;
-        const teammateName = [''], teammateStatus = [''], teammateLocation = [''];
-        let teammateNameCharacters = 0, teammateStatusCharacters = 0, teammateLocationCharacters = 0;
+        const teammateName = [''],
+            teammateStatus = [''],
+            teammateLocation = [''];
+        let teammateNameCharacters = 0,
+            teammateStatusCharacters = 0,
+            teammateLocationCharacters = 0;
         for (const player of rustplus.team.players) {
             let name = player.name === '' ? '-' : `[${player.name}](${Constants.STEAM_PROFILES_URL}${player.steamId})`;
-            name += (player.teamLeader) ? `${Constants.LEADER_EMOJI}\n` : '\n';
+            name += player.teamLeader ? `${Constants.LEADER_EMOJI}\n` : '\n';
             let status = '';
-            const location = (player.isOnline || player.isAlive) ? `${player.pos.string}\n` : '-\n';
+            const location = player.isOnline || player.isAlive ? `${player.pos.string}\n` : '-\n';
 
             if (player.isOnline) {
                 const isAfk = player.getAfkSeconds() >= Constants.AFK_TIME_SECONDS;
                 const afkTime = player.getAfkTime('dhs');
 
-                status += (isAfk) ? Constants.AFK_EMOJI : Constants.ONLINE_EMOJI;
-                status += (player.isAlive) ? ((isAfk) ? Constants.SLEEPING_EMOJI : Constants.ALIVE_EMOJI) :
-                    Constants.DEAD_EMOJI;
-                status += (Object.keys(instance.serverListLite[rustplus.serverId]).includes(player.steamId)) ?
-                    Constants.PAIRED_EMOJI : '';
-                status += (isAfk) ? ` ${afkTime}\n` : '\n';
-            }
-            else {
+                status += isAfk ? Constants.AFK_EMOJI : Constants.ONLINE_EMOJI;
+                status += player.isAlive
+                    ? isAfk
+                        ? Constants.SLEEPING_EMOJI
+                        : Constants.ALIVE_EMOJI
+                    : Constants.DEAD_EMOJI;
+                status += Object.keys(instance.serverListLite[rustplus.serverId]).includes(player.steamId)
+                    ? Constants.PAIRED_EMOJI
+                    : '';
+                status += isAfk ? ` ${afkTime}\n` : '\n';
+            } else {
                 const offlineTime = player.getOfflineTime('s');
                 status += Constants.OFFLINE_EMOJI;
-                status += (player.isAlive) ? Constants.SLEEPING_EMOJI : Constants.DEAD_EMOJI;
-                status += (Object.keys(instance.serverListLite[rustplus.serverId]).includes(player.steamId)) ?
-                    Constants.PAIRED_EMOJI : '';
-                status += (offlineTime !== null) ? offlineTime : '';
+                status += player.isAlive ? Constants.SLEEPING_EMOJI : Constants.DEAD_EMOJI;
+                status += Object.keys(instance.serverListLite[rustplus.serverId]).includes(player.steamId)
+                    ? Constants.PAIRED_EMOJI
+                    : '';
+                status += offlineTime !== null ? offlineTime : '';
                 status += '\n';
             }
 
-            if (totalCharacters + (name.length + status.length + location.length) >=
-                Constants.EMBED_MAX_TOTAL_CHARACTERS) {
+            if (
+                totalCharacters + (name.length + status.length + location.length) >=
+                Constants.EMBED_MAX_TOTAL_CHARACTERS
+            ) {
                 break;
             }
 
-            if ((teammateNameCharacters + name.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
-                (teammateStatusCharacters + status.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
-                (teammateLocationCharacters + location.length) > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS) {
+            if (
+                teammateNameCharacters + name.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
+                teammateStatusCharacters + status.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
+                teammateLocationCharacters + location.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS
+            ) {
                 fieldIndex += 1;
 
                 teammateName.push('');
@@ -877,14 +932,14 @@ export default {
         }
 
         const fields = [];
-        for (let i = 0; i < (fieldIndex + 1); i++) {
+        for (let i = 0; i < fieldIndex + 1; i++) {
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 name: i === 0 ? teamMemberFieldName : '\u200B',
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: teammateName[i] !== '' ? teammateName[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
@@ -892,7 +947,7 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: teammateStatus[i] !== '' ? teammateStatus[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
             fields.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
@@ -900,7 +955,7 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: teammateLocation[i] !== '' ? teammateLocation[i] : Client.client.intlGet(guildId, 'empty'),
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
         }
 
@@ -910,7 +965,7 @@ export default {
             thumbnail: 'attachment://team_info_logo.png',
             footer: { text: footer },
             fields: fields,
-            timestamp: true
+            timestamp: true,
         });
     },
 
@@ -972,13 +1027,15 @@ export default {
             title: title,
             color: Constants.COLOR_DEFAULT,
             footer: footer,
-            timestamp: true
+            timestamp: true,
         });
 
         if (isEmbedFull) {
-            embed.setDescription(Client.client.intlGet(guildId, 'andMorePlayers', {
-                number: playerIds.length - playerCounter
-            }));
+            embed.setDescription(
+                Client.client.intlGet(guildId, 'andMorePlayers', {
+                    number: playerIds.length - playerCounter,
+                }),
+            );
         }
 
         let fieldCounter = 0;
@@ -986,7 +1043,7 @@ export default {
             embed.addFields({
                 name: fieldCounter === 0 ? Client.client.intlGet(guildId, 'players') : '\u200B',
                 value: field,
-                inline: true
+                inline: true,
             });
             fieldCounter += 1;
         }
@@ -1002,15 +1059,14 @@ export default {
             for (const str of response) {
                 string += `${str}\n`;
             }
-        }
-        else {
+        } else {
             string = response;
         }
 
         return module.exports.getEmbed({
             color: Constants.COLOR_DEFAULT,
             description: `**${string}**`,
-            footer: { text: `${instance.serverList[rustplus.serverId].title}` }
+            footer: { text: `${instance.serverList[rustplus.serverId].title}` },
         });
     },
 
@@ -1039,7 +1095,8 @@ export default {
             fields: [
                 { name: Client.client.intlGet(guildId, 'name'), value: names, inline: true },
                 { name: 'SteamID', value: steamIds, inline: true },
-                { name: Client.client.intlGet(guildId, 'hoster'), value: hoster, inline: true }]
+                { name: Client.client.intlGet(guildId, 'hoster'), value: hoster, inline: true },
+            ],
         });
     },
 
@@ -1051,8 +1108,8 @@ export default {
             timestamp: true,
             footer: { text: server.title },
             author: {
-                name: str
-            }
+                name: str,
+            },
         });
     },
 
@@ -1063,7 +1120,7 @@ export default {
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
             footer: { text: server.title },
-            description: `**${sender}**: ${str}`
+            description: `**${sender}**: ${str}`,
         });
     },
 
@@ -1082,7 +1139,7 @@ export default {
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
             title: `rustplusplus Help`,
-            description: description
+            description: description,
         });
     },
 
@@ -1098,7 +1155,7 @@ export default {
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
             title: `${monument} CCTV ${Client.client.intlGet(guildId, 'codes')}`,
-            description: code
+            description: code,
         });
     },
 
@@ -1106,7 +1163,7 @@ export default {
         return module.exports.getEmbed({
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
-            title: uptime
+            title: uptime,
         });
     },
 
@@ -1114,7 +1171,7 @@ export default {
         return module.exports.getEmbed({
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
-            title: state
+            title: state,
         });
     },
 
@@ -1125,14 +1182,14 @@ export default {
         if (quantity === 1) {
             title = `${craftDetails[1].name}`;
             description += `__**${Client.client.intlGet(guildId, 'time')}:**__ ${craftDetails[2].timeString}`;
-        }
-        else {
+        } else {
             title = `${craftDetails[1].name} x${quantity}`;
             const time = Timer.secondsToFullScale(craftDetails[2].time * quantity, '', true);
             description += `__**${Client.client.intlGet(guildId, 'time')}:**__ ${time}`;
         }
 
-        let items = '', quantities = '';
+        let items = '',
+            quantities = '';
         for (const item of craftDetails[2].ingredients) {
             const itemName = Client.client.items.getName(item.id);
             items += `${itemName}\n`;
@@ -1146,12 +1203,14 @@ export default {
             timestamp: true,
             fields: [
                 { name: Client.client.intlGet(guildId, 'quantity'), value: items, inline: true },
-                { name: Client.client.intlGet(guildId, 'hoster'), value: quantities, inline: true }]
+                { name: Client.client.intlGet(guildId, 'hoster'), value: quantities, inline: true },
+            ],
         });
     },
 
     getResearchEmbed: function (guildId, researchDetails) {
-        let typeString = '', scrapString = '';
+        let typeString = '',
+            scrapString = '';
         if (researchDetails[2].researchTable !== null) {
             typeString += `${Client.client.intlGet(guildId, 'researchTable')}\n`;
             scrapString += `${researchDetails[2].researchTable}\n`;
@@ -1169,7 +1228,8 @@ export default {
             timestamp: true,
             fields: [
                 { name: Client.client.intlGet(guildId, 'type'), value: typeString, inline: true },
-                { name: Client.client.intlGet(guildId, 'scrap'), value: scrapString, inline: true }]
+                { name: Client.client.intlGet(guildId, 'scrap'), value: scrapString, inline: true },
+            ],
         });
     },
 
@@ -1177,17 +1237,19 @@ export default {
         const title = quantity === 1 ? `${recycleDetails[1].name}` : `${recycleDetails[1].name} x${quantity}`;
 
         const recycleData = Client.client.rustlabs.getRecycleDataFromArray([
-            { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false }
+            { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
         ]);
 
-        let items0 = '', quantities0 = '';
+        let items0 = '',
+            quantities0 = '';
         for (const item of recycleDetails[2]) {
             items0 += `${Client.client.items.getName(item.id)}\n`;
             // @ts-expect-error TS(2345) FIXME: Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
-            quantities0 += (item.probability !== 1) ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
+            quantities0 += item.probability !== 1 ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
         }
 
-        let items1 = '', quantities1 = '';
+        let items1 = '',
+            quantities1 = '';
         for (const item of recycleData) {
             items1 += `${Client.client.items.getName(item.itemId)}\n`;
             quantities1 += `${item.quantity}\n`;
@@ -1202,7 +1264,8 @@ export default {
                 { name: '\u200B', value: quantities0, inline: true },
                 { name: '\u200B', value: '\u200B', inline: false },
                 { name: Client.client.intlGet(guildId, 'calculated'), value: items1, inline: true },
-                { name: '\u200B', value: quantities1, inline: true }]
+                { name: '\u200B', value: quantities1, inline: true },
+            ],
         });
     },
 
@@ -1214,14 +1277,14 @@ export default {
 
         let thumbnail = '';
         if (instance.serverList.hasOwnProperty(serverId)) {
-            thumbnail = instance.serverList[serverId].img
+            thumbnail = instance.serverList[serverId].img;
         }
         const embed = module.exports.getEmbed({
             title: title,
             color: Constants.COLOR_DEFAULT,
             timestamp: true,
             thumbnail: thumbnail,
-            footer: { text: bmInstance.server_name }
+            footer: { text: bmInstance.server_name },
         });
 
         if (fields !== null) {
@@ -1242,11 +1305,13 @@ export default {
         const embed = module.exports.getEmbed({
             title: title,
             color: Constants.COLOR_DEFAULT,
-            timestamp: true
+            timestamp: true,
         });
 
-        const decayDetails = type === 'items' ? Client.client.rustlabs.getDecayDetailsById(itemId) :
-            Client.client.rustlabs.getDecayDetailsByName(itemId);
+        const decayDetails =
+            type === 'items'
+                ? Client.client.rustlabs.getDecayDetailsById(itemId)
+                : Client.client.rustlabs.getDecayDetailsByName(itemId);
         if (decayDetails !== null) {
             const details = decayDetails[3];
             const hp = details.hpString;
@@ -1257,7 +1322,7 @@ export default {
                     // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                     value: hp,
                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                    inline: true
+                    inline: true,
                 });
             }
 
@@ -1289,7 +1354,7 @@ export default {
                     // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                     value: decayString,
                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                    inline: true
+                    inline: true,
                 });
             }
         }
@@ -1303,7 +1368,7 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: details.timeString,
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
         }
 
@@ -1316,13 +1381,14 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 value: details.quantity,
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
         }
 
-
-        const upkeepDetails = type === 'items' ? Client.client.rustlabs.getUpkeepDetailsById(itemId) :
-            Client.client.rustlabs.getUpkeepDetailsByName(itemId);
+        const upkeepDetails =
+            type === 'items'
+                ? Client.client.rustlabs.getUpkeepDetailsById(itemId)
+                : Client.client.rustlabs.getUpkeepDetailsByName(itemId);
         if (upkeepDetails !== null) {
             const details = upkeepDetails[3];
 
@@ -1339,7 +1405,7 @@ export default {
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                 value: upkeepString,
                 // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                inline: true
+                inline: true,
             });
         }
 
@@ -1350,17 +1416,23 @@ export default {
             if (details.workbench !== null) {
                 const workbenchShortname = Client.client.items.getShortName(details.workbench);
                 switch (workbenchShortname) {
-                    case 'workbench1': {
-                        workbenchString = ' (T1)';
-                    } break;
+                    case 'workbench1':
+                        {
+                            workbenchString = ' (T1)';
+                        }
+                        break;
 
-                    case 'workbench2': {
-                        workbenchString = ' (T2)';
-                    } break;
+                    case 'workbench2':
+                        {
+                            workbenchString = ' (T2)';
+                        }
+                        break;
 
-                    case 'workbench3': {
-                        workbenchString = ' (T3)';
-                    } break;
+                    case 'workbench3':
+                        {
+                            workbenchString = ' (T3)';
+                        }
+                        break;
                 }
             }
 
@@ -1379,7 +1451,7 @@ export default {
                     // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                     value: craftString,
                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                    inline: true
+                    inline: true,
                 });
             }
         }
@@ -1391,10 +1463,11 @@ export default {
             let recycleString = '';
             for (const recycleItem of details) {
                 const name = Client.client.items.getName(recycleItem.id);
-                const quantityProbability = recycleItem.probability !== 1 ?
-                    // @ts-expect-error TS(2345) FIXME: Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
-                    `${parseInt(recycleItem.probability * 100)}%` :
-                    `${recycleItem.quantity}x`;
+                const quantityProbability =
+                    recycleItem.probability !== 1
+                        ? // @ts-expect-error TS(2345) FIXME: Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
+                          `${parseInt(recycleItem.probability * 100)}%`
+                        : `${recycleItem.quantity}x`;
                 recycleString += `${quantityProbability} ${name}\n`;
             }
 
@@ -1405,7 +1478,7 @@ export default {
                     // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                     value: recycleString,
                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                    inline: true
+                    inline: true,
                 });
             }
         }
@@ -1417,17 +1490,23 @@ export default {
             if (details.workbench !== null) {
                 const workbenchShortname = Client.client.items.getShortName(details.workbench.type);
                 switch (workbenchShortname) {
-                    case 'workbench1': {
-                        workbenchString = 'T1: ';
-                    } break;
+                    case 'workbench1':
+                        {
+                            workbenchString = 'T1: ';
+                        }
+                        break;
 
-                    case 'workbench2': {
-                        workbenchString = 'T2: ';
-                    } break;
+                    case 'workbench2':
+                        {
+                            workbenchString = 'T2: ';
+                        }
+                        break;
 
-                    case 'workbench3': {
-                        workbenchString = 'T3: ';
-                    } break;
+                    case 'workbench3':
+                        {
+                            workbenchString = 'T3: ';
+                        }
+                        break;
                 }
                 workbenchString += `${details.workbench.scrap} (${details.workbench.totalScrap})\n`;
             }
@@ -1446,7 +1525,7 @@ export default {
                     // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                     value: researchString,
                     // @ts-expect-error TS(2322) FIXME: Type 'boolean' is not assignable to type 'never'.
-                    inline: true
+                    inline: true,
                 });
             }
         }

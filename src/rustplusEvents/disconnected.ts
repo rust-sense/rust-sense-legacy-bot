@@ -85,7 +85,7 @@ export default {
                 rustplus.server,
                 rustplus.port,
                 rustplus.playerId,
-                rustplus.playerToken
+                rustplus.playerToken,
             );
         }
     },

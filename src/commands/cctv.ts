@@ -30,8 +30,9 @@ export default {
         return new Builder.SlashCommandBuilder()
             .setName('cctv')
             .setDescription(client.intlGet(guildId, 'commandsCctvDesc'))
-            .addStringOption(option =>
-                option.setName('monument')
+            .addStringOption((option) =>
+                option
+                    .setName('monument')
                     .setDescription(client.intlGet(guildId, 'rustMonument'))
                     .setRequired(true)
                     .addChoices(
@@ -43,8 +44,8 @@ export default {
                         { name: client.intlGet(guildId, 'outpost'), value: 'Outpost' },
                         { name: client.intlGet(guildId, 'smallOilRig'), value: 'Small Oil Rig' },
                         { name: client.intlGet(guildId, 'underwaterLab'), value: 'Underwater Labs' },
-                    ));
-
+                    ),
+            );
     },
 
     async execute(client, interaction) {
@@ -57,10 +58,13 @@ export default {
         const cctvCodes = client.cctv.getCodes(monument);
         const dynamic = client.cctv.isDynamic(monument);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
-            id: `${verifyId}`,
-            value: `${monument}`
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'slashCommandValueChange', {
+                id: `${verifyId}`,
+                value: `${monument}`,
+            }),
+        );
 
         await DiscordMessages.sendCctvMessage(interaction, monument, cctvCodes, dynamic);
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsCctvDesc'));

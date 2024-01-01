@@ -20,7 +20,10 @@
 
 export default {
     timer: function (callback, delay, ...args) {
-        let id, started, remaining = delay, running = false;
+        let id,
+            started,
+            remaining = delay,
+            running = false;
 
         // @ts-expect-error TS(2339) FIXME: Property 'start' does not exist on type '{ timer: ... Remove this comment to see the full error message
         this.start = function () {
@@ -29,19 +32,18 @@ export default {
                 id = setTimeout(callback, remaining, args);
                 running = true;
                 return true;
-            }
-            else {
+            } else {
                 running = false;
                 return false;
             }
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'stop' does not exist on type '{ timer: (... Remove this comment to see the full error message
         this.stop = function () {
             running = false;
             remaining = delay;
             clearTimeout(id);
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'pause' does not exist on type '{ timer: ... Remove this comment to see the full error message
         this.pause = function () {
@@ -49,7 +51,7 @@ export default {
             clearTimeout(id);
             // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             remaining -= new Date() - started;
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'restart' does not exist on type '{ timer... Remove this comment to see the full error message
         this.restart = function () {
@@ -58,7 +60,7 @@ export default {
             remaining = delay;
             // @ts-expect-error TS(2339) FIXME: Property 'start' does not exist on type '{ timer: ... Remove this comment to see the full error message
             this.start();
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'getTimeLeft' does not exist on type '{ t... Remove this comment to see the full error message
         this.getTimeLeft = function () {
@@ -72,25 +74,25 @@ export default {
 
             if (remaining <= 0) return 0;
             return remaining;
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'isFinished' does not exist on type '{ ti... Remove this comment to see the full error message
         this.isFinished = function () {
             /* If exceeded initial delay value */
             // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
-            if ((new Date() - started) > delay) {
+            if (new Date() - started > delay) {
                 running = false;
                 return true;
             }
             return false;
-        }
+        };
 
         // @ts-expect-error TS(2339) FIXME: Property 'getStateRunning' does not exist on type ... Remove this comment to see the full error message
         this.getStateRunning = function () {
             // @ts-expect-error TS(2339) FIXME: Property 'isFinished' does not exist on type '{ ti... Remove this comment to see the full error message
             this.isFinished();
             return running;
-        }
+        };
     },
 
     getTimeLeftOfTimer: function (timer, ignore = '') {
@@ -122,24 +124,21 @@ export default {
         days += originalDays;
         if (days > 0 && !ignore.includes('d')) {
             time += longAbbr ? `${days} days ` : `${days}d `;
-        }
-        else if (days > 0 && ignore.includes('d')) {
+        } else if (days > 0 && ignore.includes('d')) {
             hours += (day / hour) * days;
         }
 
         hours += originalHours;
         if (hours > 0 && !ignore.includes('h')) {
             time += longAbbr ? `${hours} hours ` : `${hours}h `;
-        }
-        else if (hours > 0 && ignore.includes('h')) {
+        } else if (hours > 0 && ignore.includes('h')) {
             minutes += (hour / minute) * hours;
         }
 
         minutes += originalMinutes;
         if (minutes > 0 && !ignore.includes('m')) {
             time += longAbbr ? `${minutes} min ` : `${minutes}m `;
-        }
-        else if (minutes > 0 && ignore.includes('m')) {
+        } else if (minutes > 0 && ignore.includes('m')) {
             seconds += (minute / second) * minutes;
         }
 
@@ -153,17 +152,13 @@ export default {
         if (time === '') {
             if (!ignore.includes('s')) {
                 time = longAbbr ? '0 sec' : '0s';
-            }
-            else if (!ignore.includes('m')) {
+            } else if (!ignore.includes('m')) {
                 time = longAbbr ? '0 min' : '0m';
-            }
-            else if (!ignore.includes('h')) {
+            } else if (!ignore.includes('h')) {
                 time = longAbbr ? '0 hours' : '0h';
-            }
-            else if (!ignore.includes('d')) {
+            } else if (!ignore.includes('d')) {
                 time = longAbbr ? '0 days' : '0d';
-            }
-            else {
+            } else {
                 time = longAbbr ? '0 sec' : '0s';
             }
         }
@@ -175,9 +170,9 @@ export default {
         let minutes = Math.floor((time - hours) * 60);
 
         // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'number'.
-        hours = (hours < 10) ? `0${hours}`.toString() : hours.toString();
+        hours = hours < 10 ? `0${hours}`.toString() : hours.toString();
         // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'number'.
-        minutes = (minutes < 10) ? `0${minutes}`.toString() : minutes.toString();
+        minutes = minutes < 10 ? `0${minutes}`.toString() : minutes.toString();
 
         return `${hours}:${minutes}`;
     },
@@ -193,21 +188,33 @@ export default {
         for (const match of matches) {
             const value = parseInt(match.slice(0, -1));
             switch (match[match.length - 1]) {
-                case 'd': { /* Days */
-                    totSeconds += value * 24 * 60 * 60;
-                } break;
+                case 'd':
+                    {
+                        /* Days */
+                        totSeconds += value * 24 * 60 * 60;
+                    }
+                    break;
 
-                case 'h': { /* Hours */
-                    totSeconds += value * 60 * 60;
-                } break;
+                case 'h':
+                    {
+                        /* Hours */
+                        totSeconds += value * 60 * 60;
+                    }
+                    break;
 
-                case 'm': { /* Minutes */
-                    totSeconds += value * 60;
-                } break;
+                case 'm':
+                    {
+                        /* Minutes */
+                        totSeconds += value * 60;
+                    }
+                    break;
 
-                case 's': { /* Seconds */
-                    totSeconds += value;
-                } break;
+                case 's':
+                    {
+                        /* Seconds */
+                        totSeconds += value;
+                    }
+                    break;
             }
         }
 

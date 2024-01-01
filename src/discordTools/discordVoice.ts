@@ -18,7 +18,7 @@
     https://github.com/alexemanuelol/rustplusplus
 
 */
-import { getVoiceConnection, createAudioPlayer, createAudioResource } from '@discordjs/voice';
+import { createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice';
 
 // @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/actors.json'. C... Remove this comment to see the full error message
 import Actors from '../staticFiles/actors.json';
@@ -47,8 +47,7 @@ export default {
 
         if (Actors[language]?.[gender] === null || Actors[language]?.[gender] === undefined) {
             return Actors[language]?.[gender === 'male' ? 'female' : 'male'];
-        }
-        else {
+        } else {
             return Actors[language]?.[gender];
         }
     },

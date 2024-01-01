@@ -23,8 +23,7 @@ import DiscordMessages from '../discordTools/discordMessages.js';
 import Timer from '../util/timer';
 
 export default {
-    handler: async function (rustplus, client) {
-    },
+    handler: async function (rustplus, client) {},
 
     updateSwitchGroupIfContainSwitch: async function (client, guildId, serverId, switchId) {
         const instance = client.getInstance(guildId);
@@ -35,7 +34,6 @@ export default {
                 await DiscordMessages.sendSmartSwitchGroupMessage(guildId, serverId, groupId);
             }
         }
-
     },
 
     getGroupsFromSwitchList: function (client, guildId, serverId, switches) {
@@ -97,9 +95,8 @@ export default {
                 instance.serverList[serverId].switches[entityId].active = prevActive;
                 client.setInstance(guildId, instance);
 
-                rustplus.interactionSwitches = rustplus.interactionSwitches.filter(e => e !== entityId);
-            }
-            else {
+                rustplus.interactionSwitches = rustplus.interactionSwitches.filter((e) => e !== entityId);
+            } else {
                 instance.serverList[serverId].switches[entityId].reachable = true;
                 client.setInstance(guildId, instance);
             }
@@ -130,9 +127,11 @@ export default {
         const statusEn = client.intlGet('en', 'commandSyntaxStatus');
         const statusLang = client.intlGet(guildId, 'commandSyntaxStatus');
 
-        const groupId = Object.keys(switchGroups).find(e =>
-            command === `${prefix}${switchGroups[e].command}` ||
-            command.startsWith(`${prefix}${switchGroups[e].command} `));
+        const groupId = Object.keys(switchGroups).find(
+            (e) =>
+                command === `${prefix}${switchGroups[e].command}` ||
+                command.startsWith(`${prefix}${switchGroups[e].command} `),
+        );
 
         if (!groupId) return false;
 
@@ -146,21 +145,19 @@ export default {
         let active;
         if (command.startsWith(`${groupCommand} ${onEn}`) || command.startsWith(`${groupCommand} ${onLang}`)) {
             active = true;
-        }
-        else if (command.startsWith(`${groupCommand} ${offEn}`) || command.startsWith(`${groupCommand} ${offLang}`)) {
+        } else if (command.startsWith(`${groupCommand} ${offEn}`) || command.startsWith(`${groupCommand} ${offLang}`)) {
             active = false;
-        }
-        else if (command === `${groupCommand} ${statusEn}` || command === `${groupCommand} ${statusLang}`) {
-            const switchStatus = switchGroups[groupId].switches.map(switchId => {
+        } else if (command === `${groupCommand} ${statusEn}` || command === `${groupCommand} ${statusLang}`) {
+            const switchStatus = switchGroups[groupId].switches.map((switchId) => {
                 const { active, name, reachable } = instance.serverList[serverId].switches[switchId];
-                return { active, name, reachable }
+                return { active, name, reachable };
             });
-            const statusMessage = switchStatus.map(status =>
-                `${status.name}: ${status.reachable ? (status.active ? onCap : offCap) : notFoundCap}`).join(', ');
+            const statusMessage = switchStatus
+                .map((status) => `${status.name}: ${status.reachable ? (status.active ? onCap : offCap) : notFoundCap}`)
+                .join(', ');
             rustplus.sendInGameMessage(`${client.intlGet(guildId, 'status')}: ${statusMessage}`);
             return true;
-        }
-        else {
+        } else {
             return true;
         }
 
@@ -173,12 +170,15 @@ export default {
 
         let str = client.intlGet(guildId, 'turningGroupOnOff', {
             group: switchGroups[groupId].name,
-            status: active ? onCap : offCap
+            status: active ? onCap : offCap,
         });
 
-        rustplus.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `logSmartSwitchGroupValueChange`, {
-            value: active
-        }));
+        rustplus.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, `logSmartSwitchGroupValueChange`, {
+                value: active,
+            }),
+        );
 
         if (timeSeconds === null) {
             rustplus.sendInGameMessage(str);
@@ -189,19 +189,21 @@ export default {
         const time = Timer.secondsToFullScale(timeSeconds);
         str += client.intlGet(guildId, 'automaticallyTurnBackOnOff', {
             status: active ? offCap : onCap,
-            time: time
+            time: time,
         });
 
         rustplus.currentSwitchTimeouts[groupId] = setTimeout(async function () {
             const instance = client.getInstance(guildId);
-            if (!instance.serverList.hasOwnProperty(serverId) ||
-                !instance.serverList[serverId].switchGroups.hasOwnProperty(groupId)) {
+            if (
+                !instance.serverList.hasOwnProperty(serverId) ||
+                !instance.serverList[serverId].switchGroups.hasOwnProperty(groupId)
+            ) {
                 return;
             }
 
             const str = client.intlGet(guildId, 'automaticallyTurningBackOnOff', {
                 device: instance.serverList[serverId].switchGroups[groupId].name,
-                status: !active ? onCap : offCap
+                status: !active ? onCap : offCap,
             });
             rustplus.sendInGameMessage(str);
 

@@ -26,25 +26,20 @@ const root = Path.join(__dirname, '..');
 const enJsonPath = Path.join(root, 'languages/en.json');
 const allFiles = [];
 
-const ignoredDirs = [
-    'languages',
-    'resources',
-    'docs'
-];
+const ignoredDirs = ['languages', 'resources', 'docs'];
 
 function recursiveSearchOfAllFiles(path) {
-    Fs.readdirSync(path).forEach(file => {
+    Fs.readdirSync(path).forEach((file) => {
         const filePath = Path.join(path, file);
 
         if (Fs.lstatSync(filePath).isDirectory()) {
             if (!ignoredDirs.includes(file)) {
                 recursiveSearchOfAllFiles(filePath);
             }
-        }
-        else {
+        } else {
             allFiles.push(filePath);
         }
-    })
+    });
 }
 recursiveSearchOfAllFiles(root);
 

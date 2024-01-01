@@ -40,8 +40,7 @@ export default async (client, rustplus) => {
                 await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, serverId, entityId);
             }
             entity.reachable = false;
-        }
-        else {
+        } else {
             entity.reachable = true;
         }
 

@@ -32,8 +32,13 @@ export default async (client, guild, category) => {
     await addTextChannel(client.intlGet(guild.id, 'channelNameSwitches'), 'switches', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameSwitchGroups'), 'switchGroups', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameAlarms'), 'alarms', client, guild, category);
-    await addTextChannel(client.intlGet(guild.id, 'channelNameStorageMonitors'),
-        'storageMonitors', client, guild, category);
+    await addTextChannel(
+        client.intlGet(guild.id, 'channelNameStorageMonitors'),
+        'storageMonitors',
+        client,
+        guild,
+        category,
+    );
     await addTextChannel(client.intlGet(guild.id, 'channelNameActivity'), 'activity', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameTrackers'), 'trackers', client, guild, category);
 };
@@ -54,11 +59,13 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
         try {
             // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
             channel.setParent(parent.id);
-        }
-        catch (e) {
-            client.log(client.intlGet(null, 'errorCap'),
+        } catch (e) {
+            client.log(
+                client.intlGet(null, 'errorCap'),
                 // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
-                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
+                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }),
+                'error',
+            );
         }
     }
 
@@ -66,11 +73,13 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
         try {
             // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
             channel.setParent(parent.id);
-        }
-        catch (e) {
-            client.log(client.intlGet(null, 'errorCap'),
+        } catch (e) {
+            client.log(
+                client.intlGet(null, 'errorCap'),
                 // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
-                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
+                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }),
+                'error',
+            );
         }
     }
 
@@ -79,8 +88,7 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
     try {
         // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         await channel.permissionOverwrites.set(perms);
-    }
-    catch (e) {
+    } catch (e) {
         /* Ignore */
     }
 

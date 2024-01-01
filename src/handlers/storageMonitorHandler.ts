@@ -32,8 +32,7 @@ export default {
 
         if (rustplus.storageMonitorIntervalCounter === 29) {
             rustplus.storageMonitorIntervalCounter = 0;
-        }
-        else {
+        } else {
             rustplus.storageMonitorIntervalCounter += 1;
         }
 
@@ -48,53 +47,59 @@ export default {
                         await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, serverId, entityId);
                     }
                     instance.serverList[serverId].storageMonitors[entityId].reachable = false;
-                }
-                else {
+                } else {
                     instance.serverList[serverId].storageMonitors[entityId].reachable = true;
                 }
                 client.setInstance(guildId, instance);
 
                 if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
-                    if (rustplus.storageMonitors.hasOwnProperty(entityId) &&
-                        (rustplus.storageMonitors[entityId].capacity !== 0 &&
-                            info.entityInfo.payload.capacity === 0)) {
+                    if (
+                        rustplus.storageMonitors.hasOwnProperty(entityId) &&
+                        rustplus.storageMonitors[entityId].capacity !== 0 &&
+                        info.entityInfo.payload.capacity === 0
+                    ) {
                         await DiscordMessages.sendStorageMonitorDisconnectNotificationMessage(
-                            guildId, serverId, entityId);
+                            guildId,
+                            serverId,
+                            entityId,
+                        );
                     }
 
                     rustplus.storageMonitors[entityId] = {
                         items: info.entityInfo.payload.items,
                         expiry: info.entityInfo.payload.protectionExpiry,
                         capacity: info.entityInfo.payload.capacity,
-                        hasProtection: info.entityInfo.payload.hasProtection
-                    }
+                        hasProtection: info.entityInfo.payload.hasProtection,
+                    };
 
                     if (info.entityInfo.payload.capacity !== 0) {
                         if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_TOOL_CUPBOARD_CAPACITY) {
                             instance.serverList[serverId].storageMonitors[entityId].type = 'toolCupboard';
-                            if (info.entityInfo.payload.protectionExpiry === 0 &&
-                                instance.serverList[serverId].storageMonitors[entityId].decaying === false) {
+                            if (
+                                info.entityInfo.payload.protectionExpiry === 0 &&
+                                instance.serverList[serverId].storageMonitors[entityId].decaying === false
+                            ) {
                                 instance.serverList[serverId].storageMonitors[entityId].decaying = true;
 
-                                await DiscordMessages.sendDecayingNotificationMessage(
-                                    guildId, serverId, entityId);
+                                await DiscordMessages.sendDecayingNotificationMessage(guildId, serverId, entityId);
 
                                 if (instance.serverList[serverId].storageMonitors[entityId].inGame) {
-                                    rustplus.sendInGameMessage(client.intlGet(rustplus.guildId, 'isDecaying', {
-                                        device: instance.serverList[serverId].storageMonitors[entityId].name
-                                    }));
+                                    rustplus.sendInGameMessage(
+                                        client.intlGet(rustplus.guildId, 'isDecaying', {
+                                            device: instance.serverList[serverId].storageMonitors[entityId].name,
+                                        }),
+                                    );
                                 }
-                            }
-                            else if (info.entityInfo.payload.protectionExpiry !== 0) {
+                            } else if (info.entityInfo.payload.protectionExpiry !== 0) {
                                 instance.serverList[serverId].storageMonitors[entityId].decaying = false;
                             }
-                        }
-                        else if (info.entityInfo.payload.capacity ===
-                            Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY) {
+                        } else if (
+                            info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY
+                        ) {
                             instance.serverList[serverId].storageMonitors[entityId].type = 'vendingMachine';
-                        }
-                        else if (info.entityInfo.payload.capacity ===
-                            Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
+                        } else if (
+                            info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY
+                        ) {
                             instance.serverList[serverId].storageMonitors[entityId].type = 'largeWoodBox';
                         }
                         client.setInstance(guildId, instance);

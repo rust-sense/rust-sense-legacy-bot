@@ -18,9 +18,9 @@
 
 */
 
-import Colors from "colors";
+import Colors from 'colors';
 
-import Winston from "winston";
+import Winston from 'winston';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
@@ -31,12 +31,14 @@ class Logger {
     type: any;
     constructor(logFilePath, type) {
         this.logger = Winston.createLogger({
-            transports: [new Winston.transports.File({
-                filename: logFilePath,
-                maxsize: 10000000,
-                maxFiles: 2,
-                tailable: true
-            })],
+            transports: [
+                new Winston.transports.File({
+                    filename: logFilePath,
+                    maxsize: 10000000,
+                    maxFiles: 2,
+                    tailable: true,
+                }),
+            ],
         });
 
         this.type = type;
@@ -53,10 +55,10 @@ class Logger {
 
         const year = d.getFullYear();
         const month = d.getMonth() + 1;
-        const date = d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate();
-        const hours = d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours();
-        const minutes = d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes();
-        const seconds = d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds();
+        const date = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+        const hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        const minutes = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        const seconds = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
 
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     }
@@ -65,60 +67,66 @@ class Logger {
         const time = this.getTime();
 
         switch (this.type) {
-            case 'default': {
-                text = `${title}: ${text}`;
-                this.logger.log({
-                    level: level,
-                    message: `${time} | ${text}`
-                });
+            case 'default':
+                {
+                    text = `${title}: ${text}`;
+                    this.logger.log({
+                        level: level,
+                        message: `${time} | ${text}`,
+                    });
 
-                console.log(
-                    Colors.green(`${time} `) +
-                    ((level === 'error') ? Colors.red(text) : Colors.yellow(text))
-                );
+                    console.log(
+                        Colors.green(`${time} `) + (level === 'error' ? Colors.red(text) : Colors.yellow(text)),
+                    );
 
-                if (level === 'error' && Config.general.showCallStackError) {
-                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
-                    for (const line of (new Error().stack.split(/\r?\n/))) {
-                        this.logger.log({ level: level, message: `${time} | ${line}` });
-                        console.log(Colors.green(`${time} `) + Colors.red(line));
+                    if (level === 'error' && Config.general.showCallStackError) {
+                        // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
+                        for (const line of new Error().stack.split(/\r?\n/)) {
+                            this.logger.log({ level: level, message: `${time} | ${line}` });
+                            console.log(Colors.green(`${time} `) + Colors.red(line));
+                        }
                     }
                 }
-            } break;
+                break;
 
-            case 'guild': {
-                text = `${title}: ${text}`;
+            case 'guild':
+                {
+                    text = `${title}: ${text}`;
 
-                this.logger.log({
-                    level: level,
-                    message: `${time} | ${this.guildId} | ${this.serverName} | ${text}`
-                });
+                    this.logger.log({
+                        level: level,
+                        message: `${time} | ${this.guildId} | ${this.serverName} | ${text}`,
+                    });
 
-                console.log(
-                    Colors.green(`${time} `) +
-                    Colors.cyan(`${this.guildId} `) +
-                    Colors.white(`${this.serverName} `) +
-                    ((level === 'error') ? Colors.red(text) : Colors.yellow(text))
-                );
-
-                if (level === 'error' && Config.general.showCallStackError) {
-                    // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
-                    for (const line of (new Error().stack.split(/\r?\n/))) {
-                        this.logger.log({
-                            level: level,
-                            message: `${time} | ${this.guildId} | ${this.serverName} | ${line}`
-                        });
-                        console.log(
-                            Colors.green(`${time} `) +
+                    console.log(
+                        Colors.green(`${time} `) +
                             Colors.cyan(`${this.guildId} `) +
                             Colors.white(`${this.serverName} `) +
-                            Colors.red(line));
+                            (level === 'error' ? Colors.red(text) : Colors.yellow(text)),
+                    );
+
+                    if (level === 'error' && Config.general.showCallStackError) {
+                        // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
+                        for (const line of new Error().stack.split(/\r?\n/)) {
+                            this.logger.log({
+                                level: level,
+                                message: `${time} | ${this.guildId} | ${this.serverName} | ${line}`,
+                            });
+                            console.log(
+                                Colors.green(`${time} `) +
+                                    Colors.cyan(`${this.guildId} `) +
+                                    Colors.white(`${this.serverName} `) +
+                                    Colors.red(line),
+                            );
+                        }
                     }
                 }
-            } break;
+                break;
 
-            default: {
-            } break;
+            default:
+                {
+                }
+                break;
         }
     }
 }

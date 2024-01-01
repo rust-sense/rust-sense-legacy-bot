@@ -51,8 +51,9 @@ export default {
     },
 
     decodeHtml: function (str) {
-        const htmlReservedSymbols = JSON.parse(Fs.readFileSync(
-            Path.join(__dirname, '..', 'staticFiles', 'htmlReservedSymbols.json'), 'utf8'));
+        const htmlReservedSymbols = JSON.parse(
+            Fs.readFileSync(Path.join(__dirname, '..', 'staticFiles', 'htmlReservedSymbols.json'), 'utf8'),
+        );
 
         for (const [key, value] of Object.entries(htmlReservedSymbols)) {
             str = str.replace(key, value);
@@ -63,7 +64,7 @@ export default {
 
     removeInvisibleCharacters: function (str) {
         str = str.replace(/[\u200B-\u200D\uFEFF]/g, '');
-        return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+        return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
     },
 
     findClosestString: function (string, array, threshold = 2) {
@@ -108,14 +109,9 @@ function levenshteinDistance(s1, s2) {
         for (let j = 1; j <= n; j++) {
             if (s1[i - 1] === s2[j - 1]) {
                 dp[i][j] = dp[i - 1][j - 1];
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'never'.
-                dp[i][j] = 1 + Math.min(
-                    dp[i - 1][j],
-                    dp[i][j - 1],
-                    dp[i - 1][j - 1]
-                );
+                dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
             }
         }
     }

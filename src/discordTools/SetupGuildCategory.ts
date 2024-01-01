@@ -41,8 +41,7 @@ export default async (client, guild) => {
     try {
         // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         await category.permissionOverwrites.set(perms);
-    }
-    catch (e) {
+    } catch (e) {
         /* Ignore */
     }
 

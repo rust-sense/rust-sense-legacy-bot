@@ -41,8 +41,7 @@ export default async (client, rustplus) => {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, serverId, entityId);
             }
             entity.reachable = false;
-        }
-        else {
+        } else {
             entity.reachable = true;
         }
         client.setInstance(guildId, instance);
@@ -52,23 +51,20 @@ export default async (client, rustplus) => {
                 items: info.entityInfo.payload.items,
                 expiry: info.entityInfo.payload.protectionExpiry,
                 capacity: info.entityInfo.payload.capacity,
-                hasProtection: info.entityInfo.payload.hasProtection
-            }
+                hasProtection: info.entityInfo.payload.hasProtection,
+            };
 
             if (info.entityInfo.payload.capacity !== 0) {
                 if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_TOOL_CUPBOARD_CAPACITY) {
                     entity.type = 'toolCupboard';
                     if (info.entityInfo.payload.protectionExpiry === 0) {
                         entity.decaying = true;
-                    }
-                    else {
+                    } else {
                         entity.decaying = false;
                     }
-                }
-                else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY) {
+                } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY) {
                     entity.type = 'vendingMachine';
-                }
-                else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
+                } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                     entity.type = 'largeWoodBox';
                 }
                 client.setInstance(guildId, instance);

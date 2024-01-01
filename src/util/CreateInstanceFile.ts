@@ -46,14 +46,14 @@ export default (client, guild) => {
                 alarms: null,
                 storageMonitors: null,
                 activity: null,
-                trackers: null
+                trackers: null,
             },
             informationMessageId: {
                 map: null,
                 server: null,
                 event: null,
                 team: null,
-                battlemetricsPlayers: null
+                battlemetricsPlayers: null,
             },
             activeServer: null,
             serverList: {},
@@ -62,18 +62,17 @@ export default (client, guild) => {
             marketSubscriptionList: {
                 all: [],
                 buy: [],
-                sell: []
+                sell: [],
             },
             teamChatColors: {},
             blacklist: {
                 discordIds: [],
-                steamIds: []
+                steamIds: [],
             },
             aliases: [],
-            customIntlMessages: {}
+            customIntlMessages: {},
         };
-    }
-    else {
+    } else {
         instance = InstanceUtils.readInstanceFile(guild.id);
 
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -98,8 +97,7 @@ export default (client, guild) => {
         if (!instance.hasOwnProperty('generalSettings')) {
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             instance.generalSettings = client.readGeneralSettingsTemplate();
-        }
-        else {
+        } else {
             const generalSettings = client.readGeneralSettingsTemplate();
 
             for (const [key, value] of Object.entries(generalSettings)) {
@@ -115,8 +113,7 @@ export default (client, guild) => {
         if (!instance.hasOwnProperty('notificationSettings')) {
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             instance.notificationSettings = client.readNotificationSettingsTemplate();
-        }
-        else {
+        } else {
             const notificationSettings = client.readNotificationSettingsTemplate();
 
             for (const [key, value] of Object.entries(notificationSettings)) {
@@ -124,8 +121,7 @@ export default (client, guild) => {
                 if (!instance.notificationSettings.hasOwnProperty(key)) {
                     // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
                     instance.notificationSettings[key] = value;
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2769) FIXME: No overload matches this call.
                     for (const [setting, settingValue] of Object.entries(value)) {
                         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -154,10 +150,9 @@ export default (client, guild) => {
                 alarms: null,
                 storageMonitors: null,
                 activity: null,
-                trackers: null
-            }
-        }
-        else {
+                trackers: null,
+            };
+        } else {
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             if (!instance.channelId.hasOwnProperty('category')) instance.channelId.category = null;
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -194,10 +189,9 @@ export default (client, guild) => {
                 server: null,
                 event: null,
                 team: null,
-                battlemetricsPlayers: null
-            }
-        }
-        else {
+                battlemetricsPlayers: null,
+            };
+        } else {
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             if (!instance.informationMessageId.hasOwnProperty('map')) instance.informationMessageId.map = null;
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -221,11 +215,12 @@ export default (client, guild) => {
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
         if (!instance.hasOwnProperty('trackers')) instance.trackers = {};
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
-        if (!instance.hasOwnProperty('marketSubscriptionList')) instance.marketSubscriptionList = {
-            all: [],
-            buy: [],
-            sell: []
-        }
+        if (!instance.hasOwnProperty('marketSubscriptionList'))
+            instance.marketSubscriptionList = {
+                all: [],
+                buy: [],
+                sell: [],
+            };
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
         if (!instance.marketSubscriptionList.hasOwnProperty('all')) instance.marketSubscriptionList['all'] = [];
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -235,10 +230,11 @@ export default (client, guild) => {
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
         if (!instance.hasOwnProperty('teamChatColors')) instance.teamChatColors = {};
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
-        if (!instance.hasOwnProperty('blacklist')) instance.blacklist = {
-            discordIds: [],
-            steamIds: []
-        }
+        if (!instance.hasOwnProperty('blacklist'))
+            instance.blacklist = {
+                discordIds: [],
+                steamIds: [],
+            };
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
         if (!instance.blacklist.hasOwnProperty('discordIds')) instance.blacklist['discordIds'] = [];
         // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
@@ -265,7 +261,7 @@ export default (client, guild) => {
                 // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
                 steamId: instance.serverList[serverId].steamId,
                 // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
-                playerToken: instance.serverList[serverId].playerToken
+                playerToken: instance.serverList[serverId].playerToken,
             };
         }
     }

@@ -47,19 +47,27 @@ export default {
                 const amountInStock = order.amountInStock;
 
                 for (const orderType of ['all', 'buy', 'sell']) {
-                    const found = rustplus.foundSubscriptionItems[orderType].find(e =>
-                        e.vId === vId && e.itemId === itemId && e.currencyId === currencyId);
+                    const found = rustplus.foundSubscriptionItems[orderType].find(
+                        (e) => e.vId === vId && e.itemId === itemId && e.currencyId === currencyId,
+                    );
 
-                    const allCond = orderType === 'all' && (!(subscriptionList[orderType].includes(itemId) ||
-                        subscriptionList[orderType].includes(currencyId)) || amountInStock === 0);
-                    const buyCond = orderType === 'buy' && (!subscriptionList[orderType].includes(currencyId) ||
-                        amountInStock === 0);
-                    const sellCond = orderType === 'sell' && (!subscriptionList[orderType].includes(itemId) ||
-                        amountInStock === 0);
+                    const allCond =
+                        orderType === 'all' &&
+                        (!(
+                            subscriptionList[orderType].includes(itemId) ||
+                            subscriptionList[orderType].includes(currencyId)
+                        ) ||
+                            amountInStock === 0);
+                    const buyCond =
+                        orderType === 'buy' &&
+                        (!subscriptionList[orderType].includes(currencyId) || amountInStock === 0);
+                    const sellCond =
+                        orderType === 'sell' && (!subscriptionList[orderType].includes(itemId) || amountInStock === 0);
 
                     if (allCond || buyCond || sellCond) {
-                        rustplus.foundSubscriptionItems[orderType] = rustplus.foundSubscriptionItems[orderType]
-                            .filter(e => e.vId !== vId || e.itemId !== itemId || e.currencyId !== currencyId);
+                        rustplus.foundSubscriptionItems[orderType] = rustplus.foundSubscriptionItems[orderType].filter(
+                            (e) => e.vId !== vId || e.itemId !== itemId || e.currencyId !== currencyId,
+                        );
                         continue;
                     }
 
@@ -68,11 +76,14 @@ export default {
                     rustplus.foundSubscriptionItems[orderType].push({
                         vId: vId,
                         itemId: itemId,
-                        currencyId: currencyId
+                        currencyId: currencyId,
                     });
 
-                    if (rustplus.isFirstPoll || rustplus.firstPollItems[orderType].includes(itemId) ||
-                        rustplus.firstPollItems[orderType].includes(currencyId)) {
+                    if (
+                        rustplus.isFirstPoll ||
+                        rustplus.firstPollItems[orderType].includes(itemId) ||
+                        rustplus.firstPollItems[orderType].includes(currencyId)
+                    ) {
                         continue;
                     }
 
@@ -82,13 +93,13 @@ export default {
 
                     const items = [];
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    if (subscriptionList[orderType].includes(itemId)) items.push(itemName)
+                    if (subscriptionList[orderType].includes(itemId)) items.push(itemName);
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    if (subscriptionList[orderType].includes(currencyId)) items.push(currencyName)
+                    if (subscriptionList[orderType].includes(currencyId)) items.push(currencyName);
 
                     const str = client.intlGet(guildId, 'itemAvailableInVendingMachine', {
                         items: items.join(', '),
-                        location: location.location
+                        location: location.location,
                     });
 
                     await DiscordMessages.sendItemAvailableInVendingMachineMessage(rustplus, str);
@@ -113,8 +124,9 @@ export default {
                 }
 
                 if (!stillPresent) {
-                    rustplus.foundSubscriptionItems[orderType] = rustplus.foundSubscriptionItems[orderType]
-                        .filter(e => e.vId !== foundItem.vId);
+                    rustplus.foundSubscriptionItems[orderType] = rustplus.foundSubscriptionItems[orderType].filter(
+                        (e) => e.vId !== foundItem.vId,
+                    );
                 }
             }
         }

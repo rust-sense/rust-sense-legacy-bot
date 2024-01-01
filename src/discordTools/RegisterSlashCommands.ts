@@ -18,17 +18,17 @@
 
 */
 
-import Fs from "fs";
+import Fs from 'fs';
 
-import Path from 'path';
 import Rest from '@discordjs/rest';
 import Types from 'discord-api-types/v9';
+import Path from 'path';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 export default async (client, guild) => {
     const commands = [];
-    const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter(file => file.endsWith('.js'));
+    const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith('.js'));
 
     for (const file of commandFiles) {
         const command = require(`../commands/${file}`);
@@ -40,16 +40,17 @@ export default async (client, guild) => {
 
     try {
         await rest.put(Types.Routes.applicationGuildCommands(Config.discord.clientId, guild.id), { body: commands });
-    }
-    catch (e) {
+    } catch (e) {
         client.log(
             client.intlGet(null, 'errorCap'),
             client.intlGet(null, 'couldNotRegisterSlashCommands', { guildId: guild.id }) +
-            client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
-            'error'
+                client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
+            'error',
         );
         process.exit(1);
     }
-    client.log(client.intlGet(null, 'infoCap'),
-        client.intlGet(null, 'slashCommandsSuccessRegister', { guildId: guild.id }));
+    client.log(
+        client.intlGet(null, 'infoCap'),
+        client.intlGet(null, 'slashCommandsSuccessRegister', { guildId: guild.id }),
+    );
 };

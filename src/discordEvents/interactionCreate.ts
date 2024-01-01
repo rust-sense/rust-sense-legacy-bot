@@ -29,25 +29,25 @@ export default {
 
         /* Check so that the interaction comes from valid channels */
         if (!Object.values(instance.channelId).includes(interaction.channelId) && !interaction.isCommand) {
-            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'interactionInvalidChannel'))
+            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'interactionInvalidChannel'));
             if (interaction.isButton()) {
                 try {
                     interaction.deferUpdate();
-                }
-                catch (e) {
-                    client.log(client.intlGet(null, 'errorCap'),
-                        client.intlGet(null, 'couldNotDeferInteraction'), 'error');
+                } catch (e) {
+                    client.log(
+                        client.intlGet(null, 'errorCap'),
+                        client.intlGet(null, 'couldNotDeferInteraction'),
+                        'error',
+                    );
                 }
             }
         }
 
         if (interaction.isButton()) {
             require('../handlers/buttonHandler')(client, interaction);
-        }
-        else if (interaction.isStringSelectMenu()) {
+        } else if (interaction.isStringSelectMenu()) {
             require('../handlers/selectMenuHandler')(client, interaction);
-        }
-        else if (interaction.type === Discord.InteractionType.ApplicationCommand) {
+        } else if (interaction.type === Discord.InteractionType.ApplicationCommand) {
             const command = interaction.client.commands.get(interaction.commandName);
 
             /* If the command doesn't exist, return */
@@ -55,28 +55,27 @@ export default {
 
             try {
                 await command.execute(client, interaction);
-            }
-            catch (e) {
+            } catch (e) {
                 client.log(client.intlGet(null, 'errorCap'), e, 'error');
 
                 const str = client.intlGet(interaction.guildId, 'errorExecutingCommand');
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(null, 'errorCap'), str, 'error');
             }
-        }
-        else if (interaction.type === Discord.InteractionType.ModalSubmit) {
+        } else if (interaction.type === Discord.InteractionType.ModalSubmit) {
             require('../handlers/modalHandler')(client, interaction);
-        }
-        else {
+        } else {
             client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'unknownInteraction'), 'error');
 
             if (interaction.isButton()) {
                 try {
                     interaction.deferUpdate();
-                }
-                catch (e) {
-                    client.log(client.intlGet(null, 'errorCap'),
-                        client.intlGet(null, 'couldNotDeferInteraction'), 'error');
+                } catch (e) {
+                    client.log(
+                        client.intlGet(null, 'errorCap'),
+                        client.intlGet(null, 'couldNotDeferInteraction'),
+                        'error',
+                    );
                 }
             }
         }

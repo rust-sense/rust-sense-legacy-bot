@@ -21,15 +21,15 @@
 import Info from '../structures/Info';
 
 import InformationHandler from '../handlers/informationHandler.js';
-import MapMarkers from '../structures/MapMarkers.js';
 import SmartAlarmHandler from '../handlers/smartAlarmHandler.js';
 import SmartSwitchHandler from '../handlers/smartSwitchHandler.js';
 import StorageMonitorHandler from '../handlers/storageMonitorHandler.js';
-import Team from '../structures/Team';
 import TeamHandler from '../handlers/teamHandler.js';
-import Time from '../structures/Time';
 import TimeHandler from '../handlers/timeHandler.js';
 import VendingMachines from '../handlers/vendingMachineHandler.js';
+import MapMarkers from '../structures/MapMarkers.js';
+import Team from '../structures/Team';
+import Time from '../structures/Time';
 
 export default {
     pollingHandler: async function (rustplus, client) {

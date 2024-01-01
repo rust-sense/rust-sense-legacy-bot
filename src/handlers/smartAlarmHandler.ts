@@ -32,8 +32,7 @@ export default {
 
         if (rustplus.smartAlarmIntervalCounter === 29) {
             rustplus.smartAlarmIntervalCounter = 0;
-        }
-        else {
+        } else {
             rustplus.smartAlarmIntervalCounter += 1;
         }
 
@@ -51,8 +50,7 @@ export default {
 
                         await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                     }
-                }
-                else {
+                } else {
                     if (!instance.serverList[serverId].alarms[entityId].reachable) {
                         instance.serverList[serverId].alarms[entityId].reachable = true;
                         client.setInstance(guildId, instance);
@@ -71,13 +69,15 @@ export default {
         const alarms = instance.serverList[serverId].alarms;
         const prefix = rustplus.generalSettings.prefix;
 
-        const entityId = Object.keys(alarms).find(e => command === `${prefix}${alarms[e].command}`);
+        const entityId = Object.keys(alarms).find((e) => command === `${prefix}${alarms[e].command}`);
         if (!entityId) return false;
 
         if (alarms[entityId].lastTrigger === null) {
-            rustplus.sendInGameMessage(client.intlGet(guildId, 'alarmHaveNotBeenTriggeredYet', {
-                alarm: alarms[entityId].name
-            }));
+            rustplus.sendInGameMessage(
+                client.intlGet(guildId, 'alarmHaveNotBeenTriggeredYet', {
+                    alarm: alarms[entityId].name,
+                }),
+            );
             return true;
         }
 
@@ -86,10 +86,12 @@ export default {
         const timeSinceTriggerSeconds = Math.floor((new Date() - lastTriggerDate) / 1000);
         const time = Timer.secondsToFullScale(timeSinceTriggerSeconds);
 
-        rustplus.sendInGameMessage(client.intlGet(guildId, 'timeSinceAlarmWasTriggered', {
-            alarm: alarms[entityId].name,
-            time: time
-        }));
+        rustplus.sendInGameMessage(
+            client.intlGet(guildId, 'timeSinceAlarmWasTriggered', {
+                alarm: alarms[entityId].name,
+                time: time,
+            }),
+        );
         return true;
     },
 };

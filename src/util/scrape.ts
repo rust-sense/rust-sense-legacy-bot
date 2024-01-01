@@ -27,8 +27,7 @@ export default {
     scrape: async function (url) {
         try {
             return await Axios.get(url);
-        }
-        catch (e) {
+        } catch (e) {
             return {};
         }
     },
@@ -37,9 +36,13 @@ export default {
         const response = await module.exports.scrape(`${Constants.STEAM_PROFILES_URL}${steamId}`);
 
         if (response.status !== 200) {
-            client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'failedToScrapeProfilePicture', {
-                link: `${Constants.STEAM_PROFILES_URL}${steamId}`
-            }), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'failedToScrapeProfilePicture', {
+                    link: `${Constants.STEAM_PROFILES_URL}${steamId}`,
+                }),
+                'error',
+            );
             return null;
         }
 
@@ -55,9 +58,13 @@ export default {
         const response = await module.exports.scrape(`${Constants.STEAM_PROFILES_URL}${steamId}`);
 
         if (response.status !== 200) {
-            client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'failedToScrapeProfileName', {
-                link: `${Constants.STEAM_PROFILES_URL}${steamId}`
-            }), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'failedToScrapeProfileName', {
+                    link: `${Constants.STEAM_PROFILES_URL}${steamId}`,
+                }),
+                'error',
+            );
             return null;
         }
 

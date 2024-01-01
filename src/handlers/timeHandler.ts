@@ -38,14 +38,18 @@ export default {
             return;
         }
 
-        const distance = (prevTime > newTime) ? (24 - prevTime) + newTime : newTime - prevTime;
+        const distance = prevTime > newTime ? 24 - prevTime + newTime : newTime - prevTime;
         if (distance > 1) {
             /* Too big of a jump for a normal server, might have been a skip night server */
-            rustplus.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'invalidTimeDistance', {
-                distance: distance,
-                prevTime: prevTime,
-                newTime: newTime
-            }), 'error');
+            rustplus.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'invalidTimeDistance', {
+                    distance: distance,
+                    prevTime: prevTime,
+                    newTime: newTime,
+                }),
+                'error',
+            );
             rustplus.passedFirstSunriseOrSunset = false;
             rustplus.time.startTime = newTime;
             rustplus.time.timeTillDay = new Object();
@@ -56,19 +60,22 @@ export default {
         }
 
         if (!rustplus.passedFirstSunriseOrSunset) {
-            const a = (rustplus.time.startTime >= time.sunrise && rustplus.time.startTime < time.sunset) &&
+            const a =
+                rustplus.time.startTime >= time.sunrise &&
+                rustplus.time.startTime < time.sunset &&
                 (newTime >= time.sunset || newTime < time.sunrise);
-            const b = (rustplus.time.startTime >= time.sunset || rustplus.time.startTime < time.sunrise) &&
-                (newTime >= time.sunrise && newTime < time.sunset);
+            const b =
+                (rustplus.time.startTime >= time.sunset || rustplus.time.startTime < time.sunrise) &&
+                newTime >= time.sunrise &&
+                newTime < time.sunset;
 
             for (const id in rustplus.startTimeObject) {
-                rustplus.startTimeObject[id] += (client.pollingIntervalMs / 1000);
+                rustplus.startTimeObject[id] += client.pollingIntervalMs / 1000;
             }
 
             if (a || b) {
                 rustplus.passedFirstSunriseOrSunset = true;
-            }
-            else {
+            } else {
                 rustplus.startTimeObject[newTime] = 0;
                 return;
             }
@@ -94,8 +101,7 @@ export default {
                 }
 
                 rustplus.time.timeTillNight = _.merge(rustplus.startTimeObject, rustplus.time.timeTillNight);
-            }
-            else {
+            } else {
                 for (const id in rustplus.time.timeTillDay) {
                     rustplus.time.timeTillDay[id] += highestValue;
                 }
@@ -115,19 +121,20 @@ export default {
             return;
         }
 
-        if (newTime >= time.sunrise && newTime < time.sunset) { /* It's Day */
+        if (newTime >= time.sunrise && newTime < time.sunset) {
+            /* It's Day */
             for (const id in rustplus.time.timeTillNight) {
-                rustplus.time.timeTillNight[id] += (client.pollingIntervalMs / 1000);
+                rustplus.time.timeTillNight[id] += client.pollingIntervalMs / 1000;
             }
 
             rustplus.time.timeTillNight[newTime] = 0;
-        }
-        else { /* It's Night */
+        } else {
+            /* It's Night */
             for (const id in rustplus.time.timeTillDay) {
-                rustplus.time.timeTillDay[id] += (client.pollingIntervalMs / 1000);
+                rustplus.time.timeTillDay[id] += client.pollingIntervalMs / 1000;
             }
 
             rustplus.time.timeTillDay[newTime] = 0;
         }
-    }
+    },
 };

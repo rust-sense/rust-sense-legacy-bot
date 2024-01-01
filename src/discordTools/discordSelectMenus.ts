@@ -50,35 +50,37 @@ export default {
     },
 
     getLanguageSelectMenu: function (guildId, language) {
-        const languageFiles = Fs.readdirSync(
-            Path.join(__dirname, '..', 'languages')).filter(file => file.endsWith('.json'));
+        const languageFiles = Fs.readdirSync(Path.join(__dirname, '..', 'languages')).filter((file) =>
+            file.endsWith('.json'),
+        );
 
         const options = [];
         for (const language of languageFiles) {
-            const langShort = language.replace('.json', '')
-            let langLong = Object.keys(Languages).find(e => Languages[e] === langShort)
+            const langShort = language.replace('.json', '');
+            let langLong = Object.keys(Languages).find((e) => Languages[e] === langShort);
             if (!langLong) langLong = Client.client.intlGet(guildId, 'unknown');
             options.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
                 label: `${langLong} (${langShort})`,
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 description: Client.client.intlGet(guildId, 'setBotLanguage', {
-                    language: `${langLong} (${langShort})`
+                    language: `${langLong} (${langShort})`,
                 }),
                 // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'never'.
-                value: langShort
+                value: langShort,
             });
         }
 
-        let currentLanguage = Object.keys(Languages).find(e => Languages[e] === language);
+        let currentLanguage = Object.keys(Languages).find((e) => Languages[e] === language);
         if (!currentLanguage) currentLanguage = Client.client.intlGet(guildId, 'unknown');
 
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'language',
                 placeholder: `${currentLanguage} (${language})`,
-                options: options
-            }));
+                options: options,
+            }),
+        );
     },
 
     getPrefixSelectMenu: function (guildId, prefix) {
@@ -111,8 +113,10 @@ export default {
                     { label: '^', description: Client.client.intlGet(guildId, 'circumflex'), value: '^' },
                     { label: '♥', description: Client.client.intlGet(guildId, 'heart'), value: '♥' },
                     { label: '☺', description: Client.client.intlGet(guildId, 'smilyFace'), value: '☺' },
-                    { label: '/', description: Client.client.intlGet(guildId, 'slash'), value: '/' }]
-            }));
+                    { label: '/', description: Client.client.intlGet(guildId, 'slash'), value: '/' },
+                ],
+            }),
+        );
     },
 
     getTrademarkOption: function (guildId, trademark) {
@@ -138,11 +142,6 @@ export default {
                     module.exports.getTrademarkOption(guildId, 'R++'),
                     module.exports.getTrademarkOption(guildId, 'RPP'),
                     module.exports.getTrademarkOption(guildId, 'BOT'),
-                    {
-                        label: Client.client.intlGet(guildId, 'notShowingCap'),
-                        description: Client.client.intlGet(guildId, 'hideTrademark'),
-                        value: 'NOT SHOWING',
-                    },
                 ],
             }),
         );
@@ -157,71 +156,73 @@ export default {
                     {
                         label: Client.client.intlGet(guildId, 'noDelayCap'),
                         description: Client.client.intlGet(guildId, 'noCommandDelay'),
-                        value: '0'
+                        value: '0',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'second', { second: '1' }),
                         description: Client.client.intlGet(guildId, 'secondCommandDelay', {
-                            second: Client.client.intlGet(guildId, 'one')
+                            second: Client.client.intlGet(guildId, 'one'),
                         }),
-                        value: '1'
+                        value: '1',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '2' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'two')
+                            seconds: Client.client.intlGet(guildId, 'two'),
                         }),
-                        value: '2'
+                        value: '2',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '3' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'three')
+                            seconds: Client.client.intlGet(guildId, 'three'),
                         }),
-                        value: '3'
+                        value: '3',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '4' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'four')
+                            seconds: Client.client.intlGet(guildId, 'four'),
                         }),
-                        value: '4'
+                        value: '4',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '5' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'five')
+                            seconds: Client.client.intlGet(guildId, 'five'),
                         }),
-                        value: '5'
+                        value: '5',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '6' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'six')
+                            seconds: Client.client.intlGet(guildId, 'six'),
                         }),
-                        value: '6'
+                        value: '6',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '7' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'seven')
+                            seconds: Client.client.intlGet(guildId, 'seven'),
                         }),
-                        value: '7'
+                        value: '7',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '8' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'eight')
+                            seconds: Client.client.intlGet(guildId, 'eight'),
                         }),
-                        value: '8'
-                    }]
-            }));
+                        value: '8',
+                    },
+                ],
+            }),
+        );
     },
 
     getSmartSwitchSelectMenu: function (guildId, serverId, entityId) {
         const instance = Client.client.getInstance(guildId);
         const entity = instance.serverList[serverId].switches[entityId];
-        const identifier = JSON.stringify({ "serverId": serverId, "entityId": entityId });
+        const identifier = JSON.stringify({ serverId: serverId, entityId: entityId });
 
         const autoSetting = Client.client.intlGet(guildId, 'autoSettingCap');
         const off = Client.client.intlGet(guildId, 'offCap');
@@ -253,69 +254,75 @@ export default {
                     {
                         label: off,
                         description: Client.client.intlGet(guildId, 'smartSwitchNormal'),
-                        value: '0'
+                        value: '0',
                     },
                     {
                         label: autoDay,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoDay'),
-                        value: '1'
+                        value: '1',
                     },
                     {
                         label: autoNight,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoNight'),
-                        value: '2'
+                        value: '2',
                     },
                     {
                         label: autoOn,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOn'),
-                        value: '3'
+                        value: '3',
                     },
                     {
                         label: autoOff,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOff'),
-                        value: '4'
+                        value: '4',
                     },
                     {
                         label: autoOnProximity,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOnProximity'),
-                        value: '5'
+                        value: '5',
                     },
                     {
                         label: autoOffProximity,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOffProximity'),
-                        value: '6'
+                        value: '6',
                     },
                     {
                         label: autoOnAnyOnline,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOnAnyOnline'),
-                        value: '7'
+                        value: '7',
                     },
                     {
                         label: autoOffAnyOnline,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOffAnyOnline'),
-                        value: '8'
-                    }]
-            }));
+                        value: '8',
+                    },
+                ],
+            }),
+        );
     },
 
     getVoiceGenderSelectMenu: function (guildId, gender) {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'VoiceGender',
-                placeholder: `${gender === 'male' ?
-                    Client.client.intlGet(guildId, 'commandsVoiceMale') :
-                    Client.client.intlGet(guildId, 'commandsVoiceFemale')}`,
+                placeholder: `${
+                    gender === 'male'
+                        ? Client.client.intlGet(guildId, 'commandsVoiceMale')
+                        : Client.client.intlGet(guildId, 'commandsVoiceFemale')
+                }`,
                 options: [
                     {
                         label: Client.client.intlGet(guildId, 'commandsVoiceMale'),
                         description: Client.client.intlGet(guildId, 'commandsVoiceMaleDescription'),
-                        value: 'male'
+                        value: 'male',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'commandsVoiceFemale'),
                         description: Client.client.intlGet(guildId, 'commandsVoiceFemaleDescription'),
-                        value: 'female'
-                    }]
-            }));
+                        value: 'female',
+                    },
+                ],
+            }),
+        );
     },
 };

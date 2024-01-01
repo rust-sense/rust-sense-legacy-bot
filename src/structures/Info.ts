@@ -52,48 +52,124 @@ class Info {
     }
 
     /* Getters and Setters */
-    get name() { return this._name; }
-    set name(name) { this._name = name; }
-    get headerImage() { return this._headerImage; }
-    set headerImage(headerImage) { this._headerImage = headerImage; }
-    get url() { return this._url; }
-    set url(url) { this._url = url; }
-    get map() { return this._map; }
-    set map(map) { this._map = map; }
-    get mapSize() { return this._mapSize; }
-    set mapSize(mapSize) { this._mapSize = mapSize; }
-    get wipeTime() { return this._wipeTime; }
-    set wipeTime(wipeTime) { this._wipeTime = wipeTime; }
-    get players() { return this._players; }
-    set players(players) { this._players = players; }
-    get maxPlayers() { return this._maxPlayers; }
-    set maxPlayers(maxPlayers) { this._maxPlayers = maxPlayers; }
-    get queuedPlayers() { return this._queuedPlayers; }
-    set queuedPlayers(queuedPlayers) { this._queuedPlayers = queuedPlayers; }
-    get seed() { return this._seed; }
-    set seed(seed) { this._seed = seed; }
-    get salt() { return this._salt; }
-    set salt(salt) { this._salt = salt; }
-    get correctedMapSize() { return this._correctedMapSize; }
-    set correctedMapSize(correctedMapSize) { this._correctedMapSize = correctedMapSize; }
+    get name() {
+        return this._name;
+    }
+    set name(name) {
+        this._name = name;
+    }
+    get headerImage() {
+        return this._headerImage;
+    }
+    set headerImage(headerImage) {
+        this._headerImage = headerImage;
+    }
+    get url() {
+        return this._url;
+    }
+    set url(url) {
+        this._url = url;
+    }
+    get map() {
+        return this._map;
+    }
+    set map(map) {
+        this._map = map;
+    }
+    get mapSize() {
+        return this._mapSize;
+    }
+    set mapSize(mapSize) {
+        this._mapSize = mapSize;
+    }
+    get wipeTime() {
+        return this._wipeTime;
+    }
+    set wipeTime(wipeTime) {
+        this._wipeTime = wipeTime;
+    }
+    get players() {
+        return this._players;
+    }
+    set players(players) {
+        this._players = players;
+    }
+    get maxPlayers() {
+        return this._maxPlayers;
+    }
+    set maxPlayers(maxPlayers) {
+        this._maxPlayers = maxPlayers;
+    }
+    get queuedPlayers() {
+        return this._queuedPlayers;
+    }
+    set queuedPlayers(queuedPlayers) {
+        this._queuedPlayers = queuedPlayers;
+    }
+    get seed() {
+        return this._seed;
+    }
+    set seed(seed) {
+        this._seed = seed;
+    }
+    get salt() {
+        return this._salt;
+    }
+    set salt(salt) {
+        this._salt = salt;
+    }
+    get correctedMapSize() {
+        return this._correctedMapSize;
+    }
+    set correctedMapSize(correctedMapSize) {
+        this._correctedMapSize = correctedMapSize;
+    }
 
     /* Change checkers */
-    isNameChanged(info) { return ((this.name) !== (info.name)); }
-    isHeaderImageChanged(info) { return ((this.headerImage) !== (info.headerImage)); }
-    isUrlChanged(info) { return ((this.url) !== (info.url)); }
-    isMapChanged(info) { return ((this.map) !== (info.map)); }
-    isMapSizeChanged(info) { return ((this.mapSize) !== (info.mapSize)); }
-    isWipeTimeChanged(info) { return ((this.wipeTime) !== (info.wipeTime)); }
-    isPlayersChanged(info) { return ((this.players) !== (info.players)); }
-    isMaxPlayersChanged(info) { return ((this.maxPlayers) !== (info.maxPlayers)); }
-    isQueuedPlayersChanged(info) { return ((this.queuedPlayers) !== (info.queuedPlayers)); }
-    isSeedChanged(info) { return ((this.seed) !== (info.seed)); }
-    isSaltChanged(info) { return ((this.salt) !== (info.salt)); }
+    isNameChanged(info) {
+        return this.name !== info.name;
+    }
+    isHeaderImageChanged(info) {
+        return this.headerImage !== info.headerImage;
+    }
+    isUrlChanged(info) {
+        return this.url !== info.url;
+    }
+    isMapChanged(info) {
+        return this.map !== info.map;
+    }
+    isMapSizeChanged(info) {
+        return this.mapSize !== info.mapSize;
+    }
+    isWipeTimeChanged(info) {
+        return this.wipeTime !== info.wipeTime;
+    }
+    isPlayersChanged(info) {
+        return this.players !== info.players;
+    }
+    isMaxPlayersChanged(info) {
+        return this.maxPlayers !== info.maxPlayers;
+    }
+    isQueuedPlayersChanged(info) {
+        return this.queuedPlayers !== info.queuedPlayers;
+    }
+    isSeedChanged(info) {
+        return this.seed !== info.seed;
+    }
+    isSaltChanged(info) {
+        return this.salt !== info.salt;
+    }
 
     /* Other checkers */
-    isMaxPlayersIncreased(info) { return ((this.maxPlayers) < (info.maxPlayers)); }
-    isMaxPlayersDecreased(info) { return ((this.maxPlayers) > (info.maxPlayers)); }
-    isQueue() { return (this.queuedPlayers !== 0); }
+    isMaxPlayersIncreased(info) {
+        return this.maxPlayers < info.maxPlayers;
+    }
+    isMaxPlayersDecreased(info) {
+        return this.maxPlayers > info.maxPlayers;
+    }
+    isQueue() {
+        return this.queuedPlayers !== 0;
+    }
 
     updateInfo(info) {
         this.name = info.name;
@@ -112,8 +188,12 @@ class Info {
     }
 
     // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
-    getSecondsSinceWipe() { return (new Date() - new Date(this.wipeTime * 1000)) / 1000; }
-    getTimeSinceWipe(ignore = '') { return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore); }
+    getSecondsSinceWipe() {
+        return (new Date() - new Date(this.wipeTime * 1000)) / 1000;
+    }
+    getTimeSinceWipe(ignore = '') {
+        return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore);
+    }
 }
 
 export default Info;

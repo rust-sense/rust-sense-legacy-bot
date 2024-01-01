@@ -20,12 +20,12 @@
 
 import CommandHandler from '../handlers/inGameCommandHandler.js';
 
-import Constants from '../util/constants.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import InGameChatHandler from '../handlers/inGameChatHandler.js';
 import SmartSwitchGroupHandler from '../handlers/smartSwitchGroupHandler.js';
-import TeamChatHandler from "../handlers/teamChatHandler.js";
+import TeamChatHandler from '../handlers/teamChatHandler.js';
 import TeamHandler from '../handlers/teamHandler.js';
+import Constants from '../util/constants.js';
 
 export default {
     name: 'message',
@@ -36,8 +36,7 @@ export default {
 
         if (message.hasOwnProperty('response')) {
             messageResponse(rustplus, client, message);
-        }
-        else if (message.hasOwnProperty('broadcast')) {
+        } else if (message.hasOwnProperty('broadcast')) {
             messageBroadcast(rustplus, client, message);
         }
     },
@@ -50,14 +49,11 @@ async function messageResponse(rustplus, client, message) {
 async function messageBroadcast(rustplus, client, message) {
     if (message.broadcast.hasOwnProperty('teamChanged')) {
         messageBroadcastTeamChanged(rustplus, client, message);
-    }
-    else if (message.broadcast.hasOwnProperty('teamMessage')) {
+    } else if (message.broadcast.hasOwnProperty('teamMessage')) {
         messageBroadcastTeamMessage(rustplus, client, message);
-    }
-    else if (message.broadcast.hasOwnProperty('entityChanged')) {
+    } else if (message.broadcast.hasOwnProperty('entityChanged')) {
         messageBroadcastEntityChanged(rustplus, client, message);
-    }
-    else if (message.broadcast.hasOwnProperty('cameraRays')) {
+    } else if (message.broadcast.hasOwnProperty('cameraRays')) {
         messageBroadcastCameraRays(rustplus, client, message);
     }
 }
@@ -77,27 +73,29 @@ async function messageBroadcastTeamMessage(rustplus, client, message) {
         /* Delay inGameChatHandler */
         clearTimeout(rustplus.inGameChatTimeout);
         const commandDelayMs = parseInt(rustplus.generalSettings.commandDelay) * 1000;
-        rustplus.inGameChatTimeout = setTimeout(
-            InGameChatHandler.inGameChatHandler, commandDelayMs, rustplus, client);
+        rustplus.inGameChatTimeout = setTimeout(InGameChatHandler.inGameChatHandler, commandDelayMs, rustplus, client);
     }
 
     let tempName = message.broadcast.teamMessage.message.name;
     let tempMessage = message.broadcast.teamMessage.message.message;
 
-    tempName = tempName.replace(/^<size=.*?><color=.*?>/, '');  /* Rustafied */
-    tempName = tempName.replace(/<\/color><\/size>$/, '');      /* Rustafied */
+    tempName = tempName.replace(/^<size=.*?><color=.*?>/, ''); /* Rustafied */
+    tempName = tempName.replace(/<\/color><\/size>$/, ''); /* Rustafied */
     message.broadcast.teamMessage.message.name = tempName;
 
-    tempMessage = tempMessage.replace(/^<size=.*?><color=.*?>/, '');  /* Rustafied */
-    tempMessage = tempMessage.replace(/<\/color><\/size>$/, '');      /* Rustafied */
-    tempMessage = tempMessage.replace(/^<color.+?<\/color>/g, '');      /* Unknown */
+    tempMessage = tempMessage.replace(/^<size=.*?><color=.*?>/, ''); /* Rustafied */
+    tempMessage = tempMessage.replace(/<\/color><\/size>$/, ''); /* Rustafied */
+    tempMessage = tempMessage.replace(/^<color.+?<\/color>/g, ''); /* Unknown */
     message.broadcast.teamMessage.message.message = tempMessage;
 
     if (instance.blacklist['steamIds'].includes(`${steamId}`)) {
-        rustplus.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `userPartOfBlacklistInGame`, {
-            user: `${message.broadcast.teamMessage.message.name} (${steamId})`,
-            message: message.broadcast.teamMessage.message.message
-        }));
+        rustplus.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, `userPartOfBlacklistInGame`, {
+                user: `${message.broadcast.teamMessage.message.name} (${steamId})`,
+                message: message.broadcast.teamMessage.message.message,
+            }),
+        );
         TeamChatHandler(rustplus, client, message.broadcast.teamMessage.message);
         return;
     }
@@ -115,10 +113,13 @@ async function messageBroadcastTeamMessage(rustplus, client, message) {
     const isCommand = await CommandHandler.inGameCommandHandler(rustplus, client, message);
     if (isCommand) return;
 
-    rustplus.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `logInGameMessage`, {
-        message: message.broadcast.teamMessage.message.message,
-        user: `${message.broadcast.teamMessage.message.name} (${steamId})`
-    }));
+    rustplus.log(
+        client.intlGet(null, 'infoCap'),
+        client.intlGet(null, `logInGameMessage`, {
+            message: message.broadcast.teamMessage.message.message,
+            user: `${message.broadcast.teamMessage.message.name} (${steamId})`,
+        }),
+    );
 
     TeamChatHandler(rustplus, client, message.broadcast.teamMessage.message);
 }
@@ -129,11 +130,9 @@ async function messageBroadcastEntityChanged(rustplus, client, message) {
 
     if (instance.serverList[rustplus.serverId].switches.hasOwnProperty(entityId)) {
         messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
-    }
-    else if (instance.serverList[rustplus.serverId].alarms.hasOwnProperty(entityId)) {
+    } else if (instance.serverList[rustplus.serverId].alarms.hasOwnProperty(entityId)) {
         messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
-    }
-    else if (instance.serverList[rustplus.serverId].storageMonitors.hasOwnProperty(entityId)) {
+    } else if (instance.serverList[rustplus.serverId].storageMonitors.hasOwnProperty(entityId)) {
         messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
     }
 }
@@ -151,7 +150,7 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus, client, messag
     if (!server || (server && !server.switches[entityId])) return;
 
     if (rustplus.interactionSwitches.includes(`${entityId}`)) {
-        rustplus.interactionSwitches = rustplus.interactionSwitches.filter(e => e !== `${entityId}`);
+        rustplus.interactionSwitches = rustplus.interactionSwitches.filter((e) => e !== `${entityId}`);
         return;
     }
 
@@ -165,8 +164,7 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus, client, messag
     client.setInstance(rustplus.guildId, instance);
 
     DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
-    SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(
-        client, rustplus.guildId, serverId, entityId);
+    SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
 }
 
 async function messageBroadcastEntityChangedSmartAlarm(rustplus, client, message) {
@@ -206,17 +204,18 @@ async function messageBroadcastEntityChangedStorageMonitor(rustplus, client, mes
 
     if (message.broadcast.entityChanged.payload.value === true) return;
 
-    if (server.storageMonitors[entityId].type === 'toolCupboard' ||
-        message.broadcast.entityChanged.payload.capacity === Constants.STORAGE_MONITOR_TOOL_CUPBOARD_CAPACITY) {
+    if (
+        server.storageMonitors[entityId].type === 'toolCupboard' ||
+        message.broadcast.entityChanged.payload.capacity === Constants.STORAGE_MONITOR_TOOL_CUPBOARD_CAPACITY
+    ) {
         setTimeout(updateToolCupboard.bind(null, rustplus, client, message), 2000);
-    }
-    else {
+    } else {
         rustplus.storageMonitors[entityId] = {
             items: message.broadcast.entityChanged.payload.items,
             expiry: message.broadcast.entityChanged.payload.protectionExpiry,
             capacity: message.broadcast.entityChanged.payload.capacity,
-            hasProtection: message.broadcast.entityChanged.payload.hasProtection
-        }
+            hasProtection: message.broadcast.entityChanged.payload.hasProtection,
+        };
 
         const info = await rustplus.getEntityInfoAsync(entityId);
         server.storageMonitors[entityId].reachable = (await rustplus.isResponseValid(info)) ? true : false;
@@ -224,8 +223,7 @@ async function messageBroadcastEntityChangedStorageMonitor(rustplus, client, mes
         if (server.storageMonitors[entityId].reachable) {
             if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY) {
                 server.storageMonitors[entityId].type = 'vendingMachine';
-            }
-            else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
+            } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                 server.storageMonitors[entityId].type = 'largeWoodBox';
             }
         }
@@ -249,8 +247,8 @@ async function updateToolCupboard(rustplus, client, message) {
             items: info.entityInfo.payload.items,
             expiry: info.entityInfo.payload.protectionExpiry,
             capacity: info.entityInfo.payload.capacity,
-            hasProtection: info.entityInfo.payload.hasProtection
-        }
+            hasProtection: info.entityInfo.payload.hasProtection,
+        };
 
         server.storageMonitors[entityId].type = 'toolCupboard';
 
@@ -260,12 +258,13 @@ async function updateToolCupboard(rustplus, client, message) {
             await DiscordMessages.sendDecayingNotificationMessage(rustplus.guildId, rustplus.serverId, entityId);
 
             if (server.storageMonitors[entityId].inGame) {
-                rustplus.sendInGameMessage(client.intlGet(rustplus.guildId, 'isDecaying', {
-                    device: server.storageMonitors[entityId].name
-                }));
+                rustplus.sendInGameMessage(
+                    client.intlGet(rustplus.guildId, 'isDecaying', {
+                        device: server.storageMonitors[entityId].name,
+                    }),
+                );
             }
-        }
-        else if (info.entityInfo.payload.protectionExpiry !== 0) {
+        } else if (info.entityInfo.payload.protectionExpiry !== 0) {
             server.storageMonitors[entityId].decaying = false;
         }
         client.setInstance(rustplus.guildId, instance);

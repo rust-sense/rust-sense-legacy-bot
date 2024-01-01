@@ -20,28 +20,28 @@
 
 import Fs from 'fs';
 
-import Path from 'path';
 import RustPlusLib from '@liamcottle/rustplus.js';
+import Path from 'path';
 import Translate from 'translate';
 // @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
-import Constants from '../util/constants.js';
-import Decay from '../util/decay.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds';
 import DiscordMessages from '../discordTools/discordMessages.js';
-import DiscordVoice from '../discordTools/discordVoice.js';
 import DiscordTools from '../discordTools/discordTools.js';
+import DiscordVoice from '../discordTools/discordVoice.js';
 import InGameChatHandler from '../handlers/inGameChatHandler.js';
+import TeamHandler from '../handlers/teamHandler.js';
+import RustPlusLite from '../structures/RustPlusLite';
+import Constants from '../util/constants.js';
 import InstanceUtils from '../util/instanceUtils.js';
 import Languages from '../util/languages.js';
-import Logger from './Logger.js';
 import Map from '../util/map.js';
-import RustPlusLite from '../structures/RustPlusLite';
-import TeamHandler from '../handlers/teamHandler.js';
 import Timer from '../util/timer.js';
+import Logger from './Logger.js';
+import { stringify } from 'querystring';
 
-const TOKENS_LIMIT = 24;/* Per player */
-const TOKENS_REPLENISH = 3;/* Per second */
+const TOKENS_LIMIT = 24; /* Per player */
+const TOKENS_REPLENISH = 3; /* Per second */
 
 class RustPlus extends RustPlusLib {
     allConnections: any;
@@ -103,29 +103,29 @@ class RustPlus extends RustPlusLib {
         this.uptimeServer = null;
 
         /* Status flags */
-        this.isOperational = false;         /* Connected to the server, and request is verified. */
-        this.isDeleted = false;             /* Is the rustplus instance deleted? */
-        this.isNewConnection = false;       /* Is it an actively selected connection (pressed CONNECT button)? */
-        this.isFirstPoll = true;            /* Is this the first poll since connection started? */
+        this.isOperational = false; /* Connected to the server, and request is verified. */
+        this.isDeleted = false; /* Is the rustplus instance deleted? */
+        this.isNewConnection = false; /* Is it an actively selected connection (pressed CONNECT button)? */
+        this.isFirstPoll = true; /* Is this the first poll since connection started? */
 
         /* Interval ids */
-        this.pollingTaskId = 0;             /* The id of the main polling mechanism of the rustplus instance. */
-        this.tokensReplenishTaskId = 0;     /* The id of the replenish task for rustplus tokens. */
+        this.pollingTaskId = 0; /* The id of the main polling mechanism of the rustplus instance. */
+        this.tokensReplenishTaskId = 0; /* The id of the replenish task for rustplus tokens. */
 
         /* Other variable initializations */
-        this.tokens = 24;                           /* The amount of tokens that is available at start. */
-        this.timers = new Object();                 /* Stores all custom timers that are created. */
-        this.markers = new Object();                /* Stores all custom markers that are created. */
-        this.storageMonitors = new Object();        /* Contain content information of paired storage monitors. */
-        this.currentSwitchTimeouts = new Object();  /* Stores timer ids for auto ON/OFF Smart Switch timeouts. */
-        this.passedFirstSunriseOrSunset = false;    /* Becomes true when first sunrise/sunset. */
-        this.startTimeObject = new Object();        /* Stores in-game time points before first sunrise/sunset. */
-        this.informationIntervalCounter = 0;        /* Counter to decide when information should be updated. */
-        this.storageMonitorIntervalCounter = 0;     /* Counter to decide when storage monitors should be updated */
-        this.smartSwitchIntervalCounter = 10;       /* Counter to decide when smart switches should be updated */
-        this.smartAlarmIntervalCounter = 20;        /* Counter to decide when smart alarms should be updated */
-        this.interactionSwitches = [];              /* Stores the ids of smart switches that are interacted in-game. */
-        this.messagesSentByBot = [];                /* Stores the last messages sent by the bot to the team chat */
+        this.tokens = 24; /* The amount of tokens that is available at start. */
+        this.timers = new Object(); /* Stores all custom timers that are created. */
+        this.markers = new Object(); /* Stores all custom markers that are created. */
+        this.storageMonitors = new Object(); /* Contain content information of paired storage monitors. */
+        this.currentSwitchTimeouts = new Object(); /* Stores timer ids for auto ON/OFF Smart Switch timeouts. */
+        this.passedFirstSunriseOrSunset = false; /* Becomes true when first sunrise/sunset. */
+        this.startTimeObject = new Object(); /* Stores in-game time points before first sunrise/sunset. */
+        this.informationIntervalCounter = 0; /* Counter to decide when information should be updated. */
+        this.storageMonitorIntervalCounter = 0; /* Counter to decide when storage monitors should be updated */
+        this.smartSwitchIntervalCounter = 10; /* Counter to decide when smart switches should be updated */
+        this.smartAlarmIntervalCounter = 20; /* Counter to decide when smart alarms should be updated */
+        this.interactionSwitches = []; /* Stores the ids of smart switches that are interacted in-game. */
+        this.messagesSentByBot = []; /* Stores the last messages sent by the bot to the team chat */
 
         /* Chat handler variables */
         this.inGameChatQueue = [];
@@ -147,24 +147,25 @@ class RustPlus extends RustPlusLib {
             heli: [],
             small: [],
             large: [],
-            chinook: []
+            chinook: [],
         };
         this.patrolHelicopterTracers = new Object();
         this.cargoShipTracers = new Object();
 
         /* Rustplus structures */
-        this.map = null;            /* Stores the Map structure. */
-        this.info = null;           /* Stores the Info structure. */
-        this.time = null;           /* Stores the Time structure. */
-        this.team = null;           /* Stores the Team structure. */
-        this.mapMarkers = null;     /* Stores the MapMarkers structure. */
+        this.map = null; /* Stores the Map structure. */
+        this.info = null; /* Stores the Info structure. */
+        this.time = null; /* Stores the Time structure. */
+        this.team = null; /* Stores the Team structure. */
+        this.mapMarkers = null; /* Stores the MapMarkers structure. */
 
         this.loadRustPlusEvents();
     }
 
     loadRustPlusEvents() {
-        const eventFiles = Fs.readdirSync(
-            Path.join(__dirname, '..', 'rustplusEvents')).filter(file => file.endsWith('.js'));
+        const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'rustplusEvents')).filter((file) =>
+            file.endsWith('.js'),
+        );
         for (const file of eventFiles) {
             const event = require(`../rustplusEvents/${file}`);
             this.on(event.name, (...args) => event.execute(this, Client.client, ...args));
@@ -219,7 +220,7 @@ class RustPlus extends RustPlusLib {
             serverLite.serverIp,
             serverLite.appPort,
             serverLite.steamId,
-            serverLite.playerToken
+            serverLite.playerToken,
         );
         this.leaderRustPlusInstance.connect();
     }
@@ -236,7 +237,7 @@ class RustPlus extends RustPlusLib {
         if (this.allConnections.length === 10) {
             this.allConnections.pop();
         }
-        this.allConnections.unshift(savedString)
+        this.allConnections.unshift(savedString);
 
         if (!this.playerConnections.hasOwnProperty(steamId)) {
             this.playerConnections[steamId] = [];
@@ -255,7 +256,7 @@ class RustPlus extends RustPlusLib {
         if (this.allDeaths.length === 10) {
             this.allDeaths.pop();
         }
-        this.allDeaths.unshift(data)
+        this.allDeaths.unshift(data);
 
         if (!this.playerDeaths.hasOwnProperty(steamId)) {
             this.playerDeaths[steamId] = [];
@@ -327,7 +328,7 @@ class RustPlus extends RustPlusLib {
     }
 
     async sendEvent(setting, text, event, embed_color, firstPoll = false, image = null) {
-        const img = (image !== null) ? image : setting.image;
+        const img = image !== null ? image : setting.image;
 
         this.updateEvents(event, text);
 
@@ -363,8 +364,7 @@ class RustPlus extends RustPlusLib {
     async turnSmartSwitchAsync(id, value, timeout = 10000) {
         if (value) {
             return await this.turnSmartSwitchOnAsync(id, timeout);
-        }
-        else {
+        } else {
             return await this.turnSmartSwitchOffAsync(id, timeout);
         }
     }
@@ -372,8 +372,7 @@ class RustPlus extends RustPlusLib {
     async turnSmartSwitchOnAsync(id, timeout = 10000) {
         try {
             return await this.setEntityValueAsync(id, true, timeout);
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -381,8 +380,7 @@ class RustPlus extends RustPlusLib {
     async turnSmartSwitchOffAsync(id, timeout = 10000) {
         try {
             return await this.setEntityValueAsync(id, false, timeout);
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -393,16 +391,18 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                entityId: id,
-                setEntityValue: {
-                    value: value
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    entityId: id,
+                    setEntityValue: {
+                        value: value,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -413,15 +413,17 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                sendTeamMessage: {
-                    message: message
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    sendTeamMessage: {
+                        message: message,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -432,14 +434,16 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                entityId: id,
-                getEntityInfo: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    entityId: id,
+                    getEntityInfo: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -450,13 +454,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getMap: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getMap: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -467,13 +473,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getTime: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getTime: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -484,13 +492,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getMapMarkers: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getMapMarkers: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -501,13 +511,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getInfo: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getInfo: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -518,13 +530,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getTeamInfo: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getTeamInfo: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -535,15 +549,17 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                cameraSubscribe: {
-                    cameraId: identifier
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    cameraSubscribe: {
+                        cameraId: identifier,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -554,13 +570,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                cameraUnsubscribe: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    cameraUnsubscribe: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -571,19 +589,21 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                cameraInput: {
-                    buttons: buttons,
-                    mouseDelta: {
-                        x: x,
-                        y: y
-                    }
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    cameraInput: {
+                        buttons: buttons,
+                        mouseDelta: {
+                            x: x,
+                            y: y,
+                        },
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -594,15 +614,17 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                promoteToLeader: {
-                    steamId: steamId
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    promoteToLeader: {
+                        steamId: steamId,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -613,13 +635,15 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getTeamChat: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getTeamChat: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
-            })
-        }
-        catch (e) {
+            });
+        } catch (e) {
             return e;
         }
     }
@@ -630,14 +654,16 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                entityId: id,
-                checkSubscription: {}
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    entityId: id,
+                    checkSubscription: {},
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -648,16 +674,18 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                entityId: id,
-                setSubscription: {
-                    value: value
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    entityId: id,
+                    setSubscription: {
+                        value: value,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
@@ -668,40 +696,44 @@ class RustPlus extends RustPlusLib {
                 return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
-            return await this.sendRequestAsync({
-                getCameraFrame: {
-                    identifier: identifier,
-                    frame: frame
-                }
-            }, timeout).catch((e) => {
+            return await this.sendRequestAsync(
+                {
+                    getCameraFrame: {
+                        identifier: identifier,
+                        frame: frame,
+                    },
+                },
+                timeout,
+            ).catch((e) => {
                 return e;
             });
-        }
-        catch (e) {
+        } catch (e) {
             return e;
         }
     }
 
     async isResponseValid(response) {
         if (response === undefined) {
-            this.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseIsUndefined'), 'error');
+            this.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'responseIsUndefined'),
+                'error',
+            );
             return false;
-        }
-        else if (response.toString() === 'Error: Timeout reached while waiting for response') {
-            this.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseTimeout'), 'error');
+        } else if (response.toString() === 'Error: Timeout reached while waiting for response') {
+            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseTimeout'), 'error');
             return false;
-        }
-        else if (response.hasOwnProperty('error')) {
-            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseContainError', {
-                error: JSON.stringify(response),
-            }), 'error');
+        } else if (response.hasOwnProperty('error')) {
+            this.log(
+                Client.client.intlGet(null, 'errorCap'),
+                Client.client.intlGet(null, 'responseContainError', {
+                    error: JSON.stringify(response),
+                }),
+                'error',
+            );
             return false;
-        }
-        else if (Object.keys(response).length === 0) {
-            this.log(Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseIsEmpty'), 'error');
+        } else if (Object.keys(response).length === 0) {
+            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseIsEmpty'), 'error');
             clearInterval(this.pollingTaskId);
             return false;
         }
@@ -733,13 +765,11 @@ class RustPlus extends RustPlusLib {
             const player = this.team.getPlayerLongestAlive();
             return Client.client.intlGet(this.guildId, 'hasBeenAliveLongest', {
                 name: player.name,
-                time: player.getAliveTime()
+                time: player.getAliveTime(),
             });
-        }
-        else if (command.toLowerCase().startsWith(`${commandAlive} `)) {
+        } else if (command.toLowerCase().startsWith(`${commandAlive} `)) {
             name = command.slice(`${commandAlive} `.length).trim();
-        }
-        else if (command.toLowerCase().startsWith(`${commandAliveEn} `)) {
+        } else if (command.toLowerCase().startsWith(`${commandAliveEn} `)) {
             name = command.slice(`${commandAliveEn} `.length).trim();
         }
 
@@ -749,19 +779,19 @@ class RustPlus extends RustPlusLib {
             if (player.name.includes(name)) {
                 return Client.client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
                     name: player.name,
-                    time: player.getAliveTime()
+                    time: player.getAliveTime(),
                 });
             }
         }
 
         return Client.client.intlGet(this.guildId, 'couldNotFindTeammate', {
-            name: name
+            name: name,
         });
     }
 
     getCommandCargo(isInfoChannel = false) {
         const strings = [];
-        let unhandled = this.mapMarkers.cargoShips.map(e => e.id);
+        let unhandled = this.mapMarkers.cargoShips.map((e) => e.id);
         for (const [id, timer] of Object.entries(this.mapMarkers.cargoShipEgressTimers)) {
             const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, parseInt(id));
             const time = Timer.getTimeLeftOfTimer(timer);
@@ -769,18 +799,19 @@ class RustPlus extends RustPlusLib {
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'egressInTime', {
                         time: Timer.getTimeLeftOfTimer(timer, 's'),
-                        location: cargoShip.location.string
+                        location: cargoShip.location.string,
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
-                        time: time,
-                        location: cargoShip.location.string
-                    }));
+                    strings.push(
+                        Client.client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
+                            time: time,
+                            location: cargoShip.location.string,
+                        }),
+                    );
                 }
             }
-            unhandled = unhandled.filter(e => e != parseInt(id));
+            unhandled = unhandled.filter((e) => e != parseInt(id));
         }
 
         if (unhandled.length > 0) {
@@ -789,27 +820,28 @@ class RustPlus extends RustPlusLib {
                 if (cargoShip.onItsWayOut) {
                     if (isInfoChannel) {
                         return Client.client.intlGet(this.guildId, 'leavingMapAt', {
-                            location: cargoShip.location.string
+                            location: cargoShip.location.string,
                         });
-                    }
-                    else {
+                    } else {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                        strings.push(Client.client.intlGet(this.guildId, 'cargoLeavingMapAt', {
-                            location: cargoShip.location.string
-                        }));
+                        strings.push(
+                            Client.client.intlGet(this.guildId, 'cargoLeavingMapAt', {
+                                location: cargoShip.location.string,
+                            }),
+                        );
                     }
-                }
-                else {
+                } else {
                     if (isInfoChannel) {
                         return Client.client.intlGet(this.guildId, 'cargoAt', {
-                            location: cargoShip.location.string
+                            location: cargoShip.location.string,
                         });
-                    }
-                    else {
+                    } else {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                        strings.push(Client.client.intlGet(this.guildId, 'cargoLocatedAt', {
-                            location: cargoShip.location.string
-                        }));
+                        strings.push(
+                            Client.client.intlGet(this.guildId, 'cargoLocatedAt', {
+                                location: cargoShip.location.string,
+                            }),
+                        );
                     }
                 }
             }
@@ -819,22 +851,19 @@ class RustPlus extends RustPlusLib {
             if (this.mapMarkers.timeSinceCargoShipWasOut === null) {
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'notActive');
-                }
-                else {
+                } else {
                     return Client.client.intlGet(this.guildId, 'cargoNotCurrentlyOnMap');
                 }
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCargoShipWasOut) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLast', {
-                        time: Timer.secondsToFullScale(secondsSince)
+                        time: Timer.secondsToFullScale(secondsSince),
                     });
-                }
-                else {
+                } else {
                     return Client.client.intlGet(this.guildId, 'timeSinceCargoLeft', {
-                        time: Timer.secondsToFullScale(secondsSince)
+                        time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
             }
@@ -849,36 +878,38 @@ class RustPlus extends RustPlusLib {
             if (ch47.ch47Type === 'crate') {
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'atLocation', {
-                        location: ch47.location.string
+                        location: ch47.location.string,
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    strings.push(Client.client.intlGet(this.guildId, 'chinook47Located', {
-                        location: ch47.location.string
-                    }));
+                    strings.push(
+                        Client.client.intlGet(this.guildId, 'chinook47Located', {
+                            location: ch47.location.string,
+                        }),
+                    );
                 }
             }
         }
 
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceCH47WasOut === null) {
-                return isInfoChannel ? Client.client.intlGet(this.guildId, 'notActive') :
-                    Client.client.intlGet(this.guildId, 'chinook47NotOnMap');
-            }
-            else {
+                return isInfoChannel
+                    ? Client.client.intlGet(this.guildId, 'notActive')
+                    : Client.client.intlGet(this.guildId, 'chinook47NotOnMap');
+            } else {
                 // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCH47WasOut) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLast', {
-                        time: Timer.secondsToFullScale(secondsSince, 's')
+                        time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    strings.push(Client.client.intlGet(this.guildId, 'timeSinceChinook47OnMap', {
-                        time: Timer.secondsToFullScale(secondsSince)
-                    }));
+                    strings.push(
+                        Client.client.intlGet(this.guildId, 'timeSinceChinook47OnMap', {
+                            time: Timer.secondsToFullScale(secondsSince),
+                        }),
+                    );
                 }
             }
         }
@@ -893,14 +924,15 @@ class RustPlus extends RustPlusLib {
         const commandConnections = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxConnections')}`;
         const commandConnectionsEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxConnections')}`;
 
-        if (command.toLowerCase().startsWith(`${commandConnections}`) ||
-            command.toLowerCase().startsWith(`${commandConnectionsEn}`)) {
+        if (
+            command.toLowerCase().startsWith(`${commandConnections}`) ||
+            command.toLowerCase().startsWith(`${commandConnectionsEn}`)
+        ) {
             let number = null;
             if (command.toLowerCase().startsWith(`${commandConnections}`)) {
                 // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandConnections}`.length).trim());
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandConnectionsEn}`.length).trim());
             }
@@ -921,13 +953,13 @@ class RustPlus extends RustPlusLib {
             }
 
             return strings;
-        }
-        else if (command.toLowerCase().startsWith(`${commandConnection} `) ||
-            command.toLowerCase().startsWith(`${commandConnectionEn} `)) {
+        } else if (
+            command.toLowerCase().startsWith(`${commandConnection} `) ||
+            command.toLowerCase().startsWith(`${commandConnectionEn} `)
+        ) {
             if (command.toLowerCase().startsWith(`${commandConnection} `)) {
                 command = command.slice(`${commandConnection} `.length).trim();
-            }
-            else {
+            } else {
                 command = command.slice(`${commandConnectionEn} `.length).trim();
             }
             const name = command.replace(/ .*/, '');
@@ -941,7 +973,7 @@ class RustPlus extends RustPlusLib {
 
                     if (this.playerConnections[player.steamId].length === 0) {
                         return Client.client.intlGet(this.guildId, 'noRegisteredConnectionEventsUser', {
-                            user: player.name
+                            user: player.name,
                         });
                     }
 
@@ -961,7 +993,7 @@ class RustPlus extends RustPlusLib {
             }
 
             return Client.client.intlGet(this.guildId, 'couldNotFindTeammate', {
-                name: name
+                name: name,
             });
         }
 
@@ -975,32 +1007,31 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandCraft} `)) {
             command = command.slice(`${commandCraft} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandCraftEn} `.length).trim();
         }
 
         const words = command.split(' ');
         const lastWord = words[words.length - 1];
         const lastWordLength = lastWord.length;
-        const restString = command.slice(0, -(lastWordLength)).trim();
+        const restString = command.slice(0, -lastWordLength).trim();
 
-        let itemSearchName = null, itemSearchQuantity = null;
+        let itemSearchName = null,
+            itemSearchQuantity = null;
         if (isNaN(lastWord)) {
             itemSearchName = command;
             // @ts-expect-error TS(2322) FIXME: Type '1' is not assignable to type 'null'.
             itemSearchQuantity = 1;
-        }
-        else {
+        } else {
             itemSearchName = restString;
             // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             itemSearchQuantity = parseInt(lastWord);
         }
 
-        const item = Client.client.items.getClosestItemIdByName(itemSearchName)
+        const item = Client.client.items.getClosestItemIdByName(itemSearchName);
         if (item === null || itemSearchName === '') {
             const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: itemSearchName
+                name: itemSearchName,
             });
             return str;
         }
@@ -1012,7 +1043,7 @@ class RustPlus extends RustPlusLib {
         const craftDetails = Client.client.rustlabs.getCraftDetailsById(itemId);
         if (craftDetails === null) {
             const str = Client.client.intlGet(this.guildId, 'couldNotFindCraftDetails', {
-                name: itemName
+                name: itemName,
             });
             return str;
         }
@@ -1020,8 +1051,7 @@ class RustPlus extends RustPlusLib {
         let str = `${itemName} `;
         if (quantity === 1) {
             str += `(${craftDetails[2].timeString}): `;
-        }
-        else {
+        } else {
             // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
             const time = Timer.secondsToFullScale(craftDetails[2].time * quantity, '', true);
             str += `x${quantity} (${time}): `;
@@ -1052,14 +1082,15 @@ class RustPlus extends RustPlusLib {
 
         const caller = this.team.getPlayer(callerSteamId);
 
-        if (command.toLowerCase().startsWith(`${commandDeaths}`) ||
-            command.toLowerCase().startsWith(`${commandDeathsEn}`)) {
+        if (
+            command.toLowerCase().startsWith(`${commandDeaths}`) ||
+            command.toLowerCase().startsWith(`${commandDeathsEn}`)
+        ) {
             let number = null;
             if (command.toLowerCase().startsWith(`${commandDeaths}`)) {
                 // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandDeaths}`.length).trim());
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
                 number = parseInt(command.slice(`${commandDeathsEn}`.length).trim());
             }
@@ -1079,13 +1110,14 @@ class RustPlus extends RustPlusLib {
                     if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                     strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
-                }
-                else {
+                } else {
                     const distance = Math.floor(Map.getDistance(caller.x, caller.y, location.x, location.y));
                     const direction = Map.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
                     const grid = location.location;
                     str += Client.client.intlGet(this.guildId, 'distanceDirectionGrid', {
-                        distance: distance, direction: direction, grid: grid
+                        distance: distance,
+                        direction: direction,
+                        grid: grid,
                     });
                     if (counter === number) return str;
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1100,8 +1132,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandDeath} `)) {
             command = command.slice(`${commandDeath} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandDeathEn} `.length).trim();
         }
         const name = command.replace(/ .*/, '');
@@ -1115,7 +1146,7 @@ class RustPlus extends RustPlusLib {
 
                 if (this.playerDeaths[player.steamId].length === 0) {
                     return Client.client.intlGet(this.guildId, 'noRegisteredDeathEventsUser', {
-                        user: player.name
+                        user: player.name,
                     });
                 }
 
@@ -1130,13 +1161,14 @@ class RustPlus extends RustPlusLib {
                         if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                         strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
-                    }
-                    else {
+                    } else {
                         const distance = Math.floor(Map.getDistance(caller.x, caller.y, location.x, location.y));
                         const direction = Map.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
                         const grid = location.location;
                         str += Client.client.intlGet(this.guildId, 'distanceDirectionGrid', {
-                            distance: distance, direction: direction, grid: grid
+                            distance: distance,
+                            direction: direction,
+                            grid: grid,
                         });
                         if (counter === number) return str;
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1151,7 +1183,7 @@ class RustPlus extends RustPlusLib {
         }
 
         return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
-            name: name
+            name: name,
         });
     }
 
@@ -1162,21 +1194,20 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandDecay} `)) {
             command = command.slice(`${commandDecay} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandDecayEn} `.length).trim();
         }
 
         const words = command.split(' ');
         const lastWord = words[words.length - 1];
         const lastWordLength = lastWord.length;
-        const restString = command.slice(0, -(lastWordLength)).trim();
+        const restString = command.slice(0, -lastWordLength).trim();
 
-        let decayItemName = null, decayItemHp = null;
+        let decayItemName = null,
+            decayItemHp = null;
         if (isNaN(lastWord)) {
             decayItemName = command;
-        }
-        else {
+        } else {
             decayItemName = restString;
             // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             decayItemHp = parseInt(lastWord);
@@ -1191,8 +1222,7 @@ class RustPlus extends RustPlusLib {
             if (foundName) {
                 if (Client.client.rustlabs.decayData['other'].hasOwnProperty(foundName)) {
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -1203,8 +1233,7 @@ class RustPlus extends RustPlusLib {
             if (foundName) {
                 if (Client.client.rustlabs.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -1221,7 +1250,7 @@ class RustPlus extends RustPlusLib {
 
         if (!foundName) {
             const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: decayItemName
+                name: decayItemName,
             });
             return str;
         }
@@ -1232,15 +1261,14 @@ class RustPlus extends RustPlusLib {
         if (type === 'items') {
             itemName = Client.client.items.getName(itemId);
             decayDetails = Client.client.rustlabs.getDecayDetailsById(itemId);
-        }
-        else {
+        } else {
             itemName = itemId;
             decayDetails = Client.client.rustlabs.getDecayDetailsByName(itemId);
         }
 
         if (decayDetails === null) {
             const str = Client.client.intlGet(this.guildId, 'couldNotFindDecayDetails', {
-                name: itemName
+                name: itemName,
             });
             return str;
         }
@@ -1255,7 +1283,7 @@ class RustPlus extends RustPlusLib {
             const str = client.intlGet(this.guildId, 'hpExceedMax', {
                 hp: hp,
                 // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
-                max: details.hp
+                max: details.hp,
             });
             return str;
         }
@@ -1273,8 +1301,7 @@ class RustPlus extends RustPlusLib {
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayString}`);
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2339) FIXME: Property 'decay' does not exist on type 'never'.
                 const time = Timer.secondsToFullScale(Math.floor(details.decay * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1289,8 +1316,7 @@ class RustPlus extends RustPlusLib {
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayOutsideString}`);
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2339) FIXME: Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayOutside * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1305,8 +1331,7 @@ class RustPlus extends RustPlusLib {
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayInsideString}`);
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2339) FIXME: Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayInside * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1321,8 +1346,7 @@ class RustPlus extends RustPlusLib {
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayUnderwaterString}`);
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2339) FIXME: Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayUnderwater * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -1341,15 +1365,14 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandDespawn} `)) {
             command = command.slice(`${commandDespawn} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandDespawnEn} `.length).trim();
         }
 
         const itemId = Client.client.items.getClosestItemIdByName(command);
         if (itemId === null) {
             return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: command
+                name: command,
             });
         }
 
@@ -1357,7 +1380,7 @@ class RustPlus extends RustPlusLib {
         const despawnDetails = Client.client.rustlabs.getDespawnDetailsById(itemId);
         if (despawnDetails === null) {
             return Client.client.intlGet(this.guildId, 'couldNotFindDespawnDetails', {
-                name: itemName
+                name: itemName,
             });
         }
 
@@ -1365,7 +1388,7 @@ class RustPlus extends RustPlusLib {
 
         return Client.client.intlGet(this.guildId, 'despawnTimeOfItem', {
             item: itemName,
-            time: despawnTime
+            time: despawnTime,
         });
     }
 
@@ -1384,13 +1407,22 @@ class RustPlus extends RustPlusLib {
         const commandChinook = `${Client.client.intlGet(this.guildId, 'commandSyntaxChinook')}`;
         const commandChinookEn = `${Client.client.intlGet('en', 'commandSyntaxChinook')}`;
 
-        const EVENTS = [commandCargo, commandCargoEn, commandHeli, commandHeliEn, commandSmall,
-            commandSmallEn, commandLarge, commandLargeEn, commandChinook, commandChinookEn];
+        const EVENTS = [
+            commandCargo,
+            commandCargoEn,
+            commandHeli,
+            commandHeliEn,
+            commandSmall,
+            commandSmallEn,
+            commandLarge,
+            commandLargeEn,
+            commandChinook,
+            commandChinookEn,
+        ];
 
         if (command.toLowerCase().startsWith(`${commandEvents}`)) {
             command = command.slice(`${commandEvents}`.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandEventsEn}`.length).trim();
         }
 
@@ -1400,59 +1432,67 @@ class RustPlus extends RustPlusLib {
         if (event === '') {
             event = 'all';
             number = 5;
-        }
-        else if (event !== '' && EVENTS.includes(event)) {
+        } else if (event !== '' && EVENTS.includes(event)) {
             if (number === '') {
                 number = 5;
-            }
-            else {
+            } else {
                 number = parseInt(number);
                 if (isNaN(number)) {
                     number = 5;
                 }
             }
-        }
-        else if (event !== '' && !EVENTS.includes(event)) {
+        } else if (event !== '' && !EVENTS.includes(event)) {
             number = parseInt(event);
             event = 'all';
             if (isNaN(number)) {
                 number = 5;
             }
-        }
-        else {
+        } else {
             event = 'all';
             number = 5;
         }
 
         switch (event) {
             case commandCargoEn:
-            case commandCargo: {
-                event = 'cargo';
-            } break;
+            case commandCargo:
+                {
+                    event = 'cargo';
+                }
+                break;
 
             case commandHeliEn:
-            case commandHeli: {
-                event = 'heli';
-            } break;
+            case commandHeli:
+                {
+                    event = 'heli';
+                }
+                break;
 
             case commandSmallEn:
-            case commandSmall: {
-                event = 'small';
-            } break;
+            case commandSmall:
+                {
+                    event = 'small';
+                }
+                break;
 
             case commandLargeEn:
-            case commandLarge: {
-                event = 'large';
-            } break;
+            case commandLarge:
+                {
+                    event = 'large';
+                }
+                break;
 
             case commandChinookEn:
-            case commandChinook: {
-                event = 'chinook';
-            } break;
+            case commandChinook:
+                {
+                    event = 'chinook';
+                }
+                break;
 
-            default: {
-                event = 'all';
-            } break;
+            default:
+                {
+                    event = 'all';
+                }
+                break;
         }
 
         const strings = [];
@@ -1476,14 +1516,15 @@ class RustPlus extends RustPlusLib {
         for (const patrolHelicopter of this.mapMarkers.patrolHelicopters) {
             if (isInfoChannel) {
                 return Client.client.intlGet(this.guildId, 'atLocation', {
-                    location: patrolHelicopter.location.string
+                    location: patrolHelicopter.location.string,
                 });
-            }
-            else {
+            } else {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                strings.push(Client.client.intlGet(this.guildId, 'patrolHelicopterLocatedAt', {
-                    location: patrolHelicopter.location.string
-                }));
+                strings.push(
+                    Client.client.intlGet(this.guildId, 'patrolHelicopterLocatedAt', {
+                        location: patrolHelicopter.location.string,
+                    }),
+                );
             }
         }
 
@@ -1492,26 +1533,24 @@ class RustPlus extends RustPlusLib {
             const wasDestroyed = this.mapMarkers.timeSincePatrolHelicopterWasDestroyed;
 
             if (wasOnMap == null && wasDestroyed === null) {
-                return isInfoChannel ? Client.client.intlGet(this.guildId, 'notActive') :
-                    Client.client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
-            }
-            else if (wasOnMap !== null && wasDestroyed === null) {
+                return isInfoChannel
+                    ? Client.client.intlGet(this.guildId, 'notActive')
+                    : Client.client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
+            } else if (wasOnMap !== null && wasDestroyed === null) {
                 // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - wasOnMap) / 1000;
                 if (isInfoChannel) {
                     const timeSince = Timer.secondsToFullScale(secondsSince, 's');
                     return Client.client.intlGet(this.guildId, 'timeSinceLast', {
-                        time: timeSince
+                        time: timeSince,
                     });
-                }
-                else {
+                } else {
                     const timeSince = Timer.secondsToFullScale(secondsSince);
                     return Client.client.intlGet(this.guildId, 'timeSincePatrolHelicopterWasOnMap', {
-                        time: timeSince
+                        time: timeSince,
                     });
                 }
-            }
-            else if (wasOnMap !== null && wasDestroyed !== null) {
+            } else if (wasOnMap !== null && wasDestroyed !== null) {
                 if (isInfoChannel) {
                     // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000, 's');
@@ -1520,11 +1559,12 @@ class RustPlus extends RustPlusLib {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedShort', {
                         time1: timeSinceOnMap,
                         time2: timeSinceDestroyed,
-                        location: this.mapMarkers.patrolHelicopterDestroyedLocation === null ? '' :
-                            ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]`
+                        location:
+                            this.mapMarkers.patrolHelicopterDestroyedLocation === null
+                                ? ''
+                                : ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]`,
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000);
                     // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
@@ -1532,8 +1572,10 @@ class RustPlus extends RustPlusLib {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedLong', {
                         time1: timeSinceOnMap,
                         time2: timeSinceDestroyed,
-                        location: this.mapMarkers.patrolHelicopterDestroyedLocation === null ? '' :
-                            ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]`
+                        location:
+                            this.mapMarkers.patrolHelicopterDestroyedLocation === null
+                                ? ''
+                                : ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]`,
                     });
                 }
             }
@@ -1550,35 +1592,35 @@ class RustPlus extends RustPlusLib {
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
                         time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer, 's'),
-                        location: this.mapMarkers.crateLargeOilRigLocation
+                        location: this.mapMarkers.crateLargeOilRigLocation,
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
-                        time: time,
-                        location: this.mapMarkers.crateLargeOilRigLocation
-                    }));
+                    strings.push(
+                        Client.client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
+                            time: time,
+                            location: this.mapMarkers.crateLargeOilRigLocation,
+                        }),
+                    );
                 }
             }
         }
 
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceLargeOilRigWasTriggered === null) {
-                return isInfoChannel ? Client.client.intlGet(this.guildId, 'noData') :
-                    Client.client.intlGet(this.guildId, 'noDataOnLargeOilRig');
-            }
-            else {
+                return isInfoChannel
+                    ? Client.client.intlGet(this.guildId, 'noData')
+                    : Client.client.intlGet(this.guildId, 'noDataOnLargeOilRig');
+            } else {
                 // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceLargeOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
-                        time: Timer.secondsToFullScale(secondsSince, 's')
+                        time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
-                }
-                else {
+                } else {
                     return Client.client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnLarge', {
-                        time: Timer.secondsToFullScale(secondsSince)
+                        time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
             }
@@ -1601,13 +1643,13 @@ class RustPlus extends RustPlusLib {
             let names = '';
             for (const player of this.team.players) {
                 if (Object.keys(instance.serverListLite[this.serverId]).includes(player.steamId)) {
-                    names += `${player.name}, `
+                    names += `${player.name}, `;
                 }
             }
             names = names.slice(0, -2);
 
             return Client.client.intlGet(this.guildId, 'leaderCommandOnlyWorks', {
-                name: names
+                name: names,
             });
         }
 
@@ -1623,27 +1665,25 @@ class RustPlus extends RustPlusLib {
 
                 if (this.team.leaderSteamId === this.playerId) {
                     await this.team.changeLeadership(callerSteamId);
-                }
-                else {
+                } else {
                     this.leaderRustPlusInstance.promoteToLeaderAsync(callerSteamId);
                 }
 
                 const player = this.team.getPlayer(callerSteamId);
                 return Client.client.intlGet(this.guildId, 'leaderTransferred', {
-                    name: player.name
+                    name: player.name,
                 });
-            }
-            else {
+            } else {
                 return Client.client.intlGet(this.guildId, 'youAreAlreadyLeader');
             }
-        }
-        else if (command.toLowerCase().startsWith(`${commandLeader} `) ||
-            command.toLowerCase().startsWith(`${commandLeaderEn} `)) {
+        } else if (
+            command.toLowerCase().startsWith(`${commandLeader} `) ||
+            command.toLowerCase().startsWith(`${commandLeaderEn} `)
+        ) {
             let name = null;
             if (command.toLowerCase().startsWith(`${commandLeader} `)) {
                 name = command.slice(`${commandLeader} `.length).trim();
-            }
-            else {
+            } else {
                 name = command.slice(`${commandLeaderEn} `.length).trim();
             }
 
@@ -1651,34 +1691,32 @@ class RustPlus extends RustPlusLib {
                 if (player.name.includes(name)) {
                     if (this.team.leaderSteamId === player.steamId) {
                         return Client.client.intlGet(this.guildId, 'leaderAlreadyLeader', {
-                            name: player.name
+                            name: player.name,
                         });
-                    }
-                    else {
+                    } else {
                         if (this.generalSettings.leaderCommandOnlyForPaired) {
                             if (!Object.keys(instance.serverListLite[this.serverId]).includes(player.steamId)) {
                                 return Client.client.intlGet(this.guildId, 'playerNotPairedWithServer', {
-                                    name: player.name
+                                    name: player.name,
                                 });
                             }
                         }
 
                         if (this.team.leaderSteamId === this.playerId) {
                             await this.team.changeLeadership(player.steamId);
-                        }
-                        else {
+                        } else {
                             this.leaderRustPlusInstance.promoteToLeaderAsync(player.steamId);
                         }
 
                         return Client.client.intlGet(this.guildId, 'leaderTransferred', {
-                            name: player.name
+                            name: player.name,
                         });
                     }
                 }
             }
 
             return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
-                name: name
+                name: name,
             });
         }
 
@@ -1705,8 +1743,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandMarker} `)) {
             command = command.slice(`${commandMarker} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandMarkerEn} `.length).trim();
         }
         const subcommand = command.replace(/ .*/, '');
@@ -1714,79 +1751,93 @@ class RustPlus extends RustPlusLib {
 
         switch (subcommand.toLowerCase()) {
             case commandAddEn:
-            case commandAdd: {
-                if (name.startsWith(commandAdd) || name.startsWith(commandRemove)) return null;
-                if (name.startsWith(commandAddEn) || name.startsWith(commandRemoveEn)) return null;
-                if (name === '') return null;
+            case commandAdd:
+                {
+                    if (name.startsWith(commandAdd) || name.startsWith(commandRemove)) return null;
+                    if (name.startsWith(commandAddEn) || name.startsWith(commandRemoveEn)) return null;
+                    if (name === '') return null;
 
-                const teamInfo = await this.getTeamInfoAsync();
-                if (!(await this.isResponseValid(teamInfo))) return null;
+                    const teamInfo = await this.getTeamInfoAsync();
+                    if (!(await this.isResponseValid(teamInfo))) return null;
 
-                for (const player of teamInfo.teamInfo.members) {
-                    if (player.steamId.toString() === callerSteamId) {
-                        const instance = Client.client.getInstance(this.guildId);
-                        const location = Map.getPos(player.x, player.y, this.info.correctedMapSize, this);
-                        instance.serverList[this.serverId].markers[name] =
-                            { x: player.x, y: player.y, location: location.location };
-                        Client.client.setInstance(this.guildId, instance);
-                        this.markers[name] = { x: player.x, y: player.y, location: location.location };
+                    for (const player of teamInfo.teamInfo.members) {
+                        if (player.steamId.toString() === callerSteamId) {
+                            const instance = Client.client.getInstance(this.guildId);
+                            const location = Map.getPos(player.x, player.y, this.info.correctedMapSize, this);
+                            instance.serverList[this.serverId].markers[name] = {
+                                x: player.x,
+                                y: player.y,
+                                location: location.location,
+                            };
+                            Client.client.setInstance(this.guildId, instance);
+                            this.markers[name] = { x: player.x, y: player.y, location: location.location };
 
-                        return Client.client.intlGet(this.guildId, 'markerAdded', {
-                            name: name,
-                            location: location.location
-                        });
+                            return Client.client.intlGet(this.guildId, 'markerAdded', {
+                                name: name,
+                                location: location.location,
+                            });
+                        }
                     }
                 }
-            } break;
+                break;
 
             case commandRemoveEn:
-            case commandRemove: {
-                const instance = Client.client.getInstance(this.guildId);
+            case commandRemove:
+                {
+                    const instance = Client.client.getInstance(this.guildId);
 
-                if (name in this.markers) {
-                    const location = this.markers[name].location;
-                    delete this.markers[name];
-                    delete instance.serverList[this.serverId].markers[name];
-                    Client.client.setInstance(this.guildId, instance);
+                    if (name in this.markers) {
+                        const location = this.markers[name].location;
+                        delete this.markers[name];
+                        delete instance.serverList[this.serverId].markers[name];
+                        Client.client.setInstance(this.guildId, instance);
 
-                    return Client.client.intlGet(this.guildId, 'markerRemoved', {
-                        name: name,
-                        location: location
-                    });
-                }
-                return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
-                    name: name
-                });
-            } break;
-
-            default: {
-                if (!(command in this.markers)) {
-                    return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
-                        name: command
-                    });
-                }
-
-                const teamInfo = await this.getTeamInfoAsync();
-                if (!(await this.isResponseValid(teamInfo))) return null;
-
-                for (const player of teamInfo.teamInfo.members) {
-                    if (player.steamId.toString() === callerSteamId) {
-                        const direction = Map.getAngleBetweenPoints(player.x, player.y, this.markers[command].x,
-                            this.markers[command].y);
-                        const distance = Math.floor(Map.getDistance(player.x, player.y, this.markers[command].x,
-                            this.markers[command].y));
-                        console.log(this.markers[command])
-
-                        return Client.client.intlGet(this.guildId, 'markerLocation', {
-                            name: command,
-                            location: this.markers[command].location,
-                            distance: distance,
-                            player: player.name,
-                            direction: direction
+                        return Client.client.intlGet(this.guildId, 'markerRemoved', {
+                            name: name,
+                            location: location,
                         });
                     }
+                    return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
+                        name: name,
+                    });
                 }
-            } break;
+                break;
+
+            default:
+                {
+                    if (!(command in this.markers)) {
+                        return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
+                            name: command,
+                        });
+                    }
+
+                    const teamInfo = await this.getTeamInfoAsync();
+                    if (!(await this.isResponseValid(teamInfo))) return null;
+
+                    for (const player of teamInfo.teamInfo.members) {
+                        if (player.steamId.toString() === callerSteamId) {
+                            const direction = Map.getAngleBetweenPoints(
+                                player.x,
+                                player.y,
+                                this.markers[command].x,
+                                this.markers[command].y,
+                            );
+                            const distance = Math.floor(
+                                Map.getDistance(player.x, player.y, this.markers[command].x, this.markers[command].y),
+                            );
+                            console.log(this.markers[command]);
+
+                            return Client.client.intlGet(this.guildId, 'markerLocation', {
+                                name: command,
+                                location: this.markers[command].location,
+                                distance: distance,
+                                player: player.name,
+                                direction: direction,
+                            });
+                        }
+                    }
+                }
+                break;
         }
 
         return null;
@@ -1808,8 +1859,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandMarket} `)) {
             command = command.slice(`${commandMarket} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandMarketEn} `.length).trim();
         }
         const subcommand = command.replace(/ .*/, '');
@@ -1820,147 +1870,159 @@ class RustPlus extends RustPlusLib {
 
         switch (subcommand) {
             case commandSearchEn:
-            case commandSearch: {
-                if (!['all', 'buy', 'sell'].includes(orderType)) {
-                    return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
-                        order: orderType
-                    });
-                }
+            case commandSearch:
+                {
+                    if (!['all', 'buy', 'sell'].includes(orderType)) {
+                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                            order: orderType,
+                        });
+                    }
 
-                const itemId = Client.client.items.getClosestItemIdByName(name);
-                if (itemId === null) {
-                    return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                        name: name
-                    });
-                }
+                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    if (itemId === null) {
+                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                            name: name,
+                        });
+                    }
 
-                const locations = [];
-                for (const vendingMachine of this.mapMarkers.vendingMachines) {
-                    if (!vendingMachine.hasOwnProperty('sellOrders')) continue;
+                    const locations = [];
+                    for (const vendingMachine of this.mapMarkers.vendingMachines) {
+                        if (!vendingMachine.hasOwnProperty('sellOrders')) continue;
 
-                    for (const order of vendingMachine.sellOrders) {
-                        if (order.amountInStock === 0) continue;
+                        for (const order of vendingMachine.sellOrders) {
+                            if (order.amountInStock === 0) continue;
 
-                        const orderItemId =
-                            (Object.keys(Client.client.items.items).includes(order.itemId.toString())) ?
-                                order.itemId : null;
-                        const orderCurrencyId =
-                            (Object.keys(Client.client.items.items).includes(order.currencyId.toString())) ?
-                                order.currencyId : null;
+                            const orderItemId = Object.keys(Client.client.items.items).includes(order.itemId.toString())
+                                ? order.itemId
+                                : null;
+                            const orderCurrencyId = Object.keys(Client.client.items.items).includes(
+                                order.currencyId.toString(),
+                            )
+                                ? order.currencyId
+                                : null;
 
-                        if ((orderType === 'all' &&
-                            (orderItemId === parseInt(itemId) || orderCurrencyId === parseInt(itemId))) ||
-                            (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
-                            (orderType === 'sell' && orderItemId === parseInt(itemId))) {
-                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                            if (locations.includes(vendingMachine.location.location)) continue;
-                            // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                            locations.push(vendingMachine.location.location);
+                            if (
+                                (orderType === 'all' &&
+                                    (orderItemId === parseInt(itemId) || orderCurrencyId === parseInt(itemId))) ||
+                                (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
+                                (orderType === 'sell' && orderItemId === parseInt(itemId))
+                            ) {
+                                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                                if (locations.includes(vendingMachine.location.location)) continue;
+                                // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
+                                locations.push(vendingMachine.location.location);
+                            }
                         }
                     }
-                }
 
-                if (locations.length === 0) {
-                    return Client.client.intlGet(this.guildId, 'noItemFound');
-                }
+                    if (locations.length === 0) {
+                        return Client.client.intlGet(this.guildId, 'noItemFound');
+                    }
 
-                return locations.join(', ');
-            } break;
+                    return locations.join(', ');
+                }
+                break;
 
             case commandSubEn:
-            case commandSub: {
-                if (!['all', 'buy', 'sell'].includes(orderType)) {
-                    return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
-                        order: orderType
-                    });
-                }
+            case commandSub:
+                {
+                    if (!['all', 'buy', 'sell'].includes(orderType)) {
+                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                            order: orderType,
+                        });
+                    }
 
-                const itemId = Client.client.items.getClosestItemIdByName(name);
-                if (itemId === null) {
-                    return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                        name: name
-                    });
-                }
-                const itemName = Client.client.items.getName(itemId);
+                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    if (itemId === null) {
+                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                            name: name,
+                        });
+                    }
+                    const itemName = Client.client.items.getName(itemId);
 
+                    if (instance.marketSubscriptionList[orderType].includes(itemId)) {
+                        return Client.client.intlGet(this.guildId, 'alreadySubscribedToItem', {
+                            name: itemName,
+                        });
+                    } else {
+                        instance.marketSubscriptionList[orderType].push(itemId);
+                        this.firstPollItems[orderType].push(itemId);
+                        Client.client.setInstance(this.guildId, instance);
 
-                if (instance.marketSubscriptionList[orderType].includes(itemId)) {
-                    return Client.client.intlGet(this.guildId, 'alreadySubscribedToItem', {
-                        name: itemName
-                    });
+                        return Client.client.intlGet(this.guildId, 'justSubscribedToItem', {
+                            name: itemName,
+                        });
+                    }
                 }
-                else {
-                    instance.marketSubscriptionList[orderType].push(itemId);
-                    this.firstPollItems[orderType].push(itemId);
-                    Client.client.setInstance(this.guildId, instance);
-
-                    return Client.client.intlGet(this.guildId, 'justSubscribedToItem', {
-                        name: itemName
-                    });
-                }
-            } break;
+                break;
 
             case commandUnsubEn:
-            case commandUnsub: {
-                if (!['all', 'buy', 'sell'].includes(orderType)) {
-                    return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
-                        order: orderType
-                    });
-                }
+            case commandUnsub:
+                {
+                    if (!['all', 'buy', 'sell'].includes(orderType)) {
+                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                            order: orderType,
+                        });
+                    }
 
-                const itemId = Client.client.items.getClosestItemIdByName(name);
-                if (itemId === null) {
-                    return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                        name: name
-                    });
-                }
-                const itemName = Client.client.items.getName(itemId);
+                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    if (itemId === null) {
+                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                            name: name,
+                        });
+                    }
+                    const itemName = Client.client.items.getName(itemId);
 
-                if (instance.marketSubscriptionList[orderType].includes(itemId)) {
-                    instance.marketSubscriptionList[orderType] =
-                        instance.marketSubscriptionList[orderType].filter(e => e !== itemId);
-                    Client.client.setInstance(this.guildId, instance);
+                    if (instance.marketSubscriptionList[orderType].includes(itemId)) {
+                        instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
+                            (e) => e !== itemId,
+                        );
+                        Client.client.setInstance(this.guildId, instance);
 
-                    return Client.client.intlGet(this.guildId, 'removedSubscribeItem', {
-                        name: itemName
-                    });
+                        return Client.client.intlGet(this.guildId, 'removedSubscribeItem', {
+                            name: itemName,
+                        });
+                    } else {
+                        return Client.client.intlGet(this.guildId, 'notExistInSubscription', {
+                            name: itemName,
+                        });
+                    }
                 }
-                else {
-                    return Client.client.intlGet(this.guildId, 'notExistInSubscription', {
-                        name: itemName
-                    });
-                }
-            } break;
+                break;
 
             case commandListEn:
-            case commandList: {
-                const names = { all: '', buy: '', sell: '' };
-                for (const [ot, itemIds] of Object.entries(instance.marketSubscriptionList)) {
-                    let counter = 0;
-                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
-                    for (const itemId of itemIds) {
-                        if (counter === 0) names[ot] += `${Client.client.intlGet(this.guildId, ot)}: `;
-                        names[ot] += `${Client.client.items.getName(itemId)} (${itemId}), `;
-                        counter += 1;
+            case commandList:
+                {
+                    const names = { all: '', buy: '', sell: '' };
+                    for (const [ot, itemIds] of Object.entries(instance.marketSubscriptionList)) {
+                        let counter = 0;
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
+                        for (const itemId of itemIds) {
+                            if (counter === 0) names[ot] += `${Client.client.intlGet(this.guildId, ot)}: `;
+                            names[ot] += `${Client.client.items.getName(itemId)} (${itemId}), `;
+                            counter += 1;
+                        }
+                        if (counter !== 0) names[ot] = names[ot].slice(0, -2);
                     }
-                    if (counter !== 0) names[ot] = names[ot].slice(0, -2);
+
+                    if (names.all === '' && names.buy === '' && names.sell === '') {
+                        return Client.client.intlGet(this.guildId, 'subscriptionListEmpty');
+                    }
+
+                    let str = '';
+                    for (const [ot, otString] of Object.entries(names)) {
+                        str += otString;
+                    }
+
+                    return str;
                 }
+                break;
 
-                if (names.all === '' && names.buy === '' && names.sell === '') {
-                    return Client.client.intlGet(this.guildId, 'subscriptionListEmpty');
+            default:
+                {
+                    return null;
                 }
-
-                let str = '';
-                for (const [ot, otString] of Object.entries(names)) {
-                    str += otString;
-                }
-
-                return str;
-            } break;
-
-            default: {
-                return null;
-            } break;
+                break;
         }
     }
 
@@ -2000,8 +2062,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandNote} `)) {
             command = command.slice(`${commandNote} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandNoteEn} `.length).trim();
         }
         const subcommand = command.replace(/ .*/, '');
@@ -2009,38 +2070,43 @@ class RustPlus extends RustPlusLib {
 
         switch (subcommand.toLowerCase()) {
             case commandAddEn:
-            case commandAdd: {
-                let index = 0;
-                while (Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(index)) {
-                    index += 1;
-                }
-
-                instance.serverList[this.serverId].notes[index] = `${rest}`;
-                Client.client.setInstance(this.guildId, instance);
-                return Client.client.intlGet(this.guildId, 'noteSaved');
-            } break;
-
-            case commandRemoveEn:
-            case commandRemove: {
-                const id = parseInt(rest.trim());
-
-                if (!isNaN(id)) {
-                    if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id)) {
-                        return Client.client.intlGet(this.guildId, 'noteIdDoesNotExist', { id: id });
+            case commandAdd:
+                {
+                    let index = 0;
+                    while (Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(index)) {
+                        index += 1;
                     }
 
-                    delete instance.serverList[this.serverId].notes[id];
+                    instance.serverList[this.serverId].notes[index] = `${rest}`;
                     Client.client.setInstance(this.guildId, instance);
-                    return Client.client.intlGet(this.guildId, 'noteIdWasRemoved', { id: id });
+                    return Client.client.intlGet(this.guildId, 'noteSaved');
                 }
-                else {
-                    return Client.client.intlGet(this.guildId, 'noteIdInvalid');
-                }
-            } break;
+                break;
 
-            default: {
-                return null;
-            } break;
+            case commandRemoveEn:
+            case commandRemove:
+                {
+                    const id = parseInt(rest.trim());
+
+                    if (!isNaN(id)) {
+                        if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id)) {
+                            return Client.client.intlGet(this.guildId, 'noteIdDoesNotExist', { id: id });
+                        }
+
+                        delete instance.serverList[this.serverId].notes[id];
+                        Client.client.setInstance(this.guildId, instance);
+                        return Client.client.intlGet(this.guildId, 'noteIdWasRemoved', { id: id });
+                    } else {
+                        return Client.client.intlGet(this.guildId, 'noteIdInvalid');
+                    }
+                }
+                break;
+
+            default:
+                {
+                    return null;
+                }
+                break;
         }
     }
 
@@ -2055,8 +2121,9 @@ class RustPlus extends RustPlusLib {
         }
         const amount = `(${counter}/${this.team.players.length}) `;
 
-        return string !== '' ? `${amount}${string.slice(0, -2)}.` :
-            `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOffline')}`;
+        return string !== ''
+            ? `${amount}${string.slice(0, -2)}.`
+            : `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOffline')}`;
     }
 
     getCommandOnline() {
@@ -2070,8 +2137,9 @@ class RustPlus extends RustPlusLib {
         }
         const amount = `(${counter}/${this.team.players.length}) `;
 
-        return string !== '' ? `${amount}${string.slice(0, -2)}.` :
-            `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOnline')}`;
+        return string !== ''
+            ? `${amount}${string.slice(0, -2)}.`
+            : `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOnline')}`;
     }
 
     getCommandPlayer(command) {
@@ -2087,7 +2155,7 @@ class RustPlus extends RustPlusLib {
 
         if (!bmInstance || !bmInstance.lastUpdateSuccessful) {
             return Client.client.intlGet(this.guildId, 'battlemetricsInstanceCouldNotBeFound', {
-                id: battlemetricsId
+                id: battlemetricsId,
             });
         }
 
@@ -2097,15 +2165,14 @@ class RustPlus extends RustPlusLib {
             if (foundPlayers.length === 0) {
                 return Client.client.intlGet(this.guildId, 'couldNotFindAnyPlayers');
             }
-        }
-        else if (command.toLowerCase().startsWith(`${commandPlayer} `) ||
-            command.toLowerCase().startsWith(`${commandPlayerEn} `)) {
-
+        } else if (
+            command.toLowerCase().startsWith(`${commandPlayer} `) ||
+            command.toLowerCase().startsWith(`${commandPlayerEn} `)
+        ) {
             let name = null;
             if (command.toLowerCase().startsWith(`${commandPlayer}`)) {
                 name = command.slice(`${commandPlayer} `.length).trim();
-            }
-            else {
+            } else {
                 name = command.slice(`${commandPlayerEn} `.length).trim();
             }
 
@@ -2116,16 +2183,15 @@ class RustPlus extends RustPlusLib {
 
             if (foundPlayers.length === 0) {
                 return Client.client.intlGet(this.guildId, 'couldNotFindPlayer', {
-                    name: name
+                    name: name,
                 });
             }
-        }
-        else {
+        } else {
             return null;
         }
 
         const trademark = this.generalSettings.trademark;
-        const trademarkString = (trademark === 'NOT SHOWING') ? '' : `${trademark} | `;
+        const trademarkString = trademark === 'NOT SHOWING' ? '' : `${trademark} | `;
         const messageMaxLength = Constants.MAX_LENGTH_TEAM_MESSAGE - trademarkString.length;
         const leftLength = `...xxx ${Client.client.intlGet(this.guildId, 'more')}.`.length;
 
@@ -2135,10 +2201,9 @@ class RustPlus extends RustPlusLib {
             const time = bmInstance.getOnlineTime(playerId);
             const playerString = `${bmInstance.players[playerId]['name']} [${time[1]}], `;
 
-            if ((string.length + playerString.length + leftLength) < messageMaxLength) {
+            if (string.length + playerString.length + leftLength < messageMaxLength) {
                 string += playerString;
-            }
-            else if ((string.length + playerString.length + leftLength) > messageMaxLength) {
+            } else if (string.length + playerString.length + leftLength > messageMaxLength) {
                 break;
             }
 
@@ -2151,10 +2216,9 @@ class RustPlus extends RustPlusLib {
             if (playerIndex < foundPlayers.length) {
                 return Client.client.intlGet(this.guildId, 'morePlayers', {
                     players: string,
-                    number: foundPlayers.length - playerIndex
+                    number: foundPlayers.length - playerIndex,
                 });
-            }
-            else {
+            } else {
                 return `${string}.`;
             }
         }
@@ -2164,16 +2228,18 @@ class RustPlus extends RustPlusLib {
 
     getCommandPop(isInfoChannel = false) {
         if (isInfoChannel) {
-            return `${this.info.players}${this.info.isQueue() ? `(${this.info.queuedPlayers})` : ''}` +
-                `/${this.info.maxPlayers}`;
-        }
-        else {
+            return (
+                `${this.info.players}${this.info.isQueue() ? `(${this.info.queuedPlayers})` : ''}` +
+                `/${this.info.maxPlayers}`
+            );
+        } else {
             const string = Client.client.intlGet(this.guildId, 'populationPlayers', {
                 current: this.info.players,
-                max: this.info.maxPlayers
+                max: this.info.maxPlayers,
             });
-            const queuedPlayers = this.info.isQueue() ?
-                ` ${Client.client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}` : '';
+            const queuedPlayers = this.info.isQueue()
+                ? ` ${Client.client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}`
+                : '';
 
             return `${string}${queuedPlayers}`;
         }
@@ -2185,8 +2251,12 @@ class RustPlus extends RustPlusLib {
         const commandProx = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxProx')}`;
         const commandProxEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxProx')}`;
 
-        if ((command.toLowerCase() !== `${commandProx}` && !command.toLowerCase().startsWith(`${commandProx} `)) &&
-            (command.toLowerCase() !== `${commandProxEn}` && !command.toLowerCase().startsWith(`${commandProxEn} `))) {
+        if (
+            command.toLowerCase() !== `${commandProx}` &&
+            !command.toLowerCase().startsWith(`${commandProx} `) &&
+            command.toLowerCase() !== `${commandProxEn}` &&
+            !command.toLowerCase().startsWith(`${commandProxEn} `)
+        ) {
             return null;
         }
 
@@ -2197,7 +2267,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase() === `${commandProx}` || command.toLowerCase() === `${commandProxEn}`) {
             const closestPlayers = [];
-            let players = [...this.team.players].filter(e => e.steamId !== callerSteamId && e.isAlive === true);
+            let players = [...this.team.players].filter((e) => e.steamId !== callerSteamId && e.isAlive === true);
             if (players.length === 0) {
                 return Client.client.intlGet(this.guildId, 'onlyOneInTeam');
             }
@@ -2205,17 +2275,18 @@ class RustPlus extends RustPlusLib {
             for (let i = 0; i < 3; i++) {
                 if (players.length > 0) {
                     const player = players.reduce(function (prev, curr) {
-                        if (Map.getDistance(prev.x, prev.y, caller.x, caller.y) <
-                            Map.getDistance(curr.x, curr.y, caller.x, caller.y)) {
+                        if (
+                            Map.getDistance(prev.x, prev.y, caller.x, caller.y) <
+                            Map.getDistance(curr.x, curr.y, caller.x, caller.y)
+                        ) {
                             return prev;
-                        }
-                        else {
+                        } else {
                             return curr;
                         }
                     });
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                     closestPlayers.push(player);
-                    players = players.filter(e => e.steamId !== player.steamId);
+                    players = players.filter((e) => e.steamId !== player.steamId);
                 }
             }
 
@@ -2227,15 +2298,15 @@ class RustPlus extends RustPlusLib {
                 string += `${player.name} (${distance}m [${player.pos.location}]), `;
             }
 
-            return string === '' ? Client.client.intlGet(this.guildId, 'allTeammatesAreDead') :
-                `${string.slice(0, -2)}.`
+            return string === ''
+                ? Client.client.intlGet(this.guildId, 'allTeammatesAreDead')
+                : `${string.slice(0, -2)}.`;
         }
 
         let memberName = null;
         if (command.toLowerCase().startsWith(`${commandProx}`)) {
             memberName = command.slice(`${commandProx} `.length).trim();
-        }
-        else {
+        } else {
             memberName = command.slice(`${commandProxEn} `.length).trim();
         }
 
@@ -2248,13 +2319,13 @@ class RustPlus extends RustPlusLib {
                     distance: distance,
                     caller: caller.name,
                     direction: direction,
-                    location: player.pos.location
+                    location: player.pos.location,
                 });
             }
         }
 
         return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
-            name: memberName
+            name: memberName,
         });
     }
 
@@ -2265,32 +2336,31 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandRecycle} `)) {
             command = command.slice(`${commandRecycle} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandRecycleEn} `.length).trim();
         }
 
         const words = command.split(' ');
         const lastWord = words[words.length - 1];
         const lastWordLength = lastWord.length;
-        const restString = command.slice(0, -(lastWordLength)).trim();
+        const restString = command.slice(0, -lastWordLength).trim();
 
-        let itemSearchName = null, itemSearchQuantity = null;
+        let itemSearchName = null,
+            itemSearchQuantity = null;
         if (isNaN(lastWord)) {
             itemSearchName = command;
             // @ts-expect-error TS(2322) FIXME: Type '1' is not assignable to type 'null'.
             itemSearchQuantity = 1;
-        }
-        else {
+        } else {
             itemSearchName = restString;
             // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'null'.
             itemSearchQuantity = parseInt(lastWord);
         }
 
-        const item = Client.client.items.getClosestItemIdByName(itemSearchName)
+        const item = Client.client.items.getClosestItemIdByName(itemSearchName);
         if (item === null || itemSearchName === '') {
             const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: itemSearchName
+                name: itemSearchName,
             });
             return str;
         }
@@ -2302,13 +2372,13 @@ class RustPlus extends RustPlusLib {
         const recycleDetails = Client.client.rustlabs.getRecycleDetailsById(itemId);
         if (recycleDetails === null) {
             const str = Client.client.intlGet(this.guildId, 'couldNotFindRecycleDetails', {
-                name: itemName
+                name: itemName,
             });
             return str;
         }
 
         const recycleData = Client.client.rustlabs.getRecycleDataFromArray([
-            { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false }
+            { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
         ]);
 
         let str = `${itemName}: `;
@@ -2327,16 +2397,15 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandResearch} `)) {
             command = command.slice(`${commandResearch} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandResearchEn} `.length).trim();
         }
         const itemResearchName = command;
 
-        const item = Client.client.items.getClosestItemIdByName(itemResearchName)
+        const item = Client.client.items.getClosestItemIdByName(itemResearchName);
         if (item === null || itemResearchName === '') {
             const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: itemResearchName
+                name: itemResearchName,
             });
             return str;
         }
@@ -2347,18 +2416,16 @@ class RustPlus extends RustPlusLib {
         const researchDetails = Client.client.rustlabs.getResearchDetailsById(itemId);
         if (researchDetails === null) {
             const str = Client.client.intlGet(this.guildId, 'couldNotFindResearchDetails', {
-                name: itemName
+                name: itemName,
             });
             return str;
         }
-
-
 
         let str = `${itemName}: `;
         if (researchDetails[2].researchTable !== null) {
             const researchTable = `${Client.client.intlGet(this.guildId, 'researchTable')}`;
             const scrap = `${researchDetails[2].researchTable}`;
-            str += `${researchTable} (${scrap})`
+            str += `${researchTable} (${scrap})`;
         }
         if (researchDetails[2].workbench !== null) {
             const type = `${Client.client.items.getName(researchDetails[2].workbench.type)}`;
@@ -2379,8 +2446,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandSend} `)) {
             command = command.slice(`${commandSend} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandSendEn} `.length).trim();
         }
         const name = command.replace(/ .*/, '');
@@ -2394,7 +2460,7 @@ class RustPlus extends RustPlusLib {
             if (player.name.includes(name)) {
                 if (!(player.steamId in credentials)) {
                     return Client.client.intlGet(this.guildId, 'userNotRegistered', {
-                        user: player.name
+                        user: player.name,
                     });
                 }
 
@@ -2402,8 +2468,8 @@ class RustPlus extends RustPlusLib {
                 const user = await DiscordTools.getUserById(this.guildId, discordUserId);
 
                 const content = {
-                    embeds: [DiscordEmbeds.getUserSendEmbed(this.guildId, this.serverId, callerName, message)]
-                }
+                    embeds: [DiscordEmbeds.getUserSendEmbed(this.guildId, this.serverId, callerName, message)],
+                };
 
                 if (user) {
                     await Client.client.messageSend(user, content);
@@ -2411,13 +2477,13 @@ class RustPlus extends RustPlusLib {
                 }
 
                 return Client.client.intlGet(this.guildId, 'couldNotFindUser', {
-                    userId: discordUserId
+                    userId: discordUserId,
                 });
             }
         }
 
         return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
-            name: name
+            name: name,
         });
     }
 
@@ -2429,35 +2495,35 @@ class RustPlus extends RustPlusLib {
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
                         time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer, 's'),
-                        location: this.mapMarkers.crateSmallOilRigLocation
+                        location: this.mapMarkers.crateSmallOilRigLocation,
                     });
-                }
-                else {
+                } else {
                     // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                    strings.push(Client.client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
-                        time: time,
-                        location: this.mapMarkers.crateSmallOilRigLocation
-                    }));
+                    strings.push(
+                        Client.client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
+                            time: time,
+                            location: this.mapMarkers.crateSmallOilRigLocation,
+                        }),
+                    );
                 }
             }
         }
 
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceSmallOilRigWasTriggered === null) {
-                return isInfoChannel ? Client.client.intlGet(this.guildId, 'noData') :
-                    Client.client.intlGet(this.guildId, 'noDataOnSmallOilRig');
-            }
-            else {
+                return isInfoChannel
+                    ? Client.client.intlGet(this.guildId, 'noData')
+                    : Client.client.intlGet(this.guildId, 'noDataOnSmallOilRig');
+            } else {
                 // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceSmallOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
                     return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
-                        time: Timer.secondsToFullScale(secondsSince, 's')
+                        time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
-                }
-                else {
+                } else {
                     return Client.client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnSmall', {
-                        time: Timer.secondsToFullScale(secondsSince)
+                        time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
             }
@@ -2473,15 +2539,14 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandStack} `)) {
             command = command.slice(`${commandStack} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandStackEn} `.length).trim();
         }
 
         const itemId = Client.client.items.getClosestItemIdByName(command);
         if (itemId === null) {
             return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
-                name: command
+                name: command,
             });
         }
 
@@ -2489,7 +2554,7 @@ class RustPlus extends RustPlusLib {
         const stackDetails = Client.client.rustlabs.getStackDetailsById(itemId);
         if (stackDetails === null) {
             return Client.client.intlGet(this.guildId, 'couldNotFindStackDetails', {
-                name: itemName
+                name: itemName,
             });
         }
 
@@ -2497,7 +2562,7 @@ class RustPlus extends RustPlusLib {
 
         return Client.client.intlGet(this.guildId, 'stackSizeOfItem', {
             item: itemName,
-            quantity: quantity
+            quantity: quantity,
         });
     }
 
@@ -2510,14 +2575,14 @@ class RustPlus extends RustPlusLib {
             if (callerSteamId === null || callerName === null) return null;
 
             return `${callerName}: ${callerSteamId}`;
-        }
-        else if (command.toLowerCase().startsWith(`${commandSteamid} `) ||
-            command.toLowerCase().startsWith(`${commandSteamidEn} `)) {
+        } else if (
+            command.toLowerCase().startsWith(`${commandSteamid} `) ||
+            command.toLowerCase().startsWith(`${commandSteamidEn} `)
+        ) {
             let name = null;
             if (command.toLowerCase().startsWith(`${commandSteamid} `)) {
                 name = command.slice(`${commandSteamid} `.length).trim();
-            }
-            else {
+            } else {
                 name = command.slice(`${commandSteamidEn} `.length).trim();
             }
 
@@ -2528,7 +2593,7 @@ class RustPlus extends RustPlusLib {
             }
 
             return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
-                name: name
+                name: name,
             });
         }
 
@@ -2548,8 +2613,7 @@ class RustPlus extends RustPlusLib {
         const time = Timer.convertDecimalToHoursMinutes(this.time.time);
         if (isInfoChannel) {
             return [time, this.time.getTimeTillDayOrNight('s')];
-        }
-        else {
+        } else {
             const currentTime = Client.client.intlGet(this.guildId, 'inGameTime', { time: time });
             const timeLeft = this.time.getTimeTillDayOrNight();
 
@@ -2583,20 +2647,21 @@ class RustPlus extends RustPlusLib {
                 // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                 const timeLeft = Timer.getTimeLeftOfTimer(content.timer);
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-                strings.push(Client.client.intlGet(this.guildId, 'timeLeftTimer', {
-                    id: parseInt(id),
-                    time: timeLeft,
-                    // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
-                    message: content.message
-                }));
+                strings.push(
+                    Client.client.intlGet(this.guildId, 'timeLeftTimer', {
+                        id: parseInt(id),
+                        time: timeLeft,
+                        // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
+                        message: content.message,
+                    }),
+                );
             }
             return strings;
         }
 
         if (command.toLowerCase().startsWith(`${commandTimer} `)) {
             command = command.slice(`${commandTimer} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandTimerEn} `.length).trim();
         }
         const subcommand = command.replace(/ .*/, '');
@@ -2604,53 +2669,63 @@ class RustPlus extends RustPlusLib {
 
         switch (subcommand.toLowerCase()) {
             case commandAddEn:
-            case commandAdd: {
-                const time = rest.replace(/ .*/, '');
-                const message = rest.slice(time.length + 1);
-                if (message === '') return Client.client.intlGet(this.guildId, 'missingTimerMessage');
+            case commandAdd:
+                {
+                    const time = rest.replace(/ .*/, '');
+                    const message = rest.slice(time.length + 1);
+                    if (message === '') return Client.client.intlGet(this.guildId, 'missingTimerMessage');
 
-                const timeSeconds = Timer.getSecondsFromStringTime(time);
-                if (timeSeconds === null) return Client.client.intlGet(this.guildId, 'timeFormatInvalid');
+                    const timeSeconds = Timer.getSecondsFromStringTime(time);
+                    if (timeSeconds === null) return Client.client.intlGet(this.guildId, 'timeFormatInvalid');
 
-                let id = 0;
-                while (Object.keys(this.timers).map(Number).includes(id)) {
-                    id += 1;
+                    let id = 0;
+                    while (Object.keys(this.timers).map(Number).includes(id)) {
+                        id += 1;
+                    }
+
+                    this.timers[id] = {
+                        timer: new Timer.timer(() => {
+                            this.sendInGameMessage(
+                                Client.client.intlGet(
+                                    this.guildId,
+                                    'timer',
+                                    // @ts-expect-error TS(2554) FIXME: Expected 1 arguments, but got 2.
+                                    { message: message },
+                                ),
+                                'TIMER',
+                            );
+                            delete this.timers[id];
+                        }, timeSeconds * 1000),
+                        message: message,
+                    };
+                    this.timers[id].timer.start();
+
+                    return Client.client.intlGet(this.guildId, 'timerSet', { time: time });
                 }
-
-                this.timers[id] = {
-                    timer: new Timer.timer(
-                        () => {
-                            this.sendInGameMessage(Client.client.intlGet(this.guildId, 'timer',
-                                // @ts-expect-error TS(2554) FIXME: Expected 1 arguments, but got 2.
-                                { message: message }), 'TIMER');
-                            delete this.timers[id]
-                        },
-                        timeSeconds * 1000),
-                    message: message
-                };
-                this.timers[id].timer.start();
-
-                return Client.client.intlGet(this.guildId, 'timerSet', { time: time });
-            } break;
+                break;
 
             case commandRemoveEn:
-            case commandRemove: {
-                const id = parseInt(rest.replace(/ .*/, ''));
-                if (isNaN(id)) return Client.client.intlGet(this.guildId, 'timerIdInvalid');
+            case commandRemove:
+                {
+                    const id = parseInt(rest.replace(/ .*/, ''));
+                    if (isNaN(id)) return Client.client.intlGet(this.guildId, 'timerIdInvalid');
 
-                if (!Object.keys(this.timers).map(Number).includes(id)) {
-                    return Client.client.intlGet(this.guildId, 'timerIdDoesNotExist', { id: id });
+                    if (!Object.keys(this.timers).map(Number).includes(id)) {
+                        return Client.client.intlGet(this.guildId, 'timerIdDoesNotExist', { id: id });
+                    }
+
+                    this.timers[id].timer.stop();
+                    delete this.timers[id];
+
+                    return Client.client.intlGet(this.guildId, 'timerRemoved', { id: id });
                 }
+                break;
 
-                this.timers[id].timer.stop();
-                delete this.timers[id];
-
-                return Client.client.intlGet(this.guildId, 'timerRemoved', { id: id });
-            } break;
-
-            default: {
-                return null;
-            } break;
+            default:
+                {
+                    return null;
+                }
+                break;
         }
     }
 
@@ -2661,14 +2736,14 @@ class RustPlus extends RustPlusLib {
         const commandLanguage = `${Client.client.intlGet(this.guildId, 'commandSyntaxLanguage')}`;
         const commandLanguageEn = `${Client.client.intlGet('en', 'commandSyntaxLanguage')}`;
 
-        if (command.toLowerCase().startsWith(`${commandTr} ${commandLanguage} `) ||
-            command.toLowerCase().startsWith(`${commandTrEn} ${commandLanguageEn} `)) {
-
+        if (
+            command.toLowerCase().startsWith(`${commandTr} ${commandLanguage} `) ||
+            command.toLowerCase().startsWith(`${commandTrEn} ${commandLanguageEn} `)
+        ) {
             let language = null;
             if (command.toLowerCase().startsWith(`${commandTr} ${commandLanguage} `)) {
                 language = command.slice(`${commandTr} ${commandLanguage} `.length).trim();
-            }
-            else {
+            } else {
                 language = command.slice(`${commandTrEn} ${commandLanguageEn} `.length).trim();
             }
 
@@ -2676,20 +2751,18 @@ class RustPlus extends RustPlusLib {
             if (language in Languages) {
                 return Client.client.intlGet(this.guildId, 'languageCode', {
                     // @ts-expect-error TS(2538) FIXME: Type 'null' cannot be used as an index type.
-                    code: Languages[language]
+                    code: Languages[language],
                 });
-            }
-            else {
+            } else {
                 return Client.client.intlGet(this.guildId, 'couldNotFindLanguage', {
-                    language: language
+                    language: language,
                 });
             }
         }
 
         if (command.toLowerCase().startsWith(`${commandTr} `)) {
             command = command.slice(`${commandTr} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandTrEn} `.length).trim();
         }
         const language = command.replace(/ .*/, '');
@@ -2701,10 +2774,9 @@ class RustPlus extends RustPlusLib {
 
         try {
             return await Translate(text, language);
-        }
-        catch (e) {
+        } catch (e) {
             return Client.client.intlGet(this.guildId, 'languageLangNotSupported', {
-                language: language
+                language: language,
             });
         }
     }
@@ -2716,8 +2788,7 @@ class RustPlus extends RustPlusLib {
 
         if (command.toLowerCase().startsWith(`${commandTrf}`)) {
             command = command.slice(`${commandTrf} `.length).trim();
-        }
-        else {
+        } else {
             command = command.slice(`${commandTrfEn} `.length).trim();
         }
 
@@ -2732,8 +2803,7 @@ class RustPlus extends RustPlusLib {
 
         try {
             return await Translate(text, { from: languageFrom, to: languageTo });
-        }
-        catch (e) {
+        } catch (e) {
             const regex = new RegExp('The language "(.*?)"');
             // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             const invalidLanguage = regex.exec(e.message);
@@ -2742,7 +2812,7 @@ class RustPlus extends RustPlusLib {
             if (invalidLanguage.length === 2) {
                 return Client.client.intlGet(this.guildId, 'languageLangNotSupported', {
                     // @ts-expect-error TS(2531) FIXME: Object is possibly 'null'.
-                    language: invalidLanguage[1]
+                    language: invalidLanguage[1],
                 });
             }
 
@@ -2758,8 +2828,7 @@ class RustPlus extends RustPlusLib {
         let text = null;
         if (command.toLowerCase().startsWith(`${commandTTS}`)) {
             text = command.slice(`${commandTTS} `.length).trim();
-        }
-        else {
+        } else {
             text = command.slice(`${commandTTSEn} `.length).trim();
         }
 
@@ -2806,8 +2875,7 @@ class RustPlus extends RustPlusLib {
             // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             const seconds = (new Date() - uptimeBot) / 1000;
             uptimeBot = Timer.secondsToFullScale(seconds);
-        }
-        else {
+        } else {
             uptimeBot = Client.client.intlGet(this.guildId, 'offline');
         }
 
@@ -2815,8 +2883,7 @@ class RustPlus extends RustPlusLib {
             // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
             const seconds = (new Date() - uptimeServer) / 1000;
             uptimeServer = Timer.secondsToFullScale(seconds);
-        }
-        else {
+        } else {
             uptimeServer = Client.client.intlGet(this.guildId, 'offline');
         }
 
@@ -2829,12 +2896,11 @@ class RustPlus extends RustPlusLib {
     getCommandWipe(isInfoChannel = false) {
         if (isInfoChannel) {
             return Client.client.intlGet(this.guildId, 'dayOfWipe', {
-                day: Math.ceil(this.info.getSecondsSinceWipe() / (60 * 60 * 24))
+                day: Math.ceil(this.info.getSecondsSinceWipe() / (60 * 60 * 24)),
             });
-        }
-        else {
+        } else {
             return Client.client.intlGet(this.guildId, 'timeSinceWipe', {
-                time: this.info.getTimeSinceWipe()
+                time: this.info.getTimeSinceWipe(),
             });
         }
     }

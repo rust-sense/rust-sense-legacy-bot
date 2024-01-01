@@ -36,27 +36,28 @@ export default {
         }
 
         client.loadGuildsIntlFromCache();
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'loggedInAs', {
-            name: client.user.tag
-        }));
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'loggedInAs', {
+                name: client.user.tag,
+            }),
+        );
 
         try {
             await client.user.setUsername(Config.discord.username);
-        }
-        catch (e) {
+        } catch (e) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetUsername'));
         }
 
         try {
             await client.user.setAvatar(Path.join(__dirname, '..', 'resources/images/rustplusplus_logo.png'));
-        }
-        catch (e) {
+        } catch (e) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetAvatar'));
         }
 
         client.user.setPresence({
             activities: [{ name: '/help', type: Discord.ActivityType.Listening }],
-            status: 'online'
+            status: 'online',
         });
 
         client.uptimeBot = new Date();
@@ -66,8 +67,7 @@ export default {
 
             try {
                 await guild.members.me.setNickname(Config.discord.username);
-            }
-            catch (e) {
+            } catch (e) {
                 client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetNickname'));
             }
             await client.syncCredentialsWithUsers(guild);

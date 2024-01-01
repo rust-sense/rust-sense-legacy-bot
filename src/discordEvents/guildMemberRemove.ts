@@ -28,7 +28,7 @@ export default {
 
         const credentials = InstanceUtils.readCredentialsFile(guildId);
 
-        const steamId = Object.keys(credentials).find(e => credentials[e] && credentials[e].discordUserId === userId);
+        const steamId = Object.keys(credentials).find((e) => credentials[e] && credentials[e].discordUserId === userId);
 
         // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
         if (!(steamId in credentials)) return;
@@ -39,8 +39,7 @@ export default {
             }
             delete client.fcmListeners[guildId];
             credentials.hoster = null;
-        }
-        else {
+        } else {
             // @ts-expect-error TS(2538) FIXME: Type 'undefined' cannot be used as an index type.
             if (client.fcmListenersLite[guildId][steamId]) {
                 // @ts-expect-error TS(2538) FIXME: Type 'undefined' cannot be used as an index type.

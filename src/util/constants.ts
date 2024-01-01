@@ -25,7 +25,7 @@ export default {
     STEAM_PROFILES_URL: 'https://steamcommunity.com/profiles/',
     BATTLEMETRICS_PROFILE_URL: 'https://www.battlemetrics.com/players/',
     BATTLEMETRICS_SERVER_URL: 'https://www.battlemetrics.com/servers/rust/',
-    AFK_TIME_SECONDS: 5 * 60, /* 5 min */
+    AFK_TIME_SECONDS: 5 * 60 /* 5 min */,
     MAX_LENGTH_TEAM_MESSAGE: 128,
     STEAMID64_LENGTH: 17,
     STEAM_PROFILE_NAME_MAX_LENGTH: 32,
@@ -55,8 +55,8 @@ export default {
     STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY: 48,
 
     /* Default timer times */
-    DEFAULT_CARGO_SHIP_EGRESS_TIME_MS: 50 * 60 * 1000, /* 50 min */
-    DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS: 15 * 60 * 1000, /* 15 min */
+    DEFAULT_CARGO_SHIP_EGRESS_TIME_MS: 50 * 60 * 1000 /* 50 min */,
+    DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS: 15 * 60 * 1000 /* 15 min */,
 
     /* Other constants */
     PATROL_HELI_DOWNED_RADIUS: 400,
@@ -107,5 +107,5 @@ export default {
 
     GET_BATTLEMETRICS_PROFILE_LINK: function (playerId) {
         return `[${playerId}](${this.BATTLEMETRICS_PROFILE_URL}${playerId})`;
-    }
+    },
 };

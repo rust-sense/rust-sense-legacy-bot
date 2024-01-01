@@ -34,8 +34,7 @@ export default async (client, rustplus) => {
                 await DiscordMessages.sendSmartAlarmNotFoundMessage(guildId, serverId, entityId);
             }
             entity.reachable = false;
-        }
-        else {
+        } else {
             entity.reachable = true;
         }
 

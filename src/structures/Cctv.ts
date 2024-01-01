@@ -26,15 +26,20 @@ import Path from 'path';
 class Cctv {
     _cctvs: any;
     constructor() {
-        this._cctvs = JSON.parse(Fs.readFileSync(
-            Path.join(__dirname, '..', 'staticFiles', 'cctv.json'), 'utf8'));
+        this._cctvs = JSON.parse(Fs.readFileSync(Path.join(__dirname, '..', 'staticFiles', 'cctv.json'), 'utf8'));
     }
 
     /* Getters and Setters */
-    get cctvs() { return this._cctvs; }
-    set cctvs(cctvs) { this._cctvs = cctvs; }
+    get cctvs() {
+        return this._cctvs;
+    }
+    set cctvs(cctvs) {
+        this._cctvs = cctvs;
+    }
 
-    cctvExist(monument) { return (monument in this.cctvs) ? true : false; }
+    cctvExist(monument) {
+        return monument in this.cctvs ? true : false;
+    }
 
     isDynamic(monument) {
         if (!this.cctvExist(monument)) return undefined;

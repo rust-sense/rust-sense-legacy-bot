@@ -21,7 +21,6 @@
 import Builder from '@discordjs/builders';
 
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
-import Config from '../../config';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
@@ -78,7 +77,7 @@ export default {
             client.log(client.intlGet(null, 'warningCap'), str);
             return;
         }
-        
+
         await interaction.deferReply({ ephemeral: true });
 
         const guild = DiscordTools.getGuild(interaction.guildId);
@@ -199,7 +198,7 @@ export default {
                     await DiscordTools.clearTextChannel(guild.id, instance.channelId.switchGroups, 100);
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
-                    
+
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
                     // @ts-expect-error TS(2532) FIXME: Object is possibly 'undefined'.
                     await category.permissionOverwrites.set(perms).catch((e) => {});

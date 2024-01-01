@@ -4,6 +4,6 @@
     "exclude": ["src/external/*"],
     "compilerOptions": {
         "types": ["node"],
-        "noImplicitAny": false,
+        "noImplicitAny": false
     }
 }

@@ -53,8 +53,12 @@ async function checkBotLeaveVoice(client, oldState, newState) {
     let channel = null;
 
     /* If user was in same channel as bot, but not anymore */
-    if (memberId !== client.user.id && oldState.channel !== null && oldState.channel.id === botChannelId &&
-        (newState.channel === null || (newState.channel !== null && newState.channel.id !== botChannelId))) {
+    if (
+        memberId !== client.user.id &&
+        oldState.channel !== null &&
+        oldState.channel.id === botChannelId &&
+        (newState.channel === null || (newState.channel !== null && newState.channel.id !== botChannelId))
+    ) {
         condition = true;
         channel = oldState.channel;
     }
@@ -66,8 +70,10 @@ async function checkBotLeaveVoice(client, oldState, newState) {
 
     // @ts-expect-error TS(2339) FIXME: Property 'members' does not exist on type 'never'.
     if (condition && channel && channel.members.size === 1) {
-        client.voiceLeaveTimeouts[guildId] = setTimeout(botLeaveVoiceTimeout.bind(null, guildId),
-            Constants.BOT_LEAVE_VOICE_CHAT_TIMEOUT_MS);
+        client.voiceLeaveTimeouts[guildId] = setTimeout(
+            botLeaveVoiceTimeout.bind(null, guildId),
+            Constants.BOT_LEAVE_VOICE_CHAT_TIMEOUT_MS,
+        );
     }
 }
 
