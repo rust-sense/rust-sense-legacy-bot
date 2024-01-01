@@ -22,7 +22,7 @@ const Discord = require('discord.js');
 const Fs = require('fs');
 const Path = require('path');
 
-const DiscordBot = require('./src/structures/DiscordBot');
+const DiscordBot = require('./structures/DiscordBot');
 
 createMissingDirectories();
 
