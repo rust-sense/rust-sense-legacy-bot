@@ -1,5 +1,5 @@
 <p align="center">
-<img src="./rustplusplus.png" width="500"></a>
+<img src="./docs/images/rustplusplus.png" width="500"></a>
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
 
 <p align="center">
     <a href="https://discord.gg/vcrKbKVAbc">
-        <img src="./join_discord.png" width="250">
+        <img src="./docs/images/join_discord.png" width="250">
     </a>
 </p>
 
@@ -22,23 +22,21 @@
 
 A NodeJS Discord Bot that uses the [rustplus.js](https://github.com/liamcottle/rustplus.js) library to utilize the power of the [Rust+ Companion App](https://rust.facepunch.com/companion) with additional Quality-of-Life features.
 
-
 ## **How-to Setup Video**
 
 [![Image of setup video](https://www.youtube.com/s/desktop/4a88d8c6/img/favicon_144x144.png)](https://youtu.be/GX03brJiMZg)
 
 ## **Features**
 
-* Receive notifications for [In-Game Events](docs/discord_text_channels.md#events-channel) (Patrol Helicopter, Cargo Ship, Chinook 47, Oil Rigs triggered).
-* Control [Smart Switches](docs/smart_devices.md#smart-switches) or Groups of Smart Switches via Discord or In-Game Team Chat.
-* Setup [Smart Alarms](docs/smart_devices.md#smart-alarms) to notify in Discord or In-Game Team Chat whenever they are triggered.
-* Use [Storage Monitors](docs/smart_devices.md#storage-monitors) to keep track of Tool Cupboard Upkeep or Large Wooden Box/Vending Machine content.
-* Head over to the [Information Text Channel](docs/images/information_channel.png) to see all sorts of information about the server, ongoing events and team member status.
-* Communicate with teammates from [Discord to In-Game](docs/discord_text_channels.md#teamchat-channel) and vice versa.
-* Keep track of other teams on the server with the [Battlemetrics Player Tracker](docs/discord_text_channels.md#trackers-channel).
-* Alot of [QoL Commands](docs/commands.md) that can be used In-Game or from Discord.
-* View the [Full list of features](docs/full_list_features.md).
-
+-   Receive notifications for [In-Game Events](docs/discord_text_channels.md#events-channel) (Patrol Helicopter, Cargo Ship, Chinook 47, Oil Rigs triggered).
+-   Control [Smart Switches](docs/smart_devices.md#smart-switches) or Groups of Smart Switches via Discord or In-Game Team Chat.
+-   Setup [Smart Alarms](docs/smart_devices.md#smart-alarms) to notify in Discord or In-Game Team Chat whenever they are triggered.
+-   Use [Storage Monitors](docs/smart_devices.md#storage-monitors) to keep track of Tool Cupboard Upkeep or Large Wooden Box/Vending Machine content.
+-   Head over to the [Information Text Channel](docs/images/information_channel.png) to see all sorts of information about the server, ongoing events and team member status.
+-   Communicate with teammates from [Discord to In-Game](docs/discord_text_channels.md#teamchat-channel) and vice versa.
+-   Keep track of other teams on the server with the [Battlemetrics Player Tracker](docs/discord_text_channels.md#trackers-channel).
+-   Alot of [QoL Commands](docs/commands.md) that can be used In-Game or from Discord.
+-   View the [Full list of features](docs/full_list_features.md).
 
 ## **Documentation**
 
@@ -48,13 +46,11 @@ A NodeJS Discord Bot that uses the [rustplus.js](https://github.com/liamcottle/r
 
 > You can get your credentials by running the `rustplusplus FCM Credential Application`. Download it [here](https://github.com/alexemanuelol/rustplusplus-Credential-Application/releases/download/v1.1.0/rustPlusPlus-1.1.0-win-x64.exe)
 
-
 ## **How to run the bot**
 
 > To run the bot, simply open the terminal of your choice and run the following from repository root:
 
     $ npm start run
-
 
 ## **How to update the repository**
 
@@ -65,7 +61,6 @@ A NodeJS Discord Bot that uses the [rustplus.js](https://github.com/liamcottle/r
 or
 
     $ ./update.sh
-
 
 ## **Running via docker**
 
