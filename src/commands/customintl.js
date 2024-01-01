@@ -63,6 +63,9 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsCustomIntlResetKeyDesc'))
                             .setRequired(true),
                     ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand.setName('show').setDescription(client.intlGet(guildId, 'commandsCustomIntlShowDesc')),
             );
     },
 
@@ -80,6 +83,10 @@ module.exports = {
 
             case 'reset':
                 resetCustomIntl(client, interaction, verifyId);
+                break;
+
+            case 'show':
+                showCustomIntl(client, interaction, verifyId);
                 break;
 
             default:
@@ -103,7 +110,7 @@ async function setCustomIntl(client, interaction, verifyId) {
 
     const guildInstance = client.getInstance(guildId);
 
-    const defaultIntl = client.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE)
+    const defaultIntl = client.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
     if (!(messageKey in defaultIntl.messages)) {
         const str = client.intlGet(guildId, 'customIntlSetKeyDoesNotExist', {
             key: messageKey,
@@ -156,4 +163,76 @@ async function resetCustomIntl(client, interaction, verifyId) {
     });
     await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str);
+}
+
+async function showCustomIntl(client, interaction) {
+    const guildId = interaction.guildId;
+
+    const guildInstance = client.getInstance(guildId);
+
+    const title = client.intlGet(guildId, 'customIntlTitle');
+    const keyFieldName = client.intlGet(guildId, 'customIntlKey');
+    const messageFieldName = client.intlGet(guildId, 'customIntlMessage');
+
+    let totalCharacters = title.length + keyFieldName.length + messageFieldName.length;
+    let fieldIndex = 0;
+
+    let keyStrings = [''],
+        messageStrings = [''];
+    let keyStringsCharacters = 0,
+        messageStringsCharacters = 0;
+
+    for (const [key, message] of Object.entries(guildInstance.customIntlMessages)) {
+        const keyString = `${key}\n`;
+        const messageString = `${message}\n`;
+
+        if (totalCharacters + (keyString.length + messageString.length) >= Constants.EMBED_MAX_TOTAL_CHARACTERS) {
+            break;
+        }
+
+        if (
+            keyStringsCharacters + keyString.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS ||
+            messageStringsCharacters + messageString.length > Constants.EMBED_MAX_FIELD_VALUE_CHARACTERS
+        ) {
+            fieldIndex += 1;
+
+            keyString.push('');
+            messageString.push('');
+
+            keyStringsCharacters = 0;
+            messageStringsCharacters = 0;
+        }
+
+        keyStringsCharacters += keyString.length;
+        messageStringsCharacters += messageStringsCharacters.length;
+
+        totalCharacters += keyString.length + messageString.length;
+
+        keyStrings[fieldIndex] += keyString;
+        messageStrings[fieldIndex] += messageString;
+    }
+
+    const fields = [];
+    for (let i = 0; i < fieldIndex + 1; i++) {
+        fields.push({
+            name: i === 0 ? keyFieldName : '\u200B',
+            value: keyStrings[i] !== '' ? keyStrings[i] : client.intlGet(guildId, 'empty'),
+            inline: true,
+        });
+        fields.push({
+            name: i === 0 ? messageFieldName : '\u200B',
+            value: messageStrings[i] !== '' ? messageStrings[i] : client.intlGet(guildId, 'empty'),
+            inline: true,
+        });
+    }
+
+    const embed = DiscordEmbeds.getEmbed({
+        title: title,
+        color: Constants.COLOR_DEFAULT,
+        fields: fields,
+        timestamp: true,
+    });
+
+    await client.interactionEditReply(interaction, { embeds: [embed] });
+    client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCustomIntlShowDesc'));
 }
