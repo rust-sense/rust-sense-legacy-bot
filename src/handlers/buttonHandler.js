@@ -612,7 +612,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('ServerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -724,7 +724,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -777,7 +777,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -859,7 +859,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorToolCupboardDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -916,7 +916,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorContainerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -933,7 +933,7 @@ module.exports = async (client, interaction) => {
         client.setInstance(guildId, instance);
     }
     else if (interaction.customId === 'RecycleDelete') {
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -998,7 +998,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -1093,7 +1093,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('TrackerDelete', ''));
         const tracker = instance.trackers[ids.trackerId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }

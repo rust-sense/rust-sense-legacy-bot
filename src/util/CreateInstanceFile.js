@@ -29,6 +29,7 @@ module.exports = (client, guild) => {
         instance = {
             firstTime: true,
             role: null,
+            adminRole: null,
             generalSettings: client.readGeneralSettingsTemplate(),
             notificationSettings: client.readNotificationSettingsTemplate(),
             channelId: {
@@ -79,6 +80,10 @@ module.exports = (client, guild) => {
 
         if (!instance.hasOwnProperty('role')) {
             instance.role = null;
+        }
+
+        if (!instance.hasOwnProperty('adminRole')) {
+            instance.adminRole = null;
         }
 
         if (!instance.hasOwnProperty('generalSettings')) {

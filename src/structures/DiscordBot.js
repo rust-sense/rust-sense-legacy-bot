@@ -525,27 +525,33 @@ class DiscordBot extends Discord.Client {
     async validatePermissions(interaction) {
         const instance = this.getInstance(interaction.guildId);
 
-        if (instance.blacklist['discordIds'].includes(interaction.user.id) &&
-            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
+        // If user is blacklisted, admin or not, deny the interaction
+        if (instance.blacklist['discordIds'].includes(interaction.user.id)) {
             return false;
         }
+        
+        // If role isn't setup yet, validate as true
+        if (instance.role === null) {
+            return true;
+        }
 
-        /* If role isn't setup yet, validate as true */
-        if (instance.role === null) return true;
-
-        if (!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) &&
-            !interaction.member.roles.cache.has(instance.role)) {
+        // If either admin or regular, allow the interaction
+        if (!this.isAdministrator(interaction) && !interaction.member.roles.cache.has(instance.role)) {
             let role = DiscordTools.getRole(interaction.guildId, instance.role);
             const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
             await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             this.log(this.intlGet(null, 'warningCap'), str);
             return false;
         }
+
         return true;
     }
 
     isAdministrator(interaction) {
-        return interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator);
+        const instance = this.getInstance(interaction.guildId);
+        return instance.adminRole === null
+            ? interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)
+            : interaction.member.roles.cache.has(instance.adminRole);
     }
 }
 
