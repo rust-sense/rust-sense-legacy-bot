@@ -18,15 +18,15 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const Config = require('../../config');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+import Config from '../../config';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import PermissionHandler from '../handlers/permissionHandler.js';
 
-module.exports = {
+export default {
     name: 'reset',
 
     getData(client, guildId) {

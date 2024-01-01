@@ -18,8 +18,9 @@
 
 */
 
-const Path = require('path');
-const Fs = require('fs');
+import Path from 'path';
+
+import Fs from 'fs';
 
 const root = Path.join(__dirname, '..');
 const enJsonPath = Path.join(root, 'languages/en.json');

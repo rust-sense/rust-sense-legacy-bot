@@ -19,12 +19,12 @@
 
 */
 
-const Builder = require('@discordjs/builders');
-const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
+import Builder from '@discordjs/builders';
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+export default {
     name: 'voice',
 
     getData(client, guildId) {
@@ -44,7 +44,7 @@ module.exports = {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await client.validatePermissions(interaction)) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {

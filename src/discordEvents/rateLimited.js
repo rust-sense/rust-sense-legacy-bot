@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     name: 'rateLimited',
     async execute(client, info) {
         client.log(
@@ -30,4 +30,4 @@ module.exports = {
             `Route: ${info.route}, ` +
             `Global: ${info.global}`);
     },
-}
+};

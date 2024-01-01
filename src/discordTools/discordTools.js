@@ -18,11 +18,11 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Client = require('../../index.ts');
+import Client from '../../index.ts';
 
-module.exports = {
+export default {
     getGuild: function (guildId) {
         try {
             return Client.client.guilds.cache.get(guildId);
@@ -306,4 +306,4 @@ module.exports = {
     getDiscordFormattedDate: function (unixtime) {
         return `<t:${unixtime}:d>`;
     },
-}
+};

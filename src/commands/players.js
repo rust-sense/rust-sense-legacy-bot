@@ -18,13 +18,13 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordTools = require('../discordTools/discordTools.js');
+import Constants from '../util/constants.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = {
+export default {
 	name: 'players',
 
 	getData(client, guildId) {
@@ -67,7 +67,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		let battlemetricsId = interaction.options.getString('battlemetricsid');

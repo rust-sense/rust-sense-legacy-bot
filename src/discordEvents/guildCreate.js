@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     name: 'guildCreate',
     async execute(client, guild) {
         require('../util/CreateInstanceFile')(client, guild);
@@ -29,4 +29,4 @@ module.exports = {
 
         await client.setupGuild(guild);
     },
-}
+};

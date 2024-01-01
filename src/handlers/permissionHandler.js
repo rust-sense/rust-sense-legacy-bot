@@ -18,16 +18,16 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const DiscordTools = require('../discordTools/discordTools.js');
+import DiscordTools from '../discordTools/discordTools.js';
 
 const writeableChannels = [
     'commands', 
     'teamchat'
 ];
 
-module.exports = {
+export default {
     getPermissionsReset: function (client, guild, permissionWrite = false) {
         const instance = client.getInstance(guild.id);
 

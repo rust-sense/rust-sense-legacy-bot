@@ -18,15 +18,15 @@
 
 */
 
-const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+import Discord from 'discord.js';
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const Languages = require('../util/languages.js');
+import Fs from 'fs';
+import Path from 'path';
+import Client from '../../index.ts';
+import Constants from '../util/constants.js';
+import Languages from '../util/languages.js';
 
-module.exports = {
+export default {
     getSelectMenu: function (options = {}) {
         const selectMenu = new Discord.StringSelectMenuBuilder();
 
@@ -309,4 +309,4 @@ module.exports = {
                     }]
             }));
     },
-}
+};

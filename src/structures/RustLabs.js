@@ -18,20 +18,20 @@
 
 */
 
-const Items = require('./Items');
-const RustlabsBuildingBlocks = require('../staticFiles/rustlabsBuildingBlocks.json');
-const RustlabsOther = require('../staticFiles/rustlabsOther.json');
+import Items from './Items';
 
-const CraftData = require('../staticFiles/rustlabsCraftData.json');
-const ResearchData = require('../staticFiles/rustlabsResearchData.json');
-const RecycleData = require('../staticFiles/rustlabsRecycleData.json');
-const DurabilityData = require('../staticFiles/rustlabsDurabilityData.json');
-const SmeltingData = require('../staticFiles/rustlabsSmeltingData.json');
-const DespawnData = require('../staticFiles/rustlabsDespawnData.json');
-const StackData = require('../staticFiles/rustlabsStackData.json');
-const DecayData = require('../staticFiles/rustlabsDecayData.json');
-const UpkeepData = require('../staticFiles/rustlabsUpkeepData.json');
-const Utils = require('../util/utils.js');
+import RustlabsBuildingBlocks from '../staticFiles/rustlabsBuildingBlocks.json';
+import RustlabsOther from '../staticFiles/rustlabsOther.json';
+import CraftData from '../staticFiles/rustlabsCraftData.json';
+import ResearchData from '../staticFiles/rustlabsResearchData.json';
+import RecycleData from '../staticFiles/rustlabsRecycleData.json';
+import DurabilityData from '../staticFiles/rustlabsDurabilityData.json';
+import SmeltingData from '../staticFiles/rustlabsSmeltingData.json';
+import DespawnData from '../staticFiles/rustlabsDespawnData.json';
+import StackData from '../staticFiles/rustlabsStackData.json';
+import DecayData from '../staticFiles/rustlabsDecayData.json';
+import UpkeepData from '../staticFiles/rustlabsUpkeepData.json';
+import Utils from '../util/utils.js';
 
 const IGNORED_RECYCLE_ITEMS = [
     '-946369541' /* Low Grade Fuel */
@@ -818,4 +818,4 @@ class RustLabs {
     }
 }
 
-module.exports = RustLabs;
+export default RustLabs;

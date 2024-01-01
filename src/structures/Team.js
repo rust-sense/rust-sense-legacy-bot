@@ -18,8 +18,9 @@
 
 */
 
-const Client = require('../../index.ts');
-const Player = require('./Player.js');
+import Client from '../../index.ts';
+
+import Player from './Player.js';
 
 class Team {
     constructor(team, rustplus) {
@@ -180,4 +181,4 @@ class Team {
     }
 }
 
-module.exports = Team;
+export default Team;

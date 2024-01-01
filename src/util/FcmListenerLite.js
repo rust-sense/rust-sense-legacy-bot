@@ -18,17 +18,17 @@
 
 */
 
-const PushReceiver = require('push-receiver');
+import PushReceiver from 'push-receiver';
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const Map = require('../util/map.js');
-const Scrape = require('../util/scrape.js');
+import Constants from '../util/constants.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import InstanceUtils from '../util/instanceUtils.js';
+import Map from '../util/map.js';
+import Scrape from '../util/scrape.js';
 
-module.exports = async (client, guild, steamId) => {
+export default async (client, guild, steamId) => {
     const credentials = InstanceUtils.readCredentialsFile(guild.id);
     const hoster = credentials.hoster;
 

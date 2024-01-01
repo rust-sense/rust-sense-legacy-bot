@@ -18,10 +18,10 @@
 
 */
 
-const Colors = require("colors");
-const Winston = require("winston");
+import Colors from "colors";
 
-const Config = require('../../config');
+import Winston from "winston";
+import Config from '../../config';
 
 class Logger {
     constructor(logFilePath, type) {
@@ -116,4 +116,4 @@ class Logger {
     }
 }
 
-module.exports = Logger;
+export default Logger;

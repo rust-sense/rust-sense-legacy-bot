@@ -19,8 +19,9 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
+
+import Path from 'path';
 
 class Cctv {
     constructor() {
@@ -46,4 +47,4 @@ class Cctv {
 
 }
 
-module.exports = Cctv;
+export default Cctv;

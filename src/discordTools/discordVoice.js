@@ -18,11 +18,12 @@
     https://github.com/alexemanuelol/rustplusplus
 
 */
-const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const Actors = require('../staticFiles/actors.json');
-const Client = require('../../index.ts');
+import { getVoiceConnection, createAudioPlayer, createAudioResource } from '@discordjs/voice';
 
-module.exports = {
+import Actors from '../staticFiles/actors.json';
+import Client from '../../index.ts';
+
+export default {
     sendDiscordVoiceMessage: async function (guildId, text) {
         const connection = getVoiceConnection(guildId);
         const voice = await this.getVoice(guildId);
@@ -49,4 +50,4 @@ module.exports = {
             return Actors[language]?.[gender];
         }
     },
-}
+};

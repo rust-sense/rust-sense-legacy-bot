@@ -18,9 +18,9 @@
 
 */
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = {
+export default {
     handler: function (rustplus, client, time) {
         /* Check time changes */
         module.exports.checkChanges(rustplus, client, time);
@@ -130,4 +130,4 @@ module.exports = {
             rustplus.time.timeTillDay[newTime] = 0;
         }
     }
-}
+};

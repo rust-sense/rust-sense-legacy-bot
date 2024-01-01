@@ -18,9 +18,9 @@
 
 */
 
-const Client = require('../../index.ts');
+import Client from '../../index.ts';
 
-module.exports = {
+export default {
     gridDiameter: 146.25,
 
     getPos: function (x, y, mapSize, rustplus) {
@@ -155,4 +155,4 @@ module.exports = {
         }
         return false;
     },
-}
+};

@@ -18,10 +18,10 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Constants = require('../util/constants.js');
-const Client = require('../../index.ts');
+import Constants from '../util/constants.js';
+import Client from '../../index.ts';
 
 const SUCCESS = Discord.ButtonStyle.Success;
 const DANGER = Discord.ButtonStyle.Danger;
@@ -29,7 +29,7 @@ const PRIMARY = Discord.ButtonStyle.Primary;
 const SECONDARY = Discord.ButtonStyle.Secondary;
 const LINK = Discord.ButtonStyle.Link;
 
-module.exports = {
+export default {
     getButton: function (options = {}) {
         const button = new Discord.ButtonBuilder();
 
@@ -564,4 +564,4 @@ module.exports = {
                     style: instance.generalSettings.battlemetricsGlobalLogout ? SUCCESS : DANGER
                 }))];
     },
-}
+};

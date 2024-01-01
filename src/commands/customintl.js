@@ -18,18 +18,18 @@
 
 */
 
-const _ = require('lodash');
-const Builder = require('@discordjs/builders');
+import _ from 'lodash';
 
-const Config = require('../../config/index.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const instanceUtils = require('../util/instanceUtils.js');
-const Constants = require('../util/constants.js');
+import Builder from '@discordjs/builders';
+import Config from '../../config/index.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import InstanceUtils from '../util/instanceUtils.js';
+import instanceUtils from '../util/instanceUtils.js';
+import Constants from '../util/constants.js';
 
-module.exports = {
+export default {
     name: 'customintl',
 
     getData(client, guildId) {

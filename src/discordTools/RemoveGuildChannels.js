@@ -18,9 +18,9 @@
 
 */
 
-const DiscordTools = require('../discordTools/discordTools.js');
+import DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = async (client, guild) => {
+export default async (client, guild) => {
     const instance = client.getInstance(guild.id);
 
     let categoryId = null;

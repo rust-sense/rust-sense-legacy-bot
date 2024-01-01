@@ -18,13 +18,13 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordTools = require('../discordTools/discordTools');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+import DiscordEmbeds from '../discordTools/discordEmbeds';
+import DiscordTools from '../discordTools/discordTools';
+import PermissionHandler from '../handlers/permissionHandler.js';
 
-module.exports = {
+export default {
     name: 'role',
 
     getData(client, guildId) {

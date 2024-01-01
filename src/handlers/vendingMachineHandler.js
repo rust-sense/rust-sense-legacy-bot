@@ -18,10 +18,11 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Map = require('../util/map.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import Map from '../util/map.js';
+
+export default {
     handler: async function (rustplus, client, mapMarkers) {
         /* Handle Vending Machine changes */
         await module.exports.checkChanges(rustplus, client, mapMarkers);
@@ -118,4 +119,4 @@ module.exports = {
 
         rustplus.firstPollItems = { all: [], buy: [], sell: [] };
     },
-}
+};

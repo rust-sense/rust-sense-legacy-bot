@@ -18,16 +18,16 @@
 
 */
 
-const Discord = require('discord.js');
-const Path = require('path');
+import Discord from 'discord.js';
 
-const Constants = require('../util/constants.js');
-const DiscordButtons = require('./discordButtons.js');
-const DiscordEmbeds = require('./discordEmbeds.js');
-const DiscordSelectMenus = require('./discordSelectMenus.js');
-const DiscordTools = require('./discordTools.js');
+import Path from 'path';
+import Constants from '../util/constants.js';
+import DiscordButtons from './discordButtons.js';
+import DiscordEmbeds from './discordEmbeds.js';
+import DiscordSelectMenus from './discordSelectMenus.js';
+import DiscordTools from './discordTools.js';
 
-module.exports = async (client, guild, forced = false) => {
+export default async (client, guild, forced = false) => {
     const instance = client.getInstance(guild.id);
     const channel = DiscordTools.getTextChannelById(guild.id, instance.channelId.settings);
 

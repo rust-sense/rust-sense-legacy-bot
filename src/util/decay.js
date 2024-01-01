@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     TwigWallMaxHp: 10,
     WoodWallMaxHp: 250,
     StoneWallMaxHp: 500,
@@ -67,4 +67,4 @@ module.exports = {
 
         return null;
     },
-}
+};

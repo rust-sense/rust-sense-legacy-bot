@@ -24,7 +24,7 @@
  * into a single items.json file to be used in this project.
  */
 
-const Fs = require('fs');
+import Fs from 'fs';
 
 var items = {};
 

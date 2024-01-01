@@ -18,10 +18,11 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import Constants from '../util/constants.js';
 
-module.exports = {
+import DiscordMessages from '../discordTools/discordMessages.js';
+
+export default {
     handler: async function (rustplus, client) {
         let instance = client.getInstance(rustplus.guildId);
         const guildId = rustplus.guildId;
@@ -104,4 +105,4 @@ module.exports = {
             }
         }
     },
-}
+};

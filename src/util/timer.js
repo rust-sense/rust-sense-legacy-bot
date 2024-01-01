@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     timer: function (callback, delay, ...args) {
         let id, started, remaining = delay, running = false;
 
@@ -218,4 +218,4 @@ module.exports = {
 
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     },
-}
+};

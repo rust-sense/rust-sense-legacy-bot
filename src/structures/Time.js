@@ -18,7 +18,7 @@
 
 */
 
-const TimeLib = require('../util/timer.js');
+import TimeLib from '../util/timer.js';
 
 class Time {
     constructor(time, rustplus, client) {
@@ -122,4 +122,4 @@ class Time {
 
 }
 
-module.exports = Time;
+export default Time;

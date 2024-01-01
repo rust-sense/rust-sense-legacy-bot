@@ -18,14 +18,14 @@
 
 */
 
-const Fs = require("fs");
-const Path = require('path');
-const Rest = require('@discordjs/rest');
-const Types = require('discord-api-types/v9');
+import Fs from "fs";
 
-const Config = require('../../config');
+import Path from 'path';
+import Rest from '@discordjs/rest';
+import Types from 'discord-api-types/v9';
+import Config from '../../config';
 
-module.exports = async (client, guild) => {
+export default async (client, guild) => {
     const commands = [];
     const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter(file => file.endsWith('.js'));
 

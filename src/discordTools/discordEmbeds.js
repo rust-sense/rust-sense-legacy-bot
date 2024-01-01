@@ -18,15 +18,15 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const DiscordTools = require('./discordTools.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const Timer = require('../util/timer');
+import Client from '../../index.ts';
+import Constants from '../util/constants.js';
+import DiscordTools from './discordTools.js';
+import InstanceUtils from '../util/instanceUtils.js';
+import Timer from '../util/timer';
 
-module.exports = {
+export default {
     getEmbed: function (options = {}) {
         const embed = new Discord.EmbedBuilder();
 
@@ -1399,4 +1399,4 @@ module.exports = {
 
         return embed;
     },
-}
+};

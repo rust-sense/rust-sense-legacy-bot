@@ -18,12 +18,13 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Info = require('../structures/Info');
-const Map = require('../structures/Map');
-const PollingHandler = require('../handlers/pollingHandler.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import Info from '../structures/Info';
+import Map from '../structures/Map';
+import PollingHandler from '../handlers/pollingHandler.js';
+
+export default {
     name: 'connected',
     async execute(rustplus, client) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();

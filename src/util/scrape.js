@@ -18,12 +18,12 @@
 
 */
 
-const Axios = require('axios');
+import Axios from 'axios';
 
-const Constants = require('../util/constants.js');
-const Utils = require('../util/utils.js');
+import Constants from '../util/constants.js';
+import Utils from '../util/utils.js';
 
-module.exports = {
+export default {
     scrape: async function (url) {
         try {
             return await Axios.get(url);
@@ -69,4 +69,4 @@ module.exports = {
 
         return null;
     },
-}
+};

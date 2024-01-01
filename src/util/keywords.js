@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     getListOfCommandKeywords: function (client, guildId) {
         return [
             client.intlGet(guildId, 'commandSyntaxAfk'),
@@ -129,4 +129,4 @@ module.exports = {
 
         return list;
     }
-}
+};

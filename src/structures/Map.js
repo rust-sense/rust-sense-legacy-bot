@@ -18,13 +18,13 @@
 
 */
 
-const Fs = require('fs');
-const Gm = require('gm');
-const Jimp = require('jimp');
-const Path = require('path');
+import Fs from 'fs';
 
-const Constants = require('../util/constants.js');
-const Client = require('../../index.ts');
+import Gm from 'gm';
+import Jimp from 'jimp';
+import Path from 'path';
+import Constants from '../util/constants.js';
+import Client from '../../index.ts';
 
 class Map {
     constructor(map, rustplus) {
@@ -517,4 +517,4 @@ class Map {
     }
 }
 
-module.exports = Map;
+export default Map;

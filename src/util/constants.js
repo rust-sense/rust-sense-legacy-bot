@@ -18,7 +18,7 @@
 
 */
 
-module.exports = {
+export default {
     DEFAULT_LOCALE: 'en',
     DEFAULT_SERVER_URL: 'https://rust.facepunch.com',
     DEFAULT_SERVER_IMG: 'https://files.facepunch.com/lewis/1b2411b1/og-image.jpg',
@@ -108,4 +108,4 @@ module.exports = {
     GET_BATTLEMETRICS_PROFILE_LINK: function (playerId) {
         return `[${playerId}](${this.BATTLEMETRICS_PROFILE_URL}${playerId})`;
     }
-}
+};

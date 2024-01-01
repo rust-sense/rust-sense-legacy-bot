@@ -18,12 +18,12 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Timer = require('../util/timer.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
+import Timer from '../util/timer.js';
 
-module.exports = {
+export default {
 	name: 'uptime',
 
 	getData(client, guildId) {
@@ -44,7 +44,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		let string = '';

@@ -18,12 +18,12 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const Timer = require('../util/timer.js');
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import Timer from '../util/timer.js';
 
-module.exports = {
+export default {
 	name: 'decay',
 
 	getData(client, guildId) {
@@ -50,7 +50,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		const decayItemName = interaction.options.getString('name');

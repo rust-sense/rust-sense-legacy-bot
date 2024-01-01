@@ -18,11 +18,12 @@
 
 */
 
-const SmartAlarmHandler = require('./smartAlarmHandler.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
-const SmartSwitchHandler = require('./smartSwitchHandler.js');
+import SmartAlarmHandler from './smartAlarmHandler.js';
 
-module.exports = {
+import SmartSwitchGroupHandler from './smartSwitchGroupHandler.js';
+import SmartSwitchHandler from './smartSwitchHandler.js';
+
+export default {
     inGameCommandHandler: async function (rustplus, client, message) {
         const guildId = rustplus.guildId;
         const instance = client.getInstance(guildId);

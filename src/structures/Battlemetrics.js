@@ -18,10 +18,10 @@
 
 */
 
-const Axios = require('axios');
+import Axios from 'axios';
 
-const Client = require('../../index.ts');
-const RandomUsernames = require('../staticFiles/RandomUsernames.json');
+import Client from '../../index.ts';
+import RandomUsernames from '../staticFiles/RandomUsernames.json';
 const Utils = require = require('../util/utils.js');
 
 const SERVER_LOG_SIZE = 1000;
@@ -816,4 +816,4 @@ class Battlemetrics {
     }
 }
 
-module.exports = Battlemetrics;
+export default Battlemetrics;

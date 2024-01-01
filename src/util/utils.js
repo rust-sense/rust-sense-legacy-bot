@@ -18,10 +18,11 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
 
-module.exports = {
+import Path from 'path';
+
+export default {
     parseArgs: function (str) {
         return str.trim().split(/[ ]+/);
     },
@@ -81,7 +82,7 @@ module.exports = {
 
         return minDistance > threshold ? null : closestString;
     },
-}
+};
 
 /* Function to calculate Levenshtein distance between two strings */
 function levenshteinDistance(s1, s2) {

@@ -18,15 +18,16 @@
 
 */
 
-const { getVoiceConnection } = require('@discordjs/voice');
-const Constants = require('../util/constants');
+import { getVoiceConnection } from '@discordjs/voice';
 
-module.exports = {
+import Constants from '../util/constants';
+
+export default {
     name: 'voiceStateUpdate',
     async execute(client, oldState, newState) {
         checkBotLeaveVoice(client, oldState, newState);
     },
-}
+};
 
 async function checkBotLeaveVoice(client, oldState, newState) {
     const guildId = oldState.guild.id;

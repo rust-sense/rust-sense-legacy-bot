@@ -18,29 +18,29 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
-const RustPlusLib = require('@liamcottle/rustplus.js');
-const Translate = require('translate');
+import Fs from 'fs';
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const Decay = require('../util/decay.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordVoice = require('../discordTools/discordVoice.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const InGameChatHandler = require('../handlers/inGameChatHandler.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const Languages = require('../util/languages.js');
-const Logger = require('./Logger.js');
-const Map = require('../util/map.js');
-const RustPlusLite = require('../structures/RustPlusLite');
-const TeamHandler = require('../handlers/teamHandler.js');
-const Timer = require('../util/timer.js');
+import Path from 'path';
+import RustPlusLib from '@liamcottle/rustplus.js';
+import Translate from 'translate';
+import Client from '../../index.ts';
+import Constants from '../util/constants.js';
+import Decay from '../util/decay.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordVoice from '../discordTools/discordVoice.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import InGameChatHandler from '../handlers/inGameChatHandler.js';
+import InstanceUtils from '../util/instanceUtils.js';
+import Languages from '../util/languages.js';
+import Logger from './Logger.js';
+import Map from '../util/map.js';
+import RustPlusLite from '../structures/RustPlusLite';
+import TeamHandler from '../handlers/teamHandler.js';
+import Timer from '../util/timer.js';
 
-const TOKENS_LIMIT = 24;        /* Per player */
-const TOKENS_REPLENISH = 3;     /* Per second */
+const TOKENS_LIMIT = 24;/* Per player */
+const TOKENS_REPLENISH = 3;/* Per second */
 
 class RustPlus extends RustPlusLib {
     constructor(guildId, serverIp, appPort, steamId, playerToken) {
@@ -2706,4 +2706,4 @@ class RustPlus extends RustPlusLib {
     }
 }
 
-module.exports = RustPlus;
+export default RustPlus;

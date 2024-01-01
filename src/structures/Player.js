@@ -18,9 +18,10 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const Map = require('../util/map.js');
-const Time = require('../util/timer.js');
+import Constants from '../util/constants.js';
+
+import Map from '../util/map.js';
+import Time from '../util/timer.js';
 
 class Player {
     constructor(player, rustplus) {
@@ -171,4 +172,4 @@ class Player {
     }
 }
 
-module.exports = Player;
+export default Player;

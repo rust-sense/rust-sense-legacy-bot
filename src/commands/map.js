@@ -18,14 +18,14 @@
 
 */
 
-const Builder = require('@discordjs/builders');
-const Discord = require('discord.js');
-const Path = require('path');
+import Builder from '@discordjs/builders';
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+import Discord from 'discord.js';
+import Path from 'path';
+import Constants from '../util/constants.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 
-module.exports = {
+export default {
 	name: 'map',
 
 	getData(client, guildId) {
@@ -53,7 +53,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		if (!rustplus || (rustplus && !rustplus.isOperational)) {

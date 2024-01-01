@@ -18,10 +18,11 @@
 
 */
 
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+import DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = async (client, guild, category) => {
+import PermissionHandler from '../handlers/permissionHandler.js';
+
+export default async (client, guild, category) => {
     await addTextChannel(client.intlGet(guild.id, 'channelNameInformation'), 'information', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameServers'), 'servers', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameSettings'), 'settings', client, guild, category);

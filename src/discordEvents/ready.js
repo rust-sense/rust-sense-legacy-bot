@@ -18,13 +18,13 @@
 
 */
 
-const Discord = require('discord.js');
-const Path = require('path');
+import Discord from 'discord.js';
 
-const BattlemetricsHandler = require('../handlers/battlemetricsHandler.js');
-const Config = require('../../config');
+import Path from 'path';
+import BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
+import Config from '../../config';
 
-module.exports = {
+export default {
     name: 'ready',
     once: true,
     async execute(client) {

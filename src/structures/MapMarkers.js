@@ -18,9 +18,10 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const Map = require('../util/map.js');
-const Timer = require('../util/timer');
+import Constants from '../util/constants.js';
+
+import Map from '../util/map.js';
+import Timer from '../util/timer';
 
 class MapMarkers {
     constructor(mapMarkers, rustplus, client) {
@@ -775,4 +776,4 @@ class MapMarkers {
     }
 }
 
-module.exports = MapMarkers;
+export default MapMarkers;

@@ -18,18 +18,18 @@
 
 */
 
-const Discord = require('discord.js');
-const Path = require('path');
+import Discord from 'discord.js';
 
-const Constants = require('../util/constants.js');
-const Client = require('../../index.ts');
-const DiscordButtons = require('./discordButtons.js');
-const DiscordEmbeds = require('./discordEmbeds.js');
-const DiscordSelectMenus = require('./discordSelectMenus.js');
-const DiscordTools = require('./discordTools.js');
-const Scrape = require('../util/scrape.js');
+import Path from 'path';
+import Constants from '../util/constants.js';
+import Client from '../../index.ts';
+import DiscordButtons from './discordButtons.js';
+import DiscordEmbeds from './discordEmbeds.js';
+import DiscordSelectMenus from './discordSelectMenus.js';
+import DiscordTools from './discordTools.js';
+import Scrape from '../util/scrape.js';
 
-module.exports = {
+export default {
     sendMessage: async function (guildId, content, messageId, channelId, interaction = null) {
         if (interaction) {
             await Client.client.interactionUpdate(interaction, content);
@@ -600,4 +600,4 @@ module.exports = {
 
         await Client.client.interactionEditReply(interaction, content);
     },
-}
+};

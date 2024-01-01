@@ -18,11 +18,11 @@
 
 */
 
-const Axios = require('axios');
-const Fs = require('fs');
-const Path = require('path');
+import Axios from 'axios';
 
-const Utils = require('../util/utils.js');
+import Fs from 'fs';
+import Path from 'path';
+import Utils from '../util/utils.js';
 
 
 /* Constants */

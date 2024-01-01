@@ -18,12 +18,12 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Client = require('../../index.ts');
-const TextInput = require('./discordTextInputs.js');
+import Client from '../../index.ts';
+import TextInput from './discordTextInputs.js';
 
-module.exports = {
+export default {
     getModal: function (options = {}) {
         const modal = new Discord.ModalBuilder();
 
@@ -344,4 +344,4 @@ module.exports = {
 
         return modal;
     },
-}
+};

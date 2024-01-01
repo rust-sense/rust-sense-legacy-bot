@@ -18,10 +18,11 @@
 
 */
 
-const DiscordMessages = require('./discordMessages.js');
-const DiscordTools = require('./discordTools.js');
+import DiscordMessages from './discordMessages.js';
 
-module.exports = async (client, guild) => {
+import DiscordTools from './discordTools.js';
+
+export default async (client, guild) => {
     const instance = client.getInstance(guild.id);
 
     await DiscordTools.clearTextChannel(guild.id, instance.channelId.trackers, 100);
@@ -29,4 +30,4 @@ module.exports = async (client, guild) => {
     for (const trackerId in instance.trackers) {
         await DiscordMessages.sendTrackerMessage(guild.id, trackerId);
     }
-}
+};

@@ -18,10 +18,11 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import DiscordTools from '../discordTools/discordTools';
+
+export default {
     discordCommandHandler: async function (rustplus, client, message) {
         const guildId = rustplus.guildId;
         const instance = client.getInstance(guildId);

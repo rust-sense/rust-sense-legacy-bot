@@ -18,10 +18,10 @@
 
 */
 
-const RustPlusLib = require('@liamcottle/rustplus.js');
+import RustPlusLib from '@liamcottle/rustplus.js';
 
-const Client = require('../../index.ts');
-const Config = require('../../config');
+import Client from '../../index.ts';
+import Config from '../../config';
 
 class RustPlusLite extends RustPlusLib {
     constructor(guildId, logger, rustplus, serverIp, appPort, steamId, playerToken) {
@@ -151,4 +151,4 @@ async function rustPlusLiteErrorEvent(rustplusLite, error) {
     rustplusLite.log(Client.client.intlGet(null, 'errorCap'), error, 'error');
 }
 
-module.exports = RustPlusLite;
+export default RustPlusLite;

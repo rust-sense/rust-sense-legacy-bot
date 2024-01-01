@@ -18,10 +18,10 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
 
-const Utils = require('../util/utils.js');
+import Path from 'path';
+import Utils from '../util/utils.js';
 
 class Items {
     constructor() {
@@ -68,4 +68,4 @@ class Items {
     }
 }
 
-module.exports = Items;
+export default Items;

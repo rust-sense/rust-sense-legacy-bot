@@ -18,10 +18,11 @@
 
 */
 
-const DiscordCommandHandler = require('../handlers/discordCommandHandler.js');
-const DiscordTools = require('../discordTools/discordTools');
+import DiscordCommandHandler from '../handlers/discordCommandHandler.js';
 
-module.exports = {
+import DiscordTools from '../discordTools/discordTools';
+
+export default {
     name: 'messageCreate',
     async execute(client, message) {
         const instance = client.getInstance(message.guild.id);
@@ -57,4 +58,4 @@ module.exports = {
             await rustplus.sendInGameMessage(`${message.author.username}: ${message.cleanContent}`);
         }
     },
-}
+};

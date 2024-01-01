@@ -18,16 +18,16 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Config = require('../../config');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
-const DiscordButtons = require('../discordTools/discordButtons.js');
-const DiscordModals = require('../discordTools/discordModals.js');
+import Config from '../../config';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import SmartSwitchGroupHandler from './smartSwitchGroupHandler.js';
+import DiscordButtons from '../discordTools/discordButtons.js';
+import DiscordModals from '../discordTools/discordModals.js';
 
-module.exports = async (client, interaction) => {
+export default async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
@@ -1157,4 +1157,4 @@ module.exports = async (client, interaction) => {
     client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'userButtonInteractionSuccess', {
         id: `${verifyId}`
     }));
-}
+};

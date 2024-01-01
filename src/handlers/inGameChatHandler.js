@@ -18,9 +18,9 @@
 
 */
 
-const Constants = require("../util/constants");
+import Constants from "../util/constants";
 
-module.exports = {
+export default {
     inGameChatHandler: async function (rustplus, client, message = null) {
         const guildId = rustplus.guildId;
         const generalSettings = rustplus.generalSettings;

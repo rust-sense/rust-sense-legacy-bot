@@ -18,12 +18,12 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
 
-const Client = require('../../index.ts');
+import Path from 'path';
+import Client from '../../index.ts';
 
-module.exports = {
+export default {
     getSmartDevice: function (guildId, entityId) {
         /* Temporary function till discord modals gets more functional */
         const instance = Client.client.getInstance(guildId);
@@ -61,4 +61,4 @@ module.exports = {
         const path = Path.join(__dirname, '..', '..', 'credentials', `${guildId}.json`);
         Fs.writeFileSync(path, JSON.stringify(credentials, null, 2));
     },
-}
+};

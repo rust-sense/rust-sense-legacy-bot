@@ -18,9 +18,9 @@
 
 */
 
-const InstanceUtils = require('../util/instanceUtils.js');
+import InstanceUtils from '../util/instanceUtils.js';
 
-module.exports = {
+export default {
     name: 'guildMemberRemove',
     async execute(client, member) {
         const guildId = member.guild.id;
@@ -49,4 +49,4 @@ module.exports = {
         delete credentials[steamId];
         InstanceUtils.writeCredentialsFile(guildId, credentials);
     },
-}
+};

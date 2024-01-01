@@ -18,11 +18,11 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
+import DiscordEmbeds from '../discordTools/discordEmbeds';
 
-module.exports = {
+export default {
 	name: 'leader',
 
 	getData(client, guildId) {
@@ -42,7 +42,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		const member = interaction.options.getString('member');

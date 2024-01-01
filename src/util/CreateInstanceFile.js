@@ -18,12 +18,12 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
 
-const InstanceUtils = require('../util/instanceUtils.js');
+import Path from 'path';
+import InstanceUtils from '../util/instanceUtils.js';
 
-module.exports = (client, guild) => {
+export default (client, guild) => {
     let instance = null;
     if (!Fs.existsSync(Path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
         instance = {

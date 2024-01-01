@@ -18,12 +18,13 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Map = require('../util/map.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
-const Timer = require('../util/timer');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import Map from '../util/map.js';
+import SmartSwitchGroupHandler from './smartSwitchGroupHandler.js';
+import Timer from '../util/timer';
+
+export default {
     handler: async function (rustplus, client, time) {
         const instance = client.getInstance(rustplus.guildId);
         const guildId = rustplus.guildId;
@@ -518,4 +519,4 @@ module.exports = {
         DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
         SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
     },
-}
+};

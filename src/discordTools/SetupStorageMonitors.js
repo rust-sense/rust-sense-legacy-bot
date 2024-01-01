@@ -18,11 +18,12 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('./discordMessages.js');
-const DiscordTools = require('./discordTools.js');
+import Constants from '../util/constants.js';
 
-module.exports = async (client, rustplus) => {
+import DiscordMessages from './discordMessages.js';
+import DiscordTools from './discordTools.js';
+
+export default async (client, rustplus) => {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

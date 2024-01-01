@@ -18,11 +18,11 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-const Config = require('../../config');
+import Config from '../../config';
 
-module.exports = {
+export default {
     name: 'disconnected',
     async execute(rustplus, client) {
         if (!rustplus.isServerAvailable() && !rustplus.isDeleted) {

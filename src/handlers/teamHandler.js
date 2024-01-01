@@ -18,10 +18,11 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import Constants from '../util/constants.js';
 
-module.exports = {
+import DiscordMessages from '../discordTools/discordMessages.js';
+
+export default {
     handler: async function (rustplus, client, teamInfo) {
         /* Handle team changes */
         await module.exports.checkChanges(rustplus, client, teamInfo);
@@ -131,4 +132,4 @@ module.exports = {
             }
         }
     },
-}
+};

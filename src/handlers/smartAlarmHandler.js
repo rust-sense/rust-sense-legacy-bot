@@ -18,10 +18,11 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Timer = require('../util/timer.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import Timer from '../util/timer.js';
+
+export default {
     handler: async function (rustplus, client) {
         let instance = client.getInstance(rustplus.guildId);
         const guildId = rustplus.guildId;
@@ -90,4 +91,4 @@ module.exports = {
         }));
         return true;
     },
-}
+};

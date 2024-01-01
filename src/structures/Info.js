@@ -18,8 +18,9 @@
 
 */
 
-const Map = require('../util/map.js');
-const Timer = require('../util/timer');
+import Map from '../util/map.js';
+
+import Timer from '../util/timer';
 
 class Info {
     constructor(info) {
@@ -102,4 +103,4 @@ class Info {
     getTimeSinceWipe(ignore = '') { return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore); }
 }
 
-module.exports = Info;
+export default Info;

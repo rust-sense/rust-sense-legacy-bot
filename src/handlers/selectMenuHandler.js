@@ -18,13 +18,13 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordSelectMenus = require('../discordTools/discordSelectMenus.js');
-const DiscordTools = require('../discordTools/discordTools.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordSelectMenus from '../discordTools/discordSelectMenus.js';
+import DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = async (client, interaction) => {
+export default async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
@@ -154,4 +154,4 @@ module.exports = async (client, interaction) => {
     client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'userSelectMenuInteractionSuccess', {
         id: `${verifyId}`
     }));
-}
+};

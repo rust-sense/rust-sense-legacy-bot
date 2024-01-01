@@ -18,11 +18,11 @@
 
 */
 
-const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+import Discord from 'discord.js';
 
-const DiscordBot = require('./structures/DiscordBot');
+import Fs from 'fs';
+import Path from 'path';
+import DiscordBot from './structures/DiscordBot';
 
 createMissingDirectories();
 
@@ -65,4 +65,4 @@ process.on('unhandledRejection', error => {
     console.log(error);
 });
 
-exports.client = client;
+export { client };

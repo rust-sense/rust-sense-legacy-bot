@@ -18,9 +18,9 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-module.exports = {
+export default {
     getTextInput: function (options = {}) {
         const textInput = new Discord.TextInputBuilder();
 
@@ -35,4 +35,4 @@ module.exports = {
 
         return textInput;
     },
-}
+};

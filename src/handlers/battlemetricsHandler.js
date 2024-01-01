@@ -18,12 +18,13 @@
 
 */
 
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const Scrape = require('../util/scrape.js');
+import Constants from '../util/constants.js';
 
-module.exports = {
+import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordTools from '../discordTools/discordTools.js';
+import Scrape from '../util/scrape.js';
+
+export default {
     handler: async function (client, firstTime = false) {
         const searchSteamProfiles = (client.battlemetricsIntervalCounter === 0) ? true : false;
         const calledSteamProfiles = new Object();
@@ -437,4 +438,4 @@ module.exports = {
         await DiscordMessages.sendBattlemetricsEventMessage(guildId, battlemetricsId, title, description, null,
             instance.trackers[trackerId].everyone);
     },
-}
+};

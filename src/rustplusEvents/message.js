@@ -18,15 +18,16 @@
 
 */
 
-const CommandHandler = require('../handlers/inGameCommandHandler.js');
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const InGameChatHandler = require('../handlers/inGameChatHandler.js');
-const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler.js');
-const TeamChatHandler = require("../handlers/teamChatHandler.js");
-const TeamHandler = require('../handlers/teamHandler.js');
+import CommandHandler from '../handlers/inGameCommandHandler.js';
 
-module.exports = {
+import Constants from '../util/constants.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import InGameChatHandler from '../handlers/inGameChatHandler.js';
+import SmartSwitchGroupHandler from '../handlers/smartSwitchGroupHandler.js';
+import TeamChatHandler from "../handlers/teamChatHandler.js";
+import TeamHandler from '../handlers/teamHandler.js';
+
+export default {
     name: 'message',
     async execute(rustplus, client, message) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
@@ -217,7 +218,7 @@ async function messageBroadcastEntityChangedStorageMonitor(rustplus, client, mes
         }
 
         const info = await rustplus.getEntityInfoAsync(entityId);
-        server.storageMonitors[entityId].reachable = await rustplus.isResponseValid(info) ? true : false;
+        server.storageMonitors[entityId].reachable = (await rustplus.isResponseValid(info)) ? true : false;
 
         if (server.storageMonitors[entityId].reachable) {
             if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY) {
@@ -239,7 +240,7 @@ async function updateToolCupboard(rustplus, client, message) {
     const entityId = message.broadcast.entityChanged.entityId;
 
     const info = await rustplus.getEntityInfoAsync(entityId);
-    server.storageMonitors[entityId].reachable = await rustplus.isResponseValid(info) ? true : false;
+    server.storageMonitors[entityId].reachable = (await rustplus.isResponseValid(info)) ? true : false;
     client.setInstance(rustplus.guildId, instance);
 
     if (server.storageMonitors[entityId].reachable) {

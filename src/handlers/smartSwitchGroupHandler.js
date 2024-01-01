@@ -18,10 +18,11 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Timer = require('../util/timer');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+import Timer from '../util/timer';
+
+export default {
     handler: async function (rustplus, client) {
     },
 
@@ -204,4 +205,4 @@ module.exports = {
         await module.exports.TurnOnOffGroup(client, rustplus, guildId, serverId, groupId, active);
         return true;
     },
-}
+};

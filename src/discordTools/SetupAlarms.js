@@ -18,9 +18,9 @@
 
 */
 
-const DiscordMessages = require('./discordMessages.js');
+import DiscordMessages from './discordMessages.js';
 
-module.exports = async (client, rustplus) => {
+export default async (client, rustplus) => {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

@@ -18,9 +18,9 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+export default {
     name: 'error',
     async execute(rustplus, client, err) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();

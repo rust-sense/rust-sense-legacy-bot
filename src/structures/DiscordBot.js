@@ -18,24 +18,24 @@
 
 */
 
-const FormatJS = require('@formatjs/intl');
-const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
-const { IntlMessageFormat } = require('intl-messageformat');
+import FormatJS from '@formatjs/intl';
 
-const Battlemetrics = require('../structures/Battlemetrics');
-const Cctv = require('./Cctv');
-const Config = require('../../config');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordTools = require('../discordTools/discordTools');
-const InstanceUtils = require('../util/instanceUtils.js');
-const Items = require('./Items');
-const Logger = require('./Logger.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
-const RustLabs = require('../structures/RustLabs');
-const RustPlus = require('../structures/RustPlus');
-const Constants = require('../util/constants.js');
+import Discord from 'discord.js';
+import Fs from 'fs';
+import Path from 'path';
+import { IntlMessageFormat } from 'intl-messageformat';
+import Battlemetrics from '../structures/Battlemetrics';
+import Cctv from './Cctv';
+import Config from '../../config';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordTools from '../discordTools/discordTools';
+import InstanceUtils from '../util/instanceUtils.js';
+import Items from './Items';
+import Logger from './Logger.js';
+import PermissionHandler from '../handlers/permissionHandler.js';
+import RustLabs from '../structures/RustLabs';
+import RustPlus from '../structures/RustPlus';
+import Constants from '../util/constants.js';
 
 class DiscordBot extends Discord.Client {
     constructor(props) {
@@ -843,4 +843,4 @@ class DiscordBot extends Discord.Client {
     }
 }
 
-module.exports = DiscordBot;
+export default DiscordBot;

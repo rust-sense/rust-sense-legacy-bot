@@ -18,10 +18,11 @@
 
 */
 
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+import DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = async (client, guild) => {
+import PermissionHandler from '../handlers/permissionHandler.js';
+
+export default async (client, guild) => {
     const instance = client.getInstance(guild.id);
 
     let category = undefined;

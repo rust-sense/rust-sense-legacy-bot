@@ -18,15 +18,15 @@
 
 */
 
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 
-const Battlemetrics = require('../structures/Battlemetrics');
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Keywords = require('../util/keywords.js');
-const Scrape = require('../util/scrape.js');
+import Battlemetrics from '../structures/Battlemetrics';
+import Constants from '../util/constants.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
+import Keywords from '../util/keywords.js';
+import Scrape from '../util/scrape.js';
 
-module.exports = async (client, interaction) => {
+export default async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
 
@@ -396,4 +396,4 @@ module.exports = async (client, interaction) => {
     }));
 
     interaction.deferUpdate();
-}
+};

@@ -18,12 +18,12 @@
 
 */
 
-const Builder = require('@discordjs/builders');
+import Builder from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+export default {
 	name: 'item',
 
 	getData(client, guildId) {
@@ -46,7 +46,7 @@ module.exports = {
 		const verifyId = Math.floor(100000 + Math.random() * 900000);
 		client.logInteraction(interaction, verifyId, 'slashCommand');
 
-		if (!await client.validatePermissions(interaction)) return;
+		if (!(await client.validatePermissions(interaction))) return;
 		await interaction.deferReply({ ephemeral: true });
 
 		const itemItemName = interaction.options.getString('name');

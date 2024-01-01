@@ -18,9 +18,9 @@
 
 */
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-module.exports = {
+export default {
     handler: async function (rustplus) {
         if (rustplus.informationIntervalCounter === 0) {
             await DiscordMessages.sendUpdateServerInformationMessage(rustplus);
@@ -35,4 +35,4 @@ module.exports = {
             rustplus.informationIntervalCounter += 1;
         }
     },
-}
+};
