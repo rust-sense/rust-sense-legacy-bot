@@ -86,6 +86,8 @@ jobs:
                   gh pr create \
                     --base develop \
                     --head ${{ env.UPDATE_BRANCH }} \
+                    --repo ${{ github.repository }} \
                     --title 'New changes from upstream rustplusplus' \
                     --body 'This is an automated PR to sync changes from the upstream rustplusplus repo into this one'
-
+              env:
+                  GH_TOKEN: ${{ github.token }}
