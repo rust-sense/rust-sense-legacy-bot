@@ -10,7 +10,6 @@
         "types": [
             "node"
         ],
-        "esModuleInterop": true,
-        "noImplicitAny": false
+        "esModuleInterop": true
     }
 }
