@@ -1,9 +1,16 @@
 {
     "extends": "@tsconfig/node-lts/tsconfig.json",
-    "include": ["src/**/*"],
-    "exclude": ["src/external/*"],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "src/external/*"
+    ],
     "compilerOptions": {
-        "types": ["node"],
+        "types": [
+            "node"
+        ],
+        "esModuleInterop": true,
         "noImplicitAny": false
     }
 }
