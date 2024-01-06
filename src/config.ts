@@ -11,6 +11,5 @@ export default {
         username: process.env.RPP_DISCORD_USERNAME,
         clientId: process.env.RPP_DISCORD_CLIENT_ID,
         token: process.env.RPP_DISCORD_TOKEN,
-        needAdminPrivileges: process.env.RPP_NEED_ADMIN_PRIVILEGES,
     },
 };
