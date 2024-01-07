@@ -1,11 +1,10 @@
 {
     "extends": "@tsconfig/node-lts/tsconfig.json",
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "lib/**/*"
     ],
-    "exclude": [
-        "src/external/*"
-    ],
+    "exclude": [],
     "compilerOptions": {
         "types": [
             "node"
