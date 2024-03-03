@@ -4,7 +4,7 @@ import DiscordEmbeds from '../discordTools/discordEmbeds';
 
 export default {
     name: 'interactionCreate',
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
 
         /* Check so that the interaction comes from valid channels */

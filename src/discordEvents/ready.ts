@@ -4,11 +4,12 @@ import Path from 'path';
 import BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
+import DiscordBot from '../core/DiscordBot.js';
 
 export default {
     name: 'ready',
     once: true,
-    async execute(client) {
+    async execute(client: DiscordBot) {
         for (const guild of client.guilds.cache) {
             require('../util/CreateInstanceFile')(client, guild[1]);
             require('../util/CreateCredentialsFile')(client, guild[1]);
@@ -22,6 +23,7 @@ export default {
                 name: client.user.tag,
             }),
         );
+
 
         try {
             await client.user.setUsername(Config.discord.username);

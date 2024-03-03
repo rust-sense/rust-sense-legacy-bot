@@ -2,11 +2,17 @@ import Builder from '@discordjs/builders';
 
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import Timer from '../util/timer.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
 
-export default {
-    name: 'decay',
+export default class DecayCommand extends DiscordCommand {
+    constructor() {
+        super('decay');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('decay')
             .setDescription(client.intlGet(guildId, 'commandsDecayDesc'))
@@ -19,9 +25,9 @@ export default {
             .addIntegerOption((option) =>
                 option.setName('hp').setDescription(client.intlGet(guildId, 'currentItemHp')).setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -209,5 +215,5 @@ export default {
 
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, decayString));
         client.log(client.intlGet(null, 'infoCap'), decayString);
-    },
-};
+    }
+}

@@ -3,11 +3,17 @@ import Builder from '@discordjs/builders';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools.js';
 import Constants from '../util/constants.js';
+import DiscordBot from '../core/DiscordBot.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 
-export default {
-    name: 'players',
+export default class PlayersCommand extends DiscordCommand {
+    constructor() {
+        super('players');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('players')
             .setDescription(client.intlGet(guildId, 'commandsPlayersDesc'))
@@ -56,9 +62,9 @@ export default {
                             .setRequired(false),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
@@ -184,7 +190,7 @@ async function playersPlayerIdHandler(client, interaction, battlemetricsId) {
     await displaySpecificUser(client, interaction, battlemetricsId, playerId);
 }
 
-async function displaySpecificUser(client, interaction, battlemetricsId, playerId) {
+async function displaySpecificUser(client: DiscordBot, interaction: ChatInputCommandInteraction, battlemetricsId: string, playerId: string) {
     const guildId = interaction.guildId;
     const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
@@ -336,7 +342,7 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
     );
 }
 
-async function displaySeveralUsers(client, interaction, battlemetricsId, playerIds, search) {
+async function displaySeveralUsers(client: DiscordBot, interaction: ChatInputCommandInteraction, battlemetricsId: string, playerIds: string[], search: string) {
     const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
     let totalCharacters = 0;

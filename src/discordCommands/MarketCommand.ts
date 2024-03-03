@@ -1,12 +1,18 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import Constants from '../util/constants.js';
 
-export default {
-    name: 'market',
+export default class MarketCommand extends DiscordCommand {
+    constructor() {
+        super('market');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('market')
             .setDescription(client.intlGet(guildId, 'commandsMarketDesc'))
@@ -97,9 +103,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('list').setDescription(client.intlGet(guildId, 'commandsMarketListDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
@@ -189,11 +195,8 @@ export default {
 
                             if (
                                 (orderType === 'all' &&
-                                    // @ts-expect-error TS(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                                     (orderItemId === parseInt(itemId) || orderCurrencyId === parseInt(itemId))) ||
-                                // @ts-expect-error TS(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                                 (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
-                                // @ts-expect-error TS(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
                                 (orderType === 'sell' && orderItemId === parseInt(itemId))
                             ) {
                                 if (foundLines === '') {
@@ -445,9 +448,7 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
-    },
-};
+    }
+}

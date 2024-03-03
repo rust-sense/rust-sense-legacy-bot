@@ -2,11 +2,17 @@ import Builder from '@discordjs/builders';
 
 import DiscordMessages from '../discordTools/discordMessages.js';
 import Timer from '../util/timer.js';
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import DiscordBot from '../core/DiscordBot.js';
 
-export default {
-    name: 'uptime',
+export default class UptimeCommand extends DiscordCommand {
+    constructor() {
+        super('uptime');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('uptime')
             .setDescription(client.intlGet(guildId, 'commandsUptimeDesc'))
@@ -16,10 +22,13 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('server').setDescription(client.intlGet(guildId, 'commandsUptimeServerDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
-        const rustplus = client.rustplusInstances[interaction.guildId];
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
+        const guildId = interaction.guildId;
+        if (guildId === null) return;
+
+        const rustplus = client.rustplusInstances[guildId];
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');

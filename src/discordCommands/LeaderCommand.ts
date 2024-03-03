@@ -1,11 +1,17 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot';
+import DiscordCommand from '../core/abstract/DiscordCommand';
 import DiscordEmbeds from '../discordTools/discordEmbeds';
 
-export default {
-    name: 'leader',
+export default class LeaderCommand extends DiscordCommand {
+    constructor() {
+        super('leader');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('leader')
             .setDescription(client.intlGet(guildId, 'commandsLeaderDesc'))
@@ -15,9 +21,9 @@ export default {
                     .setDescription(client.intlGet(guildId, 'commandsLeaderMemberDesc'))
                     .setRequired(true),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
@@ -123,5 +129,5 @@ export default {
             DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
         );
         rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str);
-    },
-};
+    }
+}

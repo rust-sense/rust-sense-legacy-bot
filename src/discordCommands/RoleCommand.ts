@@ -1,13 +1,19 @@
 import Builder from '@discordjs/builders';
 
-import DiscordEmbeds from '../discordTools/discordEmbeds';
-import DiscordTools from '../discordTools/discordTools';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordTools from '../discordTools/discordTools.js';
 import PermissionHandler from '../handlers/permissionHandler.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import DiscordBot from '../core/DiscordBot.js';
 
-export default {
-    name: 'role',
+export default class RoleCommand extends DiscordCommand {
+    constructor() {
+        super('role');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('role')
             .setDescription(client.intlGet(guildId, 'commandsRoleDesc'))
@@ -49,9 +55,9 @@ export default {
                         subCmd.setName('clear').setDescription(client.intlGet(guildId, 'commandsRoleAdminClearDesc')),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -128,5 +134,5 @@ export default {
                 value: `${interaction.options.getSubcommandGroup()} ${interaction.options.getSubcommand()}`,
             }),
         );
-    },
-};
+    }
+}

@@ -1,14 +1,20 @@
 import Builder from '@discordjs/builders';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
 import InstanceUtils from '../util/instanceUtils.js';
 
-export default {
-    name: 'credentials',
+export default class CredentialsCommand extends DiscordCommand {
+    constructor() {
+        super('credentials');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('credentials')
             .setDescription(client.intlGet(guildId, 'commandsCredentialsDesc'))
@@ -75,9 +81,9 @@ export default {
                             .setRequired(false),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
@@ -110,14 +116,12 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
-    },
-};
+    }
+}
 
-async function addCredentials(client, interaction, verifyId) {
+async function addCredentials(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     const guildId = interaction.guildId;
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     const steamId = interaction.options.getString('steam_id');
@@ -205,7 +209,7 @@ async function addCredentials(client, interaction, verifyId) {
     client.log(client.intlGet(null, 'infoCap'), str);
 }
 
-async function removeCredentials(client, interaction, verifyId) {
+async function removeCredentials(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     const guildId = interaction.guildId;
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     let steamId = interaction.options.getString('steam_id');
@@ -268,7 +272,7 @@ async function removeCredentials(client, interaction, verifyId) {
     client.log(client.intlGet(null, 'infoCap'), str);
 }
 
-async function showCredentials(client, interaction, verifyId) {
+async function showCredentials(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     client.log(
         client.intlGet(null, 'infoCap'),
         client.intlGet(null, 'slashCommandValueChange', {
@@ -280,7 +284,7 @@ async function showCredentials(client, interaction, verifyId) {
     await DiscordMessages.sendCredentialsShowMessage(interaction);
 }
 
-async function setHosterCredentials(client, interaction, verifyId) {
+async function setHosterCredentials(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     const guildId = interaction.guildId;
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     let steamId = interaction.options.getString('steam_id');

@@ -1,14 +1,19 @@
 import Builder from '@discordjs/builders';
 
-import Discord from 'discord.js';
+import Discord, { ChatInputCommandInteraction, Guild } from 'discord.js';
 import Path from 'path';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import Constants from '../util/constants.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import DiscordBot from '../core/DiscordBot.js';
 
-export default {
-    name: 'map',
+export default class MapCommand extends DiscordCommand {
+    constructor() {
+        super('map');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('map')
             .setDescription(client.intlGet(guildId, 'commandsMapDesc'))
@@ -24,9 +29,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('markers').setDescription(client.intlGet(guildId, 'commandsMapMarkersDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
@@ -69,19 +74,15 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
 
         let file = null;
         if (interaction.options.getSubcommand() === 'clean') {
-            // @ts-expect-error TS(2322) FIXME: Type 'AttachmentBuilder' is not assignable to type... Remove this comment to see the full error message
             file = new Discord.AttachmentBuilder(
                 Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_clean.png`),
             );
         } else {
-            // @ts-expect-error TS(2322) FIXME: Type 'AttachmentBuilder' is not assignable to type... Remove this comment to see the full error message
             file = new Discord.AttachmentBuilder(
                 Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_full.png`),
             );
@@ -111,5 +112,5 @@ export default {
             client.intlGet(interaction.guildId, 'infoCap'),
             client.intlGet(interaction.guildId, 'displayingMap', { mapName: fileName }),
         );
-    },
-};
+    }
+}

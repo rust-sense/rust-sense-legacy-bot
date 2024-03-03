@@ -1,11 +1,17 @@
 import Builder from '@discordjs/builders';
 
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordBot from '../core/DiscordBot.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 
-export default {
-    name: 'upkeep',
+export default class UpkeepCommand extends DiscordCommand {
+    constructor() {
+        super('upkeep');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('upkeep')
             .setDescription(client.intlGet(guildId, 'commandsUpkeepDesc'))
@@ -15,9 +21,9 @@ export default {
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -114,11 +120,9 @@ export default {
         const details = upkeepDetails[3];
 
         const items = [];
-        // @ts-expect-error TS(2488) FIXME: Type 'never' must have a '[Symbol.iterator]()' met... Remove this comment to see the full error message
         for (const item of details) {
             const name = client.items.getName(item.id);
             const quantity = item.quantity;
-            // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
             items.push(`${quantity} ${name}`);
         }
 
@@ -137,5 +141,5 @@ export default {
 
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
         client.log(client.intlGet(null, 'infoCap'), str);
-    },
-};
+    }
+}

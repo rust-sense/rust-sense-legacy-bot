@@ -4,11 +4,17 @@ import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import SmartSwitchGroupHandler from '../handlers/smartSwitchGroupHandler.js';
 import InstanceUtils from '../util/instanceUtils.js';
+import DiscordBot from '../core/DiscordBot.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 
-export default {
-    name: 'switch',
+export default class SwitchCommand extends DiscordCommand {
+    constructor() {
+        super('switch');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('switch')
             .setDescription(client.intlGet(guildId, 'commandsSwitchDesc'))
@@ -47,10 +53,12 @@ export default {
                             ),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
+        if (guildId === null) return;
+
         const instance = client.getInstance(guildId);
         const rustplus = client.rustplusInstances[guildId];
 
@@ -135,9 +143,7 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
-    },
-};
+    }
+}

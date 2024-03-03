@@ -1,13 +1,18 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import InstanceUtils from '../util/instanceUtils.js';
 
-export default {
-    name: 'storagemonitor',
+export default class StorageMonitorCommand extends DiscordCommand {
+    constructor() {
+        super('storagemonitor');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('storagemonitor')
             .setDescription(client.intlGet(guildId, 'commandsStoragemonitorDesc'))
@@ -34,10 +39,12 @@ export default {
                             ),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
+        if (guildId === null) return;
+
         const instance = client.getInstance(guildId);
         const rustplus = client.rustplusInstances[guildId];
 
@@ -90,9 +97,7 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
-    },
-};
+    }
+}

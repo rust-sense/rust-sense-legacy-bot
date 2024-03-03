@@ -1,11 +1,10 @@
 import FormatJS from '@formatjs/intl';
 
-import Discord from 'discord.js';
+import Discord, { ClientOptions } from 'discord.js';
 import Fs from 'fs';
 import { IntlMessageFormat } from 'intl-messageformat';
 import Path from 'path';
 import Config from '../config';
-import Cctv from './Cctv';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools';
 import PermissionHandler from '../handlers/permissionHandler.js';
@@ -14,8 +13,10 @@ import RustLabs from '../structures/RustLabs';
 import RustPlus from '../structures/RustPlus';
 import Constants from '../util/constants.js';
 import InstanceUtils from '../util/instanceUtils.js';
+import Cctv from './Cctv';
 import Items from './Items';
 import Logger from './Logger.js';
+import RustPlusLite from './RustPlusLite';
 
 class DiscordBot extends Discord.Client {
     activeRustplusInstances: any;
@@ -34,15 +35,15 @@ class DiscordBot extends Discord.Client {
     logger: any;
     pollingIntervalMs: any;
     rustlabs: any;
-    rustplusInstances: any;
+    rustplusInstances: { [key: string]: RustPlus | RustPlusLite };
     rustplusLiteReconnectTimers: any;
     rustplusMaps: any;
     rustplusReconnectTimers: any;
     rustplusReconnecting: any;
     uptimeBot: any;
     voiceLeaveTimeouts: any;
-    constructor(props) {
-        super(props);
+    constructor(options: ClientOptions) {
+        super(options);
 
         this.logger = new Logger(Path.join(__dirname, '..', '..', 'logs/discordBot.log'), 'default');
 
@@ -82,6 +83,8 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordCommands() {
+        const commandInstances = [];
+
         const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) =>
             file.endsWith('.js'),
         );
@@ -174,7 +177,7 @@ class DiscordBot extends Discord.Client {
         return intlInstance.formatMessage({ id, defaultMessage }, variables);
     }
 
-    intlGet(guildId, id, variables = {}) {
+    intlGet(guildId: string | null, id: string, variables = {}) {
         // Bot Intl formatting
         if (guildId === null) {
             const intlInstance = this.checkLocaleIntlLoad(Config.general.language);

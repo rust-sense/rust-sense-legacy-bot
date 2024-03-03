@@ -1,13 +1,19 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import InstanceUtils from '../util/instanceUtils.js';
 
-export default {
-    name: 'alarm',
+export default class AlarmCommand extends DiscordCommand {
+    constructor() {
+        super('alarm');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('alarm')
             .setDescription(client.intlGet(guildId, 'commandsAlarmDesc'))
@@ -46,9 +52,9 @@ export default {
                             ),
                     ),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
 
@@ -97,9 +103,7 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
-    },
-};
+    }
+}

@@ -2,11 +2,17 @@ import Builder from '@discordjs/builders';
 
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
+import DiscordBot from '../core/DiscordBot.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 
-export default {
-    name: 'item',
+export default class ItemCommand extends DiscordCommand {
+    constructor() {
+        super('item');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('item')
             .setDescription(client.intlGet(guildId, 'commandsItemDesc'))
@@ -16,9 +22,9 @@ export default {
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -38,7 +44,6 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestOtherNameByName(itemItemName);
                 if (foundName) {
-                    // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 }
             }
@@ -46,7 +51,6 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestBuildingBlockNameByName(itemItemName);
                 if (foundName) {
-                    // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 }
             }
@@ -54,7 +58,6 @@ export default {
             if (!foundName) {
                 foundName = client.items.getClosestItemIdByName(itemItemName);
                 if (foundName) {
-                    // @ts-expect-error TS(2322) FIXME: Type '"items"' is not assignable to type 'null'.
                     type = 'items';
                 }
             }
@@ -102,5 +105,5 @@ export default {
 
         await DiscordMessages.sendItemMessage(interaction, itemName, itemId, type);
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsItemDesc'));
-    },
-};
+    }
+}

@@ -1,17 +1,23 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 
-export default {
-    name: 'help',
+export default class HelpCommand extends DiscordCommand {
+    constructor() {
+        super('help');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('help')
             .setDescription(client.intlGet(guildId, 'commandsHelpDesc'));
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
@@ -19,5 +25,5 @@ export default {
 
         await DiscordMessages.sendHelpMessage(interaction);
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsHelpDesc'));
-    },
-};
+    }
+}

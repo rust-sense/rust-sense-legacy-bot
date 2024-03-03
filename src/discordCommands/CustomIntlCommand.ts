@@ -2,11 +2,18 @@ import Builder from '@discordjs/builders';
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config/index.js' or its ... Remove this comment to see the full error message
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import Constants from '../util/constants.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import { Guild, ChatInputCommandInteraction } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
 
-export default {
-    name: 'customintl',
+export default class CustomIntlCommand extends DiscordCommand {
+    constructor() {
+        super('customintl');
+    }
 
-    getData(client, guildId) {
+
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('customintl')
             .setDescription(client.intlGet(guildId, 'commandsCustomIntlDesc'))
@@ -41,9 +48,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('show').setDescription(client.intlGet(guildId, 'commandsCustomIntlShowDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
@@ -67,10 +74,10 @@ export default {
             default:
                 break;
         }
-    },
-};
+    }
+}
 
-async function setCustomIntl(client, interaction, verifyId) {
+async function setCustomIntl(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     const guildId = interaction.guildId;
 
     if (!client.isAdministrator(interaction)) {
@@ -106,7 +113,7 @@ async function setCustomIntl(client, interaction, verifyId) {
     client.log(client.intlGet(null, 'infoCap'), str);
 }
 
-async function resetCustomIntl(client, interaction, verifyId) {
+async function resetCustomIntl(client: DiscordBot, interaction: ChatInputCommandInteraction, verifyId: number) {
     const guildId = interaction.guildId;
 
     if (!client.isAdministrator(interaction)) {
@@ -140,7 +147,7 @@ async function resetCustomIntl(client, interaction, verifyId) {
     client.log(client.intlGet(null, 'infoCap'), str);
 }
 
-async function showCustomIntl(client, interaction) {
+async function showCustomIntl(client: DiscordBot, interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId;
 
     const guildInstance = client.getInstance(guildId);

@@ -1,12 +1,18 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import Constants from '../util/constants.js';
 
-export default {
-    name: 'alias',
+export default class AliasCommand extends DiscordCommand {
+    constructor() {
+        super('alias');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('alias')
             .setDescription(client.intlGet(guildId, 'commandsAliasDesc'))
@@ -41,9 +47,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('show').setDescription(client.intlGet(guildId, 'commandsAliasShowDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
@@ -52,26 +58,18 @@ export default {
 
         switch (interaction.options.getSubcommand()) {
             case 'add':
-                {
-                    await addAlias(client, interaction);
-                }
+                await addAlias(client, interaction);
                 break;
 
             case 'remove':
-                {
-                    await removeAlias(client, interaction);
-                }
+                await removeAlias(client, interaction);
                 break;
 
             case 'show':
-                {
-                    await showAlias(client, interaction);
-                }
+                await showAlias(client, interaction);
                 break;
 
             default:
-                {
-                }
                 break;
         }
 
@@ -84,10 +82,10 @@ export default {
                     `${interaction.options.getString('value')} ${interaction.options.getInteger('index')}`,
             }),
         );
-    },
-};
+    }
+}
 
-async function addAlias(client, interaction) {
+async function addAlias(client: DiscordBot, interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 
@@ -104,7 +102,7 @@ async function addAlias(client, interaction) {
     }
 
     let index = 0;
-    while (true) {
+    while (true as const) {
         if (!instance.aliases.some((e) => e.index === index)) break;
         index += 1;
     }
@@ -118,7 +116,7 @@ async function addAlias(client, interaction) {
     return;
 }
 
-async function removeAlias(client, interaction) {
+async function removeAlias(client: DiscordBot, interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 
@@ -140,7 +138,7 @@ async function removeAlias(client, interaction) {
     return;
 }
 
-async function showAlias(client, interaction) {
+async function showAlias(client: DiscordBot, interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 

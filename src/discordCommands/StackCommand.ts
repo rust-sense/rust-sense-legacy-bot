@@ -1,30 +1,29 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import DiscordMessages from '../discordTools/discordMessages.js';
 
-export default {
-    name: 'craft',
+export default class StackCommand extends DiscordCommand {
+    constructor() {
+        super('stack');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
-            .setName('craft')
-            .setDescription(client.intlGet(guildId, 'commandsCraftDesc'))
+            .setName('stack')
+            .setDescription(client.intlGet(guildId, 'commandsStackDesc'))
             .addStringOption((option) =>
                 option.setName('name').setDescription(client.intlGet(guildId, 'theNameOfTheItem')).setRequired(false),
             )
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
-            )
-            .addIntegerOption((option) =>
-                option
-                    .setName('quantity')
-                    .setDescription(client.intlGet(guildId, 'commandsCraftQuantityDesc'))
-                    .setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -33,16 +32,15 @@ export default {
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
-        const craftItemName = interaction.options.getString('name');
-        const craftItemId = interaction.options.getString('id');
-        const craftItemQuantity = interaction.options.getInteger('quantity');
+        const stackItemName = interaction.options.getString('name');
+        const stackItemId = interaction.options.getString('id');
 
         let itemId = null;
-        if (craftItemName !== null) {
-            const item = client.items.getClosestItemIdByName(craftItemName);
+        if (stackItemName !== null) {
+            const item = client.items.getClosestItemIdByName(stackItemName);
             if (item === null) {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: craftItemName,
+                    name: stackItemName,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -50,18 +48,18 @@ export default {
             } else {
                 itemId = item;
             }
-        } else if (craftItemId !== null) {
-            if (client.items.itemExist(craftItemId)) {
-                itemId = craftItemId;
+        } else if (stackItemId !== null) {
+            if (client.items.itemExist(stackItemId)) {
+                itemId = stackItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: craftItemId,
+                    id: stackItemId,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
             }
-        } else if (craftItemName === null && craftItemId === null) {
+        } else if (stackItemName === null && stackItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -69,9 +67,9 @@ export default {
         }
         const itemName = client.items.getName(itemId);
 
-        const craftDetails = client.rustlabs.getCraftDetailsById(itemId);
-        if (craftDetails === null) {
-            const str = client.intlGet(guildId, 'couldNotFindCraftDetails', {
+        const stackDetails = client.rustlabs.getStackDetailsById(itemId);
+        if (stackDetails === null) {
+            const str = client.intlGet(guildId, 'couldNotFindStackDetails', {
                 name: itemName,
             });
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
@@ -79,17 +77,22 @@ export default {
             return;
         }
 
-        const quantity = craftItemQuantity === null ? 1 : craftItemQuantity;
+        const quantity = stackDetails[2].quantity;
 
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'slashCommandValueChange', {
                 id: `${verifyId}`,
-                value: `${craftItemName} ${craftItemId} ${craftItemQuantity}`,
+                value: `${stackItemName} ${stackItemId}`,
             }),
         );
 
-        await DiscordMessages.sendCraftMessage(interaction, craftDetails, quantity);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCraftDesc'));
-    },
-};
+        const str = client.intlGet(guildId, 'stackSizeOfItem', {
+            item: itemName,
+            quantity: quantity,
+        });
+
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+        client.log(client.intlGet(null, 'infoCap'), str);
+    }
+}

@@ -1,5 +1,12 @@
-export default abstract class DiscordEventHandler {
-    constructor(public eventName: string) {}
+import { ChatInputCommandInteraction, Guild, SlashCommandBuilder, ToAPIApplicationCommandOptions } from 'discord.js';
+import DiscordBot from '../DiscordBot';
 
-    abstract execute(): Promise<void>;
+export type SlashCommandBuilderOnlyToAPI = Pick<SlashCommandBuilder, keyof ToAPIApplicationCommandOptions>;
+
+export default abstract class DiscordCommand {
+    constructor(public commandName: string) {}
+
+    abstract builder(client: DiscordBot, guild: Guild): Promise<SlashCommandBuilderOnlyToAPI>;
+
+    abstract execute(client: DiscordBot, interaction: ChatInputCommandInteraction): Promise<unknown>;
 }

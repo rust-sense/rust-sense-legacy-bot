@@ -1,15 +1,21 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools.js';
 import PermissionHandler from '../handlers/permissionHandler.js';
 import Constants from '../util/constants.js';
 import Scrape from '../util/scrape.js';
 
-export default {
-    name: 'blacklist',
+export default class BlacklistCommand extends DiscordCommand {
+    constructor() {
+        super('blacklist');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('blacklist')
             .setDescription(client.intlGet(guildId, 'commandsBlacklistDesc'))
@@ -50,9 +56,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('show').setDescription(client.intlGet(guildId, 'commandsBlacklistShowDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
 
@@ -269,11 +275,9 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
 
         return;
-    },
-};
+    }
+}

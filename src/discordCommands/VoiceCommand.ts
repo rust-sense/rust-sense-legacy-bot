@@ -1,12 +1,18 @@
 import Builder from '@discordjs/builders';
 
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
+import { ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 
-export default {
-    name: 'voice',
+export default class VoiceCommand extends DiscordCommand {
+    constructor() {
+        super('voice');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('voice')
             .setDescription(client.intlGet(guildId, 'commandsVoiceDesc'))
@@ -16,27 +22,31 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('leave').setDescription(client.intlGet(guildId, 'commandsVoiceLeaveDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const verifyId = Math.floor(100000 + Math.random() * 900000);
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
+        if (interaction.guild === null) return;
+
         switch (interaction.options.getSubcommand()) {
             case 'join':
                 {
-                    const voiceState = interaction.member.voice;
+                    const voiceState = (interaction.member as GuildMember).voice;
                     if (voiceState && voiceState.channel) {
-                        const voiceChannelId = voiceState.channel.id;
-                        const voiceChannel = interaction.guild.channels.cache.get(voiceChannelId);
+                        const voiceChannel = voiceState.channel;
+
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const connection = joinVoiceChannel({
                             channelId: voiceChannel.id,
                             guildId: interaction.guild.id,
                             adapterCreator: interaction.guild.voiceAdapterCreator,
                         });
+
                         await DiscordMessages.sendVoiceMessage(
                             interaction,
                             client.intlGet(interaction.guildId, 'commandsVoiceBotJoinedVoice'),
@@ -80,8 +90,6 @@ export default {
                 break;
 
             default:
-                {
-                }
                 break;
         }
 
@@ -92,5 +100,5 @@ export default {
                 value: `${interaction.options.getSubcommand()}`,
             }),
         );
-    },
-};
+    }
+}

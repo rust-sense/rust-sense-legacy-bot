@@ -1,15 +1,21 @@
 import Builder from '@discordjs/builders';
 
 // @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
 import PermissionHandler from '../handlers/permissionHandler.js';
 
-export default {
-    name: 'reset',
+export default class ResetCommand extends DiscordCommand {
+    constructor() {
+        super('reset');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
             .setName('reset')
             .setDescription(client.intlGet(guildId, 'commandsResetDesc'))
@@ -41,9 +47,9 @@ export default {
             .addSubcommand((subcommand) =>
                 subcommand.setName('trackers').setDescription(client.intlGet(guildId, 'commandsResetTrackersDesc')),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const instance = client.getInstance(interaction.guildId);
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -274,5 +280,5 @@ export default {
         const str = client.intlGet(interaction.guildId, 'resetSuccess');
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
         client.log(client.intlGet(null, 'infoCap'), str);
-    },
-};
+    }
+}

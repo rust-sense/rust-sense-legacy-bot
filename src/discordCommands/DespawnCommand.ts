@@ -1,30 +1,29 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import DiscordMessages from '../discordTools/discordMessages.js';
 
-export default {
-    name: 'recycle',
+export default class DespawnCommand extends DiscordCommand {
+    constructor() {
+        super('despawn');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
-            .setName('recycle')
-            .setDescription(client.intlGet(guildId, 'commandsRecycleDesc'))
+            .setName('despawn')
+            .setDescription(client.intlGet(guildId, 'commandsStackDesc'))
             .addStringOption((option) =>
                 option.setName('name').setDescription(client.intlGet(guildId, 'theNameOfTheItem')).setRequired(false),
             )
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
-            )
-            .addIntegerOption((option) =>
-                option
-                    .setName('quantity')
-                    .setDescription(client.intlGet(guildId, 'commandsRecycleQuantityDesc'))
-                    .setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -33,16 +32,15 @@ export default {
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
-        const recycleItemName = interaction.options.getString('name');
-        const recycleItemId = interaction.options.getString('id');
-        const recycleItemQuantity = interaction.options.getInteger('quantity');
+        const despawnItemName = interaction.options.getString('name');
+        const despawnItemId = interaction.options.getString('id');
 
         let itemId = null;
-        if (recycleItemName !== null) {
-            const item = client.items.getClosestItemIdByName(recycleItemName);
+        if (despawnItemName !== null) {
+            const item = client.items.getClosestItemIdByName(despawnItemName);
             if (item === null) {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: recycleItemName,
+                    name: despawnItemName,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -50,18 +48,18 @@ export default {
             } else {
                 itemId = item;
             }
-        } else if (recycleItemId !== null) {
-            if (client.items.itemExist(recycleItemId)) {
-                itemId = recycleItemId;
+        } else if (despawnItemId !== null) {
+            if (client.items.itemExist(despawnItemId)) {
+                itemId = despawnItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: recycleItemId,
+                    id: despawnItemId,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
             }
-        } else if (recycleItemName === null && recycleItemId === null) {
+        } else if (despawnItemName === null && despawnItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -69,9 +67,9 @@ export default {
         }
         const itemName = client.items.getName(itemId);
 
-        const recycleDetails = client.rustlabs.getRecycleDetailsById(itemId);
-        if (recycleDetails === null) {
-            const str = client.intlGet(guildId, 'couldNotFindRecycleDetails', {
+        const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);
+        if (despawnDetails === null) {
+            const str = client.intlGet(guildId, 'couldNotFindDespawnDetails', {
                 name: itemName,
             });
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
@@ -79,17 +77,22 @@ export default {
             return;
         }
 
-        const quantity = recycleItemQuantity === null ? 1 : recycleItemQuantity;
+        const despawnTime = despawnDetails[2].timeString;
 
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'slashCommandValueChange', {
                 id: `${verifyId}`,
-                value: `${recycleItemName} ${recycleItemId} ${recycleItemQuantity}`,
+                value: `${despawnItemName} ${despawnItemId}`,
             }),
         );
 
-        await DiscordMessages.sendRecycleMessage(interaction, recycleDetails, quantity);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsRecycleDesc'));
-    },
-};
+        const str = client.intlGet(guildId, 'despawnTimeOfItem', {
+            item: itemName,
+            time: despawnTime,
+        });
+
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+        client.log(client.intlGet(null, 'infoCap'), str);
+    }
+}

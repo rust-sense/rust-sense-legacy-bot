@@ -1,23 +1,36 @@
 import Builder from '@discordjs/builders';
 
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import DiscordBot from '../core/DiscordBot.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import DiscordMessages from '../discordTools/discordMessages.js';
 
-export default {
-    name: 'despawn',
+export default class CraftCommand extends DiscordCommand {
+    constructor() {
+        super('craft');
+    }
 
-    getData(client, guildId) {
+    async builder(client: DiscordBot, guild: Guild) {
+        const guildId = guild.id;
         return new Builder.SlashCommandBuilder()
-            .setName('despawn')
-            .setDescription(client.intlGet(guildId, 'commandsStackDesc'))
+            .setName('craft')
+            .setDescription(client.intlGet(guildId, 'commandsCraftDesc'))
             .addStringOption((option) =>
                 option.setName('name').setDescription(client.intlGet(guildId, 'theNameOfTheItem')).setRequired(false),
             )
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
+            )
+            .addIntegerOption((option) =>
+                option
+                    .setName('quantity')
+                    .setDescription(client.intlGet(guildId, 'commandsCraftQuantityDesc'))
+                    .setRequired(false),
             );
-    },
+    }
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId;
 
         const verifyId = Math.floor(100000 + Math.random() * 900000);
@@ -26,15 +39,16 @@ export default {
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
-        const despawnItemName = interaction.options.getString('name');
-        const despawnItemId = interaction.options.getString('id');
+        const craftItemName = interaction.options.getString('name');
+        const craftItemId = interaction.options.getString('id');
+        const craftItemQuantity = interaction.options.getInteger('quantity');
 
         let itemId = null;
-        if (despawnItemName !== null) {
-            const item = client.items.getClosestItemIdByName(despawnItemName);
+        if (craftItemName !== null) {
+            const item = client.items.getClosestItemIdByName(craftItemName);
             if (item === null) {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: despawnItemName,
+                    name: craftItemName,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -42,18 +56,18 @@ export default {
             } else {
                 itemId = item;
             }
-        } else if (despawnItemId !== null) {
-            if (client.items.itemExist(despawnItemId)) {
-                itemId = despawnItemId;
+        } else if (craftItemId !== null) {
+            if (client.items.itemExist(craftItemId)) {
+                itemId = craftItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: despawnItemId,
+                    id: craftItemId,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
             }
-        } else if (despawnItemName === null && despawnItemId === null) {
+        } else if (craftItemName === null && craftItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -61,9 +75,9 @@ export default {
         }
         const itemName = client.items.getName(itemId);
 
-        const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);
-        if (despawnDetails === null) {
-            const str = client.intlGet(guildId, 'couldNotFindDespawnDetails', {
+        const craftDetails = client.rustlabs.getCraftDetailsById(itemId);
+        if (craftDetails === null) {
+            const str = client.intlGet(guildId, 'couldNotFindCraftDetails', {
                 name: itemName,
             });
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
@@ -71,22 +85,17 @@ export default {
             return;
         }
 
-        const despawnTime = despawnDetails[2].timeString;
+        const quantity = craftItemQuantity === null ? 1 : craftItemQuantity;
 
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'slashCommandValueChange', {
                 id: `${verifyId}`,
-                value: `${despawnItemName} ${despawnItemId}`,
+                value: `${craftItemName} ${craftItemId} ${craftItemQuantity}`,
             }),
         );
 
-        const str = client.intlGet(guildId, 'despawnTimeOfItem', {
-            item: itemName,
-            time: despawnTime,
-        });
-
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-        client.log(client.intlGet(null, 'infoCap'), str);
-    },
-};
+        await DiscordMessages.sendCraftMessage(interaction, craftDetails, quantity);
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCraftDesc'));
+    }
+}
