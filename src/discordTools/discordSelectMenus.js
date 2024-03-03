@@ -1,23 +1,3 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const Discord = require('discord.js');
 const Fs = require('fs');
 const Path = require('path');
@@ -44,32 +24,34 @@ module.exports = {
     },
 
     getLanguageSelectMenu: function (guildId, language) {
-        const languageFiles = Fs.readdirSync(
-            Path.join(__dirname, '..', 'languages')).filter(file => file.endsWith('.json'));
+        const languageFiles = Fs.readdirSync(Path.join(__dirname, '..', 'languages')).filter((file) =>
+            file.endsWith('.json'),
+        );
 
         const options = [];
         for (const language of languageFiles) {
-            const langShort = language.replace('.json', '')
-            let langLong = Object.keys(Languages).find(e => Languages[e] === langShort)
+            const langShort = language.replace('.json', '');
+            let langLong = Object.keys(Languages).find((e) => Languages[e] === langShort);
             if (!langLong) langLong = Client.client.intlGet(guildId, 'unknown');
             options.push({
                 label: `${langLong} (${langShort})`,
                 description: Client.client.intlGet(guildId, 'setBotLanguage', {
-                    language: `${langLong} (${langShort})`
+                    language: `${langLong} (${langShort})`,
                 }),
-                value: langShort
+                value: langShort,
             });
         }
 
-        let currentLanguage = Object.keys(Languages).find(e => Languages[e] === language);
+        let currentLanguage = Object.keys(Languages).find((e) => Languages[e] === language);
         if (!currentLanguage) currentLanguage = Client.client.intlGet(guildId, 'unknown');
 
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'language',
                 placeholder: `${currentLanguage} (${language})`,
-                options: options
-            }));
+                options: options,
+            }),
+        );
     },
 
     getPrefixSelectMenu: function (guildId, prefix) {
@@ -102,8 +84,10 @@ module.exports = {
                     { label: '^', description: Client.client.intlGet(guildId, 'circumflex'), value: '^' },
                     { label: '♥', description: Client.client.intlGet(guildId, 'heart'), value: '♥' },
                     { label: '☺', description: Client.client.intlGet(guildId, 'smilyFace'), value: '☺' },
-                    { label: '/', description: Client.client.intlGet(guildId, 'slash'), value: '/' }]
-            }));
+                    { label: '/', description: Client.client.intlGet(guildId, 'slash'), value: '/' },
+                ],
+            }),
+        );
     },
 
     getTrademarkOption: function (guildId, trademark) {
@@ -148,71 +132,73 @@ module.exports = {
                     {
                         label: Client.client.intlGet(guildId, 'noDelayCap'),
                         description: Client.client.intlGet(guildId, 'noCommandDelay'),
-                        value: '0'
+                        value: '0',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'second', { second: '1' }),
                         description: Client.client.intlGet(guildId, 'secondCommandDelay', {
-                            second: Client.client.intlGet(guildId, 'one')
+                            second: Client.client.intlGet(guildId, 'one'),
                         }),
-                        value: '1'
+                        value: '1',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '2' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'two')
+                            seconds: Client.client.intlGet(guildId, 'two'),
                         }),
-                        value: '2'
+                        value: '2',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '3' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'three')
+                            seconds: Client.client.intlGet(guildId, 'three'),
                         }),
-                        value: '3'
+                        value: '3',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '4' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'four')
+                            seconds: Client.client.intlGet(guildId, 'four'),
                         }),
-                        value: '4'
+                        value: '4',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '5' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'five')
+                            seconds: Client.client.intlGet(guildId, 'five'),
                         }),
-                        value: '5'
+                        value: '5',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '6' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'six')
+                            seconds: Client.client.intlGet(guildId, 'six'),
                         }),
-                        value: '6'
+                        value: '6',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '7' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'seven')
+                            seconds: Client.client.intlGet(guildId, 'seven'),
                         }),
-                        value: '7'
+                        value: '7',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'seconds', { seconds: '8' }),
                         description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'eight')
+                            seconds: Client.client.intlGet(guildId, 'eight'),
                         }),
-                        value: '8'
-                    }]
-            }));
+                        value: '8',
+                    },
+                ],
+            }),
+        );
     },
 
     getSmartSwitchSelectMenu: function (guildId, serverId, entityId) {
         const instance = Client.client.getInstance(guildId);
         const entity = instance.serverList[serverId].switches[entityId];
-        const identifier = JSON.stringify({ "serverId": serverId, "entityId": entityId });
+        const identifier = JSON.stringify({ serverId: serverId, entityId: entityId });
 
         const autoSetting = Client.client.intlGet(guildId, 'autoSettingCap');
         const off = Client.client.intlGet(guildId, 'offCap');
@@ -244,69 +230,75 @@ module.exports = {
                     {
                         label: off,
                         description: Client.client.intlGet(guildId, 'smartSwitchNormal'),
-                        value: '0'
+                        value: '0',
                     },
                     {
                         label: autoDay,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoDay'),
-                        value: '1'
+                        value: '1',
                     },
                     {
                         label: autoNight,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoNight'),
-                        value: '2'
+                        value: '2',
                     },
                     {
                         label: autoOn,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOn'),
-                        value: '3'
+                        value: '3',
                     },
                     {
                         label: autoOff,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOff'),
-                        value: '4'
+                        value: '4',
                     },
                     {
                         label: autoOnProximity,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOnProximity'),
-                        value: '5'
+                        value: '5',
                     },
                     {
                         label: autoOffProximity,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOffProximity'),
-                        value: '6'
+                        value: '6',
                     },
                     {
                         label: autoOnAnyOnline,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOnAnyOnline'),
-                        value: '7'
+                        value: '7',
                     },
                     {
                         label: autoOffAnyOnline,
                         description: Client.client.intlGet(guildId, 'smartSwitchAutoOffAnyOnline'),
-                        value: '8'
-                    }]
-            }));
+                        value: '8',
+                    },
+                ],
+            }),
+        );
     },
 
     getVoiceGenderSelectMenu: function (guildId, gender) {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'VoiceGender',
-                placeholder: `${gender === 'male' ?
-                    Client.client.intlGet(guildId, 'commandsVoiceMale') :
-                    Client.client.intlGet(guildId, 'commandsVoiceFemale')}`,
+                placeholder: `${
+                    gender === 'male'
+                        ? Client.client.intlGet(guildId, 'commandsVoiceMale')
+                        : Client.client.intlGet(guildId, 'commandsVoiceFemale')
+                }`,
                 options: [
                     {
                         label: Client.client.intlGet(guildId, 'commandsVoiceMale'),
                         description: Client.client.intlGet(guildId, 'commandsVoiceMaleDescription'),
-                        value: 'male'
+                        value: 'male',
                     },
                     {
                         label: Client.client.intlGet(guildId, 'commandsVoiceFemale'),
                         description: Client.client.intlGet(guildId, 'commandsVoiceFemaleDescription'),
-                        value: 'female'
-                    }]
-            }));
+                        value: 'female',
+                    },
+                ],
+            }),
+        );
     },
-}
+};

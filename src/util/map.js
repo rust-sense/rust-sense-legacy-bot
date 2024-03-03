@@ -1,23 +1,3 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const Client = require('../../index.ts');
 
 module.exports = {
@@ -25,46 +5,46 @@ module.exports = {
 
     getPos: function (x, y, mapSize, rustplus) {
         const correctedMapSize = module.exports.getCorrectedMapSize(mapSize);
-        const pos = { location: null, monument: null, string: null, x: x, y: y }
+        const pos = { location: null, monument: null, string: null, x: x, y: y };
 
         if (module.exports.isOutsideGridSystem(x, y, correctedMapSize)) {
             if (module.exports.isOutsideRowOrColumn(x, y, correctedMapSize)) {
                 if (x < 0 && y > correctedMapSize) {
                     pos.location = Client.client.intlGet(rustplus.guildId, 'northWest');
-                }
-                else if (x < 0 && y < 0) {
+                } else if (x < 0 && y < 0) {
                     pos.location = Client.client.intlGet(rustplus.guildId, 'southWest');
-                }
-                else if (x > correctedMapSize && y > correctedMapSize) {
+                } else if (x > correctedMapSize && y > correctedMapSize) {
                     pos.location = Client.client.intlGet(rustplus.guildId, 'northEast');
-                }
-                else {
+                } else {
                     pos.location = Client.client.intlGet(rustplus.guildId, 'southEast');
                 }
-            }
-            else {
+            } else {
                 let str = '';
                 if (x < 0 || x > correctedMapSize) {
-                    str += (x < 0) ? Client.client.intlGet(rustplus.guildId, 'westOfGrid') :
-                        Client.client.intlGet(rustplus.guildId, 'eastOfGrid');
+                    str +=
+                        x < 0
+                            ? Client.client.intlGet(rustplus.guildId, 'westOfGrid')
+                            : Client.client.intlGet(rustplus.guildId, 'eastOfGrid');
                     str += ` ${module.exports.getGridPosNumberY(y, correctedMapSize)}`;
-                }
-                else {
-                    str += (y < 0) ? Client.client.intlGet(rustplus.guildId, 'southOfGrid') :
-                        Client.client.intlGet(rustplus.guildId, 'northOfGrid');
+                } else {
+                    str +=
+                        y < 0
+                            ? Client.client.intlGet(rustplus.guildId, 'southOfGrid')
+                            : Client.client.intlGet(rustplus.guildId, 'northOfGrid');
                     str += ` ${module.exports.getGridPosLettersX(x, correctedMapSize)}`;
                 }
                 pos.location = str;
             }
-        }
-        else {
+        } else {
             pos.location = module.exports.getGridPos(x, y, mapSize);
         }
 
         for (const monument of rustplus.map.monuments) {
             if (monument.token === 'DungeonBase' || !(monument.token in rustplus.map.monumentInfo)) continue;
-            if (module.exports.getDistance(x, y, monument.x, monument.y) <=
-                rustplus.map.monumentInfo[monument.token].radius) {
+            if (
+                module.exports.getDistance(x, y, monument.x, monument.y) <=
+                rustplus.map.monumentInfo[monument.token].radius
+            ) {
                 pos.monument = rustplus.map.monumentInfo[monument.token].clean;
                 break;
             }
@@ -92,7 +72,7 @@ module.exports = {
     getGridPosLettersX: function (x, mapSize) {
         let counter = 1;
         for (let startGrid = 0; startGrid < mapSize; startGrid += module.exports.gridDiameter) {
-            if (x >= startGrid && x <= (startGrid + module.exports.gridDiameter)) {
+            if (x >= startGrid && x <= startGrid + module.exports.gridDiameter) {
                 /* We're at the correct grid! */
                 return module.exports.numberToLetters(counter);
             }
@@ -104,7 +84,7 @@ module.exports = {
         let counter = 1;
         const numberOfGrids = Math.floor(mapSize / module.exports.gridDiameter);
         for (let startGrid = 0; startGrid < mapSize; startGrid += module.exports.gridDiameter) {
-            if (y >= startGrid && y <= (startGrid + module.exports.gridDiameter)) {
+            if (y >= startGrid && y <= startGrid + module.exports.gridDiameter) {
                 /* We're at the correct grid! */
                 return numberOfGrids - counter;
             }
@@ -114,7 +94,7 @@ module.exports = {
 
     numberToLetters: function (num) {
         const mod = num % 26;
-        let pow = num / 26 | 0;
+        let pow = (num / 26) | 0;
         const out = mod ? String.fromCharCode(64 + mod) : (pow--, 'Z');
         return pow ? module.exports.numberToLetters(pow) + out : out;
     },
@@ -122,11 +102,11 @@ module.exports = {
     getCorrectedMapSize: function (mapSize) {
         const remainder = mapSize % module.exports.gridDiameter;
         const offset = module.exports.gridDiameter - remainder;
-        return (remainder < 120) ? mapSize - remainder : mapSize + offset;
+        return remainder < 120 ? mapSize - remainder : mapSize + offset;
     },
 
     getAngleBetweenPoints: function (x1, y1, x2, y2) {
-        let angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        let angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
 
         if (angle < 0) {
             angle = 360 + angle;
@@ -143,7 +123,7 @@ module.exports = {
     },
 
     isOutsideGridSystem: function (x, y, mapSize, offset = 0) {
-        if (x < -offset || x > (mapSize + offset) || y < -offset || y > (mapSize + offset)) {
+        if (x < -offset || x > mapSize + offset || y < -offset || y > mapSize + offset) {
             return true;
         }
         return false;
@@ -155,4 +135,4 @@ module.exports = {
         }
         return false;
     },
-}
+};
