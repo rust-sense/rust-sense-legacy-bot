@@ -374,58 +374,43 @@
 
 ## **alive**
 
-> **Get the player with the longest time alive or the alive time of a teammate.**
-> <br>Command: `!alive`
-> <br>Command: `!alive Alle`
+> **Get the player with the longest time alive or the alive time of a teammate.** > <br>Command: `!alive` > <br>Command: `!alive Alle`
 
 ![In-Game Command alive Image](images/ingame_commands/alive_ingame.png)
 
 ## **cargo**
 
-> **Get information about CargoShip (Location, time till enters egress stage, time since last on map).**
-> <br>Command: `!cargo`
+> **Get information about CargoShip (Location, time till enters egress stage, time since last on map).** > <br>Command: `!cargo`
 
 ![In-Game Command cargo Image](images/ingame_commands/cargo_ingame.png)
 
 ## **chinook**
 
-> **Get information about Chinook 47 (Location, time since last on map).**
-> <br>Command: `!chinook`
+> **Get information about Chinook 47 (Location, time since last on map).** > <br>Command: `!chinook`
 
 ![In-Game Command chinook Image](images/ingame_commands/chinook_ingame.png)
 
 ## **connection/connections**
 
-> **Get recent connection events of the team or from a specific teammate.**
-> <br>Command: `!connections`
-> <br>Command: `!connection Alle`
+> **Get recent connection events of the team or from a specific teammate.** > <br>Command: `!connections` > <br>Command: `!connection Alle`
 
 ![In-Game Command connection Image](images/ingame_commands/connection_ingame.png)
 
 ## **craft ingame**
 
-> **Display the cost to craft an item (Quantity is optional).**
-> <br>Command: `!craft <item-name> <quantity>`
-> <br>Command: `!craft Assault Rifle 10`
-> <br>Command: `!craft rocket 100`
+> **Display the cost to craft an item (Quantity is optional).** > <br>Command: `!craft <item-name> <quantity>` > <br>Command: `!craft Assault Rifle 10` > <br>Command: `!craft rocket 100`
 
 ![In-Game Command craft Image](images/ingame_commands/craft_ingame.png)
 
 ## **death/deaths**
 
-> **Get recent death events of the team or from a specific teammate.**
-> <br>Command: `!deaths`
-> <br>Command: `!death Alle`
+> **Get recent death events of the team or from a specific teammate.** > <br>Command: `!deaths` > <br>Command: `!death Alle`
 
 ![In-Game Command death Image](images/ingame_commands/death_ingame.png)
 
 ## **decay ingame**
 
-> **Display the decay time of an item.**
-> <br>Command: `!decay`
-> <br>Command: `!decay Sheet Metal Door`
-> <br>Command: `!decay Tug Boat 100`
-> <br>Command: `!decay armored wall 450`
+> **Display the decay time of an item.** > <br>Command: `!decay` > <br>Command: `!decay Sheet Metal Door` > <br>Command: `!decay Tug Boat 100` > <br>Command: `!decay armored wall 450`
 
 ![In-Game Command decay Image](images/ingame_commands/decay_ingame.png)
 
@@ -441,15 +426,13 @@
 
 ## **heli**
 
-> **Get information about Patrol Helicopter (Location, time since last downed, time since last on map).**
-> <br>Command: `!heli`
+> **Get information about Patrol Helicopter (Location, time since last downed, time since last on map).** > <br>Command: `!heli`
 
 ![In-Game Command heli Image](images/ingame_commands/heli_ingame.png)
 
 ## **large**
 
-> **Get information about Large Oil Rig (Time till crate unlocks, time since last trigger).**
-> <br>Command: `!large`
+> **Get information about Large Oil Rig (Time till crate unlocks, time since last trigger).** > <br>Command: `!large`
 
 ![In-Game Command large Image](images/ingame_commands/large_ingame.png)
 
@@ -478,12 +461,7 @@
 
 ## **market ingame**
 
-> **Search for items in vending machines or subscribe/unsubscribe to items.**
-> <br>Command: `!market search sell Thompson`
-> <br>Command: `!market sub sell m249`
-> <br>Command: `!market sub all Scrap`
-> <br>Command: `!market unsub sell m249`
-> <br>Command: `!market list`
+> **Search for items in vending machines or subscribe/unsubscribe to items.** > <br>Command: `!market search sell Thompson` > <br>Command: `!market sub sell m249` > <br>Command: `!market sub all Scrap` > <br>Command: `!market unsub sell m249` > <br>Command: `!market list`
 
 | Subcommand | Description                                                                 | Required |
 | ---------- | --------------------------------------------------------------------------- | -------- |
@@ -514,15 +492,13 @@
 
 ## **offline**
 
-> **Get the currently offline players in your team.**
-> <br>Command: `!offline`
+> **Get the currently offline players in your team.** > <br>Command: `!offline`
 
 ![In-Game Command offline Image](images/ingame_commands/offline_ingame.png)
 
 ## **online**
 
-> **Get the currently online players in your team.**
-> <br>Command: `!online`
+> **Get the currently online players in your team.** > <br>Command: `!online`
 
 ![In-Game Command online Image](images/ingame_commands/online_ingame.png)
 
@@ -535,8 +511,7 @@
 
 ## **pop**
 
-> **Get the current population of the server including queue size and max population.**
-> <br>Command: `!pop`
+> **Get the current population of the server including queue size and max population.** > <br>Command: `!pop`
 
 ![In-Game Command pop Image](images/ingame_commands/pop_ingame.png)
 
@@ -548,33 +523,25 @@
 
 ## **recycle ingame**
 
-> **Display the output of recycling an item (Quantity is optional).**
-> <br>Command: `!recycle <item-name> <quantity>`
-> <br>Command: `!recycle Assault Rifle 10`
-> <br>Command: `!recycle rocket 100`
+> **Display the output of recycling an item (Quantity is optional).** > <br>Command: `!recycle <item-name> <quantity>` > <br>Command: `!recycle Assault Rifle 10` > <br>Command: `!recycle rocket 100`
 
 ![In-Game Command recycle Image](images/ingame_commands/recycle_ingame.png)
 
 ## **research ingame**
 
-> **Display the cost to research an item.**
-> <br>Command: `!research <item-name>`
-> <br>Command: `!research Assault Rifle`
-> <br>Command: `!research rocket`
+> **Display the cost to research an item.** > <br>Command: `!research <item-name>` > <br>Command: `!research Assault Rifle` > <br>Command: `!research rocket`
 
 ![In-Game Command research Image](images/ingame_commands/research_ingame.png)
 
 ## **send**
 
-> **Send a message to a discord user.**
-> <br>Command: `!send Alle Hello my friend!`
+> **Send a message to a discord user.** > <br>Command: `!send Alle Hello my friend!`
 
 ![In-Game Command send Image](images/ingame_commands/send_ingame.png)
 
 ## **small**
 
-> **Get information about Small Oil Rig (Time till crate unlocks, time since last trigger).**
-> <br>Command: `!small`
+> **Get information about Small Oil Rig (Time till crate unlocks, time since last trigger).** > <br>Command: `!small`
 
 ![In-Game Command small Image](images/ingame_commands/small_ingame.png)
 
@@ -590,15 +557,13 @@
 
 ## **team**
 
-> **Get the names of all members in the team.**
-> <br>Command: `!team`
+> **Get the names of all members in the team.** > <br>Command: `!team`
 
 ![In-Game Command team Image](images/ingame_commands/team_ingame.png)
 
 ## **time**
 
-> **Get the current time In-Game and time till day/night.**
-> <br>Command: `!time`
+> **Get the current time In-Game and time till day/night.** > <br>Command: `!time`
 
 ![In-Game Command time Image](images/ingame_commands/time_ingame.png)
 
@@ -616,8 +581,7 @@
 
 ## **tr**
 
-> **Translate a text from English to another language.**
-> <br>Command: `!tr <language-code> <Text>`
+> **Translate a text from English to another language.** > <br>Command: `!tr <language-code> <Text>`
 
 | Subcommand        | Description                                                    | Required |
 | ----------------- | -------------------------------------------------------------- | -------- |
@@ -629,8 +593,7 @@
 
 ## **trf**
 
-> **Translate a text from a language to another language.**
-> <br>Command: `!trf <language-code-from> <language-code-to> <Text>`
+> **Translate a text from a language to another language.** > <br>Command: `!trf <language-code-from> <language-code-to> <Text>`
 
 ![In-Game Command translateFrom Image](images/ingame_commands/translateFrom_ingame.png)
 
@@ -643,28 +606,24 @@
 
 ## **unmute**
 
-> **Unmute the bot from the In-Game Team Chat.**
-> <br>Command: `!unmute`
+> **Unmute the bot from the In-Game Team Chat.** > <br>Command: `!unmute`
 
 ![In-Game Command unmute Image](images/ingame_commands/unmute_ingame.png)
 
 ## **upkeep**
 
-> **Get the upkeep time of all connected tool cupboard monitors.**
-> <br>Command: `!upkeep`
+> **Get the upkeep time of all connected tool cupboard monitors.** > <br>Command: `!upkeep`
 
 ![In-Game Command upkeep Image](images/ingame_commands/upkeep_ingame.png)
 
 ## **uptime ingame**
 
-> **Display the uptime of the bot and server.**
-> <br>Command: `!uptime`
+> **Display the uptime of the bot and server.** > <br>Command: `!uptime`
 
 ![In-Game Command uptime Image](images/ingame_commands/uptime_ingame.png)
 
 ## **wipe**
 
-> **Get the time since it was wiped.**
-> <br>Command: `!wipe`
+> **Get the time since it was wiped.** > <br>Command: `!wipe`
 
 ![In-Game Command wipe Image](images/ingame_commands/wipe_ingame.png)
