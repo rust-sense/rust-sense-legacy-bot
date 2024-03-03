@@ -1,53 +1,59 @@
 import Discord from 'discord.js';
 
-import Fs from 'fs';
-import Path from 'path';
+import fs from 'fs';
+import path from 'path';
+import process from 'process';
+
 import DiscordBot from './structures/DiscordBot';
 
-createMissingDirectories();
+function ensureAppDir(dirname: string): string {
+    const dirnamePath = path.join(process.cwd(), dirname);
 
-const client = new DiscordBot({
-    intents: [
-        Discord.GatewayIntentBits.Guilds,
-        Discord.GatewayIntentBits.GuildMessages,
-        Discord.GatewayIntentBits.MessageContent,
-        Discord.GatewayIntentBits.GuildMembers,
-        Discord.GatewayIntentBits.GuildVoiceStates,
-    ],
-    retryLimit: 2,
-    restRequestTimeout: 60000,
-    disableEveryone: false,
-});
-
-client.build();
-
-function createMissingDirectories() {
-    if (!Fs.existsSync(Path.join(__dirname, 'logs'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'logs'));
+    if (!fs.existsSync(dirnamePath)) {
+        fs.mkdirSync(dirnamePath);
     }
 
-    if (!Fs.existsSync(Path.join(__dirname, 'instances'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'instances'));
-    }
-
-    if (!Fs.existsSync(Path.join(__dirname, 'credentials'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'credentials'));
-    }
-
-    if (!Fs.existsSync(Path.join(__dirname, 'maps'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'maps'));
-    }
+    return dirnamePath;
 }
 
-process.on('unhandledRejection', (error) => {
-    client.log(
-        client.intlGet(null, 'errorCap'),
-        client.intlGet(null, 'unhandledRejection', {
-            error: error,
-        }),
-        'error',
-    );
-    console.log(error);
-});
+function setupDiscordClient() {
+    const client = new DiscordBot({
+        intents: [
+            Discord.GatewayIntentBits.Guilds,
+            Discord.GatewayIntentBits.GuildMessages,
+            Discord.GatewayIntentBits.MessageContent,
+            Discord.GatewayIntentBits.GuildMembers,
+            Discord.GatewayIntentBits.GuildVoiceStates,
+        ],
+        retryLimit: 2,
+        restRequestTimeout: 60000,
+        disableEveryone: false,
+    });
 
-export { client };
+    client.build();
+
+    return client;
+}
+
+function createAppDirs() {
+    const appDirNames = ['logs', 'instances', 'credentials', 'maps'];
+    appDirNames.forEach(ensureAppDir);
+}
+
+function setupRejectionHandler() {
+    process.on('unhandledRejection', (error) => {
+        client.log(
+            client.intlGet(null, 'errorCap'),
+            client.intlGet(null, 'unhandledRejection', {
+                error: error,
+            }),
+            'error',
+        );
+        console.log(error);
+    });
+}
+
+createAppDirs();
+
+export const client = setupDiscordClient();
+setupRejectionHandler();
