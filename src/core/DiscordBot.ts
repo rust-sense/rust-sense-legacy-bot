@@ -4,13 +4,12 @@ import Discord from 'discord.js';
 import Fs from 'fs';
 import { IntlMessageFormat } from 'intl-messageformat';
 import Path from 'path';
-import Battlemetrics from '../structures/Battlemetrics';
+import Config from '../config';
 import Cctv from './Cctv';
-// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
-import Config from '../../config';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools';
 import PermissionHandler from '../handlers/permissionHandler.js';
+import Battlemetrics from '../structures/Battlemetrics';
 import RustLabs from '../structures/RustLabs';
 import RustPlus from '../structures/RustPlus';
 import Constants from '../util/constants.js';

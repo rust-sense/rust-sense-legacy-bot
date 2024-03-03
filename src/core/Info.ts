@@ -1,6 +1,6 @@
 import Map from '../util/map.js';
 
-import Timer from '../util/timer';
+import Timer from '../util/timer.js';
 
 class Info {
     _correctedMapSize: any;

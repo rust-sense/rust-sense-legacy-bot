@@ -5,7 +5,8 @@ import Path from 'path';
 import Translate from 'translate';
 // @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
-import DiscordEmbeds from '../discordTools/discordEmbeds';
+import Logger from './Logger.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
 import DiscordVoice from '../discordTools/discordVoice.js';
@@ -17,7 +18,6 @@ import InstanceUtils from '../util/instanceUtils.js';
 import Languages from '../util/languages.js';
 import Map from '../util/map.js';
 import Timer from '../util/timer.js';
-import Logger from './Logger.js';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */

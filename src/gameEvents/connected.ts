@@ -1,8 +1,8 @@
 import DiscordMessages from '../discordTools/discordMessages.js';
 
 import PollingHandler from '../handlers/pollingHandler.js';
-import Info from '../structures/Info';
-import Map from '../structures/Map';
+import Info from '../structures/Info.js';
+import Map from '../structures/Map.js';
 
 export default {
     name: 'connected',

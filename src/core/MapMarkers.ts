@@ -1,7 +1,7 @@
 import Constants from '../util/constants.js';
 
 import Map from '../util/map.js';
-import Timer from '../util/timer';
+import Timer from '../util/timer.js';
 
 class MapMarkers {
     _cargoShips: any;
