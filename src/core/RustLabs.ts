@@ -294,7 +294,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasCraftDetails(itemId) {
-        return this.craftData.hasOwnProperty(itemId);
+        return this.craftData.hasOwn(itemId);
     }
 
     /**
@@ -329,7 +329,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasResearchDetails(itemId) {
-        return this.researchData.hasOwnProperty(itemId);
+        return this.researchData.hasOwn(itemId);
     }
 
     /**
@@ -364,7 +364,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasRecycleDetails(itemId) {
-        return this.recycleData.hasOwnProperty(itemId);
+        return this.recycleData.hasOwn(itemId);
     }
 
     /**
@@ -401,13 +401,12 @@ class RustLabs {
         const mergedItems = [];
         for (const item of items) {
             const itemId = typeof item.itemId === 'string' ? item.itemId : item.itemId.toString();
-            // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
+
             const found = mergedItems.find((e) => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
             if (found === undefined) {
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
                 mergedItems.push({ itemId: itemId, quantity: item.quantity, itemIsBlueprint: item.itemIsBlueprint });
             } else {
-                // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                 found.quantity += item.quantity;
             }
         }
@@ -436,7 +435,6 @@ class RustLabs {
                         for (let i = 0; i < item.quantity; i++) {
                             if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability) continue;
 
-                            // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
                             const found = expandedItems.find((e) => e.itemId === recycleItem.id);
                             if (found === undefined) {
                                 expandedItems.push({
@@ -448,24 +446,18 @@ class RustLabs {
                                     itemIsBlueprint: false,
                                 });
                             } else {
-                                // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                                 found.quantity += recycleItem.quantity;
                             }
                         }
                     }
                 } else {
-                    // @ts-expect-error TS(2339) FIXME: Property 'itemId' does not exist on type 'never'.
                     const found = expandedItems.find(
-                        (e) =>
-                            e.itemId === item.itemId &&
-                            // @ts-expect-error TS(2339) FIXME: Property 'itemIsBlueprint' does not exist on type ... Remove this comment to see the full error message
-                            e.itemIsBlueprint === item.itemIsBlueprint,
+                        (e) => e.itemId === item.itemId && e.itemIsBlueprint === item.itemIsBlueprint,
                     );
                     if (found === undefined) {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         expandedItems.push(item);
                     } else {
-                        // @ts-expect-error TS(2339) FIXME: Property 'quantity' does not exist on type 'never'... Remove this comment to see the full error message
                         found.quantity += item.quantity;
                     }
                 }
@@ -490,9 +482,9 @@ class RustLabs {
      */
     hasDurabilityDetails(itemIdOrName) {
         return (
-            this.durabilityData['items'].hasOwnProperty(itemIdOrName) ||
-            this.durabilityData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.durabilityData['other'].hasOwnProperty(itemIdOrName)
+            this.durabilityData['items'].hasOwn(itemIdOrName) ||
+            this.durabilityData['buildingBlocks'].hasOwn(itemIdOrName) ||
+            this.durabilityData['other'].hasOwn(itemIdOrName)
         );
     }
 
@@ -517,7 +509,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
-                if (this.durabilityData['other'].hasOwnProperty(foundName)) {
+                if (this.durabilityData['other'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 } else {
@@ -529,7 +521,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
-                if (this.durabilityData['buildingBlocks'].hasOwnProperty(foundName)) {
+                if (this.durabilityData['buildingBlocks'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 } else {
@@ -541,7 +533,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.items.getClosestItemIdByName(name);
             if (foundName) {
-                if (this.durabilityData['items'].hasOwnProperty(foundName)) {
+                if (this.durabilityData['items'].hasOwn(foundName)) {
                     return this.getDurabilityDetailsById(foundName, group, which, orderedBy);
                 } else {
                     foundName = null;
@@ -602,7 +594,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasSmeltingDetails(itemId) {
-        return this.smeltingData.hasOwnProperty(itemId);
+        return this.smeltingData.hasOwn(itemId);
     }
 
     /**
@@ -634,13 +626,13 @@ class RustLabs {
      *      from parameter item.
      */
     getSmeltingDetailsFromParameterById(id) {
-        if (!this.items.hasOwnProperty(id)) return null;
+        if (!this.items.hasOwn(id)) return null;
         const fromParameterSmeltingDetails = new Object();
         for (const [smeltingTool, smeltingDetails] of Object.entries(this.smeltingData)) {
             // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
             for (const details of smeltingDetails) {
                 if (details.fromId === id) {
-                    if (!fromParameterSmeltingDetails.hasOwnProperty(smeltingTool)) {
+                    if (!fromParameterSmeltingDetails.hasOwn(smeltingTool)) {
                         fromParameterSmeltingDetails[smeltingTool] = [];
                     }
 
@@ -662,7 +654,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDespawnDetails(itemId) {
-        return this.despawnData.hasOwnProperty(itemId);
+        return this.despawnData.hasOwn(itemId);
     }
 
     /**
@@ -697,7 +689,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasStackDetails(itemId) {
-        return this.stackData.hasOwnProperty(itemId);
+        return this.stackData.hasOwn(itemId);
     }
 
     /**
@@ -733,9 +725,9 @@ class RustLabs {
      */
     hasDecayDetails(itemIdOrName) {
         return (
-            this.decayData['items'].hasOwnProperty(itemIdOrName) ||
-            this.decayData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.decayData['other'].hasOwnProperty(itemIdOrName)
+            this.decayData['items'].hasOwn(itemIdOrName) ||
+            this.decayData['buildingBlocks'].hasOwn(itemIdOrName) ||
+            this.decayData['other'].hasOwn(itemIdOrName)
         );
     }
 
@@ -754,7 +746,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
-                if (this.decayData['other'].hasOwnProperty(foundName)) {
+                if (this.decayData['other'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 } else {
@@ -766,7 +758,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
-                if (this.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
+                if (this.decayData['buildingBlocks'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 } else {
@@ -778,7 +770,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.items.getClosestItemIdByName(name);
             if (foundName) {
-                if (this.decayData['items'].hasOwnProperty(foundName)) {
+                if (this.decayData['items'].hasOwn(foundName)) {
                     return this.getDecayDetailsById(foundName);
                 } else {
                     foundName = null;
@@ -815,9 +807,9 @@ class RustLabs {
      */
     hasUpkeepDetails(itemIdOrName) {
         return (
-            this.upkeepData['items'].hasOwnProperty(itemIdOrName) ||
-            this.upkeepData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.upkeepData['other'].hasOwnProperty(itemIdOrName)
+            this.upkeepData['items'].hasOwn(itemIdOrName) ||
+            this.upkeepData['buildingBlocks'].hasOwn(itemIdOrName) ||
+            this.upkeepData['other'].hasOwn(itemIdOrName)
         );
     }
 
@@ -836,7 +828,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestOtherNameByName(name);
             if (foundName) {
-                if (this.upkeepData['other'].hasOwnProperty(foundName)) {
+                if (this.upkeepData['other'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"other"' is not assignable to type 'null'.
                     type = 'other';
                 } else {
@@ -848,7 +840,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.getClosestBuildingBlockNameByName(name);
             if (foundName) {
-                if (this.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
+                if (this.upkeepData['buildingBlocks'].hasOwn(foundName)) {
                     // @ts-expect-error TS(2322) FIXME: Type '"buildingBlocks"' is not assignable to type ... Remove this comment to see the full error message
                     type = 'buildingBlocks';
                 } else {
@@ -860,7 +852,7 @@ class RustLabs {
         if (!foundName) {
             foundName = this.items.getClosestItemIdByName(name);
             if (foundName) {
-                if (this.upkeepData['items'].hasOwnProperty(foundName)) {
+                if (this.upkeepData['items'].hasOwn(foundName)) {
                     return this.getUpkeepDetailsById(foundName);
                 } else {
                     foundName = null;

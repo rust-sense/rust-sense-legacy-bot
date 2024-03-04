@@ -8,7 +8,7 @@ export default {
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 
-        if (!instance.serverList.hasOwnProperty(serverId)) return;
+        if (!instance.serverList.hasOwn(serverId)) return;
 
         if (rustplus.storageMonitorIntervalCounter === 29) {
             rustplus.storageMonitorIntervalCounter = 0;
@@ -34,7 +34,7 @@ export default {
 
                 if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
                     if (
-                        rustplus.storageMonitors.hasOwnProperty(entityId) &&
+                        rustplus.storageMonitors.hasOwn(entityId) &&
                         rustplus.storageMonitors[entityId].capacity !== 0 &&
                         info.entityInfo.payload.capacity === 0
                     ) {

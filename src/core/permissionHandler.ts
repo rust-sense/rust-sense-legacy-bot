@@ -108,7 +108,7 @@ export default {
         const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
         if (category) {
             const perms = module.exports.getPermissionsReset(client, guild);
-            // @ts-expect-error TS(2339) FIXME: Property 'permissionOverwrites' does not exist on ... Remove this comment to see the full error message
+
             await category.permissionOverwrites.set(perms).catch((e) => {});
         }
 
@@ -118,7 +118,7 @@ export default {
             const channel = DiscordTools.getTextChannelById(guild.id, id);
             if (channel) {
                 const perms = module.exports.getPermissionsReset(client, guild, permissionWrite);
-                // @ts-expect-error TS(2339) FIXME: Property 'permissionOverwrites' does not exist on ... Remove this comment to see the full error message
+
                 await channel.permissionOverwrites.set(perms).catch((e) => {});
             }
         }

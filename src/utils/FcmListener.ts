@@ -269,7 +269,7 @@ async function pairingServer(client, guild, full, data, body) {
     await bmInstance.setup();
     if (bmInstance.lastUpdateSuccessful) {
         battlemetricsId = bmInstance.id;
-        if (!client.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+        if (!client.battlemetricsInstances.hasOwn(bmInstance.id)) {
             client.battlemetricsInstances[bmInstance.id] = bmInstance;
         }
     }
@@ -289,7 +289,7 @@ async function pairingServer(client, guild, full, data, body) {
         storageMonitors: server ? server.storageMonitors : {},
         markers: server ? server.markers : {},
         switchGroups: server ? server.switchGroups : {},
-        // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
         messageId: message !== undefined ? message.id : null,
         battlemetricsId: battlemetricsId,
         connect: !bmInstance.lastUpdateSuccessful ? null : `connect ${bmInstance.server_ip}:${bmInstance.server_port}`,
@@ -301,7 +301,7 @@ async function pairingServer(client, guild, full, data, body) {
         timeTillNight: server ? server.timeTillNight : null,
     };
 
-    if (!instance.serverListLite.hasOwnProperty(serverId)) instance.serverListLite[serverId] = new Object();
+    if (!instance.serverListLite.hasOwn(serverId)) instance.serverListLite[serverId] = new Object();
 
     instance.serverListLite[serverId][body.playerId] = {
         serverIp: body.ip,
@@ -317,10 +317,10 @@ async function pairingServer(client, guild, full, data, body) {
 async function pairingEntitySwitch(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const switches = instance.serverList[serverId].switches;
 
-    const entityExist = instance.serverList[serverId].switches.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].switches.hasOwn(body.entityId);
     instance.serverList[serverId].switches[body.entityId] = {
         active: entityExist ? switches[body.entityId].active : false,
         reachable: entityExist ? switches[body.entityId].reachable : true,
@@ -367,10 +367,10 @@ async function pairingEntitySwitch(client, guild, full, data, body) {
 async function pairingEntitySmartAlarm(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const alarms = instance.serverList[serverId].alarms;
 
-    const entityExist = instance.serverList[serverId].alarms.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].alarms.hasOwn(body.entityId);
     instance.serverList[serverId].alarms[body.entityId] = {
         active: entityExist ? alarms[body.entityId].active : false,
         reachable: entityExist ? alarms[body.entityId].reachable : true,
@@ -415,10 +415,10 @@ async function pairingEntitySmartAlarm(client, guild, full, data, body) {
 async function pairingEntityStorageMonitor(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const storageMonitors = instance.serverList[serverId].storageMonitors;
 
-    const entityExist = instance.serverList[serverId].storageMonitors.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].storageMonitors.hasOwn(body.entityId);
     instance.serverList[serverId].storageMonitors[body.entityId] = {
         name: entityExist ? storageMonitors[body.entityId].name : client.intlGet(guild.id, 'storageMonitor'),
         reachable: entityExist ? storageMonitors[body.entityId].reachable : true,
@@ -515,7 +515,7 @@ async function alarmRaidAlarm(client, guild, full, data, body) {
     const serverId = `${body.ip}-${body.port}`;
     const rustplus = client.rustplusInstances[guild.id];
 
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
 
     const files = [];
     if (body.img === '') {

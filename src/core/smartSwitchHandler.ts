@@ -10,7 +10,7 @@ export default {
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 
-        if (!instance.serverList.hasOwnProperty(serverId)) return;
+        if (!instance.serverList.hasOwn(serverId)) return;
 
         if (rustplus.smartSwitchIntervalCounter === 29) {
             rustplus.smartSwitchIntervalCounter = 0;
@@ -443,7 +443,7 @@ export default {
             return true;
         }
 
-        if (rustplus.currentSwitchTimeouts.hasOwnProperty(entityId)) {
+        if (rustplus.currentSwitchTimeouts.hasOwn(entityId)) {
             clearTimeout(rustplus.currentSwitchTimeouts[entityId]);
             delete rustplus.currentSwitchTimeouts[entityId];
         }
@@ -479,7 +479,7 @@ export default {
 
         rustplus.currentSwitchTimeouts[entityId] = setTimeout(async function () {
             const instance = client.getInstance(guildId);
-            if (!instance.serverList[serverId].switches.hasOwnProperty(entityId)) return;
+            if (!instance.serverList[serverId].switches.hasOwn(entityId)) return;
 
             await module.exports.smartSwitchCommandTurnOnOff(rustplus, client, entityId, !active);
 

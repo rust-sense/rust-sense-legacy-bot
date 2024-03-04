@@ -26,7 +26,7 @@ export default {
             condition &= instance.activeServer !== null;
             // @ts-expect-error TS(2363) FIXME: The right-hand side of an arithmetic operation mus... Remove this comment to see the full error message
             condition &= bmId !== null;
-            condition &= client.battlemetricsInstances.hasOwnProperty(bmId);
+            condition &= client.battlemetricsInstances.hasOwn(bmId);
             condition &= rustplus && rustplus.isOperational;
 
             if (condition) {
@@ -57,7 +57,7 @@ export default {
                         if (player.steamId === null) continue;
 
                         let name = null;
-                        if (calledSteamProfiles.hasOwnProperty(player.steamId)) {
+                        if (calledSteamProfiles.hasOwn(player.steamId)) {
                             name = calledSteamProfiles[player.steamId];
                         } else {
                             name = await Scrape.scrapeSteamProfileName(client, player.steamId);
@@ -222,7 +222,7 @@ export default {
         const battlemetricsIds = [];
         if (
             battlemetricsIdActiveServer &&
-            client.battlemetricsInstances.hasOwnProperty(battlemetricsIdActiveServer) &&
+            client.battlemetricsInstances.hasOwn(battlemetricsIdActiveServer) &&
             client.battlemetricsInstances[battlemetricsIdActiveServer].lastUpdateSuccessful
         ) {
             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
@@ -247,7 +247,7 @@ export default {
             const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
             /* Server name changed? */
-            if (settings.battlemetricsServerNameChanges && bmInstance.serverEvaluation.hasOwnProperty('server_name')) {
+            if (settings.battlemetricsServerNameChanges && bmInstance.serverEvaluation.hasOwn('server_name')) {
                 const oldName = bmInstance.serverEvaluation['server_name'].from;
                 const newName = bmInstance.serverEvaluation['server_name'].to;
 

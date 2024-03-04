@@ -180,7 +180,7 @@ async function playersPlayerIdHandler(client, interaction, battlemetricsId) {
 
     const playerId = interaction.options.getString('playerid');
 
-    if (!bmInstance.players.hasOwnProperty(playerId)) {
+    if (!bmInstance.players.hasOwn(playerId)) {
         const str = client.intlGet(interaction.guildId, 'couldNotFindPlayerId', { id: playerId });
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);
@@ -245,16 +245,16 @@ async function displaySpecificUser(client: DiscordBot, interaction: ChatInputCom
     let nameChangeHistoryNameCharacters = 0,
         nameChangeHistoryTimeCharacters = 0;
     for (const entity of profileNames) {
-        // @ts-expect-error TS(2339) FIXME: Property 'name' does not exist on type 'never'.
+        
         const name = `${entity.name}\n`;
 
         let time = null;
-        // @ts-expect-error TS(2339) FIXME: Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
+        
         if (entity.lastSeen === null) {
             // @ts-expect-error TS(2322) FIXME: Type '"​\n"' is not assignable to type 'null'.
             time = '\u200B\n';
         } else {
-            // @ts-expect-error TS(2339) FIXME: Property 'lastSeen' does not exist on type 'never'... Remove this comment to see the full error message
+            
             const unixTime = Math.floor(new Date(entity.lastSeen).getTime() / 1000);
             // @ts-expect-error TS(2322) FIXME: Type 'string' is not assignable to type 'null'.
             time = `${DiscordTools.getDiscordFormattedDate(unixTime)}\n`;

@@ -1,9 +1,9 @@
 import Builder from '@discordjs/builders';
 
-import DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import { ChatInputCommandInteraction, Guild } from 'discord.js';
 import DiscordBot from '../core/DiscordBot.js';
-import { Guild, ChatInputCommandInteraction } from 'discord.js';
 import DiscordCommand from '../core/abstract/DiscordCommand.js';
+import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 
 export default class UpkeepCommand extends DiscordCommand {
     constructor() {
@@ -43,7 +43,7 @@ export default class UpkeepCommand extends DiscordCommand {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestOtherNameByName(upkeepItemName);
                 if (foundName) {
-                    if (client.rustlabs.upkeepData['other'].hasOwnProperty(foundName)) {
+                    if (client.rustlabs.upkeepData['other'].hasOwn(foundName)) {
                         type = 'other';
                     } else {
                         foundName = null;
@@ -54,7 +54,7 @@ export default class UpkeepCommand extends DiscordCommand {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestBuildingBlockNameByName(upkeepItemName);
                 if (foundName) {
-                    if (client.rustlabs.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
+                    if (client.rustlabs.upkeepData['buildingBlocks'].hasOwn(foundName)) {
                         type = 'buildingBlocks';
                     } else {
                         foundName = null;
@@ -65,7 +65,7 @@ export default class UpkeepCommand extends DiscordCommand {
             if (!foundName) {
                 foundName = client.items.getClosestItemIdByName(upkeepItemName);
                 if (foundName) {
-                    if (!client.rustlabs.upkeepData['items'].hasOwnProperty(foundName)) {
+                    if (!client.rustlabs.upkeepData['items'].hasOwn(foundName)) {
                         foundName = null;
                     }
                 }

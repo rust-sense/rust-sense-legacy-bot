@@ -738,7 +738,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchOn', '').replace('SmartSwitchOff', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switches.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.switches.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -800,7 +800,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchEdit', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switches.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.switches.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -816,7 +816,7 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!server || (server && !server.switches.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.switches.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -849,7 +849,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmEveryone', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.alarms.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.alarms.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -875,7 +875,7 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!server || (server && !server.alarms.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.alarms.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -888,7 +888,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmEdit', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.alarms.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.alarms.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -899,7 +899,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorToolCupboardEveryone', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -920,7 +920,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorToolCupboardInGame', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -941,7 +941,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorEdit', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -957,7 +957,7 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -974,7 +974,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorRecycle', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -1019,7 +1019,7 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             await interaction.message.delete();
             return;
         }
@@ -1043,7 +1043,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupTurnOn', '').replace('GroupTurnOff', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             await interaction.message.delete();
             return;
         }
@@ -1092,7 +1092,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupEdit', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             await interaction.message.delete();
             return;
         }
@@ -1108,7 +1108,7 @@ export default async (client, interaction) => {
             return;
         }
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             await interaction.message.delete();
             return;
         }
@@ -1118,7 +1118,7 @@ export default async (client, interaction) => {
             delete rustplus.currentSwitchTimeouts[ids.groupId];
         }
 
-        if (server.switchGroups.hasOwnProperty(ids.groupId)) {
+        if (server.switchGroups.hasOwn(ids.groupId)) {
             await DiscordTools.deleteMessageById(
                 guildId,
                 instance.channelId.switchGroups,
@@ -1132,7 +1132,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupAddSwitch', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             await interaction.message.delete();
             return;
         }
@@ -1143,7 +1143,7 @@ export default async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupRemoveSwitch', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             await interaction.message.delete();
             return;
         }

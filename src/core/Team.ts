@@ -98,7 +98,7 @@ class Team {
                 this.addPlayer(player);
             }
 
-            if (!instance.teamChatColors.hasOwnProperty(steamId)) {
+            if (!instance.teamChatColors.hasOwn(steamId)) {
                 const letters = '0123456789ABCDEF';
                 let color = '#';
                 for (let i = 0; i < 6; i++) {

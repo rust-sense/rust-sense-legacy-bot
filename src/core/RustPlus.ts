@@ -5,7 +5,6 @@ import Path from 'path';
 import Translate from 'translate';
 // @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
-import Logger from './Logger.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';
@@ -18,6 +17,7 @@ import InstanceUtils from '../util/instanceUtils.js';
 import Languages from '../util/languages.js';
 import Map from '../util/map.js';
 import Timer from '../util/timer.js';
+import Logger from './Logger.js';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
@@ -206,7 +206,7 @@ class RustPlus extends RustPlusLib {
 
     isServerAvailable() {
         const instance = Client.client.getInstance(this.guildId);
-        return instance.serverList.hasOwnProperty(this.serverId);
+        return instance.serverList.hasOwn(this.serverId);
     }
 
     updateConnections(steamId, str) {
@@ -218,7 +218,7 @@ class RustPlus extends RustPlusLib {
         }
         this.allConnections.unshift(savedString);
 
-        if (!this.playerConnections.hasOwnProperty(steamId)) {
+        if (!this.playerConnections.hasOwn(steamId)) {
             this.playerConnections[steamId] = [];
         }
 
@@ -237,7 +237,7 @@ class RustPlus extends RustPlusLib {
         }
         this.allDeaths.unshift(data);
 
-        if (!this.playerDeaths.hasOwnProperty(steamId)) {
+        if (!this.playerDeaths.hasOwn(steamId)) {
             this.playerDeaths[steamId] = [];
         }
 
@@ -279,7 +279,7 @@ class RustPlus extends RustPlusLib {
         this.isDeleted = true;
         this.disconnect();
 
-        if (Client.client.rustplusInstances.hasOwnProperty(this.guildId)) {
+        if (Client.client.rustplusInstances.hasOwn(this.guildId)) {
             if (Client.client.rustplusInstances[this.guildId].serverId === this.serverId) {
                 delete Client.client.rustplusInstances[this.guildId];
                 return true;
@@ -702,7 +702,7 @@ class RustPlus extends RustPlusLib {
         } else if (response.toString() === 'Error: Timeout reached while waiting for response') {
             this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseTimeout'), 'error');
             return false;
-        } else if (response.hasOwnProperty('error')) {
+        } else if (response.hasOwn('error')) {
             this.log(
                 Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'responseContainError', {
@@ -946,7 +946,7 @@ class RustPlus extends RustPlusLib {
 
             for (const player of this.team.players) {
                 if (player.name.includes(name)) {
-                    if (!this.playerConnections.hasOwnProperty(player.steamId)) {
+                    if (!this.playerConnections.hasOwn(player.steamId)) {
                         this.playerConnections[player.steamId] = [];
                     }
 
@@ -1119,7 +1119,7 @@ class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                if (!this.playerDeaths.hasOwnProperty(player.steamId)) {
+                if (!this.playerDeaths.hasOwn(player.steamId)) {
                     this.playerDeaths[player.steamId] = [];
                 }
 
@@ -1199,7 +1199,7 @@ class RustPlus extends RustPlusLib {
         if (!foundName) {
             foundName = Client.client.rustlabs.getClosestOtherNameByName(decayItemName);
             if (foundName) {
-                if (Client.client.rustlabs.decayData['other'].hasOwnProperty(foundName)) {
+                if (Client.client.rustlabs.decayData['other'].hasOwn(foundName)) {
                     type = 'other';
                 } else {
                     foundName = null;
@@ -1210,7 +1210,7 @@ class RustPlus extends RustPlusLib {
         if (!foundName) {
             foundName = Client.client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
             if (foundName) {
-                if (Client.client.rustlabs.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
+                if (Client.client.rustlabs.decayData['buildingBlocks'].hasOwn(foundName)) {
                     type = 'buildingBlocks';
                 } else {
                     foundName = null;
@@ -1221,7 +1221,7 @@ class RustPlus extends RustPlusLib {
         if (!foundName) {
             foundName = Client.client.items.getClosestItemIdByName(decayItemName);
             if (foundName) {
-                if (!Client.client.rustlabs.decayData['items'].hasOwnProperty(foundName)) {
+                if (!Client.client.rustlabs.decayData['items'].hasOwn(foundName)) {
                     foundName = null;
                 }
             }
@@ -1254,79 +1254,69 @@ class RustPlus extends RustPlusLib {
 
         const details = decayDetails[3];
 
-        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         const hp = decayItemHp === null ? details.hp : decayItemHp;
-        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
         if (hp > details.hp) {
             // @ts-expect-error TS(2552) FIXME: Cannot find name 'client'. Did you mean 'Client'?
             const str = client.intlGet(this.guildId, 'hpExceedMax', {
                 hp: hp,
-                // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
                 max: details.hp,
             });
             return str;
         }
 
-        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         const decayMultiplier = hp / details.hp;
 
-        // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
         let decayString = `${itemName} (${hp}/${details.hp}) `;
         const decayStrings = [];
-        // @ts-expect-error TS(2339) FIXME: Property 'decayString' does not exist on type 'nev... Remove this comment to see the full error message
+
         if (details.decayString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'decay')}: `;
-            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayString}`);
             } else {
-                // @ts-expect-error TS(2339) FIXME: Property 'decay' does not exist on type 'never'.
                 const time = Timer.secondsToFullScale(Math.floor(details.decay * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339) FIXME: Property 'decayOutsideString' does not exist on ty... Remove this comment to see the full error message
         if (details.decayOutsideString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'outside')}: `;
-            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayOutsideString}`);
             } else {
-                // @ts-expect-error TS(2339) FIXME: Property 'decayOutside' does not exist on type 'ne... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayOutside * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339) FIXME: Property 'decayInsideString' does not exist on typ... Remove this comment to see the full error message
         if (details.decayInsideString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'inside')}: `;
-            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayInsideString}`);
             } else {
-                // @ts-expect-error TS(2339) FIXME: Property 'decayInside' does not exist on type 'nev... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayInside * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
             }
         }
 
-        // @ts-expect-error TS(2339) FIXME: Property 'decayUnderwaterString' does not exist on... Remove this comment to see the full error message
         if (details.decayUnderwaterString !== null) {
             const str = `${Client.client.intlGet(this.guildId, 'underwater')}: `;
-            // @ts-expect-error TS(2339) FIXME: Property 'hp' does not exist on type 'never'.
+
             if (hp === details.hp) {
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${details.decayUnderwaterString}`);
             } else {
-                // @ts-expect-error TS(2339) FIXME: Property 'decayUnderwater' does not exist on type ... Remove this comment to see the full error message
                 const time = Timer.secondsToFullScale(Math.floor(details.decayUnderwater * decayMultiplier));
                 // @ts-expect-error TS(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
                 decayStrings.push(`${str}${time}`);
@@ -1866,7 +1856,7 @@ class RustPlus extends RustPlusLib {
 
                     const locations = [];
                     for (const vendingMachine of this.mapMarkers.vendingMachines) {
-                        if (!vendingMachine.hasOwnProperty('sellOrders')) continue;
+                        if (!vendingMachine.hasOwn('sellOrders')) continue;
 
                         for (const order of vendingMachine.sellOrders) {
                             if (order.amountInStock === 0) continue;
@@ -2271,9 +2261,8 @@ class RustPlus extends RustPlusLib {
 
             let string = '';
             for (const player of closestPlayers) {
-                // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                 const distance = Math.floor(Map.getDistance(player.x, player.y, caller.x, caller.y));
-                // @ts-expect-error TS(2339) FIXME: Property 'name' does not exist on type 'never'.
+
                 string += `${player.name} (${distance}m [${player.pos.location}]), `;
             }
 

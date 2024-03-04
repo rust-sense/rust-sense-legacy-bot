@@ -161,7 +161,7 @@ async function pairingServer(client, guild, steamId, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
-    if (!instance.serverListLite.hasOwnProperty(serverId)) instance.serverListLite[serverId] = new Object();
+    if (!instance.serverListLite.hasOwn(serverId)) instance.serverListLite[serverId] = new Object();
 
     instance.serverListLite[serverId][steamId] = {
         serverIp: body.ip,
@@ -180,10 +180,10 @@ async function pairingServer(client, guild, steamId, full, data, body) {
 async function pairingEntitySwitch(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const switches = instance.serverList[serverId].switches;
 
-    const entityExist = instance.serverList[serverId].switches.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].switches.hasOwn(body.entityId);
     instance.serverList[serverId].switches[body.entityId] = {
         active: entityExist ? switches[body.entityId].active : false,
         reachable: entityExist ? switches[body.entityId].reachable : true,
@@ -230,10 +230,10 @@ async function pairingEntitySwitch(client, guild, full, data, body) {
 async function pairingEntitySmartAlarm(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const alarms = instance.serverList[serverId].alarms;
 
-    const entityExist = instance.serverList[serverId].alarms.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].alarms.hasOwn(body.entityId);
     instance.serverList[serverId].alarms[body.entityId] = {
         active: entityExist ? alarms[body.entityId].active : false,
         reachable: entityExist ? alarms[body.entityId].reachable : true,
@@ -278,10 +278,10 @@ async function pairingEntitySmartAlarm(client, guild, full, data, body) {
 async function pairingEntityStorageMonitor(client, guild, full, data, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!instance.serverList.hasOwn(serverId)) return;
     const storageMonitors = instance.serverList[serverId].storageMonitors;
 
-    const entityExist = instance.serverList[serverId].storageMonitors.hasOwnProperty(body.entityId);
+    const entityExist = instance.serverList[serverId].storageMonitors.hasOwn(body.entityId);
     instance.serverList[serverId].storageMonitors[body.entityId] = {
         name: entityExist ? storageMonitors[body.entityId].name : client.intlGet(guild.id, 'storageMonitor'),
         reachable: entityExist ? storageMonitors[body.entityId].reachable : true,

@@ -14,18 +14,17 @@ export default {
     getButton: function (options = {}) {
         const button = new Discord.ButtonBuilder();
 
-        // @ts-expect-error TS(2339) FIXME: Property 'customId' does not exist on type '{}'.
-        if (options.hasOwnProperty('customId')) button.setCustomId(options.customId);
-        // @ts-expect-error TS(2339) FIXME: Property 'label' does not exist on type '{}'.
-        if (options.hasOwnProperty('label')) button.setLabel(options.label);
-        // @ts-expect-error TS(2339) FIXME: Property 'style' does not exist on type '{}'.
-        if (options.hasOwnProperty('style')) button.setStyle(options.style);
-        // @ts-expect-error TS(2339) FIXME: Property 'url' does not exist on type '{}'.
-        if (options.hasOwnProperty('url') && options.url !== '') button.setURL(options.url);
-        // @ts-expect-error TS(2339) FIXME: Property 'emoji' does not exist on type '{}'.
-        if (options.hasOwnProperty('emoji')) button.setEmoji(options.emoji);
-        // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type '{}'.
-        if (options.hasOwnProperty('disabled')) button.setDisabled(options.disabled);
+        if (options.hasOwn('customId')) button.setCustomId(options.customId);
+
+        if (options.hasOwn('label')) button.setLabel(options.label);
+
+        if (options.hasOwn('style')) button.setStyle(options.style);
+
+        if (options.hasOwn('url') && options.url !== '') button.setURL(options.url);
+
+        if (options.hasOwn('emoji')) button.setEmoji(options.emoji);
+
+        if (options.hasOwn('disabled')) button.setDisabled(options.disabled);
 
         return button;
     },

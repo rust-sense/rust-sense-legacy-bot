@@ -366,7 +366,7 @@ class Battlemetrics {
             parsed['players'].push(player);
         }
 
-        if (data.hasOwnProperty('links') && data['links'].hasOwnProperty('next')) {
+        if (data.hasOwn('links') && data['links'].hasOwn('next')) {
             parsed['next'] = data.links.next;
         }
 
@@ -383,11 +383,11 @@ class Battlemetrics {
 
         for (const name of data.included) {
             if (name.type !== 'identifier') continue;
-            if (!name.hasOwnProperty('attributes')) continue;
-            if (!name['attributes'].hasOwnProperty('type')) continue;
+            if (!name.hasOwn('attributes')) continue;
+            if (!name['attributes'].hasOwn('type')) continue;
             if (name['attributes']['type'] !== 'name') continue;
-            if (!name['attributes'].hasOwnProperty('identifier')) continue;
-            if (!name['attributes'].hasOwnProperty('lastSeen')) continue;
+            if (!name['attributes'].hasOwn('identifier')) continue;
+            if (!name['attributes'].hasOwn('lastSeen')) continue;
 
             parsed.push({
                 // @ts-expect-error TS(2322) FIXME: Type 'any' is not assignable to type 'never'.
@@ -417,7 +417,7 @@ class Battlemetrics {
      *  @param {object} data Types 0 = Login, 1 = Logout. And time in iso format.
      */
     #updateConnectionLog(id, data) {
-        if (!this.players.hasOwnProperty(id)) return;
+        if (!this.players.hasOwn(id)) return;
 
         if (this.players[id]['connectionLog'].length === PLAYER_CONNECTION_LOG_SIZE) {
             this.players[id]['connectionLog'].pop();
@@ -437,7 +437,7 @@ class Battlemetrics {
      *  @param {object} data From and To names and time in iso format.
      */
     #updateNameChangeHistory(id, data) {
-        if (!this.players.hasOwnProperty(id)) return;
+        if (!this.players.hasOwn(id)) return;
 
         if (this.players[id]['nameChangeHistory'].length === NAME_CHANGE_LOG_SIZE) {
             this.players[id]['nameChangeHistory'].pop();
@@ -510,7 +510,6 @@ class Battlemetrics {
 
         const response = await this.#request(api_call);
 
-        // @ts-expect-error TS(2339) FIXME: Property 'status' does not exist on type '{}'.
         if (response.status !== 200) {
             Client.client.log(
                 Client.client.intlGet(null, 'errorCap'),
@@ -520,7 +519,6 @@ class Battlemetrics {
             return null;
         }
 
-        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type '{}'.
         return response.data;
     }
 
@@ -562,7 +560,7 @@ class Battlemetrics {
         if (!data) return;
 
         const parsed = this.#parseMostTimePlayedApiResponse(data);
-        // @ts-expect-error TS(2339) FIXME: Property 'players' does not exist on type 'Object'... Remove this comment to see the full error message
+
         for (const player of parsed.players) {
             if (!RandomUsernames.RandomUsernames.includes(player.name)) this.streamerMode = false;
         }
@@ -579,7 +577,6 @@ class Battlemetrics {
         const search = this.SEARCH_SERVER_NAME_API_CALL(name);
         const response = await this.#request(search);
 
-        // @ts-expect-error TS(2339) FIXME: Property 'status' does not exist on type '{}'.
         if (response.status !== 200) {
             Client.client.log(
                 Client.client.intlGet(null, 'errorCap'),
@@ -590,7 +587,7 @@ class Battlemetrics {
         }
 
         /* Find the correct server. */
-        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type '{}'.
+
         for (const server of response.data.data) {
             if (server.attributes.name === originalName) {
                 return server.id;
@@ -641,7 +638,6 @@ class Battlemetrics {
 
         /* Server parameter evaluation */
 
-        // @ts-expect-error TS(2339) FIXME: Property 'data' does not exist on type 'never'.
         const attributes = data.data.attributes;
         this.serverEvaluation = new Object();
         this.#evaluateServerParameter('server_name', this.server_name, attributes.name, firstTime);
@@ -764,7 +760,6 @@ class Battlemetrics {
         this.onlinePlayers = [];
         this.offlinePlayers = [];
 
-        // @ts-expect-error TS(2339) FIXME: Property 'included' does not exist on type 'never'... Remove this comment to see the full error message
         const included = data.included;
         for (const entity of included) {
             if (entity.type !== 'player') continue;
@@ -788,7 +783,7 @@ class Battlemetrics {
              *                  server.
              */
 
-            if (!this.players.hasOwnProperty(entity.id)) {
+            if (!this.players.hasOwn(entity.id)) {
                 /* New Player */
                 this.players[entity.id] = new Object();
 
@@ -943,11 +938,7 @@ class Battlemetrics {
      *  @return {Array} index 0: seconds online, index 1: The formatted online time of a player.
      */
     getOnlineTime(playerId) {
-        if (
-            !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
-            !this.players[playerId]['updatedAt']
-        ) {
+        if (!this.lastUpdateSuccessful || !this.players.hasOwn(playerId) || !this.players[playerId]['updatedAt']) {
             return null;
         }
 
@@ -961,11 +952,7 @@ class Battlemetrics {
      */
     // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     getOfflineTime(playerId) {
-        if (
-            !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
-            !this.players[playerId]['logoutDate']
-        ) {
+        if (!this.lastUpdateSuccessful || !this.players.hasOwn(playerId) || !this.players[playerId]['logoutDate']) {
             return null;
         }
 
@@ -1013,11 +1000,7 @@ class Battlemetrics {
      */
     // @ts-expect-error TS(2393) FIXME: Duplicate function implementation.
     getOfflineTime(playerId) {
-        if (
-            !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
-            !this.players[playerId]['logoutDate']
-        ) {
+        if (!this.lastUpdateSuccessful || !this.players.hasOwn(playerId) || !this.players[playerId]['logoutDate']) {
             return null;
         }
 

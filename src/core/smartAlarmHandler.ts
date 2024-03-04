@@ -8,7 +8,7 @@ export default {
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 
-        if (!instance.serverList.hasOwnProperty(serverId)) return;
+        if (!instance.serverList.hasOwn(serverId)) return;
 
         if (rustplus.smartAlarmIntervalCounter === 29) {
             rustplus.smartAlarmIntervalCounter = 0;

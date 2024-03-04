@@ -23,7 +23,7 @@ export default class LeaderCommand extends DiscordCommand {
             );
     }
 
-    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction) {
+    async execute(client: DiscordBot, interaction: ChatInputCommandInteraction<'raw' | 'cached'>) {
         const instance = client.getInstance(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 

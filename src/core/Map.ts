@@ -416,7 +416,7 @@ class Map {
                     /* Compensate for the text placement */
                     if (monument.token === 'DungeonBase') continue;
 
-                    const name = this.monumentInfo.hasOwnProperty(monument.token)
+                    const name = this.monumentInfo.hasOwn(monument.token)
                         ? this.monumentInfo[monument.token].map
                         : monument.token;
                     const comp = name.length * 5;

@@ -41,7 +41,7 @@ export default {
         const actionSwitches = [];
         for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches)) {
             if (switches.includes(entityId)) {
-                if (rustplus.currentSwitchTimeouts.hasOwnProperty(entityId)) {
+                if (rustplus.currentSwitchTimeouts.hasOwn(entityId)) {
                     clearTimeout(rustplus.currentSwitchTimeouts[entityId]);
                     delete rustplus.currentSwitchTimeouts[entityId];
                 }
@@ -141,7 +141,7 @@ export default {
             return true;
         }
 
-        if (rustplus.currentSwitchTimeouts.hasOwnProperty(groupId)) {
+        if (rustplus.currentSwitchTimeouts.hasOwn(groupId)) {
             clearTimeout(rustplus.currentSwitchTimeouts[groupId]);
             delete rustplus.currentSwitchTimeouts[groupId];
         }
@@ -174,10 +174,7 @@ export default {
 
         rustplus.currentSwitchTimeouts[groupId] = setTimeout(async function () {
             const instance = client.getInstance(guildId);
-            if (
-                !instance.serverList.hasOwnProperty(serverId) ||
-                !instance.serverList[serverId].switchGroups.hasOwnProperty(groupId)
-            ) {
+            if (!instance.serverList.hasOwn(serverId) || !instance.serverList[serverId].switchGroups.hasOwn(groupId)) {
                 return;
             }
 

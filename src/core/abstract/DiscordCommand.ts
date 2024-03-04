@@ -8,5 +8,5 @@ export default abstract class DiscordCommand {
 
     abstract builder(client: DiscordBot, guild: Guild): Promise<SlashCommandBuilderOnlyToAPI>;
 
-    abstract execute(client: DiscordBot, interaction: ChatInputCommandInteraction): Promise<unknown>;
+    abstract execute(client: DiscordBot, interaction: ChatInputCommandInteraction<'raw' | 'cached'>): Promise<unknown>;
 }

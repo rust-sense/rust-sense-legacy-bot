@@ -4,7 +4,33 @@ import Discord, { ClientOptions } from 'discord.js';
 import Fs from 'fs';
 import { IntlMessageFormat } from 'intl-messageformat';
 import Path from 'path';
+import { Client } from 'push-receiver';
 import Config from '../config';
+import AlarmCommand from '../discordCommands/AlarmCommand';
+import AliasCommand from '../discordCommands/AliasCommand';
+import BlacklistCommand from '../discordCommands/BlacklistCommand';
+import CCTVCommand from '../discordCommands/CCTVCommand';
+import CraftCommand from '../discordCommands/CraftCommand';
+import CredentialsCommand from '../discordCommands/CredentialsCommand';
+import CustomIntlCommand from '../discordCommands/CustomIntlCommand';
+import DecayCommand from '../discordCommands/DecayCommand';
+import DespawnCommand from '../discordCommands/DespawnCommand';
+import HelpCommand from '../discordCommands/HelpCommand';
+import ItemCommand from '../discordCommands/ItemCommand';
+import LeaderCommand from '../discordCommands/LeaderCommand';
+import MapCommand from '../discordCommands/MapCommand';
+import MarketCommand from '../discordCommands/MarketCommand';
+import PlayersCommand from '../discordCommands/PlayersCommand';
+import RecycleCommand from '../discordCommands/RecycleCommand';
+import ResearchCommand from '../discordCommands/ResearchCommand';
+import ResetCommand from '../discordCommands/ResetCommand';
+import RoleCommand from '../discordCommands/RoleCommand';
+import StackCommand from '../discordCommands/StackCommand';
+import StorageMonitorCommand from '../discordCommands/StorageMonitorCommand';
+import SwitchCommand from '../discordCommands/SwitchCommand';
+import UpkeepCommand from '../discordCommands/UpkeepCommand';
+import UptimeCommand from '../discordCommands/UptimeCommand';
+import VoiceCommand from '../discordCommands/VoiceCommand';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordTools from '../discordTools/discordTools';
 import PermissionHandler from '../handlers/permissionHandler.js';
@@ -13,28 +39,35 @@ import RustLabs from '../structures/RustLabs';
 import RustPlus from '../structures/RustPlus';
 import Constants from '../util/constants.js';
 import InstanceUtils from '../util/instanceUtils.js';
+import { GuildInstance } from '../utils/CreateInstanceFile';
 import Cctv from './Cctv';
 import Items from './Items';
 import Logger from './Logger.js';
 import RustPlusLite from './RustPlusLite';
+import DiscordCommand from './abstract/DiscordCommand';
 
 class DiscordBot extends Discord.Client {
     activeRustplusInstances: any;
     battlemetricsInstances: any;
     battlemetricsIntervalCounter: any;
     battlemetricsIntervalId: any;
-    cctv: any;
-    commands: any;
-    customGuildIntl: any;
-    fcmListeners: any;
-    fcmListenersLite: any;
-    instances: any;
-    intlInstances: any;
-    items: any;
+
+    cctv: Cctv;
+    rustlabs: RustLabs;
+    items: Items;
+
+    commands: { [key: string]: DiscordCommand };
+    customGuildIntl: { [key: string]: { [key: string]: IntlMessageFormat } };
+    fcmListeners: { [key: string]: Client };
+    fcmListenersLite: { [key: string]: Client };
+
+    instances: { [key: string]: GuildInstance };
+    intlInstances: {[key: string]: };
+
     localeCache: any;
     logger: any;
     pollingIntervalMs: any;
-    rustlabs: any;
+
     rustplusInstances: { [key: string]: RustPlus | RustPlusLite };
     rustplusLiteReconnectTimers: any;
     rustplusMaps: any;
@@ -83,15 +116,37 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordCommands() {
-        const commandInstances = [];
+        const commandInstances: DiscordCommand[] = [
+            new AlarmCommand(),
+            new AliasCommand(),
+            new BlacklistCommand(),
+            new CCTVCommand(),
+            new CraftCommand(),
+            new CredentialsCommand(),
+            new CustomIntlCommand(),
+            new DecayCommand(),
+            new DespawnCommand(),
+            new HelpCommand(),
+            new ItemCommand(),
+            new LeaderCommand(),
+            new MapCommand(),
+            new MarketCommand(),
+            new PlayersCommand(),
+            new RecycleCommand(),
+            new ResearchCommand(),
+            new ResetCommand(),
+            new RoleCommand(),
+            new StackCommand(),
+            new StorageMonitorCommand(),
+            new SwitchCommand(),
+            new UpkeepCommand(),
+            new UptimeCommand(),
+            new VoiceCommand(),
+        ];
 
-        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) =>
-            file.endsWith('.js'),
-        );
-        for (const file of commandFiles) {
-            const command = require(`../commands/${file}`);
-            this.commands.set(command.name, command);
-        }
+        commandInstances.forEach((command) => {
+            this.commands.set(command.commandName, command);
+        });
     }
 
     loadDiscordEvents() {
@@ -100,6 +155,7 @@ class DiscordBot extends Discord.Client {
         );
         for (const file of eventFiles) {
             const event = require(`../discordEvents/${file}`);
+            const command = require(`../commands/${file}`);
 
             if (event.name === 'rateLimited') {
                 this.rest.on(event.name, (...args) => event.execute(this, ...args));
@@ -373,7 +429,7 @@ class DiscordBot extends Discord.Client {
             const instance = this.getInstance(guildId);
             if (!instance) return;
 
-            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+            if (instance.activeServer !== null && instance.serverList.hasOwn(instance.activeServer)) {
                 this.createRustplusInstance(
                     guildId,
                     instance.serverList[instance.activeServer].serverIp,
@@ -412,7 +468,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+            if (!instance.trackers.hasOwn(randomNumber)) {
                 return randomNumber;
             }
         }
@@ -424,7 +480,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+            if (!instance.serverList[serverId].switchGroups.hasOwn(randomNumber)) {
                 return randomNumber;
             }
         }
@@ -442,7 +498,7 @@ class DiscordBot extends Discord.Client {
             const guildId = guild[0];
             const instance = this.getInstance(guildId);
             const activeServer = instance.activeServer;
-            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
+            if (activeServer !== null && instance.serverList.hasOwn(activeServer)) {
                 if (instance.serverList[activeServer].battlemetricsId !== null) {
                     /* A Battlemetrics ID exist. */
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
@@ -450,7 +506,7 @@ class DiscordBot extends Discord.Client {
                     if (!activeInstances.includes(battlemetricsId)) {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         activeInstances.push(battlemetricsId);
-                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                        if (this.battlemetricsInstances.hasOwn(battlemetricsId)) {
                             /* Update */
                             await this.battlemetricsInstances[battlemetricsId].evaluation();
                         } else {
@@ -470,7 +526,7 @@ class DiscordBot extends Discord.Client {
                         instance.serverList[activeServer].battlemetricsId = bmInstance.id;
                         this.setInstance(guildId, instance);
 
-                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+                        if (this.battlemetricsInstances.hasOwn(bmInstance.id)) {
                             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             if (!activeInstances.includes(bmInstance.id)) {
                                 // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
@@ -492,7 +548,7 @@ class DiscordBot extends Discord.Client {
                     // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     activeInstances.push(content.battlemetricsId);
                     // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
-                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
+                    if (this.battlemetricsInstances.hasOwn(content.battlemetricsId)) {
                         /* Update */
                         // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();
@@ -652,7 +708,7 @@ class DiscordBot extends Discord.Client {
             const instance = this.getInstance(guildId);
             if (!instance) return;
 
-            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+            if (instance.activeServer !== null && instance.serverList.hasOwn(instance.activeServer)) {
                 this.createRustplusInstance(
                     guildId,
                     instance.serverList[instance.activeServer].serverIp,
@@ -691,7 +747,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+            if (!instance.trackers.hasOwn(randomNumber)) {
                 return randomNumber;
             }
         }
@@ -703,7 +759,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+            if (!instance.serverList[serverId].switchGroups.hasOwn(randomNumber)) {
                 return randomNumber;
             }
         }
@@ -721,7 +777,7 @@ class DiscordBot extends Discord.Client {
             const guildId = guild[0];
             const instance = this.getInstance(guildId);
             const activeServer = instance.activeServer;
-            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
+            if (activeServer !== null && instance.serverList.hasOwn(activeServer)) {
                 if (instance.serverList[activeServer].battlemetricsId !== null) {
                     /* A Battlemetrics ID exist. */
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
@@ -729,7 +785,7 @@ class DiscordBot extends Discord.Client {
                     if (!activeInstances.includes(battlemetricsId)) {
                         // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                         activeInstances.push(battlemetricsId);
-                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                        if (this.battlemetricsInstances.hasOwn(battlemetricsId)) {
                             /* Update */
                             await this.battlemetricsInstances[battlemetricsId].evaluation();
                         } else {
@@ -749,7 +805,7 @@ class DiscordBot extends Discord.Client {
                         instance.serverList[activeServer].battlemetricsId = bmInstance.id;
                         this.setInstance(guildId, instance);
 
-                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+                        if (this.battlemetricsInstances.hasOwn(bmInstance.id)) {
                             // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
                             if (!activeInstances.includes(bmInstance.id)) {
                                 // @ts-expect-error TS(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
@@ -771,7 +827,7 @@ class DiscordBot extends Discord.Client {
                     // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                     activeInstances.push(content.battlemetricsId);
                     // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
-                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
+                    if (this.battlemetricsInstances.hasOwn(content.battlemetricsId)) {
                         /* Update */
                         // @ts-expect-error TS(2571) FIXME: Object is of type 'unknown'.
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();

@@ -11,20 +11,18 @@ export default {
     getSelectMenu: function (options = {}) {
         const selectMenu = new Discord.StringSelectMenuBuilder();
 
-        // @ts-expect-error TS(2339) FIXME: Property 'customId' does not exist on type '{}'.
-        if (options.hasOwnProperty('customId')) selectMenu.setCustomId(options.customId);
-        // @ts-expect-error TS(2339) FIXME: Property 'placeholder' does not exist on type '{}'... Remove this comment to see the full error message
-        if (options.hasOwnProperty('placeholder')) selectMenu.setPlaceholder(options.placeholder);
-        if (options.hasOwnProperty('options')) {
-            // @ts-expect-error TS(2339) FIXME: Property 'options' does not exist on type '{}'.
+        if (options.hasOwn('customId')) selectMenu.setCustomId(options.customId);
+
+        if (options.hasOwn('placeholder')) selectMenu.setPlaceholder(options.placeholder);
+        if (options.hasOwn('options')) {
             for (const option of options.options) {
                 option.description = option.description.substring(0, Constants.SELECT_MENU_MAX_DESCRIPTION_CHARACTERS);
             }
-            // @ts-expect-error TS(2339) FIXME: Property 'options' does not exist on type '{}'.
+
             selectMenu.setOptions(options.options);
         }
-        // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type '{}'.
-        if (options.hasOwnProperty('disabled')) selectMenu.setDisabled(options.disabled);
+
+        if (options.hasOwn('disabled')) selectMenu.setDisabled(options.disabled);
 
         return selectMenu;
     },

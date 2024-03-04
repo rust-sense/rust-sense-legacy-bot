@@ -8,10 +8,9 @@ export default {
     getModal: function (options = {}) {
         const modal = new Discord.ModalBuilder();
 
-        // @ts-expect-error TS(2339) FIXME: Property 'customId' does not exist on type '{}'.
-        if (options.hasOwnProperty('customId')) modal.setCustomId(options.customId);
-        // @ts-expect-error TS(2339) FIXME: Property 'title' does not exist on type '{}'.
-        if (options.hasOwnProperty('title')) modal.setTitle(options.title.slice(0, 45));
+        if (options.hasOwn('customId')) modal.setCustomId(options.customId);
+
+        if (options.hasOwn('title')) modal.setTitle(options.title.slice(0, 45));
 
         return modal;
     },

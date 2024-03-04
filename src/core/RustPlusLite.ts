@@ -86,7 +86,7 @@ class RustPlusLite extends RustPlusLib {
         } else if (response.toString() === 'Error: Timeout reached while waiting for response') {
             this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseTimeout'), 'error');
             return false;
-        } else if (response.hasOwnProperty('error')) {
+        } else if (response.hasOwn('error')) {
             this.log(
                 Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'responseContainError', {

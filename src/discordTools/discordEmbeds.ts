@@ -11,25 +11,24 @@ export default {
     getEmbed: function (options = {}) {
         const embed = new Discord.EmbedBuilder();
 
-        // @ts-expect-error TS(2339) FIXME: Property 'title' does not exist on type '{}'.
-        if (options.hasOwnProperty('title')) embed.setTitle(options.title);
-        // @ts-expect-error TS(2339) FIXME: Property 'color' does not exist on type '{}'.
-        if (options.hasOwnProperty('color')) embed.setColor(options.color);
-        // @ts-expect-error TS(2339) FIXME: Property 'description' does not exist on type '{}'... Remove this comment to see the full error message
-        if (options.hasOwnProperty('description')) embed.setDescription(options.description);
-        // @ts-expect-error TS(2339) FIXME: Property 'thumbnail' does not exist on type '{}'.
-        if (options.hasOwnProperty('thumbnail') && options.thumbnail !== '') embed.setThumbnail(options.thumbnail);
-        // @ts-expect-error TS(2339) FIXME: Property 'image' does not exist on type '{}'.
-        if (options.hasOwnProperty('image')) embed.setImage(options.image);
-        // @ts-expect-error TS(2339) FIXME: Property 'url' does not exist on type '{}'.
-        if (options.hasOwnProperty('url') && options.url !== '') embed.setURL(options.url);
-        // @ts-expect-error TS(2339) FIXME: Property 'author' does not exist on type '{}'.
-        if (options.hasOwnProperty('author')) embed.setAuthor(options.author);
-        // @ts-expect-error TS(2339) FIXME: Property 'footer' does not exist on type '{}'.
-        if (options.hasOwnProperty('footer')) embed.setFooter(options.footer);
-        if (options.hasOwnProperty('timestamp')) embed.setTimestamp();
-        // @ts-expect-error TS(2339) FIXME: Property 'fields' does not exist on type '{}'.
-        if (options.hasOwnProperty('fields')) embed.setFields(...options.fields);
+        if (options.hasOwn('title')) embed.setTitle(options.title);
+
+        if (options.hasOwn('color')) embed.setColor(options.color);
+
+        if (options.hasOwn('description')) embed.setDescription(options.description);
+
+        if (options.hasOwn('thumbnail') && options.thumbnail !== '') embed.setThumbnail(options.thumbnail);
+
+        if (options.hasOwn('image')) embed.setImage(options.image);
+
+        if (options.hasOwn('url') && options.url !== '') embed.setURL(options.url);
+
+        if (options.hasOwn('author')) embed.setAuthor(options.author);
+
+        if (options.hasOwn('footer')) embed.setFooter(options.footer);
+        if (options.hasOwn('timestamp')) embed.setTimestamp();
+
+        if (options.hasOwn('fields')) embed.setFields(...options.fields);
 
         return embed;
     },
@@ -61,7 +60,7 @@ export default {
         const credentials = InstanceUtils.readCredentialsFile(guildId);
         const server = instance.serverList[serverId];
         let hoster = Client.client.intlGet(guildId, 'unknown');
-        if (credentials.hasOwnProperty(server.steamId)) {
+        if (credentials.hasOwn(server.steamId)) {
             hoster = await DiscordTools.getUserById(guildId, credentials[server.steamId].discordUserId);
             hoster = hoster.user.username;
         }
@@ -163,7 +162,7 @@ export default {
             }`;
             id += '\n';
 
-            if (!bmInstance.players.hasOwnProperty(player.playerId) || !successful) {
+            if (!bmInstance.players.hasOwn(player.playerId) || !successful) {
                 status += `${Constants.NOT_FOUND_EMOJI}\n`;
             } else {
                 let time = null;
@@ -367,7 +366,7 @@ export default {
             itemQuantity = '',
             storageItems = new Object();
         for (const item of items) {
-            if (storageItems.hasOwnProperty(item.itemId)) {
+            if (storageItems.hasOwn(item.itemId)) {
                 storageItems[item.itemId] += item.quantity;
             } else {
                 storageItems[item.itemId] = item.quantity;
@@ -404,7 +403,7 @@ export default {
             switchId = '',
             switchActive = '';
         for (const groupSwitchId of group.switches) {
-            if (instance.serverList[serverId].switches.hasOwnProperty(groupSwitchId)) {
+            if (instance.serverList[serverId].switches.hasOwn(groupSwitchId)) {
                 const sw = instance.serverList[serverId].switches[groupSwitchId];
                 const active = sw.active;
                 switchName += `${sw.name}${sw.location !== null ? ` ${sw.location}` : ''}\n`;
@@ -1256,7 +1255,7 @@ export default {
         const serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
 
         let thumbnail = '';
-        if (instance.serverList.hasOwnProperty(serverId)) {
+        if (instance.serverList.hasOwn(serverId)) {
             thumbnail = instance.serverList[serverId].img;
         }
         const embed = module.exports.getEmbed({

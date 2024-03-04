@@ -216,7 +216,6 @@ class MapMarkers {
 
     isMarkerPresentByTypeId(type, id, markers = null) {
         if (markers) {
-            // @ts-expect-error TS(2339) FIXME: Property 'some' does not exist on type 'never'.
             return markers.some((e) => e.id === id);
         } else {
             return this.getType(type).some((e) => e.id === id);
@@ -227,7 +226,6 @@ class MapMarkers {
         const newMarkersOfType = [];
 
         for (const marker of this.getMarkersOfType(type, markers)) {
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             if (!this.isMarkerPresentByTypeId(type, marker.id)) {
                 newMarkersOfType.push(marker);
             }
@@ -240,9 +238,7 @@ class MapMarkers {
         let leftMarkersOfType = this.getType(type).slice();
 
         for (const marker of this.getMarkersOfType(type, markers)) {
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             if (this.isMarkerPresentByTypeId(type, marker.id)) {
-                // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
                 leftMarkersOfType = leftMarkersOfType.filter((e) => e.id !== marker.id);
             }
         }
@@ -265,7 +261,6 @@ class MapMarkers {
 
     isMarkerPresentByTypeXY(type, x, y, markers = null) {
         if (markers) {
-            // @ts-expect-error TS(2339) FIXME: Property 'some' does not exist on type 'never'.
             return markers.some((e) => e.x === x && e.y === y);
         } else {
             return this.getType(type).some((e) => e.x === x && e.y === y);
@@ -276,7 +271,6 @@ class MapMarkers {
         const newMarkersOfType = [];
 
         for (const marker of this.getMarkersOfType(type, markers)) {
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             if (!this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
                 newMarkersOfType.push(marker);
             }
@@ -289,9 +283,7 @@ class MapMarkers {
         let leftMarkersOfType = this.getType(type).slice();
 
         for (const marker of this.getMarkersOfType(type, markers)) {
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             if (this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
-                // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                 leftMarkersOfType = leftMarkersOfType.filter((e) => e.x !== marker.x) || e.y !== marker.y;
             }
         }
@@ -331,10 +323,9 @@ class MapMarkers {
         /* Player markers that are new. */
         for (const marker of newMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             this.players.push(marker);
@@ -348,14 +339,13 @@ class MapMarkers {
         /* Player markers that still remains. */
         for (const marker of remainingMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
             const player = this.getMarkerByTypeId(this.types.Player, marker.id);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             player.x = marker.x;
-            // @ts-expect-error TS(2339) FIXME: Property 'y' does not exist on type 'never'.
+
             player.y = marker.y;
             player.location = pos;
         }
@@ -369,14 +359,12 @@ class MapMarkers {
         /* VendingMachine markers that are new. */
         for (const marker of newMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             if (!this.rustplus.isFirstPoll) {
-                // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                 if (!this.knownVendingMachines.some((e) => e.x === marker.x && e.y === marker.y)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.vendingMachineDetectedSetting,
@@ -387,7 +375,6 @@ class MapMarkers {
                 }
             }
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             this.knownVendingMachines.push({ x: marker.x, y: marker.y });
             this.vendingMachines.push(marker);
         }
@@ -401,12 +388,11 @@ class MapMarkers {
         /* VendingMachine markers that still remains. */
         for (const marker of remainingMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const vendingMachine = this.getMarkerByTypeXY(this.types.VendingMachine, marker.x, marker.y);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             vendingMachine.id = marker.id;
             vendingMachine.location = pos;
         }
@@ -420,10 +406,9 @@ class MapMarkers {
         /* CH47 markers that are new. */
         for (const marker of newMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             const smallOilRig = [],
@@ -441,15 +426,14 @@ class MapMarkers {
             let found = false;
             if (!this.rustplus.isFirstPoll) {
                 for (const oilRig of smallOilRig) {
-                    // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                     if (
                         Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
                         Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
                     ) {
                         found = true;
-                        // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
                         const oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
-                        // @ts-expect-error TS(2339) FIXME: Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
+
                         marker.ch47Type = 'smallOilRig';
 
                         this.rustplus.sendEvent(
@@ -484,15 +468,14 @@ class MapMarkers {
 
             if (!found && !this.rustplus.isFirstPoll) {
                 for (const oilRig of largeOilRig) {
-                    // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
                     if (
                         Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
                         Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
                     ) {
                         found = true;
-                        // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
                         const oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
-                        // @ts-expect-error TS(2339) FIXME: Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
+
                         marker.ch47Type = 'largeOilRig';
 
                         this.rustplus.sendEvent(
@@ -530,7 +513,7 @@ class MapMarkers {
                 const offset = 4 * Map.gridDiameter;
 
                 /* If CH47 is located outside the grid system + the offset */
-                // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
                 if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.chinook47DetectedSetting,
@@ -546,7 +529,7 @@ class MapMarkers {
                         Constants.COLOR_CHINOOK47_LOCATED,
                     );
                 }
-                // @ts-expect-error TS(2339) FIXME: Property 'ch47Type' does not exist on type 'never'... Remove this comment to see the full error message
+
                 marker.ch47Type = 'crate';
             }
 
@@ -569,14 +552,13 @@ class MapMarkers {
         /* CH47 markers that still remains. */
         for (const marker of remainingMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
             const ch47 = this.getMarkerByTypeId(this.types.CH47, marker.id);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             ch47.x = marker.x;
-            // @ts-expect-error TS(2339) FIXME: Property 'y' does not exist on type 'never'.
+
             ch47.y = marker.y;
             ch47.location = pos;
         }
@@ -590,22 +572,20 @@ class MapMarkers {
         /* CargoShip markers that are new. */
         for (const marker of newMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             this.rustplus.cargoShipTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
-            // @ts-expect-error TS(2339) FIXME: Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
-            // @ts-expect-error TS(2339) FIXME: Property 'onItsWayOut' does not exist on type 'nev... Remove this comment to see the full error message
+
             marker.onItsWayOut = false;
 
             /* Offset that is used to determine if CargoShip just spawned */
             const offset = 4 * Map.gridDiameter;
 
             /* If CargoShip is located outside the grid system + the offset */
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.cargoShipDetectedSetting,
@@ -615,14 +595,14 @@ class MapMarkers {
                 );
 
                 const instance = this.client.getInstance(this.rustplus.guildId);
-                // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
                 this.cargoShipEgressTimers[marker.id] = new Timer.timer(
                     this.notifyCargoShipEgress.bind(this),
                     instance.serverList[this.rustplus.serverId].cargoShipEgressTimeMs,
-                    // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
                     marker.id,
                 );
-                // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
                 this.cargoShipEgressTimers[marker.id].start();
             } else {
                 this.rustplus.sendEvent(
@@ -659,17 +639,15 @@ class MapMarkers {
         /* CargoShip markers that still remains. */
         for (const marker of remainingMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
             const cargoShip = this.getMarkerByTypeId(this.types.CargoShip, marker.id);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             this.rustplus.cargoShipTracers[marker.id].push({ x: marker.x, y: marker.y });
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             cargoShip.x = marker.x;
-            // @ts-expect-error TS(2339) FIXME: Property 'y' does not exist on type 'never'.
+
             cargoShip.y = marker.y;
             cargoShip.location = pos;
         }
@@ -692,12 +670,10 @@ class MapMarkers {
 
         /* GenericRadius markers that still remains. */
         for (const marker of remainingMarkers) {
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             const genericRadius = this.getMarkerByTypeId(this.types.GenericRadius, marker.id);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             genericRadius.x = marker.x;
-            // @ts-expect-error TS(2339) FIXME: Property 'y' does not exist on type 'never'.
+
             genericRadius.y = marker.y;
         }
     }
@@ -710,20 +686,18 @@ class MapMarkers {
         /* PatrolHelicopter markers that are new. */
         for (const marker of newMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             this.rustplus.patrolHelicopterTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
-            // @ts-expect-error TS(2339) FIXME: Property 'location' does not exist on type 'never'... Remove this comment to see the full error message
             marker.location = pos;
 
             /* Offset that is used to determine if PatrolHelicopter just spawned */
             const offset = 4 * Map.gridDiameter;
 
             /* If PatrolHelicopter is located outside the grid system + the offset */
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDetectedSetting,
@@ -785,17 +759,15 @@ class MapMarkers {
         /* PatrolHelicopter markers that still remains. */
         for (const marker of remainingMarkers) {
             const mapSize = this.rustplus.info.correctedMapSize;
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
+
             const pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
+
             const patrolHelicopter = this.getMarkerByTypeId(this.types.PatrolHelicopter, marker.id);
 
-            // @ts-expect-error TS(2339) FIXME: Property 'id' does not exist on type 'never'.
             this.rustplus.patrolHelicopterTracers[marker.id].push({ x: marker.x, y: marker.y });
 
-            // @ts-expect-error TS(2339) FIXME: Property 'x' does not exist on type 'never'.
             patrolHelicopter.x = marker.x;
-            // @ts-expect-error TS(2339) FIXME: Property 'y' does not exist on type 'never'.
+
             patrolHelicopter.y = marker.y;
             patrolHelicopter.location = pos;
         }

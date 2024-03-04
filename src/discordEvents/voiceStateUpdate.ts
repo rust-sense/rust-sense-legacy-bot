@@ -12,7 +12,7 @@ export default {
 async function checkBotLeaveVoice(client, oldState, newState) {
     const guildId = oldState.guild.id;
 
-    if (!client.voiceLeaveTimeouts.hasOwnProperty(guildId)) client.voiceLeaveTimeouts[guildId] = null;
+    if (!client.voiceLeaveTimeouts.hasOwn(guildId)) client.voiceLeaveTimeouts[guildId] = null;
 
     /* No channel involved. */
     if (oldState.channel === null && newState.channel === null) return;
@@ -48,7 +48,6 @@ async function checkBotLeaveVoice(client, oldState, newState) {
         channel = newState.channel;
     }
 
-    // @ts-expect-error TS(2339) FIXME: Property 'members' does not exist on type 'never'.
     if (condition && channel && channel.members.size === 1) {
         client.voiceLeaveTimeouts[guildId] = setTimeout(
             botLeaveVoiceTimeout.bind(null, guildId),

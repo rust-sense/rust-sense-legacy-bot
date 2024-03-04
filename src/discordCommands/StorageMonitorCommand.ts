@@ -5,6 +5,7 @@ import DiscordBot from '../core/DiscordBot.js';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import InstanceUtils from '../util/instanceUtils.js';
+import DiscordCommand from '../core/abstract/DiscordCommand.js';
 
 export default class StorageMonitorCommand extends DiscordCommand {
     constructor() {

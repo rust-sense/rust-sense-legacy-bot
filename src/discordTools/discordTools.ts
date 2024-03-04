@@ -68,7 +68,6 @@ export default {
                 );
             }
 
-            // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
             if (channel && channel.type === Discord.ChannelType.GuildText) {
                 return channel;
             }
@@ -91,7 +90,6 @@ export default {
                 );
             }
 
-            // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
             if (channel && channel.type === Discord.ChannelType.GuildText) {
                 return channel;
             }
@@ -114,7 +112,6 @@ export default {
                 );
             }
 
-            // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
             if (category && category.type === Discord.ChannelType.GuildCategory) {
                 return category;
             }
@@ -137,7 +134,6 @@ export default {
                 );
             }
 
-            // @ts-expect-error TS(2339) FIXME: Property 'type' does not exist on type 'never'.
             if (category && category.type === Discord.ChannelType.GuildCategory) {
                 return category;
             }
@@ -305,13 +301,12 @@ export default {
 
             for (let message of messages) {
                 message = message[1];
-                // @ts-expect-error TS(2339) FIXME: Property 'author' does not exist on type 'never'.
+
                 if (!message.author.bot) {
                     break;
                 }
 
                 try {
-                    // @ts-expect-error TS(2339) FIXME: Property 'delete' does not exist on type 'never'.
                     await message.delete();
                 } catch (e) {
                     Client.client.log(

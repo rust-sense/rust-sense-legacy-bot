@@ -397,7 +397,7 @@ export default {
         const instance = Client.client.getInstance(guildId);
 
         let color = Constants.COLOR_TEAMCHAT_DEFAULT;
-        if (instance.teamChatColors.hasOwnProperty(message.steamId)) {
+        if (instance.teamChatColors.hasOwn(message.steamId)) {
             color = instance.teamChatColors[message.steamId];
         }
 
@@ -411,7 +411,6 @@ export default {
         };
 
         if (message.message.includes('@everyone')) {
-            // @ts-expect-error TS(2339) FIXME: Property 'content' does not exist on type '{ embed... Remove this comment to see the full error message
             content.content = '@everyone';
         }
 

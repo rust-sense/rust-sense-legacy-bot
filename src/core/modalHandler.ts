@@ -61,7 +61,7 @@ export default async (client, interaction) => {
         if (battlemetricsId !== server.battlemetricsId) {
             if (battlemetricsId === '') {
                 server.battlemetricsId = null;
-            } else if (client.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+            } else if (client.battlemetricsInstances.hasOwn(battlemetricsId)) {
                 const bmInstance = client.battlemetricsInstances[battlemetricsId];
                 server.battlemetricsId = battlemetricsId;
                 server.connect = `connect ${bmInstance.server_ip}:${bmInstance.server_port}`;
@@ -102,7 +102,7 @@ export default async (client, interaction) => {
             smartSwitchProximity = null;
         }
 
-        if (!server || (server && !server.switches.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.switches.hasOwn(ids.entityId))) {
             interaction.deferUpdate();
             return;
         }
@@ -137,7 +137,7 @@ export default async (client, interaction) => {
         const groupName = interaction.fields.getTextInputValue('GroupName');
         const groupCommand = interaction.fields.getTextInputValue('GroupCommand');
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             interaction.deferUpdate();
             return;
         }
@@ -167,7 +167,7 @@ export default async (client, interaction) => {
         const server = instance.serverList[ids.serverId];
         const switchId = interaction.fields.getTextInputValue('GroupAddSwitchId');
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             interaction.deferUpdate();
             return;
         }
@@ -197,7 +197,7 @@ export default async (client, interaction) => {
         const server = instance.serverList[ids.serverId];
         const switchId = interaction.fields.getTextInputValue('GroupRemoveSwitchId');
 
-        if (!server || (server && !server.switchGroups.hasOwnProperty(ids.groupId))) {
+        if (!server || (server && !server.switchGroups.hasOwn(ids.groupId))) {
             interaction.deferUpdate();
             return;
         }
@@ -223,7 +223,7 @@ export default async (client, interaction) => {
         const smartAlarmMessage = interaction.fields.getTextInputValue('SmartAlarmMessage');
         const smartAlarmCommand = interaction.fields.getTextInputValue('SmartAlarmCommand');
 
-        if (!server || (server && !server.alarms.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.alarms.hasOwn(ids.entityId))) {
             interaction.deferUpdate();
             return;
         }
@@ -254,7 +254,7 @@ export default async (client, interaction) => {
         const server = instance.serverList[ids.serverId];
         const storageMonitorName = interaction.fields.getTextInputValue('StorageMonitorName');
 
-        if (!server || (server && !server.storageMonitors.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !server.storageMonitors.hasOwn(ids.entityId))) {
             interaction.deferUpdate();
             return;
         }
@@ -290,7 +290,7 @@ export default async (client, interaction) => {
         }
 
         if (trackerBattlemetricsId !== tracker.battlemetricsId) {
-            if (client.battlemetricsInstances.hasOwnProperty(trackerBattlemetricsId)) {
+            if (client.battlemetricsInstances.hasOwn(trackerBattlemetricsId)) {
                 const bmInstance = client.battlemetricsInstances[trackerBattlemetricsId];
                 tracker.battlemetricsId = trackerBattlemetricsId;
                 tracker.serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
@@ -355,7 +355,7 @@ export default async (client, interaction) => {
             }
         } else {
             playerId = id;
-            if (bmInstance.players.hasOwnProperty(id)) {
+            if (bmInstance.players.hasOwn(id)) {
                 name = bmInstance.players[id]['name'];
             } else {
                 // @ts-expect-error TS(2322) FIXME: Type '"-"' is not assignable to type 'null'.
