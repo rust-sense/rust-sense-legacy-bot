@@ -89,7 +89,7 @@ class RustPlusLite extends RustPlusLib {
         }
         else if (response.hasOwnProperty('error')) {
             this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseContainError', {
-                error: response.error
+                error: JSON.stringify(response),
             }), 'error');
             return false;
         }

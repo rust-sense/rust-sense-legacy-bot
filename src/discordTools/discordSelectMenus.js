@@ -106,47 +106,37 @@ module.exports = {
             }));
     },
 
+    getTrademarkOption: function (guildId, trademark) {
+        return {
+            label: trademark,
+            description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
+                trademark: trademark,
+            }),
+            value: trademark,
+        };
+    },
+
     getTrademarkSelectMenu: function (guildId, trademark) {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'Trademark',
-                placeholder: `${trademark === 'NOT SHOWING' ?
-                    Client.client.intlGet(guildId, 'notShowingCap') : trademark}`,
+                placeholder: `${
+                    trademark === 'NOT SHOWING' ? Client.client.intlGet(guildId, 'notShowingCap') : trademark
+                }`,
                 options: [
-                    {
-                        label: 'rustplusplus',
-                        description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
-                            trademark: 'rustplusplus'
-                        }),
-                        value: 'rustplusplus'
-                    },
-                    {
-                        label: 'Rust++',
-                        description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
-                            trademark: 'Rust++'
-                        }),
-                        value: 'Rust++'
-                    },
-                    {
-                        label: 'R++',
-                        description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
-                            trademark: 'R++'
-                        }),
-                        value: 'R++'
-                    },
-                    {
-                        label: 'RPP',
-                        description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
-                            trademark: 'RPP'
-                        }),
-                        value: 'RPP'
-                    },
+                    module.exports.getTrademarkOption(guildId, 'rustplusplus'),
+                    module.exports.getTrademarkOption(guildId, 'Rust++'),
+                    module.exports.getTrademarkOption(guildId, 'R++'),
+                    module.exports.getTrademarkOption(guildId, 'RPP'),
+                    module.exports.getTrademarkOption(guildId, 'BOT'),
                     {
                         label: Client.client.intlGet(guildId, 'notShowingCap'),
                         description: Client.client.intlGet(guildId, 'hideTrademark'),
-                        value: 'NOT SHOWING'
-                    }]
-            }));
+                        value: 'NOT SHOWING',
+                    },
+                ],
+            }),
+        );
     },
 
     getCommandDelaySelectMenu: function (guildId, delay) {

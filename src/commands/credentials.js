@@ -137,7 +137,7 @@ async function addCredentials(client, interaction, verifyId) {
     const isHoster = interaction.options.getBoolean('host') || Object.keys(credentials).length === 1;
 
     if (Object.keys(credentials) !== 1 && isHoster) {
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str);
@@ -220,7 +220,7 @@ async function removeCredentials(client, interaction, verifyId) {
     let steamId = interaction.options.getString('steam_id');
 
     if (steamId && (steamId in credentials) && credentials[steamId].discordUserId !== interaction.member.user.id) {
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str);
@@ -289,7 +289,7 @@ async function setHosterCredentials(client, interaction, verifyId) {
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     let steamId = interaction.options.getString('steam_id');
 
-    if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+    if (!client.isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);
