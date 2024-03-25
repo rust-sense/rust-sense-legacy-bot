@@ -1,8 +1,6 @@
 import RustPlusLib from '@liamcottle/rustplus.js';
 
-// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
 import Client from '../../index.ts';
-// @ts-expect-error TS(2307) FIXME: Cannot find module '../../config' or its correspon... Remove this comment to see the full error message
 import Config from '../../config';
 
 class RustPlusLite extends RustPlusLib {

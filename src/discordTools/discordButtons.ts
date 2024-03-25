@@ -1,8 +1,7 @@
 import Discord from 'discord.js';
 
-import Constants from '../util/constants.js';
-// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
-import Client from '../../index.ts';
+import Client from '../index';
+import Constants from '../utils/constants';
 
 const SUCCESS = Discord.ButtonStyle.Success;
 const DANGER = Discord.ButtonStyle.Danger;
@@ -15,15 +14,10 @@ export default {
         const button = new Discord.ButtonBuilder();
 
         if (options.hasOwn('customId')) button.setCustomId(options.customId);
-
         if (options.hasOwn('label')) button.setLabel(options.label);
-
         if (options.hasOwn('style')) button.setStyle(options.style);
-
         if (options.hasOwn('url') && options.url !== '') button.setURL(options.url);
-
         if (options.hasOwn('emoji')) button.setEmoji(options.emoji);
-
         if (options.hasOwn('disabled')) button.setDisabled(options.disabled);
 
         return button;

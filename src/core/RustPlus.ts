@@ -3,8 +3,7 @@ import Fs from 'fs';
 import RustPlusLib from '@liamcottle/rustplus.js';
 import Path from 'path';
 import Translate from 'translate';
-// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
-import Client from '../../index.ts';
+import Client from '../../index';
 import DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import DiscordMessages from '../discordTools/discordMessages.js';
 import DiscordTools from '../discordTools/discordTools.js';

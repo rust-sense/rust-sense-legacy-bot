@@ -1,7 +1,6 @@
 import Axios from 'axios';
 
-// @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
-import Client from '../../index.ts';
+import Client from '../index';
 // @ts-expect-error TS(2732) FIXME: Cannot find module '../staticFiles/RandomUsernames... Remove this comment to see the full error message
 import RandomUsernames from '../staticFiles/RandomUsernames.json';
 const Utils = (require = require('../util/utils.js'));

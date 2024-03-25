@@ -3,9 +3,9 @@ import Fs from 'fs';
 import Gm from 'gm';
 import Jimp from 'jimp';
 import Path from 'path';
-import Constants from '../util/constants.js';
+import Constants from '../utils/constants';
 // @ts-expect-error TS(2691) FIXME: An import path cannot end with a '.ts' extension. ... Remove this comment to see the full error message
-import Client from '../../index.ts';
+import Client from '../../index';
 
 class Map {
     _background: any;

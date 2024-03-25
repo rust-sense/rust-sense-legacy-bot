@@ -54,6 +54,6 @@ function setupRejectionHandler() {
 }
 
 createAppDirs();
-
-export const client = setupDiscordClient();
 setupRejectionHandler();
+const client = setupDiscordClient();
+export default client;
