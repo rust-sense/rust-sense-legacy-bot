@@ -38,7 +38,7 @@ jobs:
                       runner: ubuntu-22.04
                     - type: linux-arm64
                       docker-platform: linux/arm64
-                      runner: arc-jamezrin-rustplusplus-spiced-set
+                      runner: arc-cyber-rust-set
 
         runs-on: ${{ matrix.runner }}
 
