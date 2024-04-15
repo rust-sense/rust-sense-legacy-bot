@@ -134,7 +134,7 @@ class DiscordBot extends Discord.Client {
         }
 
         const intlInstance = this.createIntlForLocale(locale);
-        this.intlInstances[intlInstance] = intlInstance;
+        this.intlInstances[locale] = intlInstance;
 
         return intlInstance;
     }
