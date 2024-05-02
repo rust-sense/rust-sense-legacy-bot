@@ -672,7 +672,7 @@ module.exports = async (client, interaction) => {
         rustplus.interactionSwitches.push(ids.entityId);
 
         const response = await rustplus.turnSmartSwitchAsync(ids.entityId, active);
-        if (!(await rustplus.isResponseValid(response))) {
+        if (!(rustplus.isResponseValid(response))) {
             if (server.switches[ids.entityId].reachable) {
                 await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, ids.serverId, ids.entityId);
             }
@@ -889,7 +889,7 @@ module.exports = async (client, interaction) => {
         if (!rustplus || (rustplus && rustplus.serverId !== ids.serverId)) return;
 
         const entityInfo = await rustplus.getEntityInfoAsync(ids.entityId);
-        if (!(await rustplus.isResponseValid(entityInfo))) {
+        if (!(rustplus.isResponseValid(entityInfo))) {
             if (server.storageMonitors[ids.entityId].reachable) {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, ids.serverId, ids.entityId);
             }

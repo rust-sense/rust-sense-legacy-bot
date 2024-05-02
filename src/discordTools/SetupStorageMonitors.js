@@ -35,7 +35,7 @@ module.exports = async (client, rustplus) => {
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const info = await rustplus.getEntityInfoAsync(entityId);
 
-        if (!(await rustplus.isResponseValid(info))) {
+        if (!(rustplus.isResponseValid(info))) {
             if (entity.reachable === true) {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, serverId, entityId);
             }

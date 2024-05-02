@@ -81,7 +81,7 @@ module.exports = {
             rustplus.interactionSwitches.push(entityId);
 
             const response = await rustplus.turnSmartSwitchAsync(entityId, value);
-            if (!(await rustplus.isResponseValid(response))) {
+            if (!(rustplus.isResponseValid(response))) {
                 if (instance.serverList[serverId].switches[entityId].reachable) {
                     await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, serverId, entityId);
                 }

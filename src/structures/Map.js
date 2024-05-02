@@ -383,7 +383,7 @@ class Map {
         }
 
         let mapMarkers = await this.rustplus.getMapMarkersAsync();
-        if (!(await this.rustplus.isResponseValid(mapMarkers))) return;
+        if (!(this.rustplus.isResponseValid(mapMarkers))) return;
 
         for (let marker of mapMarkers.mapMarkers.markers) {
             let x = marker.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;

@@ -631,29 +631,37 @@ class RustPlus extends RustPlusLib {
         }
     }
 
-    async isResponseValid(response) {
+    isResponseValid(response) {
         if (response === undefined) {
             this.log(Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'responseIsUndefined'), 'error');
             return false;
         }
-        else if (response.toString() === 'Error: Timeout reached while waiting for response') {
+        
+        if (response.toString() === 'Error: Timeout reached while waiting for response') {
             this.log(Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'responseTimeout'), 'error');
             return false;
         }
-        else if (response.hasOwnProperty('error')) {
+        
+        if (response.hasOwn('error')) {
+            if (response.error === 'not_found') {
+              return false;
+            }
+
             this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseContainError', {
                 error: JSON.stringify(response),
             }), 'error');
             return false;
         }
-        else if (Object.keys(response).length === 0) {
+
+        if (Object.keys(response).length === 0) {
             this.log(Client.client.intlGet(null, 'errorCap'),
                 Client.client.intlGet(null, 'responseIsEmpty'), 'error');
             clearInterval(this.pollingTaskId);
             return false;
         }
+
         return true;
     }
 
@@ -980,7 +988,7 @@ class RustPlus extends RustPlusLib {
         const commandDeathsEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxDeaths')}`;
 
         const teamInfo = await this.getTeamInfoAsync();
-        if (!(await this.isResponseValid(teamInfo))) return null;
+        if (!(this.isResponseValid(teamInfo))) return null;
         TeamHandler.handler(this, Client.client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
 
@@ -1612,7 +1620,7 @@ class RustPlus extends RustPlusLib {
                 if (name === '') return null;
 
                 const teamInfo = await this.getTeamInfoAsync();
-                if (!(await this.isResponseValid(teamInfo))) return null;
+                if (!(this.isResponseValid(teamInfo))) return null;
 
                 for (const player of teamInfo.teamInfo.members) {
                     if (player.steamId.toString() === callerSteamId) {
@@ -1659,7 +1667,7 @@ class RustPlus extends RustPlusLib {
                 }
 
                 const teamInfo = await this.getTeamInfoAsync();
-                if (!(await this.isResponseValid(teamInfo))) return null;
+                if (!(this.isResponseValid(teamInfo))) return null;
 
                 for (const player of teamInfo.teamInfo.members) {
                     if (player.steamId.toString() === callerSteamId) {
@@ -2078,7 +2086,7 @@ class RustPlus extends RustPlusLib {
         }
 
         const teamInfo = await this.getTeamInfoAsync();
-        if (!(await this.isResponseValid(teamInfo))) return null;
+        if (!(this.isResponseValid(teamInfo))) return null;
         TeamHandler.handler(this, Client.client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
 

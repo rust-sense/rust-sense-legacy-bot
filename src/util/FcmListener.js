@@ -274,12 +274,12 @@ async function pairingEntitySwitch(client, guild, full, data, body) {
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
         const info = await rustplus.getEntityInfoAsync(body.entityId);
-        if (!(await rustplus.isResponseValid(info))) {
+        if (!(rustplus.isResponseValid(info))) {
             instance.serverList[serverId].switches[body.entityId].reachable = false;
         }
 
         const teamInfo = await rustplus.getTeamInfoAsync();
-        if (await rustplus.isResponseValid(teamInfo)) {
+        if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find(e => e.steamId.toString() === rustplus.playerId);
             if (player) {
                 const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
@@ -324,12 +324,12 @@ async function pairingEntitySmartAlarm(client, guild, full, data, body) {
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
         const info = await rustplus.getEntityInfoAsync(body.entityId);
-        if (!(await rustplus.isResponseValid(info))) {
+        if (!(rustplus.isResponseValid(info))) {
             instance.serverList[serverId].alarms[body.entityId].reachable = false;
         }
 
         const teamInfo = await rustplus.getTeamInfoAsync();
-        if (await rustplus.isResponseValid(teamInfo)) {
+        if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find(e => e.steamId.toString() === rustplus.playerId);
             if (player) {
                 const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
@@ -372,12 +372,12 @@ async function pairingEntityStorageMonitor(client, guild, full, data, body) {
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
         const info = await rustplus.getEntityInfoAsync(body.entityId);
-        if (!(await rustplus.isResponseValid(info))) {
+        if (!(rustplus.isResponseValid(info))) {
             instance.serverList[serverId].storageMonitors[body.entityId].reachable = false;
         }
 
         const teamInfo = await rustplus.getTeamInfoAsync();
-        if (await rustplus.isResponseValid(teamInfo)) {
+        if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find(e => e.steamId.toString() === rustplus.playerId);
             if (player) {
                 const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
