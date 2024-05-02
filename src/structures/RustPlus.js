@@ -644,7 +644,7 @@ class RustPlus extends RustPlusLib {
             return false;
         }
         
-        if (response.hasOwn('error')) {
+        if (Object.hasOwn(response, 'error')) {
             if (response.error === 'not_found') {
               return false;
             }
