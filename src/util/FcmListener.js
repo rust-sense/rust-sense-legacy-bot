@@ -83,7 +83,6 @@ module.exports = async (client, guild) => {
 
                         case 'entity': {
                             switch (body.entityName) {
-                                case 'Switch':
                                 case 'Smart Switch': {
                                     client.log('FCM Host',
                                         `GuildID: ${guild.id}, SteamID: ${hoster}, pairing: entity: Switch`);
