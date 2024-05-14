@@ -34,7 +34,7 @@ module.exports = {
             client.fcmListenersLite[guild[0]] = new Object();
         }
 
-        client.loadGuildsIntl();
+        client.loadGuildsIntlFromCache();
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'loggedInAs', {
             name: client.user.tag
         }));

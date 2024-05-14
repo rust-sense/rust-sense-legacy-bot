@@ -29,6 +29,7 @@ module.exports = (client, guild) => {
         instance = {
             firstTime: true,
             role: null,
+            adminRole: null,
             generalSettings: client.readGeneralSettingsTemplate(),
             notificationSettings: client.readNotificationSettingsTemplate(),
             channelId: {
@@ -67,7 +68,8 @@ module.exports = (client, guild) => {
                 discordIds: [],
                 steamIds: []
             },
-            aliases: []
+            aliases: [],
+            customIntlMessages: {}
         };
     }
     else {
@@ -79,6 +81,10 @@ module.exports = (client, guild) => {
 
         if (!instance.hasOwnProperty('role')) {
             instance.role = null;
+        }
+
+        if (!instance.hasOwnProperty('adminRole')) {
+            instance.adminRole = null;
         }
 
         if (!instance.hasOwnProperty('generalSettings')) {
@@ -185,6 +191,7 @@ module.exports = (client, guild) => {
         if (!instance.blacklist.hasOwnProperty('discordIds')) instance.blacklist['discordIds'] = [];
         if (!instance.blacklist.hasOwnProperty('steamIds')) instance.blacklist['steamIds'] = [];
         if (!instance.hasOwnProperty('aliases')) instance.aliases = [];
+        if (!instance.hasOwnProperty('customIntlMessages')) instance.customIntlMessages = {};
 
         for (const serverId of Object.keys(instance.serverList)) {
             if (!Object.keys(instance.serverListLite).includes(serverId)) {

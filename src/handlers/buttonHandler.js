@@ -612,7 +612,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('ServerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -672,7 +672,7 @@ module.exports = async (client, interaction) => {
         rustplus.interactionSwitches.push(ids.entityId);
 
         const response = await rustplus.turnSmartSwitchAsync(ids.entityId, active);
-        if (!(await rustplus.isResponseValid(response))) {
+        if (!(rustplus.isResponseValid(response))) {
             if (server.switches[ids.entityId].reachable) {
                 await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, ids.serverId, ids.entityId);
             }
@@ -724,7 +724,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -777,7 +777,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -859,7 +859,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorToolCupboardDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -889,7 +889,7 @@ module.exports = async (client, interaction) => {
         if (!rustplus || (rustplus && rustplus.serverId !== ids.serverId)) return;
 
         const entityInfo = await rustplus.getEntityInfoAsync(ids.entityId);
-        if (!(await rustplus.isResponseValid(entityInfo))) {
+        if (!(rustplus.isResponseValid(entityInfo))) {
             if (server.storageMonitors[ids.entityId].reachable) {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, ids.serverId, ids.entityId);
             }
@@ -916,7 +916,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorContainerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -933,7 +933,7 @@ module.exports = async (client, interaction) => {
         client.setInstance(guildId, instance);
     }
     else if (interaction.customId === 'RecycleDelete') {
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -998,7 +998,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('GroupDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }
@@ -1093,7 +1093,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('TrackerDelete', ''));
         const tracker = instance.trackers[ids.trackerId];
 
-        if (Config.discord.needAdminPrivileges && !client.isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             interaction.deferUpdate();
             return;
         }

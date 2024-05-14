@@ -41,7 +41,7 @@ module.exports = {
 
         /* Request the map. Act as a check to see if connection is truly operational. */
         const map = await rustplus.getMapAsync(3 * 60 * 1000); /* 3 min timeout */
-        if (!(await rustplus.isResponseValid(map))) {
+        if (!(rustplus.isResponseValid(map))) {
             rustplus.log(client.intlGet(null, 'errorCap'),
                 client.intlGet(null, 'somethingWrongWithConnection'), 'error');
 
@@ -60,7 +60,7 @@ module.exports = {
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
         const info = await rustplus.getInfoAsync();
-        if (await rustplus.isResponseValid(info)) rustplus.info = new Info(info.info)
+        if (rustplus.isResponseValid(info)) rustplus.info = new Info(info.info)
 
         if (client.rustplusMaps.hasOwnProperty(guildId)) {
             if (client.isJpgImageChanged(guildId, map.map)) {

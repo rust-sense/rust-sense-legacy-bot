@@ -22,6 +22,11 @@ const Discord = require('discord.js');
 
 const DiscordTools = require('../discordTools/discordTools.js');
 
+const writeableChannels = [
+    'commands', 
+    'teamchat'
+];
+
 module.exports = {
     getPermissionsReset: function (client, guild, permissionWrite = false) {
         const instance = client.getInstance(guild.id);
@@ -35,8 +40,7 @@ module.exports = {
         if (instance.role !== null) {
             if (permissionWrite) {
                 roleAllow.push(Discord.PermissionFlagsBits.SendMessages);
-            }
-            else {
+            } else {
                 roleDeny.push(Discord.PermissionFlagsBits.SendMessages);
             }
 
@@ -46,12 +50,14 @@ module.exports = {
 
             perms.push({ id: guild.roles.everyone.id, deny: everyoneDeny });
             perms.push({ id: instance.role, allow: roleAllow, deny: roleDeny });
-        }
-        else {
+
+            if (instance.adminRole !== null) {
+                perms.push({ id: instance.adminRole, allow: roleAllow, deny: roleDeny });
+            }
+        } else {
             if (permissionWrite) {
                 everyoneAllow.push(Discord.PermissionFlagsBits.SendMessages);
-            }
-            else {
+            } else {
                 everyoneDeny.push(Discord.PermissionFlagsBits.SendMessages);
             }
 
@@ -63,7 +69,7 @@ module.exports = {
         for (const discordId of instance.blacklist['discordIds']) {
             perms.push({
                 id: discordId,
-                deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages]
+                deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
             });
         }
 
@@ -78,13 +84,20 @@ module.exports = {
         if (instance.role !== null) {
             perms.push({
                 id: instance.role,
-                deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages]
+                deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
             });
+        }
+
+        if (instance.adminRole !== null) {
+            perms.push({
+                id: instance.adminRole,
+                deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
+            })
         }
 
         perms.push({
             id: guild.roles.everyone.id,
-            deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages]
+            deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
         });
 
         return perms;
@@ -98,27 +111,17 @@ module.exports = {
         const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
         if (category) {
             const perms = module.exports.getPermissionsReset(client, guild);
-            try {
-                await category.permissionOverwrites.set(perms);
-            }
-            catch (e) {
-                /* Ignore */
-            }
+            await category.permissionOverwrites.set(perms).catch((e) => {});
         }
 
         for (const [name, id] of Object.entries(instance.channelId)) {
-            const writePerm = (name !== 'commands' && name !== 'teamchat') ? false : true;
+            const permissionWrite = writeableChannels.includes(name);
 
             const channel = DiscordTools.getTextChannelById(guild.id, id);
             if (channel) {
-                const perms = module.exports.getPermissionsReset(client, guild, writePerm);
-                try {
-                    await channel.permissionOverwrites.set(perms);
-                }
-                catch (e) {
-                    /* Ignore */
-                }
+                const perms = module.exports.getPermissionsReset(client, guild, permissionWrite);
+                await channel.permissionOverwrites.set(perms).catch((e) => {});
             }
         }
     },
-}
+};
