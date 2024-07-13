@@ -1,11 +1,4 @@
-name: Update from upstream
-
-# This workflow keeps the repo up to date with changes from the upstream repo (REMOTE_URL)
-# It duplicates the REMOTE_BRANCH (into UPDATE_BRANCH) and tries to merge it into the
-# this repos default branch (which is checked out here)
-# Note that this requires a PAT (Personal Access Token) - at best from a servicing account
-# Also note that you should have at least once merged the upstream repo into the current repo manually
-# otherwise a "refusing to merge unrelated histories" error might occur.
+name: Update from original repository
 
 concurrency:
     group: sync-upstream
@@ -13,7 +6,7 @@ concurrency:
 
 on:
     schedule:
-        - cron: '0 0 * * 1'
+        - cron: "0 0 * * 1"
     workflow_dispatch:
 
 env:
@@ -37,7 +30,7 @@ jobs:
                   fetch-depth: 0
 
                   # Always checkout develop, it's always going to be the target branch
-                  ref: 'develop'
+                  ref: "develop"
 
             - name: Init Git
               run: |
