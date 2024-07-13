@@ -1,21 +1,21 @@
 const FormatJS = require('@formatjs/intl');
 const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 const { IntlMessageFormat } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
 const Cctv = require('./Cctv');
-const Config = require('../../config');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+const Config = require('../config');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
-const InstanceUtils = require('../util/instanceUtils.js');
+const InstanceUtils = require('../util/instanceUtils');
 const Items = require('./Items');
-const Logger = require('./Logger.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+const Logger = require('./Logger');
+const PermissionHandler = require('../handlers/permissionHandler');
 const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
-const Constants = require('../util/constants.js');
+const Constants = require('../util/constants');
 
 class DiscordBot extends Discord.Client {
     constructor(props) {
@@ -59,9 +59,7 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordCommands() {
-        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) =>
-            file.endsWith('.js'),
-        );
+        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith(''));
         for (const file of commandFiles) {
             const command = require(`../commands/${file}`);
             this.commands.set(command.name, command);
@@ -70,7 +68,7 @@ class DiscordBot extends Discord.Client {
 
     loadDiscordEvents() {
         const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'discordEvents')).filter((file) =>
-            file.endsWith('.js'),
+            file.endsWith(''),
         );
         for (const file of eventFiles) {
             const event = require(`../discordEvents/${file}`);

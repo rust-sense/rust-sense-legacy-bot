@@ -1,7 +1,7 @@
 const Axios = require('axios');
 
-const Constants = require('../util/constants.js');
-const Utils = require('../util/utils.js');
+const Constants = require('../util/constants');
+const Utils = require('../util/utils');
 
 module.exports = {
     scrape: async function (url) {

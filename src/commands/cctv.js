@@ -1,6 +1,6 @@
 const Builder = require('@discordjs/builders');
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordMessages = require('../discordTools/discordMessages');
 
 module.exports = {
     name: 'cctv',

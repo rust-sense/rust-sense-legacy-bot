@@ -1,5 +1,5 @@
-const Constants = require('../util/constants.js');
-const Map = require('../util/map.js');
+const Constants = require('../util/constants');
+const Map = require('../util/map');
 const Timer = require('../util/timer');
 
 class MapMarkers {

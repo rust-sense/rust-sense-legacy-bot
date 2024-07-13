@@ -1,9 +1,9 @@
 const Builder = require('@discordjs/builders');
 const Discord = require('discord.js');
-const Path = require('path');
+const Path = require('node:path');
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+const Constants = require('../util/constants');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
 module.exports = {
     name: 'map',

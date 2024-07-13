@@ -1,7 +1,7 @@
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const Scrape = require('../util/scrape.js');
+const Constants = require('../util/constants');
+const DiscordMessages = require('../discordTools/discordMessages');
+const DiscordTools = require('../discordTools/discordTools');
+const Scrape = require('../util/scrape');
 
 module.exports = {
     handler: async function (client, firstTime = false) {

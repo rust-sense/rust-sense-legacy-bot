@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const DiscordBot = require('./src/structures/DiscordBot');
+const DiscordBot = require('./structures/DiscordBot');
 
 const APP_DIR_NAMES = ['logs', 'instances', 'credentials', 'maps'];
 

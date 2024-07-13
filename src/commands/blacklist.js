@@ -1,10 +1,10 @@
 const Builder = require('@discordjs/builders');
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
-const Scrape = require('../util/scrape.js');
+const Constants = require('../util/constants');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const DiscordTools = require('../discordTools/discordTools');
+const PermissionHandler = require('../handlers/permissionHandler');
+const Scrape = require('../util/scrape');
 
 module.exports = {
     name: 'blacklist',

@@ -1,9 +1,9 @@
 const Discord = require('discord.js');
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const DiscordTools = require('./discordTools.js');
-const InstanceUtils = require('../util/instanceUtils.js');
+const Client = require('../index');
+const Constants = require('../util/constants');
+const DiscordTools = require('./discordTools');
+const InstanceUtils = require('../util/instanceUtils');
 const Timer = require('../util/timer');
 
 module.exports = {

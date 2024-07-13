@@ -1,49 +1,51 @@
 {
-  "name": "rustplusplus",
-  "version": "1.17.0",
-  "description": "Rust Bot based on RustPlusPlus",
-  "main": "index.ts",
-  "scripts": {
-    "start": "dist/index.js",
-    "build": "tsc",
-    "test": "tsc --noEmit"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/rust-sense/legacy.git"
-  },
-  "author": "jamezrin",
-  "bugs": {
-    "url": "https://github.com/rust-sense/legacy/issues"
-  },
-  "homepage": "https://github.com/rust-sense/legacy",
-  "dependencies": {
-    "@discordjs/opus": "^0.9.0",
-    "@discordjs/rest": "^2.0.0",
-    "@discordjs/voice": "^0.16.0",
-    "@formatjs/intl": "^2.9.0",
-    "@liamcottle/rustplus.js": "^2.4.0",
-    "axios": "^1.5.0",
-    "colors": "^1.4.0",
-    "discord-api-types": "^0.37.56",
-    "discord.js": "^14.13.0",
-    "ffmpeg-static": "^5.2.0",
-    "gm": "^1.25.0",
-    "jimp": "^0.22.10",
-    "lodash": "^4.17.21",
-    "push-receiver": "^2.1.1",
-    "sodium-native": "^4.0.4",
-    "translate": "^1.4.1",
-    "ts-node": "^10.9.1",
-    "winston": "^3.10.0"
-  },
-  "resolutions": {
-    "jpeg-js": "0.4.4",
-    "protobufjs": "7.2.6"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.8.3",
-    "@types/node": "^20.14.10",
-    "typescript": "^5.2.2"
-  }
+    "name": "rustplusplus",
+    "version": "1.17.0",
+    "description": "Rust Bot based on RustPlusPlus",
+    "main": "dist/index.js",
+    "scripts": {
+        "start": "node dist/index.js",
+        "build": "tsc",
+        "test": "tsc --noEmit"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rust-sense/legacy.git"
+    },
+    "author": "jamezrin",
+    "bugs": {
+        "url": "https://github.com/rust-sense/legacy/issues"
+    },
+    "homepage": "https://github.com/rust-sense/legacy",
+    "dependencies": {
+        "@discordjs/builders": "^1.8.2",
+        "@discordjs/opus": "^0.9.0",
+        "@discordjs/rest": "^2.0.0",
+        "@discordjs/voice": "^0.16.0",
+        "@formatjs/intl": "^2.10.4",
+        "@liamcottle/rustplus.js": "^2.4.0",
+        "axios": "^1.5.0",
+        "colors": "^1.4.0",
+        "discord-api-types": "^0.37.56",
+        "discord.js": "^14.13.0",
+        "ffmpeg-static": "^5.2.0",
+        "gm": "^1.25.0",
+        "intl-messageformat": "^10.5.14",
+        "jimp": "^0.22.10",
+        "lodash": "^4.17.21",
+        "push-receiver": "^2.1.1",
+        "sodium-native": "^4.0.4",
+        "translate": "^1.4.1",
+        "ts-node": "^10.9.1",
+        "winston": "^3.10.0"
+    },
+    "resolutions": {
+        "jpeg-js": "0.4.4",
+        "protobufjs": "7.2.6"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3",
+        "@types/node": "^20.14.10",
+        "typescript": "^5.2.2"
+    }
 }

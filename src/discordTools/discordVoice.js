@@ -20,7 +20,7 @@
 */
 const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const Actors = require('../staticFiles/actors.json');
-const Client = require('../../index.ts');
+const Client = require('..');
 
 module.exports = {
     sendDiscordVoiceMessage: async function (guildId, text) {
@@ -44,9 +44,8 @@ module.exports = {
 
         if (Actors[language]?.[gender] === null || Actors[language]?.[gender] === undefined) {
             return Actors[language]?.[gender === 'male' ? 'female' : 'male'];
-        }
-        else {
+        } else {
             return Actors[language]?.[gender];
         }
     },
-}
+};

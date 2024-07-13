@@ -1,7 +1,7 @@
 const RustPlusLib = require('@liamcottle/rustplus.js');
 
-const Client = require('../../index.ts');
-const Config = require('../../config');
+const Client = require('../index');
+const Config = require('../config');
 
 class RustPlusLite extends RustPlusLib {
     constructor(guildId, logger, rustplus, serverIp, appPort, steamId, playerToken) {

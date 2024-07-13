@@ -1,8 +1,8 @@
 const Axios = require('axios');
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 
-const Utils = require('../util/utils.js');
+const Utils = require('../util/utils');
 
 /* Constants */
 

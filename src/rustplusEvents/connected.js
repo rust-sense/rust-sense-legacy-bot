@@ -1,7 +1,7 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordMessages = require('../discordTools/discordMessages');
 const Info = require('../structures/Info');
 const Map = require('../structures/Map');
-const PollingHandler = require('../handlers/pollingHandler.js');
+const PollingHandler = require('../handlers/pollingHandler');
 
 module.exports = {
     name: 'connected',

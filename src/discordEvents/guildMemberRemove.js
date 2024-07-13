@@ -1,4 +1,4 @@
-const InstanceUtils = require('../util/instanceUtils.js');
+const InstanceUtils = require('../util/instanceUtils');
 
 module.exports = {
     name: 'guildMemberRemove',

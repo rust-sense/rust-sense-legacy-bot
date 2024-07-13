@@ -1,6 +1,6 @@
-const SmartAlarmHandler = require('./smartAlarmHandler.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
-const SmartSwitchHandler = require('./smartSwitchHandler.js');
+const SmartAlarmHandler = require('./smartAlarmHandler');
+const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
+const SmartSwitchHandler = require('./smartSwitchHandler');
 
 module.exports = {
     inGameCommandHandler: async function (rustplus, client, message) {

@@ -1,4 +1,4 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordMessages = require('../discordTools/discordMessages');
 
 module.exports = {
     handler: async function (rustplus) {

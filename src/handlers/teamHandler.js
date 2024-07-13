@@ -1,5 +1,5 @@
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const Constants = require('../util/constants');
+const DiscordMessages = require('../discordTools/discordMessages');
 
 module.exports = {
     handler: async function (rustplus, client, teamInfo) {

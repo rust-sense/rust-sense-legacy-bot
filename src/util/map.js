@@ -1,4 +1,4 @@
-const Client = require('../../index.ts');
+const Client = require('../index');
 
 module.exports = {
     gridDiameter: 146.25,

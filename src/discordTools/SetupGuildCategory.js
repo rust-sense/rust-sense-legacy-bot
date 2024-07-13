@@ -1,5 +1,5 @@
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+const DiscordTools = require('../discordTools/discordTools');
+const PermissionHandler = require('../handlers/permissionHandler');
 
 module.exports = async (client, guild) => {
     const instance = client.getInstance(guild.id);

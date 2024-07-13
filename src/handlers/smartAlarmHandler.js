@@ -1,5 +1,5 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Timer = require('../util/timer.js');
+const DiscordMessages = require('../discordTools/discordMessages');
+const Timer = require('../util/timer');
 
 module.exports = {
     handler: async function (rustplus, client) {

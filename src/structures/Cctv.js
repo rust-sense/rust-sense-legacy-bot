@@ -1,9 +1,11 @@
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
+
+const jsonCctv = require('../staticFiles/cctv.json');
 
 class Cctv {
     constructor() {
-        this._cctvs = JSON.parse(Fs.readFileSync(Path.join(__dirname, '..', 'staticFiles', 'cctv.json'), 'utf8'));
+        this._cctvs = jsonCctv;
     }
 
     /* Getters and Setters */
@@ -15,16 +17,22 @@ class Cctv {
     }
 
     cctvExist(monument) {
-        return monument in this.cctvs ? true : false;
+        return monument in this.cctvs;
     }
 
     isDynamic(monument) {
-        if (!this.cctvExist(monument)) return undefined;
+        if (!this.cctvExist(monument)) {
+            return undefined;
+        }
+
         return this.cctvs[monument].dynamic;
     }
 
     getCodes(monument) {
-        if (!this.cctvExist(monument)) return undefined;
+        if (!this.cctvExist(monument)) {
+            return undefined;
+        }
+
         return this.cctvs[monument].codes;
     }
 }

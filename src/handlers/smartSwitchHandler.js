@@ -1,6 +1,6 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Map = require('../util/map.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
+const DiscordMessages = require('../discordTools/discordMessages');
+const Map = require('../util/map');
+const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
 const Timer = require('../util/timer');
 
 module.exports = {

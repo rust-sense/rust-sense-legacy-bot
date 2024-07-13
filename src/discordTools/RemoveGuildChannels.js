@@ -1,4 +1,4 @@
-const DiscordTools = require('../discordTools/discordTools.js');
+const DiscordTools = require('../discordTools/discordTools');
 
 module.exports = async (client, guild) => {
     const instance = client.getInstance(guild.id);

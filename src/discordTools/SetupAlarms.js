@@ -1,4 +1,4 @@
-const DiscordMessages = require('./discordMessages.js');
+const DiscordMessages = require('./discordMessages');
 
 module.exports = async (client, rustplus) => {
     const instance = client.getInstance(rustplus.guildId);

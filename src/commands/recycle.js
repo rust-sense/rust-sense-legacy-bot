@@ -1,7 +1,7 @@
 const Builder = require('@discordjs/builders');
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const DiscordMessages = require('../discordTools/discordMessages');
 
 module.exports = {
     name: 'recycle',

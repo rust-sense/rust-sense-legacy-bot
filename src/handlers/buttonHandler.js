@@ -1,11 +1,11 @@
 const Discord = require('discord.js');
 
-const Config = require('../../config');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler.js');
-const DiscordButtons = require('../discordTools/discordButtons.js');
-const DiscordModals = require('../discordTools/discordModals.js');
+const Config = require('../config');
+const DiscordMessages = require('../discordTools/discordMessages');
+const DiscordTools = require('../discordTools/discordTools');
+const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
+const DiscordButtons = require('../discordTools/discordButtons');
+const DiscordModals = require('../discordTools/discordModals');
 
 module.exports = async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);

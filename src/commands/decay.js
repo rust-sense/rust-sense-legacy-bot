@@ -1,7 +1,7 @@
 const Builder = require('@discordjs/builders');
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const Timer = require('../util/timer.js');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const Timer = require('../util/timer');
 
 module.exports = {
     name: 'decay',

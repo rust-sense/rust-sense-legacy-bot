@@ -1,10 +1,10 @@
-const Fs = require('fs');
+const Fs = require('node:fs');
 const Gm = require('gm');
 const Jimp = require('jimp');
-const Path = require('path');
+const Path = require('node:path');
 
-const Constants = require('../util/constants.js');
-const Client = require('../../index.ts');
+const Constants = require('../util/constants');
+const Client = require('../index');
 
 class Map {
     constructor(map, rustplus) {

@@ -1,6 +1,6 @@
 const Builder = require('@discordjs/builders');
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
 module.exports = {
     name: 'upkeep',

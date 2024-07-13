@@ -1,6 +1,6 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordMessages = require('../discordTools/discordMessages');
 
-const Config = require('../../config');
+const Config = require('../config');
 
 module.exports = {
     name: 'disconnected',

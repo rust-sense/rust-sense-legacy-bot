@@ -1,23 +1,23 @@
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 const RustPlusLib = require('@liamcottle/rustplus.js');
 const Translate = require('translate');
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const Decay = require('../util/decay.js');
+const Client = require('../index');
+const Constants = require('../util/constants');
+const Decay = require('../util/decay');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordVoice = require('../discordTools/discordVoice.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const InGameChatHandler = require('../handlers/inGameChatHandler.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const Languages = require('../util/languages.js');
-const Logger = require('./Logger.js');
-const Map = require('../util/map.js');
+const DiscordMessages = require('../discordTools/discordMessages');
+const DiscordVoice = require('../discordTools/discordVoice');
+const DiscordTools = require('../discordTools/discordTools');
+const InGameChatHandler = require('../handlers/inGameChatHandler');
+const InstanceUtils = require('../util/instanceUtils');
+const Languages = require('../util/languages');
+const Logger = require('./Logger');
+const Map = require('../util/map');
 const RustPlusLite = require('../structures/RustPlusLite');
-const TeamHandler = require('../handlers/teamHandler.js');
-const Timer = require('../util/timer.js');
+const TeamHandler = require('../handlers/teamHandler');
+const Timer = require('../util/timer');
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
@@ -94,7 +94,7 @@ class RustPlus extends RustPlusLib {
 
     loadRustPlusEvents() {
         const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'rustplusEvents')).filter((file) =>
-            file.endsWith('.js'),
+            file.endsWith(''),
         );
         for (const file of eventFiles) {
             const event = require(`../rustplusEvents/${file}`);

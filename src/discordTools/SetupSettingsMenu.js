@@ -1,11 +1,11 @@
 const Discord = require('discord.js');
-const Path = require('path');
+const Path = require('node:path');
 
-const Constants = require('../util/constants.js');
-const DiscordButtons = require('./discordButtons.js');
-const DiscordEmbeds = require('./discordEmbeds.js');
-const DiscordSelectMenus = require('./discordSelectMenus.js');
-const DiscordTools = require('./discordTools.js');
+const Constants = require('../util/constants');
+const DiscordButtons = require('./discordButtons');
+const DiscordEmbeds = require('./discordEmbeds');
+const DiscordSelectMenus = require('./discordSelectMenus');
+const DiscordTools = require('./discordTools');
 
 module.exports = async (client, guild, forced = false) => {
     const instance = client.getInstance(guild.id);

@@ -1,10 +1,10 @@
 const Discord = require('discord.js');
 
 const Battlemetrics = require('../structures/Battlemetrics');
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Keywords = require('../util/keywords.js');
-const Scrape = require('../util/scrape.js');
+const Constants = require('../util/constants');
+const DiscordMessages = require('../discordTools/discordMessages');
+const Keywords = require('../util/keywords');
+const Scrape = require('../util/scrape');
 
 module.exports = async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);

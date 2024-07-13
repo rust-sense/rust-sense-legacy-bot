@@ -1,4 +1,4 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
+const DiscordMessages = require('../discordTools/discordMessages');
 const Timer = require('../util/timer');
 
 module.exports = {

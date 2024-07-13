@@ -1,10 +1,10 @@
 const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 
-const Client = require('../../index.ts');
-const Constants = require('../util/constants.js');
-const Languages = require('../util/languages.js');
+const Client = require('../index');
+const Constants = require('../util/constants');
+const Languages = require('../util/languages');
 
 module.exports = {
     getSelectMenu: function (options = {}) {

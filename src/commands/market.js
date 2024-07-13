@@ -1,7 +1,7 @@
 const Builder = require('@discordjs/builders');
 
-const Constants = require('../util/constants.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+const Constants = require('../util/constants');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
 module.exports = {
     name: 'market',

@@ -1,12 +1,12 @@
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 
-const Utils = require('../util/utils.js');
+const Utils = require('../util/utils');
+const jsonItems = require('../staticFiles/items.json');
 
 class Items {
     constructor() {
-        this._items = JSON.parse(Fs.readFileSync(Path.join(__dirname, '..', 'staticFiles', 'items.json'), 'utf8'));
-
+        this._items = jsonItems;
         this._itemNames = Object.values(this.items).map((item) => item.name);
     }
 
@@ -25,7 +25,7 @@ class Items {
         delete this.items[id];
     }
     itemExist(id) {
-        return id in this.items ? true : false;
+        return id in this.items;
     }
 
     getShortName(id) {

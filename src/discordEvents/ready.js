@@ -1,8 +1,8 @@
 const Discord = require('discord.js');
-const Path = require('path');
+const Path = require('node:path');
 
-const BattlemetricsHandler = require('../handlers/battlemetricsHandler.js');
-const Config = require('../../config');
+const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
+const Config = require('../config');
 
 module.exports = {
     name: 'ready',

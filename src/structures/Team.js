@@ -1,5 +1,5 @@
-const Client = require('../../index.ts');
-const Player = require('./Player.js');
+const Client = require('../index');
+const Player = require('./Player');
 
 class Team {
     constructor(team, rustplus) {

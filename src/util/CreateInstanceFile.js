@@ -1,7 +1,7 @@
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 
-const InstanceUtils = require('../util/instanceUtils.js');
+const InstanceUtils = require('../util/instanceUtils');
 
 module.exports = (client, guild) => {
     let instance = null;

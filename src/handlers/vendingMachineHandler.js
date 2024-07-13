@@ -1,5 +1,5 @@
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Map = require('../util/map.js');
+const DiscordMessages = require('../discordTools/discordMessages');
+const Map = require('../util/map');
 
 module.exports = {
     handler: async function (rustplus, client, mapMarkers) {

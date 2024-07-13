@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 
-const DiscordTools = require('../discordTools/discordTools.js');
+const DiscordTools = require('../discordTools/discordTools');
 
 const writeableChannels = ['commands', 'teamchat'];
 

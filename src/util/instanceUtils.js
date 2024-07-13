@@ -1,7 +1,7 @@
-const Fs = require('fs');
-const Path = require('path');
+const Fs = require('node:fs');
+const Path = require('node:path');
 
-const Client = require('../../index.ts');
+const Client = require('../index');
 
 module.exports = {
     getSmartDevice: function (guildId, entityId) {

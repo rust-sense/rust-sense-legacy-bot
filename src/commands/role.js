@@ -2,7 +2,7 @@ const Builder = require('@discordjs/builders');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+const PermissionHandler = require('../handlers/permissionHandler');
 
 module.exports = {
     name: 'role',

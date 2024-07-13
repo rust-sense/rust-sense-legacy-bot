@@ -1,4 +1,4 @@
-const DiscordCommandHandler = require('../handlers/discordCommandHandler.js');
+const DiscordCommandHandler = require('../handlers/discordCommandHandler');
 const DiscordTools = require('../discordTools/discordTools');
 
 module.exports = {

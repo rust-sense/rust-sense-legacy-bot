@@ -1,5 +1,5 @@
-const Path = require('path');
-const Fs = require('fs');
+const Path = require('node:path');
+const Fs = require('node:fs');
 
 const root = Path.join(__dirname, '..');
 const enJsonPath = Path.join(root, 'languages/en.json');

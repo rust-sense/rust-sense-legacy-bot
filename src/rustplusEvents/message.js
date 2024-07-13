@@ -1,10 +1,10 @@
-const CommandHandler = require('../handlers/inGameCommandHandler.js');
-const Constants = require('../util/constants.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const InGameChatHandler = require('../handlers/inGameChatHandler.js');
-const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler.js');
-const TeamChatHandler = require('../handlers/teamChatHandler.js');
-const TeamHandler = require('../handlers/teamHandler.js');
+const CommandHandler = require('../handlers/inGameCommandHandler');
+const Constants = require('../util/constants');
+const DiscordMessages = require('../discordTools/discordMessages');
+const InGameChatHandler = require('../handlers/inGameChatHandler');
+const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler');
+const TeamChatHandler = require('../handlers/teamChatHandler');
+const TeamHandler = require('../handlers/teamHandler');
 
 module.exports = {
     name: 'message',

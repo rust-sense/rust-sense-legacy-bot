@@ -1,13 +1,13 @@
 const _ = require('lodash');
 const Builder = require('@discordjs/builders');
 
-const Config = require('../../config/index.js');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const InstanceUtils = require('../util/instanceUtils.js');
-const instanceUtils = require('../util/instanceUtils.js');
-const Constants = require('../util/constants.js');
+const Config = require('../config');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const DiscordMessages = require('../discordTools/discordMessages');
+const DiscordTools = require('../discordTools/discordTools');
+const InstanceUtils = require('../util/instanceUtils');
+const instanceUtils = require('../util/instanceUtils');
+const Constants = require('../util/constants');
 
 module.exports = {
     name: 'customintl',
