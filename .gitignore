@@ -7,6 +7,6 @@ logs
 temp
 .idea
 dist
-.rtx.local.toml
-.rtx.*.local.toml
+.mise.local.toml
+.mise.*.local.toml
 .vscode
