@@ -1,23 +1,3 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const DiscordTools = require('../discordTools/discordTools.js');
 const PermissionHandler = require('../handlers/permissionHandler.js');
 
@@ -31,8 +11,13 @@ module.exports = async (client, guild, category) => {
     await addTextChannel(client.intlGet(guild.id, 'channelNameSwitches'), 'switches', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameSwitchGroups'), 'switchGroups', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameAlarms'), 'alarms', client, guild, category);
-    await addTextChannel(client.intlGet(guild.id, 'channelNameStorageMonitors'),
-        'storageMonitors', client, guild, category);
+    await addTextChannel(
+        client.intlGet(guild.id, 'channelNameStorageMonitors'),
+        'storageMonitors',
+        client,
+        guild,
+        category,
+    );
     await addTextChannel(client.intlGet(guild.id, 'channelNameActivity'), 'activity', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameTrackers'), 'trackers', client, guild, category);
 };
@@ -51,20 +36,24 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
 
         try {
             channel.setParent(parent.id);
-        }
-        catch (e) {
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
+        } catch (e) {
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }),
+                'error',
+            );
         }
     }
 
     if (instance.firstTime) {
         try {
             channel.setParent(parent.id);
-        }
-        catch (e) {
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }), 'error');
+        } catch (e) {
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'couldNotSetParent', { channelId: channel.id }),
+                'error',
+            );
         }
     }
 
@@ -72,8 +61,7 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
 
     try {
         await channel.permissionOverwrites.set(perms);
-    }
-    catch (e) {
+    } catch (e) {
         /* Ignore */
     }
 
