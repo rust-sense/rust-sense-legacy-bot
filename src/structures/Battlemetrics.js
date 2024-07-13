@@ -1,8 +1,10 @@
 const Axios = require('axios');
 
 const Client = require('../index');
-const RandomUsernames = require('../staticFiles/RandomUsernames.json');
-const Utils = (require = require('../util/utils'));
+const Utils = require('../util/utils');
+
+import { loadJsonResourceSync } from '../service/resourceManager';
+const RandomUsernames = loadJsonResourceSync('staticFiles/RandomUsernames.json');
 
 const SERVER_LOG_SIZE = 1000;
 const CONNECTION_LOG_SIZE = 1000;

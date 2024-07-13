@@ -2,18 +2,10 @@ const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
+import { ensureAppStateDirs } from './service/resourceManager';
 const DiscordBot = require('./structures/DiscordBot');
 
-const APP_DIR_NAMES = ['logs', 'instances', 'credentials', 'maps'];
-
-APP_DIR_NAMES.forEach(ensureAppDir);
-
-function ensureAppDir(dirName: string) {
-    const fullPath = path.join(__dirname, dirName);
-    if (!fs.existsSync(fullPath)) {
-        fs.mkdirSync(fullPath);
-    }
-}
+ensureAppStateDirs();
 
 const client = new DiscordBot({
     intents: [

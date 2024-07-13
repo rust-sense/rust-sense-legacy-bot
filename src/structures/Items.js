@@ -1,8 +1,10 @@
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const Utils = require('../util/utils');
-const jsonItems = require('../staticFiles/items.json');
+
+const { loadJsonResourceSync } = require('../service/resourceManager');
+const jsonItems = loadJsonResourceSync('staticFiles/items.json');
 
 class Items {
     constructor() {

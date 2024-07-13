@@ -1,16 +1,18 @@
 const Items = require('./Items');
-const RustlabsBuildingBlocks = require('../staticFiles/rustlabsBuildingBlocks.json');
-const RustlabsOther = require('../staticFiles/rustlabsOther.json');
 
-const CraftData = require('../staticFiles/rustlabsCraftData.json');
-const ResearchData = require('../staticFiles/rustlabsResearchData.json');
-const RecycleData = require('../staticFiles/rustlabsRecycleData.json');
-const DurabilityData = require('../staticFiles/rustlabsDurabilityData.json');
-const SmeltingData = require('../staticFiles/rustlabsSmeltingData.json');
-const DespawnData = require('../staticFiles/rustlabsDespawnData.json');
-const StackData = require('../staticFiles/rustlabsStackData.json');
-const DecayData = require('../staticFiles/rustlabsDecayData.json');
-const UpkeepData = require('../staticFiles/rustlabsUpkeepData.json');
+import { loadJsonResourceSync } from '../service/resourceManager';
+
+const RustlabsBuildingBlocks = loadJsonResourceSync('staticFiles/rustlabsBuildingBlocks.json');
+const RustlabsOther = loadJsonResourceSync('staticFiles/rustlabsOther.json');
+const CraftData = loadJsonResourceSync('staticFiles/rustlabsCraftData.json');
+const ResearchData = loadJsonResourceSync('staticFiles/rustlabsResearchData.json');
+const RecycleData = loadJsonResourceSync('staticFiles/rustlabsRecycleData.json');
+const DurabilityData = loadJsonResourceSync('staticFiles/rustlabsDurabilityData.json');
+const SmeltingData = loadJsonResourceSync('staticFiles/rustlabsSmeltingData.json');
+const DespawnData = loadJsonResourceSync('staticFiles/rustlabsDespawnData.json');
+const StackData = loadJsonResourceSync('staticFiles/rustlabsStackData.json');
+const DecayData = loadJsonResourceSync('staticFiles/rustlabsDecayData.json');
+const UpkeepData = loadJsonResourceSync('staticFiles/rustlabsUpkeepData.json');
 const Utils = require('../util/utils');
 
 const IGNORED_RECYCLE_ITEMS = ['-946369541' /* Low Grade Fuel */];

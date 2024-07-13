@@ -1,5 +1,8 @@
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
+const path = require('node:path');
+const { loadJsonResourceSync } = require('../service/resourceManager');
+
+const htmlReservedSymbols = loadJsonResourceSync('staticFiles/htmlReservedSymbols.json');
 
 module.exports = {
     parseArgs: function (str) {
@@ -28,10 +31,6 @@ module.exports = {
     },
 
     decodeHtml: function (str) {
-        const htmlReservedSymbols = JSON.parse(
-            Fs.readFileSync(Path.join(__dirname, '..', 'staticFiles', 'htmlReservedSymbols.json'), 'utf8'),
-        );
-
         for (const [key, value] of Object.entries(htmlReservedSymbols)) {
             str = str.replace(key, value);
         }
