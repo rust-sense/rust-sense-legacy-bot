@@ -19,12 +19,21 @@
 */
 
 const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const DiscordBot = require('./src/structures/DiscordBot');
 
-createMissingDirectories();
+const APP_DIR_NAMES = ['logs', 'instances', 'credentials', 'maps'];
+
+APP_DIR_NAMES.forEach(ensureAppDir);
+
+function ensureAppDir(dirName: string) {
+    const fullPath = path.join(__dirname, dirName);
+    if (!fs.existsSync(fullPath)) {
+        fs.mkdirSync(fullPath);
+    }
+}
 
 const client = new DiscordBot({
     intents: [
@@ -32,36 +41,24 @@ const client = new DiscordBot({
         Discord.GatewayIntentBits.GuildMessages,
         Discord.GatewayIntentBits.MessageContent,
         Discord.GatewayIntentBits.GuildMembers,
-        Discord.GatewayIntentBits.GuildVoiceStates],
+        Discord.GatewayIntentBits.GuildVoiceStates,
+    ],
     retryLimit: 2,
     restRequestTimeout: 60000,
-    disableEveryone: false
+    disableEveryone: false,
 });
 
 client.build();
 
-function createMissingDirectories() {
-    if (!Fs.existsSync(Path.join(__dirname, 'logs'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'logs'));
-    }
+process.on('unhandledRejection', (error) => {
+    client.log(
+        client.intlGet(null, 'errorCap'),
+        client.intlGet(null, 'unhandledRejection', {
+            error: error,
+        }),
+        'error',
+    );
 
-    if (!Fs.existsSync(Path.join(__dirname, 'instances'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'instances'));
-    }
-
-    if (!Fs.existsSync(Path.join(__dirname, 'credentials'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'credentials'));
-    }
-
-    if (!Fs.existsSync(Path.join(__dirname, 'maps'))) {
-        Fs.mkdirSync(Path.join(__dirname, 'maps'));
-    }
-}
-
-process.on('unhandledRejection', error => {
-    client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'unhandledRejection', {
-        error: error
-    }), 'error');
     console.log(error);
 });
 
