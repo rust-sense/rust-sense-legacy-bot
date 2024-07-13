@@ -42,7 +42,7 @@
         "protobufjs": "7.2.6"
     },
     "devDependencies": {
-        "biome": "^0.3.3",
+        "@biomejs/biome": "1.8.3",
         "typescript": "^5.2.2"
     }
 }
