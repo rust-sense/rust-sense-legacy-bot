@@ -63,7 +63,7 @@ jobs:
                       type=raw,value=unstable,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
 
             - name: Setup Docker Buildx
-              uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20
+              uses: docker/setup-buildx-action@2ad185228a349d19414702819e06df9fa4314287
 
             - name: Build and push by digest
               id: build
