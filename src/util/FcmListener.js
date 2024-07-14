@@ -12,6 +12,8 @@ const InstanceUtils = require('../util/instanceUtils');
 const Map = require('../util/map');
 const Scrape = require('../util/scrape');
 
+import { cwdPath } from '../service/resourceManager';
+
 module.exports = async (client, guild) => {
     const credentials = InstanceUtils.readCredentialsFile(guild.id);
     const hoster = credentials.hoster;
@@ -506,7 +508,7 @@ async function alarmRaidAlarm(client, guild, full, data, body) {
 
     const files = [];
     if (body.img === '') {
-        files.push(new Discord.AttachmentBuilder(Path.join(__dirname, '..', `resources/images/rocket.png`)));
+        files.push(new Discord.AttachmentBuilder(cwdPath('resources/images/rocket.png')));
     }
 
     const content = {

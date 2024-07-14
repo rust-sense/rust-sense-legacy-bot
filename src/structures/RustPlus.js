@@ -1,5 +1,5 @@
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
+const path = require('node:path');
 const RustPlusLib = require('@liamcottle/rustplus.js');
 const Translate = require('translate');
 
@@ -18,6 +18,8 @@ const Map = require('../util/map');
 const RustPlusLite = require('../structures/RustPlusLite');
 const TeamHandler = require('../handlers/teamHandler');
 const Timer = require('../util/timer');
+
+import { cwdPath } from '../service/resourceManager';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
@@ -93,9 +95,9 @@ class RustPlus extends RustPlusLib {
     }
 
     loadRustPlusEvents() {
-        const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'rustplusEvents')).filter((file) =>
-            file.endsWith(''),
-        );
+        const eventFiles = fs
+            .readdirSync(path.join(__dirname, '..', 'rustplusEvents'))
+            .filter((file) => file.endsWith(''));
         for (const file of eventFiles) {
             const event = require(`../rustplusEvents/${file}`);
             this.on(event.name, (...args) => event.execute(this, Client.client, ...args));
@@ -114,7 +116,7 @@ class RustPlus extends RustPlusLib {
         const instance = Client.client.getInstance(this.guildId);
 
         /* Setup the logger */
-        this.logger = new Logger(Path.join(__dirname, '..', '..', `logs/${this.guildId}.log`), 'guild');
+        this.logger = new Logger(cwdPath(`logs/${this.guildId}.log`), 'guild');
         this.logger.setGuildId(this.guildId);
         this.logger.serverName = instance.serverList[this.serverId].title;
 

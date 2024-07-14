@@ -1,11 +1,11 @@
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const InstanceUtils = require('../util/instanceUtils');
 
 module.exports = (client, guild) => {
     let instance = null;
-    if (!Fs.existsSync(Path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
+    if (!fs.existsSync(path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
         instance = {
             firstTime: true,
             role: null,

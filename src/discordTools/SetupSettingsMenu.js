@@ -1,11 +1,12 @@
 const Discord = require('discord.js');
-const Path = require('node:path');
 
 const Constants = require('../util/constants');
 const DiscordButtons = require('./discordButtons');
 const DiscordEmbeds = require('./discordEmbeds');
 const DiscordSelectMenus = require('./discordSelectMenus');
 const DiscordTools = require('./discordTools');
+
+import { cwdPath } from '../service/resourceManager';
 
 module.exports = async (client, guild, forced = false) => {
     const instance = client.getInstance(guild.id);
@@ -37,11 +38,7 @@ async function setupGeneralSettings(client, guildId, channel) {
     await client.messageSend(channel, {
         files: [
             new Discord.AttachmentBuilder(
-                Path.join(
-                    __dirname,
-                    '..',
-                    `resources/images/settings/general_settings_logo_${instance.generalSettings.language}.png`,
-                ),
+                cwdPath(`resources/images/settings/general_settings_logo_${instance.generalSettings.language}.png`),
             ),
         ],
     });
@@ -61,8 +58,8 @@ async function setupGeneralSettings(client, guildId, channel) {
                 ],
             }),
         ],
-        components: [DiscordSelectMenus.getLanguageSelectMenu(guildId, instance.generalSettings.language)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        components: [await DiscordSelectMenus.getLanguageSelectMenu(guildId, instance.generalSettings.language)],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -74,7 +71,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordSelectMenus.getVoiceGenderSelectMenu(guildId, instance.generalSettings.voiceGender)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -86,7 +83,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordSelectMenus.getPrefixSelectMenu(guildId, instance.generalSettings.prefix)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -98,7 +95,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordSelectMenus.getTrademarkSelectMenu(guildId, instance.generalSettings.trademark)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -112,7 +109,7 @@ async function setupGeneralSettings(client, guildId, channel) {
         components: [
             DiscordButtons.getInGameCommandsEnabledButton(guildId, instance.generalSettings.inGameCommandsEnabled),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -124,7 +121,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordButtons.getBotMutedInGameButton(guildId, instance.generalSettings.muteInGameBotMessages)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -136,7 +133,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -148,7 +145,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordSelectMenus.getCommandDelaySelectMenu(guildId, instance.generalSettings.commandDelay)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -173,7 +170,7 @@ async function setupGeneralSettings(client, guildId, channel) {
                 instance.generalSettings.fcmAlarmNotificationEveryone,
             ),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -187,7 +184,7 @@ async function setupGeneralSettings(client, guildId, channel) {
         components: [
             DiscordButtons.getSmartAlarmNotifyInGameButton(guildId, instance.generalSettings.smartAlarmNotifyInGame),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -204,7 +201,7 @@ async function setupGeneralSettings(client, guildId, channel) {
                 instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord,
             ),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -218,7 +215,7 @@ async function setupGeneralSettings(client, guildId, channel) {
         components: [
             DiscordButtons.getLeaderCommandEnabledButton(guildId, instance.generalSettings.leaderCommandEnabled),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -235,7 +232,7 @@ async function setupGeneralSettings(client, guildId, channel) {
                 instance.generalSettings.leaderCommandOnlyForPaired,
             ),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -247,7 +244,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordButtons.getMapWipeNotifyEveryoneButton(instance.generalSettings.mapWipeNotifyEveryone)],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -264,7 +261,7 @@ async function setupGeneralSettings(client, guildId, channel) {
                 instance.generalSettings.itemAvailableInVendingMachineNotifyInGame,
             ),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -281,7 +278,7 @@ async function setupGeneralSettings(client, guildId, channel) {
                 instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers,
             ),
         ],
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
     await client.messageSend(channel, {
@@ -293,7 +290,7 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
-        files: [new Discord.AttachmentBuilder(Path.join(__dirname, '..', 'resources/images/settings_logo.png'))],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 }
 
@@ -303,9 +300,7 @@ async function setupNotificationSettings(client, guildId, channel) {
     await client.messageSend(channel, {
         files: [
             new Discord.AttachmentBuilder(
-                Path.join(
-                    __dirname,
-                    '..',
+                cwdPath(
                     `resources/images/settings/notification_settings_logo_${instance.generalSettings.language}.png`,
                 ),
             ),
@@ -332,11 +327,7 @@ async function setupNotificationSettings(client, guildId, channel) {
             ],
             files: [
                 new Discord.AttachmentBuilder(
-                    Path.join(
-                        __dirname,
-                        '..',
-                        `resources/images/events/${instance.notificationSettings[setting].image}`,
-                    ),
+                    cwdPath(`resources/images/events/${instance.notificationSettings[setting].image}`),
                 ),
             ],
         });

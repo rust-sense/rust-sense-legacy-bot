@@ -1,10 +1,11 @@
 const Discord = require('discord.js');
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
 
 const Client = require('../index');
 const Constants = require('../util/constants');
 const Languages = require('../util/languages');
+
+import { cwdPath } from '../service/resourceManager';
 
 module.exports = {
     getSelectMenu: function (options = {}) {
@@ -23,10 +24,9 @@ module.exports = {
         return selectMenu;
     },
 
-    getLanguageSelectMenu: function (guildId, language) {
-        const languageFiles = Fs.readdirSync(Path.join(__dirname, '..', 'languages')).filter((file) =>
-            file.endsWith('.json'),
-        );
+    getLanguageSelectMenu: async (guildId, language) => {
+        const languageFiles = await fs.promises.readdir(cwdPath('resources', 'languages'));
+        const languageJsonFiles = languageFiles.filter((file) => file.endsWith('.json'));
 
         const options = [];
         for (const language of languageFiles) {

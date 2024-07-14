@@ -1,10 +1,11 @@
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
 
 const Client = require('../index');
 
+import { loadJson, cwdPath, writeJson, writeJsonSync, loadJsonSync } from '../service/resourceManager';
+
 module.exports = {
-    getSmartDevice: function (guildId, entityId) {
+    getSmartDevice: (guildId, entityId) => {
         /* Temporary function till discord modals gets more functional */
         const instance = Client.client.getInstance(guildId);
 
@@ -22,23 +23,19 @@ module.exports = {
         return null;
     },
 
-    readInstanceFile: function (guildId) {
-        const path = Path.join(__dirname, '..', '..', 'instances', `${guildId}.json`);
-        return JSON.parse(Fs.readFileSync(path, 'utf8'));
+    readInstanceFile: (guildId) => {
+        return loadJsonSync(cwdPath('instances', `${guildId}.json`));
     },
 
-    writeInstanceFile: function (guildId, instance) {
-        const path = Path.join(__dirname, '..', '..', 'instances', `${guildId}.json`);
-        Fs.writeFileSync(path, JSON.stringify(instance, null, 2));
+    writeInstanceFile: (guildId, instance) => {
+        writeJsonSync(cwdPath('instances', `${guildId}.json`), instance);
     },
 
-    readCredentialsFile: function (guildId) {
-        const path = Path.join(__dirname, '..', '..', 'credentials', `${guildId}.json`);
-        return JSON.parse(Fs.readFileSync(path, 'utf8'));
+    readCredentialsFile: (guildId) => {
+        return loadJsonSync(cwdPath('credentials', `${guildId}.json`));
     },
 
-    writeCredentialsFile: function (guildId, credentials) {
-        const path = Path.join(__dirname, '..', '..', 'credentials', `${guildId}.json`);
-        Fs.writeFileSync(path, JSON.stringify(credentials, null, 2));
+    writeCredentialsFile: (guildId, credentials) => {
+        writeJsonSync(cwdPath('credentials', `${guildId}.json`), credentials);
     },
 };

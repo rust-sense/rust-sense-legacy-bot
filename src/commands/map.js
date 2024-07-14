@@ -1,9 +1,10 @@
 const Builder = require('@discordjs/builders');
 const Discord = require('discord.js');
-const Path = require('node:path');
 
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
+
+import { cwdPath } from '../service/resourceManager';
 
 module.exports = {
     name: 'map',
@@ -76,13 +77,9 @@ module.exports = {
 
         let file = null;
         if (interaction.options.getSubcommand() === 'clean') {
-            file = new Discord.AttachmentBuilder(
-                Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_clean.png`),
-            );
+            file = new Discord.AttachmentBuilder(cwdPath(`maps/${interaction.guildId}_map_clean.png`));
         } else {
-            file = new Discord.AttachmentBuilder(
-                Path.join(__dirname, '..', '..', `maps/${interaction.guildId}_map_full.png`),
-            );
+            file = new Discord.AttachmentBuilder(cwdPath(`maps/${interaction.guildId}_map_full.png`));
         }
 
         client.log(

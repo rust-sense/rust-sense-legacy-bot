@@ -1,7 +1,7 @@
 const FormatJS = require('@formatjs/intl');
 const Discord = require('discord.js');
-const Fs = require('node:fs');
-const Path = require('node:path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { IntlMessageFormat } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
@@ -16,12 +16,12 @@ const PermissionHandler = require('../handlers/permissionHandler');
 const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
 const Constants = require('../util/constants');
-
+import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
 class DiscordBot extends Discord.Client {
     constructor(props) {
         super(props);
 
-        this.logger = new Logger(Path.join(__dirname, '..', '..', 'logs/discordBot.log'), 'default');
+        this.logger = new Logger(cwdPath('logs/discordBot.log'), 'default');
 
         this.commands = new Discord.Collection();
         this.fcmListeners = new Object();
@@ -59,7 +59,7 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordCommands() {
-        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith(''));
+        const commandFiles = fs.readdirSync(path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith(''));
         for (const file of commandFiles) {
             const command = require(`../commands/${file}`);
             this.commands.set(command.name, command);
@@ -67,9 +67,9 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordEvents() {
-        const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'discordEvents')).filter((file) =>
-            file.endsWith(''),
-        );
+        const eventFiles = fs
+            .readdirSync(path.join(__dirname, '..', 'discordEvents'))
+            .filter((file) => file.endsWith(''));
         for (const file of eventFiles) {
             const event = require(`../discordEvents/${file}`);
 
@@ -94,8 +94,7 @@ class DiscordBot extends Discord.Client {
     }
 
     createIntlForLocale(locale) {
-        const path = Path.join(__dirname, '..', 'languages', `${locale}.json`);
-        const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
+        const messages = loadJsonResourceSync(`languages/${locale}.json`);
 
         const intlConfig = {
             locale,
@@ -305,19 +304,15 @@ class DiscordBot extends Discord.Client {
     }
 
     readNotificationSettingsTemplate() {
-        return JSON.parse(
-            Fs.readFileSync(Path.join(__dirname, '..', 'templates/notificationSettingsTemplate.json'), 'utf8'),
-        );
+        return loadJsonResourceSync('templates/notificationSettingsTemplate.json');
     }
 
     readGeneralSettingsTemplate() {
-        return JSON.parse(
-            Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
-        );
+        return loadJsonResourceSync('templates/generalSettingsTemplate.json');
     }
 
     createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
-        let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
+        const rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
 
         /* Add rustplus instance to Object */
         this.rustplusInstances[guildId] = rustplus;
@@ -329,16 +324,16 @@ class DiscordBot extends Discord.Client {
     }
 
     createRustplusInstancesFromConfig() {
-        const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
+        const files = fs.readdirSync(cwdPath('instances'));
 
-        files.forEach((file) => {
-            if (!file.endsWith('.json')) return;
+        for (const file of files) {
+            if (!file.endsWith('.json')) continue;
 
             const guildId = file.replace('.json', '');
             const instance = this.getInstance(guildId);
-            if (!instance) return;
+            if (!instance) continue;
 
-            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+            if (instance.activeServer !== null && Object.hasOwn(instance.serverList, instance.activeServer)) {
                 this.createRustplusInstance(
                     guildId,
                     instance.serverList[instance.activeServer].serverIp,
@@ -347,7 +342,7 @@ class DiscordBot extends Discord.Client {
                     instance.serverList[instance.activeServer].playerToken,
                 );
             }
-        });
+        }
     }
 
     resetRustplusVariables(guildId) {
@@ -374,7 +369,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+            if (!Object.hasOwn(instance.trackers, randomNumber)) {
                 return randomNumber;
             }
         }
@@ -385,7 +380,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+            if (!Object.hasOwn(instance.serverList[serverId].switchGroups, randomNumber)) {
                 return randomNumber;
             }
         }
@@ -408,259 +403,7 @@ class DiscordBot extends Discord.Client {
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
                     if (!activeInstances.includes(battlemetricsId)) {
                         activeInstances.push(battlemetricsId);
-                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
-                            /* Update */
-                            await this.battlemetricsInstances[battlemetricsId].evaluation();
-                        } else {
-                            /* Add */
-                            const bmInstance = new Battlemetrics(battlemetricsId);
-                            await bmInstance.setup();
-                            this.battlemetricsInstances[battlemetricsId] = bmInstance;
-                        }
-                    }
-                } else {
-                    /* Battlemetrics ID is missing, try with server name. */
-                    const name = instance.serverList[activeServer].title;
-                    const bmInstance = new Battlemetrics(null, name);
-                    await bmInstance.setup();
-                    if (bmInstance.lastUpdateSuccessful) {
-                        /* Found an Id, is it a new Id? */
-                        instance.serverList[activeServer].battlemetricsId = bmInstance.id;
-                        this.setInstance(guildId, instance);
-
-                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
-                            if (!activeInstances.includes(bmInstance.id)) {
-                                activeInstances.push(bmInstance.id);
-                                await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
-                            }
-                        } else {
-                            activeInstances.push(bmInstance.id);
-                            this.battlemetricsInstances[bmInstance.id] = bmInstance;
-                        }
-                    }
-                }
-            }
-
-            for (const [trackerId, content] of Object.entries(instance.trackers)) {
-                if (!activeInstances.includes(content.battlemetricsId)) {
-                    activeInstances.push(content.battlemetricsId);
-                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
-                        /* Update */
-                        await this.battlemetricsInstances[content.battlemetricsId].evaluation();
-                    } else {
-                        /* Add */
-                        const bmInstance = new Battlemetrics(content.battlemetricsId);
-                        await bmInstance.setup();
-                        this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
-                    }
-                }
-            }
-        }
-
-        /* Find instances that are no longer required and delete them. */
-        const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
-        for (const id of remove) {
-            delete this.battlemetricsInstances[id];
-        }
-    }
-
-    async interactionReply(interaction, content) {
-        try {
-            return await interaction.reply(content);
-        } catch (e) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionReplyFailed', { error: e }),
-                'error',
-            );
-        }
-
-        return undefined;
-    }
-
-    async interactionEditReply(interaction, content) {
-        try {
-            return await interaction.editReply(content);
-        } catch (e) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionEditReplyFailed', { error: e }),
-                'error',
-            );
-        }
-
-        return undefined;
-    }
-
-    async interactionUpdate(interaction, content) {
-        try {
-            return await interaction.update(content);
-        } catch (e) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionUpdateFailed', { error: e }),
-                'error',
-            );
-        }
-
-        return undefined;
-    }
-
-    async messageEdit(message, content) {
-        try {
-            return await message.edit(content);
-        } catch (e) {
-            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
-        }
-
-        return undefined;
-    }
-
-    async messageSend(channel, content) {
-        try {
-            return await channel.send(content);
-        } catch (e) {
-            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
-        }
-
-        return undefined;
-    }
-
-    async messageReply(message, content) {
-        try {
-            return await message.reply(content);
-        } catch (e) {
-            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
-        }
-
-        return undefined;
-    }
-
-    async validatePermissions(interaction) {
-        const instance = this.getInstance(interaction.guildId);
-
-        if (
-            instance.blacklist['discordIds'].includes(interaction.user.id) &&
-            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
-        ) {
-            return false;
-        }
-
-        /* If role isn't setup yet, validate as true */
-        if (instance.role === null) return true;
-
-        if (
-            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) &&
-            !interaction.member.roles.cache.has(instance.role)
-        ) {
-            let role = DiscordTools.getRole(interaction.guildId, instance.role);
-            const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
-            await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            this.log(this.intlGet(null, 'warningCap'), str);
-            return false;
-        }
-        return true;
-    }
-
-    readGeneralSettingsTemplate() {
-        return JSON.parse(
-            Fs.readFileSync(Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'),
-        );
-    }
-
-    createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
-        let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
-
-        /* Add rustplus instance to Object */
-        this.rustplusInstances[guildId] = rustplus;
-        this.activeRustplusInstances[guildId] = true;
-
-        rustplus.build();
-
-        return rustplus;
-    }
-
-    createRustplusInstancesFromConfig() {
-        const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
-
-        files.forEach((file) => {
-            if (!file.endsWith('.json')) return;
-
-            const guildId = file.replace('.json', '');
-            const instance = this.getInstance(guildId);
-            if (!instance) return;
-
-            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
-                this.createRustplusInstance(
-                    guildId,
-                    instance.serverList[instance.activeServer].serverIp,
-                    instance.serverList[instance.activeServer].appPort,
-                    instance.serverList[instance.activeServer].steamId,
-                    instance.serverList[instance.activeServer].playerToken,
-                );
-            }
-        });
-    }
-
-    resetRustplusVariables(guildId) {
-        this.activeRustplusInstances[guildId] = false;
-        this.rustplusReconnecting[guildId] = false;
-        delete this.rustplusMaps[guildId];
-
-        if (this.rustplusReconnectTimers[guildId]) {
-            clearTimeout(this.rustplusReconnectTimers[guildId]);
-            this.rustplusReconnectTimers[guildId] = null;
-        }
-        if (this.rustplusLiteReconnectTimers[guildId]) {
-            clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
-            this.rustplusLiteReconnectTimers[guildId] = null;
-        }
-    }
-
-    isJpgImageChanged(guildId, map) {
-        return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
-    }
-
-    findAvailableTrackerId(guildId) {
-        const instance = this.getInstance(guildId);
-
-        while (true) {
-            const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.trackers.hasOwnProperty(randomNumber)) {
-                return randomNumber;
-            }
-        }
-    }
-
-    findAvailableGroupId(guildId, serverId) {
-        const instance = this.getInstance(guildId);
-
-        while (true) {
-            const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
-                return randomNumber;
-            }
-        }
-    }
-
-    /**
-     *  Check if Battlemetrics instances are missing/not required/need update.
-     */
-    async updateBattlemetricsInstances() {
-        const activeInstances = [];
-
-        /* Check for instances that are missing or need update. */
-        for (const guild of this.guilds.cache) {
-            const guildId = guild[0];
-            const instance = this.getInstance(guildId);
-            const activeServer = instance.activeServer;
-            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
-                if (instance.serverList[activeServer].battlemetricsId !== null) {
-                    /* A Battlemetrics ID exist. */
-                    const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
-                    if (!activeInstances.includes(battlemetricsId)) {
-                        activeInstances.push(battlemetricsId);
-                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                        if (Object.hasOwn(this.battlemetricsInstances, battlemetricsId)) {
                             /* Update */
                             await this.battlemetricsInstances[battlemetricsId].evaluation();
                         } else {
@@ -803,7 +546,7 @@ class DiscordBot extends Discord.Client {
 
         // If either admin or regular, allow the interaction
         if (!this.isAdministrator(interaction) && !interaction.member.roles.cache.has(instance.role)) {
-            let role = DiscordTools.getRole(interaction.guildId, instance.role);
+            const role = DiscordTools.getRole(interaction.guildId, instance.role);
             const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
             await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             this.log(this.intlGet(null, 'warningCap'), str);

@@ -3,6 +3,7 @@ const Path = require('node:path');
 
 const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
 const Config = require('../config');
+import { cwdPath } from '../service/resourceManager';
 
 module.exports = {
     name: 'ready',
@@ -29,7 +30,7 @@ module.exports = {
         }
 
         try {
-            await client.user.setAvatar(Path.join(__dirname, '..', 'resources/images/rustplusplus_logo.png'));
+            await client.user.setAvatar(cwdPath('resources/images/rustplusplus_logo.png'));
         } catch (e) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetAvatar'));
         }
