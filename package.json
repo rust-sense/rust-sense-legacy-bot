@@ -21,7 +21,7 @@
         "@discordjs/builders": "^1.8.2",
         "@discordjs/opus": "^0.9.0",
         "@discordjs/rest": "^2.0.0",
-        "@discordjs/voice": "^0.16.0",
+        "@discordjs/voice": "^0.17.0",
         "@formatjs/intl": "^2.10.4",
         "@liamcottle/rustplus.js": "^2.4.0",
         "axios": "^1.5.0",
