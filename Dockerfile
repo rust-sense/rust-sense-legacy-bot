@@ -1,17 +1,30 @@
-FROM node:20
+FROM node:22 AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-RUN apt-get update && apt-get install -y graphicsmagick && apt-get clean
-
+COPY . /app
 WORKDIR /app
 
-COPY package.json /app/package.json
-COPY package-lock.json /app/package-lock.json
-RUN npm install
-COPY . /app
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build
+
+FROM base
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/resources /app/resources
+COPY --from=build /app/dist /app/dist
+
+RUN apt-get update \
+    && apt-get install -y graphicsmagick \
+    && apt-get clean
 
 VOLUME [ "/app/credentials" ]
 VOLUME [ "/app/instances" ]
 VOLUME [ "/app/logs" ]
 VOLUME [ "/app/maps" ]
 
-CMD ["npm", "start"]
+CMD [ "pnpm", "start" ]

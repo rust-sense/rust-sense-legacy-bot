@@ -1,30 +1,10 @@
-/*
-	Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-	https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const Builder = require('@discordjs/builders');
 
-const Config = require('../../config');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const DiscordTools = require('../discordTools/discordTools.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+const Config = require('../config');
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const DiscordMessages = require('../discordTools/discordMessages');
+const DiscordTools = require('../discordTools/discordTools');
+const PermissionHandler = require('../handlers/permissionHandler');
 
 module.exports = {
     name: 'reset',
@@ -77,7 +57,7 @@ module.exports = {
             client.log(client.intlGet(null, 'warningCap'), str);
             return;
         }
-        
+
         await interaction.deferReply({ ephemeral: true });
 
         const guild = DiscordTools.getGuild(interaction.guildId);
@@ -196,7 +176,7 @@ module.exports = {
                     await DiscordTools.clearTextChannel(guild.id, instance.channelId.switchGroups, 100);
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
-                    
+
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
                     await category.permissionOverwrites.set(perms).catch((e) => {});
 
