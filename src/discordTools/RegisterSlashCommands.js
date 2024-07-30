@@ -3,32 +3,31 @@ const path = require('node:path');
 const Rest = require('@discordjs/rest');
 const Types = require('discord-api-types/v9');
 
-const Config = require('../config');
+import config from '../config';
+import discordCommands from '../discordCommands';
 
 module.exports = async (client, guild) => {
-    const commands = [];
-    const commandFiles = fs.readdirSync(path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith(''));
+    const commands = discordCommands.map((command) => command.getData(client, guild.id).toJSON());
 
-    for (const file of commandFiles) {
-        const command = require(`../commands/${file}`);
-        commands.push(command.getData(client, guild.id).toJSON());
-    }
-
-    const rest = new Rest.REST({ version: '9' }).setToken(Config.discord.token);
+    const rest = new Rest.REST({ version: '9' }).setToken(config.discord.token);
 
     try {
-        await rest.put(Types.Routes.applicationGuildCommands(Config.discord.clientId, guild.id), { body: commands });
+        await rest.put(Types.Routes.applicationGuildCommands(config.discord.clientId, guild.id), { body: commands });
     } catch (e) {
         client.log(
             client.intlGet(null, 'errorCap'),
-            client.intlGet(null, 'couldNotRegisterSlashCommands', { guildId: guild.id }) +
-                client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
+            client.intlGet(null, 'couldNotRegisterSlashCommands', {
+                guildId: guild.id,
+            }) + client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
             'error',
         );
         process.exit(1);
     }
+
     client.log(
         client.intlGet(null, 'infoCap'),
-        client.intlGet(null, 'slashCommandsSuccessRegister', { guildId: guild.id }),
+        client.intlGet(null, 'slashCommandsSuccessRegister', {
+            guildId: guild.id,
+        }),
     );
 };

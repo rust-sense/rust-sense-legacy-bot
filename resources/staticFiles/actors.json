@@ -1,45 +1,45 @@
 {
-    "cs":{
+    "cs": {
         "male": null,
         "female": "Aleksandra"
     },
-    "de":{
+    "de": {
         "male": "Albert",
         "female": "Nina"
     },
-    "en":{
+    "en": {
         "male": "Brian",
         "female": "Joanna"
     },
-    "es":{
+    "es": {
         "male": "Miguel",
         "female": "Mia"
     },
-    "fr":{
+    "fr": {
         "male": "Mathieu",
         "female": "Emilie"
     },
-    "it":{
+    "it": {
         "male": "Luca",
         "female": "Stella"
     },
-    "ko":{
+    "ko": {
         "male": null,
         "female": "Seoyeon"
     },
-    "pl":{
+    "pl": {
         "male": "Jacek",
         "female": "Maja"
     },
-    "ru":{
+    "ru": {
         "male": "Maxim",
         "female": "Tatyana"
     },
-    "sv":{
+    "sv": {
         "male": null,
         "female": "Astrid"
     },
-    "tr":{
+    "tr": {
         "male": "Mehmet",
         "female": "Miray"
     }

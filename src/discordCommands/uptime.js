@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const DiscordMessages = require('../discordTools/discordMessages');
 const Timer = require('../util/timer');
 
-module.exports = {
+export default {
     name: 'uptime',
 
     getData(client, guildId) {

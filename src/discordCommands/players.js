@@ -4,7 +4,7 @@ const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
 
-module.exports = {
+export default {
     name: 'players',
 
     getData(client, guildId) {
@@ -21,9 +21,18 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsPlayersStatusDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'online'), value: '0' },
-                                { name: client.intlGet(guildId, 'offline'), value: '1' },
-                                { name: client.intlGet(guildId, 'any'), value: '2' },
+                                {
+                                    name: client.intlGet(guildId, 'online'),
+                                    value: '0',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'offline'),
+                                    value: '1',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'any'),
+                                    value: '2',
+                                },
                             ),
                     )
                     .addStringOption((option) =>
@@ -201,7 +210,10 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
 
     for (const name of data) {
         if (!profileNames.some((e) => e['name'] === name['name'])) {
-            profileNames.push({ name: name['name'], lastSeen: name['lastSeen'] });
+            profileNames.push({
+                name: name['name'],
+                lastSeen: name['lastSeen'],
+            });
         }
     }
 
@@ -338,7 +350,9 @@ async function displaySeveralUsers(client, interaction, battlemetricsId, playerI
 
     totalCharacters += title.length;
     totalCharacters += bmInstance.server_name.length;
-    totalCharacters += client.intlGet(interaction.guildId, 'andMorePlayers', { number: 100 }).length;
+    totalCharacters += client.intlGet(interaction.guildId, 'andMorePlayers', {
+        number: 100,
+    }).length;
     totalCharacters += `${client.intlGet(interaction.guildId, 'players')}`.length;
 
     const fields = [''];

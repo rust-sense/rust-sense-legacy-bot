@@ -1,4 +1,4 @@
-const Client = require('../index');
+import { client } from '../index';
 
 module.exports = {
     gridDiameter: 146.25,
@@ -10,27 +10,27 @@ module.exports = {
         if (module.exports.isOutsideGridSystem(x, y, correctedMapSize)) {
             if (module.exports.isOutsideRowOrColumn(x, y, correctedMapSize)) {
                 if (x < 0 && y > correctedMapSize) {
-                    pos.location = Client.client.intlGet(rustplus.guildId, 'northWest');
+                    pos.location = client.intlGet(rustplus.guildId, 'northWest');
                 } else if (x < 0 && y < 0) {
-                    pos.location = Client.client.intlGet(rustplus.guildId, 'southWest');
+                    pos.location = client.intlGet(rustplus.guildId, 'southWest');
                 } else if (x > correctedMapSize && y > correctedMapSize) {
-                    pos.location = Client.client.intlGet(rustplus.guildId, 'northEast');
+                    pos.location = client.intlGet(rustplus.guildId, 'northEast');
                 } else {
-                    pos.location = Client.client.intlGet(rustplus.guildId, 'southEast');
+                    pos.location = client.intlGet(rustplus.guildId, 'southEast');
                 }
             } else {
                 let str = '';
                 if (x < 0 || x > correctedMapSize) {
                     str +=
                         x < 0
-                            ? Client.client.intlGet(rustplus.guildId, 'westOfGrid')
-                            : Client.client.intlGet(rustplus.guildId, 'eastOfGrid');
+                            ? client.intlGet(rustplus.guildId, 'westOfGrid')
+                            : client.intlGet(rustplus.guildId, 'eastOfGrid');
                     str += ` ${module.exports.getGridPosNumberY(y, correctedMapSize)}`;
                 } else {
                     str +=
                         y < 0
-                            ? Client.client.intlGet(rustplus.guildId, 'southOfGrid')
-                            : Client.client.intlGet(rustplus.guildId, 'northOfGrid');
+                            ? client.intlGet(rustplus.guildId, 'southOfGrid')
+                            : client.intlGet(rustplus.guildId, 'northOfGrid');
                     str += ` ${module.exports.getGridPosLettersX(x, correctedMapSize)}`;
                 }
                 pos.location = str;

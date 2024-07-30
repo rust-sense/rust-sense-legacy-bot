@@ -6,7 +6,7 @@ const DiscordTools = require('../discordTools/discordTools');
 const PermissionHandler = require('../handlers/permissionHandler');
 const Scrape = require('../util/scrape');
 
-module.exports = {
+export default {
     name: 'blacklist',
 
     getData(client, guildId) {

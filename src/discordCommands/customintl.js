@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const Builder = require('@discordjs/builders');
 
-const Config = require('../config');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
@@ -9,7 +8,7 @@ const InstanceUtils = require('../util/instanceUtils');
 const instanceUtils = require('../util/instanceUtils');
 const Constants = require('../util/constants');
 
-module.exports = {
+export default {
     name: 'customintl',
 
     getData(client, guildId) {

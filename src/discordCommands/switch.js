@@ -2,10 +2,11 @@ const Builder = require('@discordjs/builders');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
-const InstanceUtils = require('../util/instanceUtils');
 const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler');
 
-module.exports = {
+import { getSmartDevice } from '../service/smartDevice';
+
+export default {
     name: 'switch',
 
     getData(client, guildId) {
@@ -28,22 +29,70 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsSwitchEditImageDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'autoturret'), value: 'autoturret' },
-                                { name: client.intlGet(guildId, 'boomBox'), value: 'boombox' },
-                                { name: client.intlGet(guildId, 'broadcaster'), value: 'broadcaster' },
-                                { name: client.intlGet(guildId, 'ceilingLight'), value: 'ceiling_light' },
-                                { name: client.intlGet(guildId, 'discoFloor'), value: 'discofloor' },
-                                { name: client.intlGet(guildId, 'doorController'), value: 'door_controller' },
-                                { name: client.intlGet(guildId, 'elevator'), value: 'elevator' },
-                                { name: client.intlGet(guildId, 'hbhfSensor'), value: 'hbhf_sensor' },
-                                { name: client.intlGet(guildId, 'heater'), value: 'heater' },
-                                { name: client.intlGet(guildId, 'samsite'), value: 'samsite' },
-                                { name: client.intlGet(guildId, 'sirenLight'), value: 'siren_light' },
-                                { name: client.intlGet(guildId, 'smartAlarm'), value: 'smart_alarm' },
-                                { name: client.intlGet(guildId, 'smartSwitch'), value: 'smart_switch' },
-                                { name: client.intlGet(guildId, 'sprinkler'), value: 'sprinkler' },
-                                { name: client.intlGet(guildId, 'storageMonitor'), value: 'storage_monitor' },
-                                { name: client.intlGet(guildId, 'christmasLights'), value: 'xmas_light' },
+                                {
+                                    name: client.intlGet(guildId, 'autoturret'),
+                                    value: 'autoturret',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'boomBox'),
+                                    value: 'boombox',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'broadcaster'),
+                                    value: 'broadcaster',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'ceilingLight'),
+                                    value: 'ceiling_light',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'discoFloor'),
+                                    value: 'discofloor',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'doorController'),
+                                    value: 'door_controller',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'elevator'),
+                                    value: 'elevator',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'hbhfSensor'),
+                                    value: 'hbhf_sensor',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'heater'),
+                                    value: 'heater',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'samsite'),
+                                    value: 'samsite',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'sirenLight'),
+                                    value: 'siren_light',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'smartAlarm'),
+                                    value: 'smart_alarm',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'smartSwitch'),
+                                    value: 'smart_switch',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'sprinkler'),
+                                    value: 'sprinkler',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'storageMonitor'),
+                                    value: 'storage_monitor',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'christmasLights'),
+                                    value: 'xmas_light',
+                                },
                             ),
                     ),
             );
@@ -67,18 +116,23 @@ module.exports = {
                     const entityId = interaction.options.getString('id');
                     const image = interaction.options.getString('image');
 
-                    let device = InstanceUtils.getSmartDevice(guildId, entityId);
+                    let device = getSmartDevice(guildId, entityId);
                     if (device === null) {
                         isSmartSwitchGroup = true;
                         for (const groupId in instance.serverList[rustplus.serverId].switchGroups) {
                             if (groupId === entityId) {
-                                device = { type: 'switchGroup', serverId: rustplus.serverId };
+                                device = {
+                                    type: 'switchGroup',
+                                    serverId: rustplus.serverId,
+                                };
                                 break;
                             }
                         }
 
                         if (device === null) {
-                            const str = client.intlGet(guildId, 'invalidId', { id: entityId });
+                            const str = client.intlGet(guildId, 'invalidId', {
+                                id: entityId,
+                            });
                             await client.interactionEditReply(
                                 interaction,
                                 DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),

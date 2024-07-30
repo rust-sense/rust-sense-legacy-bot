@@ -1,7 +1,7 @@
 const { getVoiceConnection } = require('@discordjs/voice');
 const Constants = require('../util/constants');
 
-module.exports = {
+export default {
     name: 'voiceStateUpdate',
     async execute(client, oldState, newState) {
         checkBotLeaveVoice(client, oldState, newState);

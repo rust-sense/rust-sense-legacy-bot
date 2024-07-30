@@ -4,7 +4,7 @@ const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
 const PermissionHandler = require('../handlers/permissionHandler');
 
-module.exports = {
+export default {
     name: 'role',
 
     getData(client, guildId) {

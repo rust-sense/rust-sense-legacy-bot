@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
-module.exports = {
+export default {
     name: 'interactionCreate',
     async execute(client, interaction) {
         const instance = client.getInstance(interaction.guildId);

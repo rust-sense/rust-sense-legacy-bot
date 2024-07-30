@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
-module.exports = {
+export default {
     name: 'alias',
 
     getData(client, guildId) {
@@ -109,7 +109,11 @@ async function addAlias(client, interaction) {
         index += 1;
     }
 
-    instance.aliases.push({ index: index, alias: aliasParameter, value: valueParameter });
+    instance.aliases.push({
+        index: index,
+        alias: aliasParameter,
+        value: valueParameter,
+    });
     client.setInstance(guildId, instance);
 
     const str = client.intlGet(guildId, 'aliasWasAdded');

@@ -6,7 +6,7 @@ const { IntlMessageFormat } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
 const Cctv = require('./Cctv');
-const Config = require('../config');
+import config from '../config';
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
 const InstanceUtils = require('../util/instanceUtils');
@@ -16,7 +16,11 @@ const PermissionHandler = require('../handlers/permissionHandler');
 const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
 const Constants = require('../util/constants');
+
 import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
+import discordCommands from '../discordCommands';
+import discordEvents from '../discordEvents';
+
 class DiscordBot extends Discord.Client {
     constructor(props) {
         super(props);
@@ -44,7 +48,7 @@ class DiscordBot extends Discord.Client {
         this.rustlabs = new RustLabs();
         this.cctv = new Cctv();
 
-        this.pollingIntervalMs = Config.general.pollingIntervalMs;
+        this.pollingIntervalMs = config.general.pollingIntervalMs;
 
         this.battlemetricsInstances = new Object();
 
@@ -59,20 +63,13 @@ class DiscordBot extends Discord.Client {
     }
 
     loadDiscordCommands() {
-        const commandFiles = fs.readdirSync(path.join(__dirname, '..', 'commands')).filter((file) => file.endsWith(''));
-        for (const file of commandFiles) {
-            const command = require(`../commands/${file}`);
+        for (const command of discordCommands) {
             this.commands.set(command.name, command);
         }
     }
 
     loadDiscordEvents() {
-        const eventFiles = fs
-            .readdirSync(path.join(__dirname, '..', 'discordEvents'))
-            .filter((file) => file.endsWith(''));
-        for (const file of eventFiles) {
-            const event = require(`../discordEvents/${file}`);
-
+        for (const event of discordEvents) {
             if (event.name === 'rateLimited') {
                 this.rest.on(event.name, (...args) => event.execute(this, ...args));
             } else if (event.once) {
@@ -90,7 +87,7 @@ class DiscordBot extends Discord.Client {
         this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
 
         // Load bot intl
-        this.checkLocaleIntlLoad(Config.general.language);
+        this.checkLocaleIntlLoad(config.general.language);
     }
 
     createIntlForLocale(locale) {
@@ -151,7 +148,7 @@ class DiscordBot extends Discord.Client {
     intlGet(guildId, id, variables = {}) {
         // Bot Intl formatting
         if (guildId === null) {
-            const intlInstance = this.checkLocaleIntlLoad(Config.general.language);
+            const intlInstance = this.checkLocaleIntlLoad(config.general.language);
             return this.formatWithIntl(intlInstance, id, variables);
         }
 
@@ -174,7 +171,7 @@ class DiscordBot extends Discord.Client {
     }
 
     build() {
-        this.login(Config.discord.token).catch((error) => {
+        this.login(config.discord.token).catch((error) => {
             switch (error.code) {
                 case 502:
                     {
@@ -228,8 +225,9 @@ class DiscordBot extends Discord.Client {
 
         await require('../discordTools/RegisterSlashCommands')(this, guild);
 
-        let category = await require('../discordTools/SetupGuildCategory')(this, guild);
+        const category = await require('../discordTools/SetupGuildCategory')(this, guild);
         await require('../discordTools/SetupGuildChannels')(this, guild, category);
+
         if (firstTime) {
             const perms = PermissionHandler.getPermissionsRemoved(this, guild);
             try {

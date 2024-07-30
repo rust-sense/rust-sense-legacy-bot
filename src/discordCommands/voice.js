@@ -3,7 +3,7 @@ const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 
 const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
+export default {
     name: 'voice',
 
     getData(client, guildId) {

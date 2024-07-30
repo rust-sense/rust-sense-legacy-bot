@@ -1,26 +1,19 @@
 const Builder = require('@discordjs/builders');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
-    name: 'craft',
+export default {
+    name: 'despawn',
 
     getData(client, guildId) {
         return new Builder.SlashCommandBuilder()
-            .setName('craft')
-            .setDescription(client.intlGet(guildId, 'commandsCraftDesc'))
+            .setName('despawn')
+            .setDescription(client.intlGet(guildId, 'commandsStackDesc'))
             .addStringOption((option) =>
                 option.setName('name').setDescription(client.intlGet(guildId, 'theNameOfTheItem')).setRequired(false),
             )
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
-            )
-            .addIntegerOption((option) =>
-                option
-                    .setName('quantity')
-                    .setDescription(client.intlGet(guildId, 'commandsCraftQuantityDesc'))
-                    .setRequired(false),
             );
     },
 
@@ -33,16 +26,15 @@ module.exports = {
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
-        const craftItemName = interaction.options.getString('name');
-        const craftItemId = interaction.options.getString('id');
-        const craftItemQuantity = interaction.options.getInteger('quantity');
+        const despawnItemName = interaction.options.getString('name');
+        const despawnItemId = interaction.options.getString('id');
 
         let itemId = null;
-        if (craftItemName !== null) {
-            const item = client.items.getClosestItemIdByName(craftItemName);
+        if (despawnItemName !== null) {
+            const item = client.items.getClosestItemIdByName(despawnItemName);
             if (item === null) {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: craftItemName,
+                    name: despawnItemName,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -50,18 +42,18 @@ module.exports = {
             } else {
                 itemId = item;
             }
-        } else if (craftItemId !== null) {
-            if (client.items.itemExist(craftItemId)) {
-                itemId = craftItemId;
+        } else if (despawnItemId !== null) {
+            if (client.items.itemExist(despawnItemId)) {
+                itemId = despawnItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: craftItemId,
+                    id: despawnItemId,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
             }
-        } else if (craftItemName === null && craftItemId === null) {
+        } else if (despawnItemName === null && despawnItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(guildId, 'warningCap'), str);
@@ -69,9 +61,9 @@ module.exports = {
         }
         const itemName = client.items.getName(itemId);
 
-        const craftDetails = client.rustlabs.getCraftDetailsById(itemId);
-        if (craftDetails === null) {
-            const str = client.intlGet(guildId, 'couldNotFindCraftDetails', {
+        const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);
+        if (despawnDetails === null) {
+            const str = client.intlGet(guildId, 'couldNotFindDespawnDetails', {
                 name: itemName,
             });
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
@@ -79,17 +71,22 @@ module.exports = {
             return;
         }
 
-        const quantity = craftItemQuantity === null ? 1 : craftItemQuantity;
+        const despawnTime = despawnDetails[2].timeString;
 
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'slashCommandValueChange', {
                 id: `${verifyId}`,
-                value: `${craftItemName} ${craftItemId} ${craftItemQuantity}`,
+                value: `${despawnItemName} ${despawnItemId}`,
             }),
         );
 
-        await DiscordMessages.sendCraftMessage(interaction, craftDetails, quantity);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCraftDesc'));
+        const str = client.intlGet(guildId, 'despawnTimeOfItem', {
+            item: itemName,
+            time: despawnTime,
+        });
+
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+        client.log(client.intlGet(null, 'infoCap'), str);
     },
 };

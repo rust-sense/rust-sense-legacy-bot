@@ -1,4 +1,4 @@
-const Map = require('../util/map');
+const GameMap = require('../util/GameMap');
 const Timer = require('../util/timer');
 
 class Info {
@@ -15,7 +15,7 @@ class Info {
         this._seed = info.seed;
         this._salt = info.salt;
 
-        this._correctedMapSize = Map.getCorrectedMapSize(info.mapSize);
+        this._correctedMapSize = GameMap.getCorrectedMapSize(info.mapSize);
     }
 
     /* Getters and Setters */
@@ -151,7 +151,7 @@ class Info {
         this.seed = info.seed;
         this.salt = info.salt;
 
-        this.correctedMapSize = Map.getCorrectedMapSize(info.mapSize);
+        this.correctedMapSize = GameMap.getCorrectedMapSize(info.mapSize);
     }
 
     getSecondsSinceWipe() {

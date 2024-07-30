@@ -1,6 +1,6 @@
 const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
+export default {
     name: 'error',
     async execute(rustplus, client, err) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();

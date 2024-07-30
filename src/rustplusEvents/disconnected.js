@@ -1,8 +1,8 @@
 const DiscordMessages = require('../discordTools/discordMessages');
 
-const Config = require('../config');
+import config from '../config';
 
-module.exports = {
+export default {
     name: 'disconnected',
     async execute(rustplus, client) {
         if (!rustplus.isServerAvailable() && !rustplus.isDeleted) {
@@ -57,7 +57,7 @@ module.exports = {
 
             client.rustplusReconnectTimers[guildId] = setTimeout(
                 client.createRustplusInstance.bind(client),
-                Config.general.reconnectIntervalMs,
+                config.general.reconnectIntervalMs,
                 guildId,
                 rustplus.server,
                 rustplus.port,

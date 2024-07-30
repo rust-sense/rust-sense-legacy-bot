@@ -1,5 +1,5 @@
 const DiscordMessages = require('../discordTools/discordMessages');
-const Map = require('../util/map');
+const GameMap = require('../util/GameMap');
 
 module.exports = {
     handler: async function (rustplus, client, mapMarkers) {
@@ -66,7 +66,7 @@ module.exports = {
                         continue;
                     }
 
-                    const location = Map.getPos(x, y, rustplus.info.correctedMapSize, rustplus);
+                    const location = GameMap.getPos(x, y, rustplus.info.correctedMapSize, rustplus);
                     const itemName = client.items.getName(itemId);
                     const currencyName = client.items.getName(currencyId);
 

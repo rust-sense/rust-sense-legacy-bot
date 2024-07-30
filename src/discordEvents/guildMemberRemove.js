@@ -1,6 +1,6 @@
 const InstanceUtils = require('../util/instanceUtils');
 
-module.exports = {
+export default {
     name: 'guildMemberRemove',
     async execute(client, member) {
         const guildId = member.guild.id;

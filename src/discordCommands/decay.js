@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const Timer = require('../util/timer');
 
-module.exports = {
+export default {
     name: 'decay',
 
     getData(client, guildId) {

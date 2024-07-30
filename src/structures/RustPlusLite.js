@@ -1,7 +1,7 @@
 const RustPlusLib = require('@liamcottle/rustplus.js');
 
-const Client = require('../index');
-const Config = require('../config');
+import { client } from '../index';
+import config from '../config';
 
 class RustPlusLite extends RustPlusLib {
     constructor(guildId, logger, rustplus, serverIp, appPort, steamId, playerToken) {
@@ -62,16 +62,12 @@ class RustPlusLite extends RustPlusLib {
 
     isResponseValid(response) {
         if (response === undefined) {
-            this.log(
-                Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseIsUndefined'),
-                'error',
-            );
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsUndefined'), 'error');
             return false;
         }
 
         if (response.toString() === 'Error: Timeout reached while waiting for response') {
-            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseTimeout'), 'error');
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseTimeout'), 'error');
             return false;
         }
 
@@ -81,8 +77,8 @@ class RustPlusLite extends RustPlusLib {
             }
 
             this.log(
-                Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseContainError', {
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'responseContainError', {
                     error: JSON.stringify(response),
                 }),
                 'error',
@@ -91,7 +87,7 @@ class RustPlusLite extends RustPlusLib {
         }
 
         if (Object.keys(response).length === 0) {
-            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseIsEmpty'), 'error');
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsEmpty'), 'error');
             clearInterval(this.pollingTaskId);
             return false;
         }
@@ -101,57 +97,51 @@ class RustPlusLite extends RustPlusLib {
 }
 
 async function rustPlusLiteConnectedEvent(rustplusLite) {
-    rustplusLite.log(Client.client.intlGet(null, 'connectedCap'), Client.client.intlGet(null, 'connectedToServer'));
+    rustplusLite.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'connectedToServer'));
 
     const info = await rustplusLite.getInfoAsync();
     if (!rustplusLite.isResponseValid(info)) {
         rustplusLite.log(
-            Client.client.intlGet(null, 'errorCap'),
-            Client.client.intlGet(null, 'somethingWrongWithConnection'),
+            client.intlGet(null, 'errorCap'),
+            client.intlGet(null, 'somethingWrongWithConnection'),
             'error',
         );
         rustplusLite.disconnect();
         return;
     }
-    rustplusLite.log(Client.client.intlGet(null, 'connectedCap'), Client.client.intlGet(null, 'rustplusOperational'));
+    rustplusLite.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
-    if (Client.client.rustplusReconnectTimers[rustplusLite.guildId]) {
-        clearTimeout(Client.client.rustplusReconnectTimers[rustplusLite.guildId]);
-        Client.client.rustplusReconnectTimers[rustplusLite.guildId] = null;
+    if (client.rustplusReconnectTimers[rustplusLite.guildId]) {
+        clearTimeout(client.rustplusReconnectTimers[rustplusLite.guildId]);
+        client.rustplusReconnectTimers[rustplusLite.guildId] = null;
     }
 }
 
 async function rustPlusLiteConnectingEvent(rustplusLite) {
-    rustplusLite.log(Client.client.intlGet(null, 'connectingCap'), Client.client.intlGet(null, 'connectingToServer'));
+    rustplusLite.log(client.intlGet(null, 'connectingCap'), client.intlGet(null, 'connectingToServer'));
 }
 
 async function rustPlusLiteDisconnectedEvent(rustplusLite) {
-    rustplusLite.log(
-        Client.client.intlGet(null, 'disconnectedCap'),
-        Client.client.intlGet(null, 'disconnectedFromServer'),
-    );
+    rustplusLite.log(client.intlGet(null, 'disconnectedCap'), client.intlGet(null, 'disconnectedFromServer'));
 
     /* Was the disconnection unexpected? */
-    if (rustplusLite.isActive && Client.client.activeRustplusInstances[rustplusLite.guildId]) {
-        rustplusLite.log(
-            Client.client.intlGet(null, 'reconnectingCap'),
-            Client.client.intlGet(null, 'reconnectingToServer'),
-        );
+    if (rustplusLite.isActive && client.activeRustplusInstances[rustplusLite.guildId]) {
+        rustplusLite.log(client.intlGet(null, 'reconnectingCap'), client.intlGet(null, 'reconnectingToServer'));
 
-        if (Client.client.rustplusLiteReconnectTimers[rustplusLite.guildId]) {
-            clearTimeout(Client.client.rustplusLiteReconnectTimers[rustplusLite.guildId]);
-            Client.client.rustplusLiteReconnectTimers[rustplusLite.guildId] = null;
+        if (client.rustplusLiteReconnectTimers[rustplusLite.guildId]) {
+            clearTimeout(client.rustplusLiteReconnectTimers[rustplusLite.guildId]);
+            client.rustplusLiteReconnectTimers[rustplusLite.guildId] = null;
         }
 
-        Client.client.rustplusLiteReconnectTimers[rustplusLite.guildId] = setTimeout(
+        client.rustplusLiteReconnectTimers[rustplusLite.guildId] = setTimeout(
             rustplusLite.rustplus.updateLeaderRustPlusLiteInstance.bind(rustplusLite.rustplus),
-            Config.general.reconnectIntervalMs,
+            config.general.reconnectIntervalMs,
         );
     }
 }
 
 async function rustPlusLiteErrorEvent(rustplusLite, error) {
-    rustplusLite.log(Client.client.intlGet(null, 'errorCap'), error, 'error');
+    rustplusLite.log(client.intlGet(null, 'errorCap'), error, 'error');
 }
 
 module.exports = RustPlusLite;

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     general: {
         language: process.env.RPP_LANGUAGE || 'en',
         pollingIntervalMs: process.env.RPP_POLLING_INTERVAL || 10000,

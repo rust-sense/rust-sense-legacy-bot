@@ -6,7 +6,7 @@ const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler');
 const TeamChatHandler = require('../handlers/teamChatHandler');
 const TeamHandler = require('../handlers/teamHandler');
 
-module.exports = {
+export default {
     name: 'message',
     async execute(rustplus, client, message) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
@@ -51,7 +51,7 @@ async function messageBroadcastTeamMessage(rustplus, client, message) {
     if (steamId === rustplus.playerId) {
         /* Delay inGameChatHandler */
         clearTimeout(rustplus.inGameChatTimeout);
-        const commandDelayMs = parseInt(rustplus.generalSettings.commandDelay) * 1000;
+        const commandDelayMs = Number.parseInt(rustplus.generalSettings.commandDelay) * 1000;
         rustplus.inGameChatTimeout = setTimeout(InGameChatHandler.inGameChatHandler, commandDelayMs, rustplus, client);
     }
 

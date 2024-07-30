@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
-module.exports = {
+export default {
     name: 'market',
 
     getData(client, guildId) {
@@ -20,9 +20,18 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'all'), value: 'all' },
-                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
-                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
+                                {
+                                    name: client.intlGet(guildId, 'all'),
+                                    value: 'all',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'buy'),
+                                    value: 'buy',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'sell'),
+                                    value: 'sell',
+                                },
                             ),
                     )
                     .addStringOption((option) =>
@@ -48,9 +57,18 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'all'), value: 'all' },
-                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
-                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
+                                {
+                                    name: client.intlGet(guildId, 'all'),
+                                    value: 'all',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'buy'),
+                                    value: 'buy',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'sell'),
+                                    value: 'sell',
+                                },
                             ),
                     )
                     .addStringOption((option) =>
@@ -76,9 +94,18 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'all'), value: 'all' },
-                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
-                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
+                                {
+                                    name: client.intlGet(guildId, 'all'),
+                                    value: 'all',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'buy'),
+                                    value: 'buy',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'sell'),
+                                    value: 'sell',
+                                },
                             ),
                     )
                     .addStringOption((option) =>
@@ -232,13 +259,19 @@ module.exports = {
                         color: Constants.COLOR_DEFAULT,
                         title: client.intlGet(interaction.guildId, 'searchResult', { name: itemName }),
                         description: foundLines,
-                        footer: { text: `${instance.serverList[rustplus.serverId].title}` },
+                        footer: {
+                            text: `${instance.serverList[rustplus.serverId].title}`,
+                        },
                     });
 
-                    await client.interactionEditReply(interaction, { embeds: [embed] });
+                    await client.interactionEditReply(interaction, {
+                        embeds: [embed],
+                    });
                     rustplus.log(
                         client.intlGet(interaction.guildId, 'infoCap'),
-                        client.intlGet(interaction.guildId, 'searchResult', { name: itemName }),
+                        client.intlGet(interaction.guildId, 'searchResult', {
+                            name: itemName,
+                        }),
                     );
                 }
                 break;
@@ -410,7 +443,9 @@ module.exports = {
                             DiscordEmbeds.getEmbed({
                                 color: Constants.COLOR_DEFAULT,
                                 title: client.intlGet(interaction.guildId, 'subscriptionList'),
-                                footer: { text: instance.serverList[rustplus.serverId].title },
+                                footer: {
+                                    text: instance.serverList[rustplus.serverId].title,
+                                },
                                 fields: [
                                     {
                                         name: client.intlGet(interaction.guildId, 'all'),

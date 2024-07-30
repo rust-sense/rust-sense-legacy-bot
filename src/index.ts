@@ -1,13 +1,11 @@
 const Discord = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
 
 import { ensureAppStateDirs } from './service/resourceManager';
 const DiscordBot = require('./structures/DiscordBot');
 
 ensureAppStateDirs();
 
-const client = new DiscordBot({
+export const client = new DiscordBot({
     intents: [
         Discord.GatewayIntentBits.Guilds,
         Discord.GatewayIntentBits.GuildMessages,
@@ -33,5 +31,3 @@ process.on('unhandledRejection', (error) => {
 
     console.log(error);
 });
-
-exports.client = client;

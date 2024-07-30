@@ -1,5 +1,5 @@
 const Constants = require('../util/constants');
-const Map = require('../util/map');
+const GameMap = require('../util/GameMap');
 const Time = require('../util/timer');
 
 class Player {
@@ -199,7 +199,7 @@ class Player {
 
     updatePos() {
         if (this.isAlive || this.isOnline) {
-            this.pos = Map.getPos(this.x, this.y, this.rustplus.info.mapSize, this.rustplus);
+            this.pos = GameMap.getPos(this.x, this.y, this.rustplus.info.mapSize, this.rustplus);
         } else {
             this.pos = null;
         }

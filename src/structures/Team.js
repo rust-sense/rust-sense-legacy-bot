@@ -1,4 +1,4 @@
-const Client = require('../index');
+import { client } from '../index';
 const Player = require('./Player');
 
 class Team {
@@ -59,7 +59,7 @@ class Team {
     }
 
     updateTeam(team) {
-        const instance = Client.client.getInstance(this.rustplus.guildId);
+        const instance = client.getInstance(this.rustplus.guildId);
 
         if (this.isLeaderSteamIdChanged(team)) {
             let player = this.getPlayer(this.leaderSteamId);
@@ -70,8 +70,8 @@ class Team {
             player = this.getPlayer(team.leaderSteamId.toString());
             if (player !== null) {
                 this.rustplus.log(
-                    Client.client.intlGet(null, 'commandCap'),
-                    Client.client.intlGet(null, 'leaderTransferred', {
+                    client.intlGet(null, 'commandCap'),
+                    client.intlGet(null, 'leaderTransferred', {
                         name: `${player.name}:${player.steamId}`,
                     }),
                 );
@@ -121,7 +121,7 @@ class Team {
             player.teamLeader = true;
         }
 
-        Client.client.setInstance(this.rustplus.guildId, instance);
+        client.setInstance(this.rustplus.guildId, instance);
     }
 
     addPlayer(player) {

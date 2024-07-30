@@ -1,5 +1,5 @@
 const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const Client = require('..');
+import { client } from '../index';
 
 import { loadJsonResourceSync } from '../service/resourceManager';
 const Actors = loadJsonResourceSync('staticFiles/actors.json');
@@ -20,7 +20,7 @@ module.exports = {
     },
 
     getVoice: async function (guildId) {
-        const instance = Client.client.getInstance(guildId);
+        const instance = client.getInstance(guildId);
         const gender = instance.generalSettings.voiceGender;
         const language = instance.generalSettings.language;
 

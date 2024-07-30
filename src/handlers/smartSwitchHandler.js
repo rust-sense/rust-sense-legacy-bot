@@ -1,5 +1,5 @@
 const DiscordMessages = require('../discordTools/discordMessages');
-const Map = require('../util/map');
+const GameMap = require('../util/GameMap');
 const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
 const Timer = require('../util/timer');
 
@@ -191,7 +191,7 @@ module.exports = {
                 /* AUTO-ON-PROXIMITY */
                 let shouldBeOn = false;
                 for (const player of rustplus.team.players) {
-                    if (Map.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
+                    if (GameMap.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
                         shouldBeOn = true;
                     }
                 }
@@ -222,7 +222,7 @@ module.exports = {
                 /* AUTO-OFF-PROXIMITY */
                 let shouldBeOn = true;
                 for (const player of rustplus.team.players) {
-                    if (Map.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
+                    if (GameMap.getDistance(content.x, content.y, player.x, player.y) <= content.proximity) {
                         shouldBeOn = false;
                     }
                 }
