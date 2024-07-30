@@ -18,6 +18,7 @@ const RustPlusLite = require('../structures/RustPlusLite');
 const TeamHandler = require('../handlers/teamHandler');
 const Timer = require('../util/timer');
 
+import rustplusEvents from '../rustplusEvents'
 import { client } from '../index';
 import { cwdPath } from '../service/resourceManager';
 
