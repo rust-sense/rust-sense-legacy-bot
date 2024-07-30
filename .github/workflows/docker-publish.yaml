@@ -33,7 +33,7 @@ jobs:
                       runner: ubuntu-22.04
                     - type: linux-arm64
                       docker-platform: linux/arm64
-                      runner: arc-rust-sense-set
+                      runner: arc-runner-rust-sense
 
         runs-on: ${{ matrix.runner }}
 
