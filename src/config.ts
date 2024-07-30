@@ -9,5 +9,6 @@ export default {
         username: process.env.RPP_DISCORD_USERNAME || 'rustplusplus',
         clientId: process.env.RPP_DISCORD_CLIENT_ID || '',
         token: process.env.RPP_DISCORD_TOKEN || '',
+        ownerUserId: process.env.RPP_DISCORD_OWNER_USER_ID || null,
     },
 };

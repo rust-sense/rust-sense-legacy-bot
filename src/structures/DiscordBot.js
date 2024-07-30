@@ -1,8 +1,8 @@
 const FormatJS = require('@formatjs/intl');
-const Discord = require('discord.js');
+import Discord from 'discord.js';
 const fs = require('node:fs');
 const path = require('node:path');
-const { IntlMessageFormat } = require('intl-messageformat');
+const { IntlMessageFormat, isFormatXMLElementFn } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
 const Cctv = require('./Cctv');
@@ -12,7 +12,7 @@ const DiscordTools = require('../discordTools/discordTools');
 const InstanceUtils = require('../util/instanceUtils');
 const Items = require('./Items');
 const Logger = require('./Logger');
-const PermissionHandler = require('../handlers/permissionHandler');
+import * as PermissionHandler from '../handlers/permissionHandler';
 const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
 const Constants = require('../util/constants');
@@ -556,9 +556,20 @@ class DiscordBot extends Discord.Client {
 
     isAdministrator(interaction) {
         const instance = this.getInstance(interaction.guildId);
-        return instance.adminRole === null
-            ? interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)
-            : interaction.member.roles.cache.has(instance.adminRole);
+
+        if (interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)) {
+            return true;
+        }
+
+        if (instance.adminRole !== null && interaction.member.roles.cache.has(instance.adminRole)) {
+            return true;
+        }
+
+        if (config.discord.ownerUserId !== null && interaction.user.id === config.discord.ownerUserId) {
+            return true;
+        }
+
+        return false;
     }
 }
 

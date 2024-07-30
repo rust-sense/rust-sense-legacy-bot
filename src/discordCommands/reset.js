@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
-const PermissionHandler = require('../handlers/permissionHandler');
+import * as PermissionHandler from '../handlers/permissionHandler';
 
 export default {
     name: 'reset',
