@@ -1,7 +1,7 @@
 const DiscordCommandHandler = require('../handlers/discordCommandHandler');
 const DiscordTools = require('../discordTools/discordTools');
 
-module.exports = {
+export default {
     name: 'messageCreate',
     async execute(client, message) {
         const instance = client.getInstance(message.guild.id);

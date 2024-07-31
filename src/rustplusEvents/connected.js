@@ -1,9 +1,9 @@
 const DiscordMessages = require('../discordTools/discordMessages');
 const Info = require('../structures/Info');
-const Map = require('../structures/Map');
+const GameMap = require('../structures/GameMap');
 const PollingHandler = require('../handlers/pollingHandler');
 
-module.exports = {
+export default {
     name: 'connected',
     async execute(rustplus, client) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
@@ -47,19 +47,19 @@ module.exports = {
 
         if (client.rustplusMaps.hasOwnProperty(guildId)) {
             if (client.isJpgImageChanged(guildId, map.map)) {
-                rustplus.map = new Map(map.map, rustplus);
+                rustplus.map = new GameMap(map.map, rustplus);
 
                 await rustplus.map.writeMap(false, true);
                 await DiscordMessages.sendServerWipeDetectedMessage(guildId, serverId);
                 await DiscordMessages.sendInformationMapMessage(guildId);
             } else {
-                rustplus.map = new Map(map.map, rustplus);
+                rustplus.map = new GameMap(map.map, rustplus);
 
                 await rustplus.map.writeMap(false, true);
                 await DiscordMessages.sendInformationMapMessage(guildId);
             }
         } else {
-            rustplus.map = new Map(map.map, rustplus);
+            rustplus.map = new GameMap(map.map, rustplus);
 
             await rustplus.map.writeMap(false, true);
             await DiscordMessages.sendInformationMapMessage(guildId);

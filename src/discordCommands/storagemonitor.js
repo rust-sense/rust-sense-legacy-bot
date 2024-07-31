@@ -2,9 +2,10 @@ const Builder = require('@discordjs/builders');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
-const InstanceUtils = require('../util/instanceUtils');
 
-module.exports = {
+import { getSmartDevice } from '../service/smartDevice';
+
+export default {
     name: 'storagemonitor',
 
     getData(client, guildId) {
@@ -27,10 +28,22 @@ module.exports = {
                             .setDescription(client.intlGet(guildId, 'commandsStoragemonitorEditImageDesc'))
                             .setRequired(true)
                             .addChoices(
-                                { name: client.intlGet(guildId, 'storageMonitor'), value: 'storage_monitor' },
-                                { name: client.intlGet(guildId, 'toolCupboard'), value: 'tool_cupboard' },
-                                { name: client.intlGet(guildId, 'largeWoodBox'), value: 'large_wood_box' },
-                                { name: client.intlGet(guildId, 'vendingMachine'), value: 'vending_machine' },
+                                {
+                                    name: client.intlGet(guildId, 'storageMonitor'),
+                                    value: 'storage_monitor',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'toolCupboard'),
+                                    value: 'tool_cupboard',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'largeWoodBox'),
+                                    value: 'large_wood_box',
+                                },
+                                {
+                                    name: client.intlGet(guildId, 'vendingMachine'),
+                                    value: 'vending_machine',
+                                },
                             ),
                     ),
             );
@@ -53,9 +66,11 @@ module.exports = {
                     const entityId = interaction.options.getString('id');
                     const image = interaction.options.getString('image');
 
-                    const device = InstanceUtils.getSmartDevice(guildId, entityId);
+                    const device = getSmartDevice(guildId, entityId);
                     if (device === null) {
-                        const str = client.intlGet(guildId, 'invalidId', { id: entityId });
+                        const str = client.intlGet(guildId, 'invalidId', {
+                            id: entityId,
+                        });
                         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                         client.log(client.intlGet(null, 'warningCap'), str);
                         return;

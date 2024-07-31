@@ -9,7 +9,7 @@ const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
 const InstanceUtils = require('../util/instanceUtils');
-const Map = require('../util/map');
+const GameMap = require('./GameMap');
 const Scrape = require('../util/scrape');
 
 import { cwdPath } from '../service/resourceManager';
@@ -338,7 +338,7 @@ async function pairingEntitySwitch(client, guild, full, data, body) {
         if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === rustplus.playerId);
             if (player) {
-                const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
+                const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].switches[body.entityId].location = location.location;
                 instance.serverList[serverId].switches[body.entityId].x = location.x;
                 instance.serverList[serverId].switches[body.entityId].y = location.y;
@@ -388,7 +388,7 @@ async function pairingEntitySmartAlarm(client, guild, full, data, body) {
         if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === rustplus.playerId);
             if (player) {
-                const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
+                const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].alarms[body.entityId].location = location.location;
             }
         }
@@ -436,7 +436,7 @@ async function pairingEntityStorageMonitor(client, guild, full, data, body) {
         if (rustplus.isResponseValid(teamInfo)) {
             const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === rustplus.playerId);
             if (player) {
-                const location = Map.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
+                const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].storageMonitors[body.entityId].location = location.location;
             }
         }

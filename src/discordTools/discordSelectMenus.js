@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('node:fs');
 
-const Client = require('../index');
+import { client } from '../index';
 const Constants = require('../util/constants');
 const Languages = require('../util/languages');
 
@@ -32,10 +32,10 @@ module.exports = {
         for (const language of languageFiles) {
             const langShort = language.replace('.json', '');
             let langLong = Object.keys(Languages).find((e) => Languages[e] === langShort);
-            if (!langLong) langLong = Client.client.intlGet(guildId, 'unknown');
+            if (!langLong) langLong = client.intlGet(guildId, 'unknown');
             options.push({
                 label: `${langLong} (${langShort})`,
-                description: Client.client.intlGet(guildId, 'setBotLanguage', {
+                description: client.intlGet(guildId, 'setBotLanguage', {
                     language: `${langLong} (${langShort})`,
                 }),
                 value: langShort,
@@ -43,7 +43,7 @@ module.exports = {
         }
 
         let currentLanguage = Object.keys(Languages).find((e) => Languages[e] === language);
-        if (!currentLanguage) currentLanguage = Client.client.intlGet(guildId, 'unknown');
+        if (!currentLanguage) currentLanguage = client.intlGet(guildId, 'unknown');
 
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
@@ -58,33 +58,33 @@ module.exports = {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'Prefix',
-                placeholder: Client.client.intlGet(guildId, 'currentPrefixPlaceholder', { prefix: prefix }),
+                placeholder: client.intlGet(guildId, 'currentPrefixPlaceholder', { prefix: prefix }),
                 options: [
-                    { label: '!', description: Client.client.intlGet(guildId, 'exclamationMark'), value: '!' },
-                    { label: '?', description: Client.client.intlGet(guildId, 'questionMark'), value: '?' },
-                    { label: '.', description: Client.client.intlGet(guildId, 'dot'), value: '.' },
-                    { label: ':', description: Client.client.intlGet(guildId, 'colon'), value: ':' },
-                    { label: ',', description: Client.client.intlGet(guildId, 'comma'), value: ',' },
-                    { label: ';', description: Client.client.intlGet(guildId, 'semicolon'), value: ';' },
-                    { label: '-', description: Client.client.intlGet(guildId, 'dash'), value: '-' },
-                    { label: '_', description: Client.client.intlGet(guildId, 'underscore'), value: '_' },
-                    { label: '=', description: Client.client.intlGet(guildId, 'equalsSign'), value: '=' },
-                    { label: '*', description: Client.client.intlGet(guildId, 'asterisk'), value: '*' },
-                    { label: '@', description: Client.client.intlGet(guildId, 'atSign'), value: '@' },
-                    { label: '+', description: Client.client.intlGet(guildId, 'plusSign'), value: '+' },
-                    { label: "'", description: Client.client.intlGet(guildId, 'apostrophe'), value: "'" },
-                    { label: '#', description: Client.client.intlGet(guildId, 'hash'), value: '#' },
-                    { label: '¤', description: Client.client.intlGet(guildId, 'currencySign'), value: '¤' },
-                    { label: '%', description: Client.client.intlGet(guildId, 'percentSign'), value: '%' },
-                    { label: '&', description: Client.client.intlGet(guildId, 'ampersand'), value: '&' },
-                    { label: '|', description: Client.client.intlGet(guildId, 'pipe'), value: '|' },
-                    { label: '>', description: Client.client.intlGet(guildId, 'greaterThanSign'), value: '>' },
-                    { label: '<', description: Client.client.intlGet(guildId, 'lessThanSign'), value: '<' },
-                    { label: '~', description: Client.client.intlGet(guildId, 'tilde'), value: '~' },
-                    { label: '^', description: Client.client.intlGet(guildId, 'circumflex'), value: '^' },
-                    { label: '♥', description: Client.client.intlGet(guildId, 'heart'), value: '♥' },
-                    { label: '☺', description: Client.client.intlGet(guildId, 'smilyFace'), value: '☺' },
-                    { label: '/', description: Client.client.intlGet(guildId, 'slash'), value: '/' },
+                    { label: '!', description: client.intlGet(guildId, 'exclamationMark'), value: '!' },
+                    { label: '?', description: client.intlGet(guildId, 'questionMark'), value: '?' },
+                    { label: '.', description: client.intlGet(guildId, 'dot'), value: '.' },
+                    { label: ':', description: client.intlGet(guildId, 'colon'), value: ':' },
+                    { label: ',', description: client.intlGet(guildId, 'comma'), value: ',' },
+                    { label: ';', description: client.intlGet(guildId, 'semicolon'), value: ';' },
+                    { label: '-', description: client.intlGet(guildId, 'dash'), value: '-' },
+                    { label: '_', description: client.intlGet(guildId, 'underscore'), value: '_' },
+                    { label: '=', description: client.intlGet(guildId, 'equalsSign'), value: '=' },
+                    { label: '*', description: client.intlGet(guildId, 'asterisk'), value: '*' },
+                    { label: '@', description: client.intlGet(guildId, 'atSign'), value: '@' },
+                    { label: '+', description: client.intlGet(guildId, 'plusSign'), value: '+' },
+                    { label: "'", description: client.intlGet(guildId, 'apostrophe'), value: "'" },
+                    { label: '#', description: client.intlGet(guildId, 'hash'), value: '#' },
+                    { label: '¤', description: client.intlGet(guildId, 'currencySign'), value: '¤' },
+                    { label: '%', description: client.intlGet(guildId, 'percentSign'), value: '%' },
+                    { label: '&', description: client.intlGet(guildId, 'ampersand'), value: '&' },
+                    { label: '|', description: client.intlGet(guildId, 'pipe'), value: '|' },
+                    { label: '>', description: client.intlGet(guildId, 'greaterThanSign'), value: '>' },
+                    { label: '<', description: client.intlGet(guildId, 'lessThanSign'), value: '<' },
+                    { label: '~', description: client.intlGet(guildId, 'tilde'), value: '~' },
+                    { label: '^', description: client.intlGet(guildId, 'circumflex'), value: '^' },
+                    { label: '♥', description: client.intlGet(guildId, 'heart'), value: '♥' },
+                    { label: '☺', description: client.intlGet(guildId, 'smilyFace'), value: '☺' },
+                    { label: '/', description: client.intlGet(guildId, 'slash'), value: '/' },
                 ],
             }),
         );
@@ -93,7 +93,7 @@ module.exports = {
     getTrademarkOption: function (guildId, trademark) {
         return {
             label: trademark,
-            description: Client.client.intlGet(guildId, 'trademarkShownBeforeMessage', {
+            description: client.intlGet(guildId, 'trademarkShownBeforeMessage', {
                 trademark: trademark,
             }),
             value: trademark,
@@ -104,9 +104,7 @@ module.exports = {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'Trademark',
-                placeholder: `${
-                    trademark === 'NOT SHOWING' ? Client.client.intlGet(guildId, 'notShowingCap') : trademark
-                }`,
+                placeholder: `${trademark === 'NOT SHOWING' ? client.intlGet(guildId, 'notShowingCap') : trademark}`,
                 options: [
                     module.exports.getTrademarkOption(guildId, 'rustplusplus'),
                     module.exports.getTrademarkOption(guildId, 'Rust++'),
@@ -114,8 +112,8 @@ module.exports = {
                     module.exports.getTrademarkOption(guildId, 'RPP'),
                     module.exports.getTrademarkOption(guildId, 'BOT'),
                     {
-                        label: Client.client.intlGet(guildId, 'notShowingCap'),
-                        description: Client.client.intlGet(guildId, 'hideTrademark'),
+                        label: client.intlGet(guildId, 'notShowingCap'),
+                        description: client.intlGet(guildId, 'hideTrademark'),
                         value: 'NOT SHOWING',
                     },
                 ],
@@ -127,66 +125,66 @@ module.exports = {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'CommandDelay',
-                placeholder: Client.client.intlGet(guildId, 'currentCommandDelay', { delay: delay }),
+                placeholder: client.intlGet(guildId, 'currentCommandDelay', { delay: delay }),
                 options: [
                     {
-                        label: Client.client.intlGet(guildId, 'noDelayCap'),
-                        description: Client.client.intlGet(guildId, 'noCommandDelay'),
+                        label: client.intlGet(guildId, 'noDelayCap'),
+                        description: client.intlGet(guildId, 'noCommandDelay'),
                         value: '0',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'second', { second: '1' }),
-                        description: Client.client.intlGet(guildId, 'secondCommandDelay', {
-                            second: Client.client.intlGet(guildId, 'one'),
+                        label: client.intlGet(guildId, 'second', { second: '1' }),
+                        description: client.intlGet(guildId, 'secondCommandDelay', {
+                            second: client.intlGet(guildId, 'one'),
                         }),
                         value: '1',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '2' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'two'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '2' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'two'),
                         }),
                         value: '2',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '3' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'three'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '3' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'three'),
                         }),
                         value: '3',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '4' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'four'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '4' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'four'),
                         }),
                         value: '4',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '5' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'five'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '5' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'five'),
                         }),
                         value: '5',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '6' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'six'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '6' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'six'),
                         }),
                         value: '6',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '7' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'seven'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '7' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'seven'),
                         }),
                         value: '7',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'seconds', { seconds: '8' }),
-                        description: Client.client.intlGet(guildId, 'secondsCommandDelay', {
-                            seconds: Client.client.intlGet(guildId, 'eight'),
+                        label: client.intlGet(guildId, 'seconds', { seconds: '8' }),
+                        description: client.intlGet(guildId, 'secondsCommandDelay', {
+                            seconds: client.intlGet(guildId, 'eight'),
                         }),
                         value: '8',
                     },
@@ -196,20 +194,20 @@ module.exports = {
     },
 
     getSmartSwitchSelectMenu: function (guildId, serverId, entityId) {
-        const instance = Client.client.getInstance(guildId);
+        const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].switches[entityId];
         const identifier = JSON.stringify({ serverId: serverId, entityId: entityId });
 
-        const autoSetting = Client.client.intlGet(guildId, 'autoSettingCap');
-        const off = Client.client.intlGet(guildId, 'offCap');
-        const autoDay = Client.client.intlGet(guildId, 'autoDayCap');
-        const autoNight = Client.client.intlGet(guildId, 'autoNightCap');
-        const autoOn = Client.client.intlGet(guildId, 'autoOnCap');
-        const autoOff = Client.client.intlGet(guildId, 'autoOffCap');
-        const autoOnProximity = Client.client.intlGet(guildId, 'autoOnProximityCap');
-        const autoOffProximity = Client.client.intlGet(guildId, 'autoOffProximityCap');
-        const autoOnAnyOnline = Client.client.intlGet(guildId, 'autoOnAnyOnlineCap');
-        const autoOffAnyOnline = Client.client.intlGet(guildId, 'autoOffAnyOnlineCap');
+        const autoSetting = client.intlGet(guildId, 'autoSettingCap');
+        const off = client.intlGet(guildId, 'offCap');
+        const autoDay = client.intlGet(guildId, 'autoDayCap');
+        const autoNight = client.intlGet(guildId, 'autoNightCap');
+        const autoOn = client.intlGet(guildId, 'autoOnCap');
+        const autoOff = client.intlGet(guildId, 'autoOffCap');
+        const autoOnProximity = client.intlGet(guildId, 'autoOnProximityCap');
+        const autoOffProximity = client.intlGet(guildId, 'autoOffProximityCap');
+        const autoOnAnyOnline = client.intlGet(guildId, 'autoOnAnyOnlineCap');
+        const autoOffAnyOnline = client.intlGet(guildId, 'autoOffAnyOnlineCap');
 
         let autoDayNightOnOffString = autoSetting;
         if (entity.autoDayNightOnOff === 0) autoDayNightOnOffString += off;
@@ -229,47 +227,47 @@ module.exports = {
                 options: [
                     {
                         label: off,
-                        description: Client.client.intlGet(guildId, 'smartSwitchNormal'),
+                        description: client.intlGet(guildId, 'smartSwitchNormal'),
                         value: '0',
                     },
                     {
                         label: autoDay,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoDay'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoDay'),
                         value: '1',
                     },
                     {
                         label: autoNight,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoNight'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoNight'),
                         value: '2',
                     },
                     {
                         label: autoOn,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOn'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOn'),
                         value: '3',
                     },
                     {
                         label: autoOff,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOff'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOff'),
                         value: '4',
                     },
                     {
                         label: autoOnProximity,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOnProximity'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOnProximity'),
                         value: '5',
                     },
                     {
                         label: autoOffProximity,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOffProximity'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOffProximity'),
                         value: '6',
                     },
                     {
                         label: autoOnAnyOnline,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOnAnyOnline'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOnAnyOnline'),
                         value: '7',
                     },
                     {
                         label: autoOffAnyOnline,
-                        description: Client.client.intlGet(guildId, 'smartSwitchAutoOffAnyOnline'),
+                        description: client.intlGet(guildId, 'smartSwitchAutoOffAnyOnline'),
                         value: '8',
                     },
                 ],
@@ -283,18 +281,18 @@ module.exports = {
                 customId: 'VoiceGender',
                 placeholder: `${
                     gender === 'male'
-                        ? Client.client.intlGet(guildId, 'commandsVoiceMale')
-                        : Client.client.intlGet(guildId, 'commandsVoiceFemale')
+                        ? client.intlGet(guildId, 'commandsVoiceMale')
+                        : client.intlGet(guildId, 'commandsVoiceFemale')
                 }`,
                 options: [
                     {
-                        label: Client.client.intlGet(guildId, 'commandsVoiceMale'),
-                        description: Client.client.intlGet(guildId, 'commandsVoiceMaleDescription'),
+                        label: client.intlGet(guildId, 'commandsVoiceMale'),
+                        description: client.intlGet(guildId, 'commandsVoiceMaleDescription'),
                         value: 'male',
                     },
                     {
-                        label: Client.client.intlGet(guildId, 'commandsVoiceFemale'),
-                        description: Client.client.intlGet(guildId, 'commandsVoiceFemaleDescription'),
+                        label: client.intlGet(guildId, 'commandsVoiceFemale'),
+                        description: client.intlGet(guildId, 'commandsVoiceFemaleDescription'),
                         value: 'female',
                     },
                 ],

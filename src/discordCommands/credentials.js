@@ -1,13 +1,12 @@
 const _ = require('lodash');
 const Builder = require('@discordjs/builders');
 
-const Config = require('../config');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
 const InstanceUtils = require('../util/instanceUtils');
 
-module.exports = {
+export default {
     name: 'credentials',
 
     getData(client, guildId) {
@@ -135,7 +134,9 @@ async function addCredentials(client, interaction, verifyId) {
     }
 
     if (steamId in credentials) {
-        const str = client.intlGet(guildId, 'credentialsAlreadyRegistered', { steamId: steamId });
+        const str = client.intlGet(guildId, 'credentialsAlreadyRegistered', {
+            steamId: steamId,
+        });
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);
         return;
@@ -264,7 +265,9 @@ async function removeCredentials(client, interaction, verifyId) {
         }),
     );
 
-    const str = client.intlGet(guildId, 'credentialsRemovedSuccessfully', { steamId: steamId });
+    const str = client.intlGet(guildId, 'credentialsRemovedSuccessfully', {
+        steamId: steamId,
+    });
     await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str);
 }
@@ -336,7 +339,9 @@ async function setHosterCredentials(client, interaction, verifyId) {
         }),
     );
 
-    const str = client.intlGet(guildId, 'credentialsSetHosterSuccessfully', { steamId: steamId });
+    const str = client.intlGet(guildId, 'credentialsSetHosterSuccessfully', {
+        steamId: steamId,
+    });
     await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str);
 }

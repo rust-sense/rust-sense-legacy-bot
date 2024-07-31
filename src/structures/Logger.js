@@ -1,7 +1,7 @@
 const Colors = require('colors');
 const Winston = require('winston');
 
-const Config = require('../config');
+import config from '../config';
 
 class Logger {
     constructor(logFilePath, type) {
@@ -26,20 +26,20 @@ class Logger {
     }
 
     getTime() {
-        let d = new Date();
+        const d = new Date();
 
-        let year = d.getFullYear();
-        let month = d.getMonth() + 1;
-        let date = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
-        let hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
-        let minutes = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
-        let seconds = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
+        const year = d.getFullYear();
+        const month = d.getMonth() + 1;
+        const date = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+        const hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        const minutes = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        const seconds = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
 
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     }
 
     log(title, text, level) {
-        let time = this.getTime();
+        const time = this.getTime();
 
         switch (this.type) {
             case 'default':
@@ -54,8 +54,8 @@ class Logger {
                         Colors.green(`${time} `) + (level === 'error' ? Colors.red(text) : Colors.yellow(text)),
                     );
 
-                    if (level === 'error' && Config.general.showCallStackError) {
-                        for (let line of new Error().stack.split(/\r?\n/)) {
+                    if (level === 'error' && config.general.showCallStackError) {
+                        for (const line of new Error().stack.split(/\r?\n/)) {
                             this.logger.log({ level: level, message: `${time} | ${line}` });
                             console.log(Colors.green(`${time} `) + Colors.red(line));
                         }
@@ -79,8 +79,8 @@ class Logger {
                             (level === 'error' ? Colors.red(text) : Colors.yellow(text)),
                     );
 
-                    if (level === 'error' && Config.general.showCallStackError) {
-                        for (let line of new Error().stack.split(/\r?\n/)) {
+                    if (level === 'error' && config.general.showCallStackError) {
+                        for (const line of new Error().stack.split(/\r?\n/)) {
                             this.logger.log({
                                 level: level,
                                 message: `${time} | ${this.guildId} | ${this.serverName} | ${line}`,
@@ -97,8 +97,6 @@ class Logger {
                 break;
 
             default:
-                {
-                }
                 break;
         }
     }

@@ -1,12 +1,11 @@
 const Builder = require('@discordjs/builders');
 
-const Config = require('../config');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
-const PermissionHandler = require('../handlers/permissionHandler');
+import * as PermissionHandler from '../handlers/permissionHandler';
 
-module.exports = {
+export default {
     name: 'reset',
 
     getData(client, guildId) {

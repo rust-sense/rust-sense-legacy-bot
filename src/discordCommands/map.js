@@ -6,7 +6,7 @@ const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
 import { cwdPath } from '../service/resourceManager';
 
-module.exports = {
+export default {
     name: 'map',
 
     getData(client, guildId) {
@@ -96,7 +96,9 @@ module.exports = {
                 DiscordEmbeds.getEmbed({
                     color: Constants.COLOR_DEFAULT,
                     image: `attachment://${interaction.guildId}_map_${fileName}.png`,
-                    footer: { text: instance.serverList[rustplus.serverId].title },
+                    footer: {
+                        text: instance.serverList[rustplus.serverId].title,
+                    },
                 }),
             ],
             files: [file],
@@ -104,7 +106,9 @@ module.exports = {
         });
         rustplus.log(
             client.intlGet(interaction.guildId, 'infoCap'),
-            client.intlGet(interaction.guildId, 'displayingMap', { mapName: fileName }),
+            client.intlGet(interaction.guildId, 'displayingMap', {
+                mapName: fileName,
+            }),
         );
     },
 };

@@ -2,7 +2,7 @@ const Builder = require('@discordjs/builders');
 
 const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
+export default {
     name: 'help',
 
     getData(client, guildId) {

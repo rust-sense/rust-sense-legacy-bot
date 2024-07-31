@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     general: {
         language: process.env.RPP_LANGUAGE || 'en',
         pollingIntervalMs: process.env.RPP_POLLING_INTERVAL || 10000,
@@ -9,5 +9,6 @@ module.exports = {
         username: process.env.RPP_DISCORD_USERNAME || 'rustplusplus',
         clientId: process.env.RPP_DISCORD_CLIENT_ID || '',
         token: process.env.RPP_DISCORD_TOKEN || '',
+        ownerUserId: process.env.RPP_DISCORD_OWNER_USER_ID || null,
     },
 };

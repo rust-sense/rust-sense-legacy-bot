@@ -3,7 +3,7 @@ const Builder = require('@discordjs/builders');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
+export default {
     name: 'recycle',
 
     getData(client, guildId) {

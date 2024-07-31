@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 
-const Config = require('../config');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
 const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');

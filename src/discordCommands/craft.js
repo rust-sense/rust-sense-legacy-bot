@@ -3,18 +3,24 @@ const Builder = require('@discordjs/builders');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 
-module.exports = {
-    name: 'item',
+export default {
+    name: 'craft',
 
     getData(client, guildId) {
         return new Builder.SlashCommandBuilder()
-            .setName('item')
-            .setDescription(client.intlGet(guildId, 'commandsItemDesc'))
+            .setName('craft')
+            .setDescription(client.intlGet(guildId, 'commandsCraftDesc'))
             .addStringOption((option) =>
                 option.setName('name').setDescription(client.intlGet(guildId, 'theNameOfTheItem')).setRequired(false),
             )
             .addStringOption((option) =>
                 option.setName('id').setDescription(client.intlGet(guildId, 'theIdOfTheItem')).setRequired(false),
+            )
+            .addIntegerOption((option) =>
+                option
+                    .setName('quantity')
+                    .setDescription(client.intlGet(guildId, 'commandsCraftQuantityDesc'))
+                    .setRequired(false),
             );
     },
 
@@ -27,77 +33,63 @@ module.exports = {
         if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
-        const itemItemName = interaction.options.getString('name');
-        const itemItemId = interaction.options.getString('id');
+        const craftItemName = interaction.options.getString('name');
+        const craftItemId = interaction.options.getString('id');
+        const craftItemQuantity = interaction.options.getInteger('quantity');
 
         let itemId = null;
-        let type = null;
-
-        if (itemItemName !== null) {
-            let foundName = null;
-            if (!foundName) {
-                foundName = client.rustlabs.getClosestOtherNameByName(itemItemName);
-                if (foundName) {
-                    type = 'other';
-                }
-            }
-
-            if (!foundName) {
-                foundName = client.rustlabs.getClosestBuildingBlockNameByName(itemItemName);
-                if (foundName) {
-                    type = 'buildingBlocks';
-                }
-            }
-
-            if (!foundName) {
-                foundName = client.items.getClosestItemIdByName(itemItemName);
-                if (foundName) {
-                    type = 'items';
-                }
-            }
-
-            if (!foundName) {
+        if (craftItemName !== null) {
+            const item = client.items.getClosestItemIdByName(craftItemName);
+            if (item === null) {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: itemItemName,
+                    name: craftItemName,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
+            } else {
+                itemId = item;
             }
-            itemId = foundName;
-        } else if (itemItemId !== null) {
-            if (client.items.itemExist(itemItemId)) {
-                itemId = itemItemId;
+        } else if (craftItemId !== null) {
+            if (client.items.itemExist(craftItemId)) {
+                itemId = craftItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: itemItemId,
+                    id: craftItemId,
                 });
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;
             }
-        } else if (itemItemName === null && itemItemId === null) {
+        } else if (craftItemName === null && craftItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
             await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(guildId, 'warningCap'), str);
             return;
         }
-        let itemName = null;
-        if (type === 'items') {
-            itemName = client.items.getName(itemId);
-        } else {
-            itemName = itemId;
+        const itemName = client.items.getName(itemId);
+
+        const craftDetails = client.rustlabs.getCraftDetailsById(itemId);
+        if (craftDetails === null) {
+            const str = client.intlGet(guildId, 'couldNotFindCraftDetails', {
+                name: itemName,
+            });
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str);
+            return;
         }
+
+        const quantity = craftItemQuantity === null ? 1 : craftItemQuantity;
 
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'slashCommandValueChange', {
                 id: `${verifyId}`,
-                value: `${itemItemName} ${itemItemId}`,
+                value: `${craftItemName} ${craftItemId} ${craftItemQuantity}`,
             }),
         );
 
-        await DiscordMessages.sendItemMessage(interaction, itemName, itemId, type);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsItemDesc'));
+        await DiscordMessages.sendCraftMessage(interaction, craftDetails, quantity);
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCraftDesc'));
     },
 };

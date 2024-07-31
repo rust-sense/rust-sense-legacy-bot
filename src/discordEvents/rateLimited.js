@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     name: 'rateLimited',
     async execute(client, info) {
         client.log(

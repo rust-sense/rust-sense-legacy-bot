@@ -12,51 +12,37 @@ module.exports = {
     ArmoredWallDecayTimeSeconds: 12 * 60 * 60,
 
     getTimeLeftSeconds: function (client, type, hp) {
-        if (isNaN(hp)) return null;
+        if (Number.isNaN(hp)) return null;
 
         switch (type.toLowerCase()) {
-            case client.intlGet('en', 'commandSyntaxTwig'):
-                {
-                    if (hp < 0 || hp > this.TwigWallMaxHp) return null;
-                    return Math.floor(this.TwigWallDecayTimeSeconds * (hp / this.TwigWallMaxHp));
-                }
-                break;
+            case client.intlGet('en', 'commandSyntaxTwig'): {
+                if (hp < 0 || hp > this.TwigWallMaxHp) return null;
+                return Math.floor(this.TwigWallDecayTimeSeconds * (hp / this.TwigWallMaxHp));
+            }
 
-            case client.intlGet('en', 'commandSyntaxWood'):
-                {
-                    if (hp < 0 || hp > this.WoodWallMaxHp) return null;
-                    return Math.floor(this.WoodWallDecayTimeSeconds * (hp / this.WoodWallMaxHp));
-                }
-                break;
+            case client.intlGet('en', 'commandSyntaxWood'): {
+                if (hp < 0 || hp > this.WoodWallMaxHp) return null;
+                return Math.floor(this.WoodWallDecayTimeSeconds * (hp / this.WoodWallMaxHp));
+            }
 
-            case client.intlGet('en', 'commandSyntaxStone'):
-                {
-                    if (hp < 0 || hp > this.StoneWallMaxHp) return null;
-                    return Math.floor(this.StoneWallDecayTimeSeconds * (hp / this.StoneWallMaxHp));
-                }
-                break;
+            case client.intlGet('en', 'commandSyntaxStone'): {
+                if (hp < 0 || hp > this.StoneWallMaxHp) return null;
+                return Math.floor(this.StoneWallDecayTimeSeconds * (hp / this.StoneWallMaxHp));
+            }
 
-            case client.intlGet('en', 'commandSyntaxMetal'):
-                {
-                    if (hp < 0 || hp > this.MetalWallMaxHp) return null;
-                    return Math.floor(this.MetalWallDecayTimeSeconds * (hp / this.MetalWallMaxHp));
-                }
-                break;
+            case client.intlGet('en', 'commandSyntaxMetal'): {
+                if (hp < 0 || hp > this.MetalWallMaxHp) return null;
+                return Math.floor(this.MetalWallDecayTimeSeconds * (hp / this.MetalWallMaxHp));
+            }
 
-            case client.intlGet('en', 'commandSyntaxArmored'):
-                {
-                    if (hp < 0 || hp > this.ArmoredWallMaxHp) return null;
-                    return Math.floor(this.ArmoredWallDecayTimeSeconds * (hp / this.ArmoredWallMaxHp));
-                }
-                break;
+            case client.intlGet('en', 'commandSyntaxArmored'): {
+                if (hp < 0 || hp > this.ArmoredWallMaxHp) return null;
+                return Math.floor(this.ArmoredWallDecayTimeSeconds * (hp / this.ArmoredWallMaxHp));
+            }
 
-            default:
-                {
-                    return undefined;
-                }
-                break;
+            default: {
+                return undefined;
+            }
         }
-
-        return null;
     },
 };

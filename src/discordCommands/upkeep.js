@@ -2,7 +2,7 @@ const Builder = require('@discordjs/builders');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
-module.exports = {
+export default {
     name: 'upkeep',
 
     getData(client, guildId) {

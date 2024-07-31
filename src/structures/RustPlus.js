@@ -3,7 +3,6 @@ const path = require('node:path');
 const RustPlusLib = require('@liamcottle/rustplus.js');
 const Translate = require('translate');
 
-const Client = require('../index');
 const Constants = require('../util/constants');
 const Decay = require('../util/decay');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
@@ -14,11 +13,13 @@ const InGameChatHandler = require('../handlers/inGameChatHandler');
 const InstanceUtils = require('../util/instanceUtils');
 const Languages = require('../util/languages');
 const Logger = require('./Logger');
-const Map = require('../util/map');
+const GameMap = require('../util/GameMap');
 const RustPlusLite = require('../structures/RustPlusLite');
 const TeamHandler = require('../handlers/teamHandler');
 const Timer = require('../util/timer');
 
+import rustplusEvents from '../rustplusEvents'
+import { client } from '../index';
 import { cwdPath } from '../service/resourceManager';
 
 const TOKENS_LIMIT = 24; /* Per player */
@@ -95,17 +96,13 @@ class RustPlus extends RustPlusLib {
     }
 
     loadRustPlusEvents() {
-        const eventFiles = fs
-            .readdirSync(path.join(__dirname, '..', 'rustplusEvents'))
-            .filter((file) => file.endsWith(''));
-        for (const file of eventFiles) {
-            const event = require(`../rustplusEvents/${file}`);
-            this.on(event.name, (...args) => event.execute(this, Client.client, ...args));
+        for (const event of rustplusEvents) {
+            this.on(event.name, (...args) => event.execute(this, client, ...args));
         }
     }
 
     loadMarkers() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
 
         for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers)) {
             this.markers[name] = { x: location.x, y: location.y, location: location.location };
@@ -113,7 +110,7 @@ class RustPlus extends RustPlusLib {
     }
 
     build() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
 
         /* Setup the logger */
         this.logger = new Logger(cwdPath(`logs/${this.guildId}.log`), 'guild');
@@ -129,16 +126,16 @@ class RustPlus extends RustPlusLib {
 
     updateLeaderRustPlusLiteInstance() {
         if (this.leaderRustPlusInstance !== null) {
-            if (Client.client.rustplusLiteReconnectTimers[this.guildId]) {
-                clearTimeout(Client.client.rustplusLiteReconnectTimers[this.guildId]);
-                Client.client.rustplusLiteReconnectTimers[this.guildId] = null;
+            if (client.rustplusLiteReconnectTimers[this.guildId]) {
+                clearTimeout(client.rustplusLiteReconnectTimers[this.guildId]);
+                client.rustplusLiteReconnectTimers[this.guildId] = null;
             }
             this.leaderRustPlusInstance.isActive = false;
             this.leaderRustPlusInstance.disconnect();
             this.leaderRustPlusInstance = null;
         }
 
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         const leader = this.team.leaderSteamId;
         if (leader === this.playerId) return;
         if (!(leader in instance.serverListLite[this.serverId])) return;
@@ -157,7 +154,7 @@ class RustPlus extends RustPlusLib {
     }
 
     isServerAvailable() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         return instance.serverList.hasOwnProperty(this.serverId);
     }
 
@@ -200,11 +197,11 @@ class RustPlus extends RustPlusLib {
     }
 
     updateEvents(event, message) {
-        const commandCargoEn = `${Client.client.intlGet('en', 'commandSyntaxCargo')}`;
-        const commandHeliEn = `${Client.client.intlGet('en', 'commandSyntaxHeli')}`;
-        const commandSmallEn = `${Client.client.intlGet('en', 'commandSyntaxSmall')}`;
-        const commandLargeEn = `${Client.client.intlGet('en', 'commandSyntaxLarge')}`;
-        const commandChinookEn = `${Client.client.intlGet('en', 'commandSyntaxChinook')}`;
+        const commandCargoEn = `${client.intlGet('en', 'commandSyntaxCargo')}`;
+        const commandHeliEn = `${client.intlGet('en', 'commandSyntaxHeli')}`;
+        const commandSmallEn = `${client.intlGet('en', 'commandSyntaxSmall')}`;
+        const commandLargeEn = `${client.intlGet('en', 'commandSyntaxLarge')}`;
+        const commandChinookEn = `${client.intlGet('en', 'commandSyntaxChinook')}`;
         if (![commandCargoEn, commandHeliEn, commandSmallEn, commandLargeEn, commandChinookEn].includes(event)) return;
 
         const str = `${Timer.getCurrentDateTime()} - ${message}`;
@@ -231,9 +228,9 @@ class RustPlus extends RustPlusLib {
         this.isDeleted = true;
         this.disconnect();
 
-        if (Client.client.rustplusInstances.hasOwnProperty(this.guildId)) {
-            if (Client.client.rustplusInstances[this.guildId].serverId === this.serverId) {
-                delete Client.client.rustplusInstances[this.guildId];
+        if (client.rustplusInstances.hasOwnProperty(this.guildId)) {
+            if (client.rustplusInstances[this.guildId].serverId === this.serverId) {
+                delete client.rustplusInstances[this.guildId];
                 return true;
             }
         }
@@ -251,11 +248,11 @@ class RustPlus extends RustPlusLib {
         args['user'] = `${message.broadcast.teamMessage.message.name}`;
         args['user'] += ` (${message.broadcast.teamMessage.message.steamId.toString()})`;
 
-        this.log(Client.client.intlGet(null, 'infoCap'), Client.client.intlGet(null, `logInGameCommand`, args));
+        this.log(client.intlGet(null, 'infoCap'), client.intlGet(null, `logInGameCommand`, args));
     }
 
     sendInGameMessage(message) {
-        InGameChatHandler.inGameChatHandler(this, Client.client, message);
+        InGameChatHandler.inGameChatHandler(this, client, message);
     }
 
     async sendEvent(setting, text, event, embed_color, firstPoll = false, image = null) {
@@ -272,7 +269,7 @@ class RustPlus extends RustPlusLib {
         if (!firstPoll && setting.voice) {
             await DiscordVoice.sendDiscordVoiceMessage(this.guildId, text);
         }
-        this.log(Client.client.intlGet(null, 'eventCap'), text);
+        this.log(client.intlGet(null, 'eventCap'), text);
     }
 
     replenishTokens() {
@@ -319,7 +316,7 @@ class RustPlus extends RustPlusLib {
     async setEntityValueAsync(id, value, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -341,7 +338,7 @@ class RustPlus extends RustPlusLib {
     async sendTeamMessageAsync(message, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(2))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -362,7 +359,7 @@ class RustPlus extends RustPlusLib {
     async getEntityInfoAsync(id, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -382,7 +379,7 @@ class RustPlus extends RustPlusLib {
     async getMapAsync(timeout = 30000) {
         try {
             if (!(await this.waitForAvailableTokens(5))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -401,7 +398,7 @@ class RustPlus extends RustPlusLib {
     async getTimeAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -420,7 +417,7 @@ class RustPlus extends RustPlusLib {
     async getMapMarkersAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -439,7 +436,7 @@ class RustPlus extends RustPlusLib {
     async getInfoAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -458,7 +455,7 @@ class RustPlus extends RustPlusLib {
     async getTeamInfoAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -477,7 +474,7 @@ class RustPlus extends RustPlusLib {
     async subscribeToCameraAsync(identifier, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -498,7 +495,7 @@ class RustPlus extends RustPlusLib {
     async unsubscribeFromCameraAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -517,7 +514,7 @@ class RustPlus extends RustPlusLib {
     async sendCameraInputAsync(buttons, x, y, timeout = 1000) {
         try {
             if (!(await this.waitForAvailableTokens(0.01))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -542,7 +539,7 @@ class RustPlus extends RustPlusLib {
     async promoteToLeaderAsync(steamId, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -563,7 +560,7 @@ class RustPlus extends RustPlusLib {
     async getTeamChatAsync(timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -582,7 +579,7 @@ class RustPlus extends RustPlusLib {
     async checkSubscriptionAsync(id, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -602,7 +599,7 @@ class RustPlus extends RustPlusLib {
     async setSubscriptionAsync(id, value, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(1))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -624,7 +621,7 @@ class RustPlus extends RustPlusLib {
     async getCameraFrameAsync(identifier, frame, timeout = 10000) {
         try {
             if (!(await this.waitForAvailableTokens(2))) {
-                return { error: Client.client.intlGet(null, 'tokensDidNotReplenish') };
+                return { error: client.intlGet(null, 'tokensDidNotReplenish') };
             }
 
             return await this.sendRequestAsync(
@@ -645,16 +642,12 @@ class RustPlus extends RustPlusLib {
 
     isResponseValid(response) {
         if (response === undefined) {
-            this.log(
-                Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseIsUndefined'),
-                'error',
-            );
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsUndefined'), 'error');
             return false;
         }
 
         if (response.toString() === 'Error: Timeout reached while waiting for response') {
-            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseTimeout'), 'error');
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseTimeout'), 'error');
             return false;
         }
 
@@ -664,8 +657,8 @@ class RustPlus extends RustPlusLib {
             }
 
             this.log(
-                Client.client.intlGet(null, 'errorCap'),
-                Client.client.intlGet(null, 'responseContainError', {
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'responseContainError', {
                     error: JSON.stringify(response),
                 }),
                 'error',
@@ -674,7 +667,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (Object.keys(response).length === 0) {
-            this.log(Client.client.intlGet(null, 'errorCap'), Client.client.intlGet(null, 'responseIsEmpty'), 'error');
+            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsEmpty'), 'error');
             clearInterval(this.pollingTaskId);
             return false;
         }
@@ -694,18 +687,18 @@ class RustPlus extends RustPlusLib {
             }
         }
 
-        return string !== '' ? `${string.slice(0, -2)}.` : Client.client.intlGet(this.guildId, 'noOneIsAfk');
+        return string !== '' ? `${string.slice(0, -2)}.` : client.intlGet(this.guildId, 'noOneIsAfk');
     }
 
     getCommandAlive(command) {
         const prefix = this.generalSettings.prefix;
-        const commandAlive = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxAlive')}`;
-        const commandAliveEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxAlive')}`;
+        const commandAlive = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxAlive')}`;
+        const commandAliveEn = `${prefix}${client.intlGet('en', 'commandSyntaxAlive')}`;
         let name = null;
 
         if (command.toLowerCase() === `${commandAlive}` || command.toLowerCase() === `${commandAliveEn}`) {
             const player = this.team.getPlayerLongestAlive();
-            return Client.client.intlGet(this.guildId, 'hasBeenAliveLongest', {
+            return client.intlGet(this.guildId, 'hasBeenAliveLongest', {
                 name: player.name,
                 time: player.getAliveTime(),
             });
@@ -719,14 +712,14 @@ class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                return Client.client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
+                return client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
                     name: player.name,
                     time: player.getAliveTime(),
                 });
             }
         }
 
-        return Client.client.intlGet(this.guildId, 'couldNotFindTeammate', {
+        return client.intlGet(this.guildId, 'couldNotFindTeammate', {
             name: name,
         });
     }
@@ -739,13 +732,13 @@ class RustPlus extends RustPlusLib {
             const time = Timer.getTimeLeftOfTimer(timer);
             if (time) {
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'egressInTime', {
+                    return client.intlGet(this.guildId, 'egressInTime', {
                         time: Timer.getTimeLeftOfTimer(timer, 's'),
                         location: cargoShip.location.string,
                     });
                 } else {
                     strings.push(
-                        Client.client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
+                        client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
                             time: time,
                             location: cargoShip.location.string,
                         }),
@@ -760,24 +753,24 @@ class RustPlus extends RustPlusLib {
                 const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, id);
                 if (cargoShip.onItsWayOut) {
                     if (isInfoChannel) {
-                        return Client.client.intlGet(this.guildId, 'leavingMapAt', {
+                        return client.intlGet(this.guildId, 'leavingMapAt', {
                             location: cargoShip.location.string,
                         });
                     } else {
                         strings.push(
-                            Client.client.intlGet(this.guildId, 'cargoLeavingMapAt', {
+                            client.intlGet(this.guildId, 'cargoLeavingMapAt', {
                                 location: cargoShip.location.string,
                             }),
                         );
                     }
                 } else {
                     if (isInfoChannel) {
-                        return Client.client.intlGet(this.guildId, 'cargoAt', {
+                        return client.intlGet(this.guildId, 'cargoAt', {
                             location: cargoShip.location.string,
                         });
                     } else {
                         strings.push(
-                            Client.client.intlGet(this.guildId, 'cargoLocatedAt', {
+                            client.intlGet(this.guildId, 'cargoLocatedAt', {
                                 location: cargoShip.location.string,
                             }),
                         );
@@ -789,18 +782,18 @@ class RustPlus extends RustPlusLib {
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceCargoShipWasOut === null) {
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'notActive');
+                    return client.intlGet(this.guildId, 'notActive');
                 } else {
-                    return Client.client.intlGet(this.guildId, 'cargoNotCurrentlyOnMap');
+                    return client.intlGet(this.guildId, 'cargoNotCurrentlyOnMap');
                 }
             } else {
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCargoShipWasOut) / 1000;
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                    return client.intlGet(this.guildId, 'timeSinceLast', {
                         time: Timer.secondsToFullScale(secondsSince),
                     });
                 } else {
-                    return Client.client.intlGet(this.guildId, 'timeSinceCargoLeft', {
+                    return client.intlGet(this.guildId, 'timeSinceCargoLeft', {
                         time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
@@ -815,12 +808,12 @@ class RustPlus extends RustPlusLib {
         for (const ch47 of this.mapMarkers.ch47s) {
             if (ch47.ch47Type === 'crate') {
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'atLocation', {
+                    return client.intlGet(this.guildId, 'atLocation', {
                         location: ch47.location.string,
                     });
                 } else {
                     strings.push(
-                        Client.client.intlGet(this.guildId, 'chinook47Located', {
+                        client.intlGet(this.guildId, 'chinook47Located', {
                             location: ch47.location.string,
                         }),
                     );
@@ -831,17 +824,17 @@ class RustPlus extends RustPlusLib {
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceCH47WasOut === null) {
                 return isInfoChannel
-                    ? Client.client.intlGet(this.guildId, 'notActive')
-                    : Client.client.intlGet(this.guildId, 'chinook47NotOnMap');
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'chinook47NotOnMap');
             } else {
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceCH47WasOut) / 1000;
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                    return client.intlGet(this.guildId, 'timeSinceLast', {
                         time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
                 } else {
                     strings.push(
-                        Client.client.intlGet(this.guildId, 'timeSinceChinook47OnMap', {
+                        client.intlGet(this.guildId, 'timeSinceChinook47OnMap', {
                             time: Timer.secondsToFullScale(secondsSince),
                         }),
                     );
@@ -854,10 +847,10 @@ class RustPlus extends RustPlusLib {
 
     getCommandConnection(command) {
         const prefix = this.generalSettings.prefix;
-        const commandConnection = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxConnection')}`;
-        const commandConnectionEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxConnection')}`;
-        const commandConnections = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxConnections')}`;
-        const commandConnectionsEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxConnections')}`;
+        const commandConnection = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxConnection')}`;
+        const commandConnectionEn = `${prefix}${client.intlGet('en', 'commandSyntaxConnection')}`;
+        const commandConnections = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxConnections')}`;
+        const commandConnectionsEn = `${prefix}${client.intlGet('en', 'commandSyntaxConnections')}`;
 
         if (
             command.toLowerCase().startsWith(`${commandConnections}`) ||
@@ -871,7 +864,7 @@ class RustPlus extends RustPlusLib {
             }
 
             if (this.allConnections.length === 0) {
-                return Client.client.intlGet(this.guildId, 'noRegisteredConnectionEvents');
+                return client.intlGet(this.guildId, 'noRegisteredConnectionEvents');
             }
 
             const strings = [];
@@ -904,7 +897,7 @@ class RustPlus extends RustPlusLib {
                     }
 
                     if (this.playerConnections[player.steamId].length === 0) {
-                        return Client.client.intlGet(this.guildId, 'noRegisteredConnectionEventsUser', {
+                        return client.intlGet(this.guildId, 'noRegisteredConnectionEventsUser', {
                             user: player.name,
                         });
                     }
@@ -923,7 +916,7 @@ class RustPlus extends RustPlusLib {
                 }
             }
 
-            return Client.client.intlGet(this.guildId, 'couldNotFindTeammate', {
+            return client.intlGet(this.guildId, 'couldNotFindTeammate', {
                 name: name,
             });
         }
@@ -933,8 +926,8 @@ class RustPlus extends RustPlusLib {
 
     getCommandCraft(command) {
         const prefix = this.generalSettings.prefix;
-        const commandCraft = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxCraft')}`;
-        const commandCraftEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxCraft')}`;
+        const commandCraft = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxCraft')}`;
+        const commandCraftEn = `${prefix}${client.intlGet('en', 'commandSyntaxCraft')}`;
 
         if (command.toLowerCase().startsWith(`${commandCraft} `)) {
             command = command.slice(`${commandCraft} `.length).trim();
@@ -957,21 +950,21 @@ class RustPlus extends RustPlusLib {
             itemSearchQuantity = parseInt(lastWord);
         }
 
-        const item = Client.client.items.getClosestItemIdByName(itemSearchName);
+        const item = client.items.getClosestItemIdByName(itemSearchName);
         if (item === null || itemSearchName === '') {
-            const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            const str = client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: itemSearchName,
             });
             return str;
         }
 
         const itemId = item;
-        const itemName = Client.client.items.getName(itemId);
+        const itemName = client.items.getName(itemId);
         const quantity = itemSearchQuantity;
 
-        const craftDetails = Client.client.rustlabs.getCraftDetailsById(itemId);
+        const craftDetails = client.rustlabs.getCraftDetailsById(itemId);
         if (craftDetails === null) {
-            const str = Client.client.intlGet(this.guildId, 'couldNotFindCraftDetails', {
+            const str = client.intlGet(this.guildId, 'couldNotFindCraftDetails', {
                 name: itemName,
             });
             return str;
@@ -986,7 +979,7 @@ class RustPlus extends RustPlusLib {
         }
 
         for (const ingredient of craftDetails[2].ingredients) {
-            const ingredientName = Client.client.items.getName(ingredient.id);
+            const ingredientName = client.items.getName(ingredient.id);
             str += `${ingredientName} x${ingredient.quantity * quantity}, `;
         }
 
@@ -997,14 +990,14 @@ class RustPlus extends RustPlusLib {
 
     async getCommandDeath(command, callerSteamId) {
         const prefix = this.generalSettings.prefix;
-        const commandDeath = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxDeath')}`;
-        const commandDeathEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxDeath')}`;
-        const commandDeaths = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxDeaths')}`;
-        const commandDeathsEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxDeaths')}`;
+        const commandDeath = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxDeath')}`;
+        const commandDeathEn = `${prefix}${client.intlGet('en', 'commandSyntaxDeath')}`;
+        const commandDeaths = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxDeaths')}`;
+        const commandDeathsEn = `${prefix}${client.intlGet('en', 'commandSyntaxDeaths')}`;
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!this.isResponseValid(teamInfo)) return null;
-        TeamHandler.handler(this, Client.client, teamInfo.teamInfo);
+        TeamHandler.handler(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
 
         const caller = this.team.getPlayer(callerSteamId);
@@ -1021,7 +1014,7 @@ class RustPlus extends RustPlusLib {
             }
 
             if (this.allDeaths.length === 0) {
-                return Client.client.intlGet(this.guildId, 'noRegisteredDeathEvents');
+                return client.intlGet(this.guildId, 'noRegisteredDeathEvents');
             }
 
             const strings = [];
@@ -1032,13 +1025,13 @@ class RustPlus extends RustPlusLib {
 
                 let str = `${event.time} - ${event.name}: `;
                 if (event.location === null) {
-                    if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
-                    strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
+                    if (counter === number) return `${str}${client.intlGet(this.guildId, 'unknown')}`;
+                    strings.push(`${str}${client.intlGet(this.guildId, 'unknown')}`);
                 } else {
-                    const distance = Math.floor(Map.getDistance(caller.x, caller.y, location.x, location.y));
-                    const direction = Map.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
+                    const distance = Math.floor(GameMap.getDistance(caller.x, caller.y, location.x, location.y));
+                    const direction = GameMap.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
                     const grid = location.location;
-                    str += Client.client.intlGet(this.guildId, 'distanceDirectionGrid', {
+                    str += client.intlGet(this.guildId, 'distanceDirectionGrid', {
                         distance: distance,
                         direction: direction,
                         grid: grid,
@@ -1068,7 +1061,7 @@ class RustPlus extends RustPlusLib {
                 }
 
                 if (this.playerDeaths[player.steamId].length === 0) {
-                    return Client.client.intlGet(this.guildId, 'noRegisteredDeathEventsUser', {
+                    return client.intlGet(this.guildId, 'noRegisteredDeathEventsUser', {
                         user: player.name,
                     });
                 }
@@ -1081,13 +1074,13 @@ class RustPlus extends RustPlusLib {
 
                     let str = `${event.time} - `;
                     if (event.location === null) {
-                        if (counter === number) return `${str}${Client.client.intlGet(this.guildId, 'unknown')}`;
-                        strings.push(`${str}${Client.client.intlGet(this.guildId, 'unknown')}`);
+                        if (counter === number) return `${str}${client.intlGet(this.guildId, 'unknown')}`;
+                        strings.push(`${str}${client.intlGet(this.guildId, 'unknown')}`);
                     } else {
-                        const distance = Math.floor(Map.getDistance(caller.x, caller.y, location.x, location.y));
-                        const direction = Map.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
+                        const distance = Math.floor(GameMap.getDistance(caller.x, caller.y, location.x, location.y));
+                        const direction = GameMap.getAngleBetweenPoints(caller.x, caller.y, location.x, location.y);
                         const grid = location.location;
-                        str += Client.client.intlGet(this.guildId, 'distanceDirectionGrid', {
+                        str += client.intlGet(this.guildId, 'distanceDirectionGrid', {
                             distance: distance,
                             direction: direction,
                             grid: grid,
@@ -1103,15 +1096,15 @@ class RustPlus extends RustPlusLib {
             }
         }
 
-        return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
+        return client.intlGet(this.guildId, 'couldNotIdentifyMember', {
             name: name,
         });
     }
 
     getCommandDecay(command) {
         const prefix = this.generalSettings.prefix;
-        const commandDecay = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxDecay')}`;
-        const commandDecayEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxDecay')}`;
+        const commandDecay = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxDecay')}`;
+        const commandDecayEn = `${prefix}${client.intlGet('en', 'commandSyntaxDecay')}`;
 
         if (command.toLowerCase().startsWith(`${commandDecay} `)) {
             command = command.slice(`${commandDecay} `.length).trim();
@@ -1138,9 +1131,9 @@ class RustPlus extends RustPlusLib {
 
         let foundName = null;
         if (!foundName) {
-            foundName = Client.client.rustlabs.getClosestOtherNameByName(decayItemName);
+            foundName = client.rustlabs.getClosestOtherNameByName(decayItemName);
             if (foundName) {
-                if (Client.client.rustlabs.decayData['other'].hasOwnProperty(foundName)) {
+                if (client.rustlabs.decayData['other'].hasOwnProperty(foundName)) {
                     type = 'other';
                 } else {
                     foundName = null;
@@ -1149,9 +1142,9 @@ class RustPlus extends RustPlusLib {
         }
 
         if (!foundName) {
-            foundName = Client.client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
+            foundName = client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
             if (foundName) {
-                if (Client.client.rustlabs.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
+                if (client.rustlabs.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
                     type = 'buildingBlocks';
                 } else {
                     foundName = null;
@@ -1160,16 +1153,16 @@ class RustPlus extends RustPlusLib {
         }
 
         if (!foundName) {
-            foundName = Client.client.items.getClosestItemIdByName(decayItemName);
+            foundName = client.items.getClosestItemIdByName(decayItemName);
             if (foundName) {
-                if (!Client.client.rustlabs.decayData['items'].hasOwnProperty(foundName)) {
+                if (!client.rustlabs.decayData['items'].hasOwnProperty(foundName)) {
                     foundName = null;
                 }
             }
         }
 
         if (!foundName) {
-            const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            const str = client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: decayItemName,
             });
             return str;
@@ -1179,15 +1172,15 @@ class RustPlus extends RustPlusLib {
         let itemName = null;
         let decayDetails = null;
         if (type === 'items') {
-            itemName = Client.client.items.getName(itemId);
-            decayDetails = Client.client.rustlabs.getDecayDetailsById(itemId);
+            itemName = client.items.getName(itemId);
+            decayDetails = client.rustlabs.getDecayDetailsById(itemId);
         } else {
             itemName = itemId;
-            decayDetails = Client.client.rustlabs.getDecayDetailsByName(itemId);
+            decayDetails = client.rustlabs.getDecayDetailsByName(itemId);
         }
 
         if (decayDetails === null) {
-            const str = Client.client.intlGet(this.guildId, 'couldNotFindDecayDetails', {
+            const str = client.intlGet(this.guildId, 'couldNotFindDecayDetails', {
                 name: itemName,
             });
             return str;
@@ -1209,7 +1202,7 @@ class RustPlus extends RustPlusLib {
         let decayString = `${itemName} (${hp}/${details.hp}) `;
         const decayStrings = [];
         if (details.decayString !== null) {
-            let str = `${Client.client.intlGet(this.guildId, 'decay')}: `;
+            let str = `${client.intlGet(this.guildId, 'decay')}: `;
             if (hp === details.hp) {
                 decayStrings.push(`${str}${details.decayString}`);
             } else {
@@ -1219,7 +1212,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (details.decayOutsideString !== null) {
-            let str = `${Client.client.intlGet(this.guildId, 'outside')}: `;
+            let str = `${client.intlGet(this.guildId, 'outside')}: `;
             if (hp === details.hp) {
                 decayStrings.push(`${str}${details.decayOutsideString}`);
             } else {
@@ -1229,7 +1222,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (details.decayInsideString !== null) {
-            let str = `${Client.client.intlGet(this.guildId, 'inside')}: `;
+            let str = `${client.intlGet(this.guildId, 'inside')}: `;
             if (hp === details.hp) {
                 decayStrings.push(`${str}${details.decayInsideString}`);
             } else {
@@ -1239,7 +1232,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (details.decayUnderwaterString !== null) {
-            let str = `${Client.client.intlGet(this.guildId, 'underwater')}: `;
+            let str = `${client.intlGet(this.guildId, 'underwater')}: `;
             if (hp === details.hp) {
                 decayStrings.push(`${str}${details.decayUnderwaterString}`);
             } else {
@@ -1254,8 +1247,8 @@ class RustPlus extends RustPlusLib {
 
     getCommandDespawn(command) {
         const prefix = this.generalSettings.prefix;
-        const commandDespawn = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxDespawn')}`;
-        const commandDespawnEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxDespawn')}`;
+        const commandDespawn = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxDespawn')}`;
+        const commandDespawnEn = `${prefix}${client.intlGet('en', 'commandSyntaxDespawn')}`;
 
         if (command.toLowerCase().startsWith(`${commandDespawn} `)) {
             command = command.slice(`${commandDespawn} `.length).trim();
@@ -1263,24 +1256,24 @@ class RustPlus extends RustPlusLib {
             command = command.slice(`${commandDespawnEn} `.length).trim();
         }
 
-        const itemId = Client.client.items.getClosestItemIdByName(command);
+        const itemId = client.items.getClosestItemIdByName(command);
         if (itemId === null) {
-            return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            return client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: command,
             });
         }
 
-        const itemName = Client.client.items.getName(itemId);
-        const despawnDetails = Client.client.rustlabs.getDespawnDetailsById(itemId);
+        const itemName = client.items.getName(itemId);
+        const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);
         if (despawnDetails === null) {
-            return Client.client.intlGet(this.guildId, 'couldNotFindDespawnDetails', {
+            return client.intlGet(this.guildId, 'couldNotFindDespawnDetails', {
                 name: itemName,
             });
         }
 
         const despawnTime = despawnDetails[2].timeString;
 
-        return Client.client.intlGet(this.guildId, 'despawnTimeOfItem', {
+        return client.intlGet(this.guildId, 'despawnTimeOfItem', {
             item: itemName,
             time: despawnTime,
         });
@@ -1288,18 +1281,18 @@ class RustPlus extends RustPlusLib {
 
     getCommandEvents(command) {
         const prefix = this.generalSettings.prefix;
-        const commandEvents = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxEvents')}`;
-        const commandEventsEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxEvents')}`;
-        const commandCargo = `${Client.client.intlGet(this.guildId, 'commandSyntaxCargo')}`;
-        const commandCargoEn = `${Client.client.intlGet('en', 'commandSyntaxCargo')}`;
-        const commandHeli = `${Client.client.intlGet(this.guildId, 'commandSyntaxHeli')}`;
-        const commandHeliEn = `${Client.client.intlGet('en', 'commandSyntaxHeli')}`;
-        const commandSmall = `${Client.client.intlGet(this.guildId, 'commandSyntaxSmall')}`;
-        const commandSmallEn = `${Client.client.intlGet('en', 'commandSyntaxSmall')}`;
-        const commandLarge = `${Client.client.intlGet(this.guildId, 'commandSyntaxLarge')}`;
-        const commandLargeEn = `${Client.client.intlGet('en', 'commandSyntaxLarge')}`;
-        const commandChinook = `${Client.client.intlGet(this.guildId, 'commandSyntaxChinook')}`;
-        const commandChinookEn = `${Client.client.intlGet('en', 'commandSyntaxChinook')}`;
+        const commandEvents = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxEvents')}`;
+        const commandEventsEn = `${prefix}${client.intlGet('en', 'commandSyntaxEvents')}`;
+        const commandCargo = `${client.intlGet(this.guildId, 'commandSyntaxCargo')}`;
+        const commandCargoEn = `${client.intlGet('en', 'commandSyntaxCargo')}`;
+        const commandHeli = `${client.intlGet(this.guildId, 'commandSyntaxHeli')}`;
+        const commandHeliEn = `${client.intlGet('en', 'commandSyntaxHeli')}`;
+        const commandSmall = `${client.intlGet(this.guildId, 'commandSyntaxSmall')}`;
+        const commandSmallEn = `${client.intlGet('en', 'commandSyntaxSmall')}`;
+        const commandLarge = `${client.intlGet(this.guildId, 'commandSyntaxLarge')}`;
+        const commandLargeEn = `${client.intlGet('en', 'commandSyntaxLarge')}`;
+        const commandChinook = `${client.intlGet(this.guildId, 'commandSyntaxChinook')}`;
+        const commandChinookEn = `${client.intlGet('en', 'commandSyntaxChinook')}`;
 
         const EVENTS = [
             commandCargo,
@@ -1398,7 +1391,7 @@ class RustPlus extends RustPlusLib {
         }
 
         if (strings.length === 0) {
-            return Client.client.intlGet(this.guildId, 'noRegisteredEvents');
+            return client.intlGet(this.guildId, 'noRegisteredEvents');
         }
 
         return strings;
@@ -1408,12 +1401,12 @@ class RustPlus extends RustPlusLib {
         const strings = [];
         for (const patrolHelicopter of this.mapMarkers.patrolHelicopters) {
             if (isInfoChannel) {
-                return Client.client.intlGet(this.guildId, 'atLocation', {
+                return client.intlGet(this.guildId, 'atLocation', {
                     location: patrolHelicopter.location.string,
                 });
             } else {
                 strings.push(
-                    Client.client.intlGet(this.guildId, 'patrolHelicopterLocatedAt', {
+                    client.intlGet(this.guildId, 'patrolHelicopterLocatedAt', {
                         location: patrolHelicopter.location.string,
                     }),
                 );
@@ -1426,18 +1419,18 @@ class RustPlus extends RustPlusLib {
 
             if (wasOnMap == null && wasDestroyed === null) {
                 return isInfoChannel
-                    ? Client.client.intlGet(this.guildId, 'notActive')
-                    : Client.client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
             } else if (wasOnMap !== null && wasDestroyed === null) {
                 const secondsSince = (new Date() - wasOnMap) / 1000;
                 if (isInfoChannel) {
                     const timeSince = Timer.secondsToFullScale(secondsSince, 's');
-                    return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                    return client.intlGet(this.guildId, 'timeSinceLast', {
                         time: timeSince,
                     });
                 } else {
                     const timeSince = Timer.secondsToFullScale(secondsSince);
-                    return Client.client.intlGet(this.guildId, 'timeSincePatrolHelicopterWasOnMap', {
+                    return client.intlGet(this.guildId, 'timeSincePatrolHelicopterWasOnMap', {
                         time: timeSince,
                     });
                 }
@@ -1445,7 +1438,7 @@ class RustPlus extends RustPlusLib {
                 if (isInfoChannel) {
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000, 's');
                     const timeSinceDestroyed = Timer.secondsToFullScale((new Date() - wasDestroyed) / 1000, 's');
-                    return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedShort', {
+                    return client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedShort', {
                         time1: timeSinceOnMap,
                         time2: timeSinceDestroyed,
                         location:
@@ -1456,7 +1449,7 @@ class RustPlus extends RustPlusLib {
                 } else {
                     const timeSinceOnMap = Timer.secondsToFullScale((new Date() - wasOnMap) / 1000);
                     const timeSinceDestroyed = Timer.secondsToFullScale((new Date() - wasDestroyed) / 1000);
-                    return Client.client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedLong', {
+                    return client.intlGet(this.guildId, 'timeSinceLastSinceDestroyedLong', {
                         time1: timeSinceOnMap,
                         time2: timeSinceDestroyed,
                         location:
@@ -1477,13 +1470,13 @@ class RustPlus extends RustPlusLib {
             const time = Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer);
             if (time) {
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
+                    return client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
                         time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer, 's'),
                         location: this.mapMarkers.crateLargeOilRigLocation,
                     });
                 } else {
                     strings.push(
-                        Client.client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
+                        client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
                             time: time,
                             location: this.mapMarkers.crateLargeOilRigLocation,
                         }),
@@ -1495,16 +1488,16 @@ class RustPlus extends RustPlusLib {
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceLargeOilRigWasTriggered === null) {
                 return isInfoChannel
-                    ? Client.client.intlGet(this.guildId, 'noData')
-                    : Client.client.intlGet(this.guildId, 'noDataOnLargeOilRig');
+                    ? client.intlGet(this.guildId, 'noData')
+                    : client.intlGet(this.guildId, 'noDataOnLargeOilRig');
             } else {
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceLargeOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
+                    return client.intlGet(this.guildId, 'timeSinceLastEvent', {
                         time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
                 } else {
-                    return Client.client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnLarge', {
+                    return client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnLarge', {
                         time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
@@ -1516,14 +1509,14 @@ class RustPlus extends RustPlusLib {
 
     async getCommandLeader(command, callerSteamId) {
         const prefix = this.generalSettings.prefix;
-        const commandLeader = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxLeader')}`;
-        const commandLeaderEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxLeader')}`;
+        const commandLeader = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxLeader')}`;
+        const commandLeaderEn = `${prefix}${client.intlGet('en', 'commandSyntaxLeader')}`;
 
         if (!this.generalSettings.leaderCommandEnabled) {
-            return Client.client.intlGet(this.guildId, 'leaderCommandIsDisabled');
+            return client.intlGet(this.guildId, 'leaderCommandIsDisabled');
         }
 
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         if (!Object.keys(instance.serverListLite[this.serverId]).includes(this.team.leaderSteamId)) {
             let names = '';
             for (const player of this.team.players) {
@@ -1533,7 +1526,7 @@ class RustPlus extends RustPlusLib {
             }
             names = names.slice(0, -2);
 
-            return Client.client.intlGet(this.guildId, 'leaderCommandOnlyWorks', {
+            return client.intlGet(this.guildId, 'leaderCommandOnlyWorks', {
                 name: names,
             });
         }
@@ -1544,7 +1537,7 @@ class RustPlus extends RustPlusLib {
             if (this.team.leaderSteamId !== callerSteamId) {
                 if (this.generalSettings.leaderCommandOnlyForPaired) {
                     if (!Object.keys(instance.serverListLite[this.serverId]).includes(callerSteamId)) {
-                        return Client.client.intlGet(this.guildId, 'youAreNotPairedWithServer');
+                        return client.intlGet(this.guildId, 'youAreNotPairedWithServer');
                     }
                 }
 
@@ -1555,11 +1548,11 @@ class RustPlus extends RustPlusLib {
                 }
 
                 const player = this.team.getPlayer(callerSteamId);
-                return Client.client.intlGet(this.guildId, 'leaderTransferred', {
+                return client.intlGet(this.guildId, 'leaderTransferred', {
                     name: player.name,
                 });
             } else {
-                return Client.client.intlGet(this.guildId, 'youAreAlreadyLeader');
+                return client.intlGet(this.guildId, 'youAreAlreadyLeader');
             }
         } else if (
             command.toLowerCase().startsWith(`${commandLeader} `) ||
@@ -1575,13 +1568,13 @@ class RustPlus extends RustPlusLib {
             for (const player of this.team.players) {
                 if (player.name.includes(name)) {
                     if (this.team.leaderSteamId === player.steamId) {
-                        return Client.client.intlGet(this.guildId, 'leaderAlreadyLeader', {
+                        return client.intlGet(this.guildId, 'leaderAlreadyLeader', {
                             name: player.name,
                         });
                     } else {
                         if (this.generalSettings.leaderCommandOnlyForPaired) {
                             if (!Object.keys(instance.serverListLite[this.serverId]).includes(player.steamId)) {
-                                return Client.client.intlGet(this.guildId, 'playerNotPairedWithServer', {
+                                return client.intlGet(this.guildId, 'playerNotPairedWithServer', {
                                     name: player.name,
                                 });
                             }
@@ -1593,14 +1586,14 @@ class RustPlus extends RustPlusLib {
                             this.leaderRustPlusInstance.promoteToLeaderAsync(player.steamId);
                         }
 
-                        return Client.client.intlGet(this.guildId, 'leaderTransferred', {
+                        return client.intlGet(this.guildId, 'leaderTransferred', {
                             name: player.name,
                         });
                     }
                 }
             }
 
-            return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
+            return client.intlGet(this.guildId, 'couldNotIdentifyMember', {
                 name: name,
             });
         }
@@ -1610,20 +1603,20 @@ class RustPlus extends RustPlusLib {
 
     async getCommandMarker(command, callerSteamId) {
         const prefix = this.generalSettings.prefix;
-        const commandMarker = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxMarker')}`;
-        const commandMarkerEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxMarker')}`;
-        const commandMarkers = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxMarkers')}`;
-        const commandMarkersEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxMarkers')}`;
-        const commandAdd = `${Client.client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
-        const commandAddEn = `${Client.client.intlGet('en', 'commandSyntaxAdd')}`;
-        const commandRemove = `${Client.client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
-        const commandRemoveEn = `${Client.client.intlGet('en', 'commandSyntaxRemove')}`;
+        const commandMarker = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxMarker')}`;
+        const commandMarkerEn = `${prefix}${client.intlGet('en', 'commandSyntaxMarker')}`;
+        const commandMarkers = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxMarkers')}`;
+        const commandMarkersEn = `${prefix}${client.intlGet('en', 'commandSyntaxMarkers')}`;
+        const commandAdd = `${client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
+        const commandAddEn = `${client.intlGet('en', 'commandSyntaxAdd')}`;
+        const commandRemove = `${client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
+        const commandRemoveEn = `${client.intlGet('en', 'commandSyntaxRemove')}`;
 
         if (command.toLowerCase() === `${commandMarkers}` || command.toLowerCase() === `${commandMarkersEn}`) {
             let str = '';
             for (const name in this.markers) str += `${name} [${this.markers[name].location}], `;
 
-            return str !== '' ? str.slice(0, -2) : Client.client.intlGet(this.guildId, 'noRegisteredMarkers');
+            return str !== '' ? str.slice(0, -2) : client.intlGet(this.guildId, 'noRegisteredMarkers');
         }
 
         if (command.toLowerCase().startsWith(`${commandMarker} `)) {
@@ -1647,17 +1640,17 @@ class RustPlus extends RustPlusLib {
 
                     for (const player of teamInfo.teamInfo.members) {
                         if (player.steamId.toString() === callerSteamId) {
-                            const instance = Client.client.getInstance(this.guildId);
-                            const location = Map.getPos(player.x, player.y, this.info.correctedMapSize, this);
+                            const instance = client.getInstance(this.guildId);
+                            const location = GameMap.getPos(player.x, player.y, this.info.correctedMapSize, this);
                             instance.serverList[this.serverId].markers[name] = {
                                 x: player.x,
                                 y: player.y,
                                 location: location.location,
                             };
-                            Client.client.setInstance(this.guildId, instance);
+                            client.setInstance(this.guildId, instance);
                             this.markers[name] = { x: player.x, y: player.y, location: location.location };
 
-                            return Client.client.intlGet(this.guildId, 'markerAdded', {
+                            return client.intlGet(this.guildId, 'markerAdded', {
                                 name: name,
                                 location: location.location,
                             });
@@ -1669,20 +1662,20 @@ class RustPlus extends RustPlusLib {
             case commandRemoveEn:
             case commandRemove:
                 {
-                    const instance = Client.client.getInstance(this.guildId);
+                    const instance = client.getInstance(this.guildId);
 
                     if (name in this.markers) {
                         const location = this.markers[name].location;
                         delete this.markers[name];
                         delete instance.serverList[this.serverId].markers[name];
-                        Client.client.setInstance(this.guildId, instance);
+                        client.setInstance(this.guildId, instance);
 
-                        return Client.client.intlGet(this.guildId, 'markerRemoved', {
+                        return client.intlGet(this.guildId, 'markerRemoved', {
                             name: name,
                             location: location,
                         });
                     }
-                    return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
+                    return client.intlGet(this.guildId, 'markerDoesNotExist', {
                         name: name,
                     });
                 }
@@ -1691,7 +1684,7 @@ class RustPlus extends RustPlusLib {
             default:
                 {
                     if (!(command in this.markers)) {
-                        return Client.client.intlGet(this.guildId, 'markerDoesNotExist', {
+                        return client.intlGet(this.guildId, 'markerDoesNotExist', {
                             name: command,
                         });
                     }
@@ -1701,18 +1694,23 @@ class RustPlus extends RustPlusLib {
 
                     for (const player of teamInfo.teamInfo.members) {
                         if (player.steamId.toString() === callerSteamId) {
-                            const direction = Map.getAngleBetweenPoints(
+                            const direction = GameMap.getAngleBetweenPoints(
                                 player.x,
                                 player.y,
                                 this.markers[command].x,
                                 this.markers[command].y,
                             );
                             const distance = Math.floor(
-                                Map.getDistance(player.x, player.y, this.markers[command].x, this.markers[command].y),
+                                GameMap.getDistance(
+                                    player.x,
+                                    player.y,
+                                    this.markers[command].x,
+                                    this.markers[command].y,
+                                ),
                             );
                             console.log(this.markers[command]);
 
-                            return Client.client.intlGet(this.guildId, 'markerLocation', {
+                            return client.intlGet(this.guildId, 'markerLocation', {
                                 name: command,
                                 location: this.markers[command].location,
                                 distance: distance,
@@ -1729,18 +1727,18 @@ class RustPlus extends RustPlusLib {
     }
 
     getCommandMarket(command) {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         const prefix = this.generalSettings.prefix;
-        const commandMarket = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxMarket')}`;
-        const commandMarketEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxMarket')}`;
-        const commandSearch = `${Client.client.intlGet(this.guildId, 'commandSyntaxSearch')}`;
-        const commandSearchEn = `${Client.client.intlGet('en', 'commandSyntaxSearch')}`;
-        const commandSub = `${Client.client.intlGet(this.guildId, 'commandSyntaxSubscribe')}`;
-        const commandSubEn = `${Client.client.intlGet('en', 'commandSyntaxSubscribe')}`;
-        const commandUnsub = `${Client.client.intlGet(this.guildId, 'commandSyntaxUnsubscribe')}`;
-        const commandUnsubEn = `${Client.client.intlGet('en', 'commandSyntaxUnsubscribe')}`;
-        const commandList = `${Client.client.intlGet(this.guildId, 'commandSyntaxList')}`;
-        const commandListEn = `${Client.client.intlGet('en', 'commandSyntaxList')}`;
+        const commandMarket = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxMarket')}`;
+        const commandMarketEn = `${prefix}${client.intlGet('en', 'commandSyntaxMarket')}`;
+        const commandSearch = `${client.intlGet(this.guildId, 'commandSyntaxSearch')}`;
+        const commandSearchEn = `${client.intlGet('en', 'commandSyntaxSearch')}`;
+        const commandSub = `${client.intlGet(this.guildId, 'commandSyntaxSubscribe')}`;
+        const commandSubEn = `${client.intlGet('en', 'commandSyntaxSubscribe')}`;
+        const commandUnsub = `${client.intlGet(this.guildId, 'commandSyntaxUnsubscribe')}`;
+        const commandUnsubEn = `${client.intlGet('en', 'commandSyntaxUnsubscribe')}`;
+        const commandList = `${client.intlGet(this.guildId, 'commandSyntaxList')}`;
+        const commandListEn = `${client.intlGet('en', 'commandSyntaxList')}`;
 
         if (command.toLowerCase().startsWith(`${commandMarket} `)) {
             command = command.slice(`${commandMarket} `.length).trim();
@@ -1758,14 +1756,14 @@ class RustPlus extends RustPlusLib {
             case commandSearch:
                 {
                     if (!['all', 'buy', 'sell'].includes(orderType)) {
-                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                        return client.intlGet(this.guildId, 'notAValidOrderType', {
                             order: orderType,
                         });
                     }
 
-                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    const itemId = client.items.getClosestItemIdByName(name);
                     if (itemId === null) {
-                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                        return client.intlGet(this.guildId, 'noItemWithNameFound', {
                             name: name,
                         });
                     }
@@ -1777,10 +1775,10 @@ class RustPlus extends RustPlusLib {
                         for (const order of vendingMachine.sellOrders) {
                             if (order.amountInStock === 0) continue;
 
-                            const orderItemId = Object.keys(Client.client.items.items).includes(order.itemId.toString())
+                            const orderItemId = Object.keys(client.items.items).includes(order.itemId.toString())
                                 ? order.itemId
                                 : null;
-                            const orderCurrencyId = Object.keys(Client.client.items.items).includes(
+                            const orderCurrencyId = Object.keys(client.items.items).includes(
                                 order.currencyId.toString(),
                             )
                                 ? order.currencyId
@@ -1799,7 +1797,7 @@ class RustPlus extends RustPlusLib {
                     }
 
                     if (locations.length === 0) {
-                        return Client.client.intlGet(this.guildId, 'noItemFound');
+                        return client.intlGet(this.guildId, 'noItemFound');
                     }
 
                     return locations.join(', ');
@@ -1810,29 +1808,29 @@ class RustPlus extends RustPlusLib {
             case commandSub:
                 {
                     if (!['all', 'buy', 'sell'].includes(orderType)) {
-                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                        return client.intlGet(this.guildId, 'notAValidOrderType', {
                             order: orderType,
                         });
                     }
 
-                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    const itemId = client.items.getClosestItemIdByName(name);
                     if (itemId === null) {
-                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                        return client.intlGet(this.guildId, 'noItemWithNameFound', {
                             name: name,
                         });
                     }
-                    const itemName = Client.client.items.getName(itemId);
+                    const itemName = client.items.getName(itemId);
 
                     if (instance.marketSubscriptionList[orderType].includes(itemId)) {
-                        return Client.client.intlGet(this.guildId, 'alreadySubscribedToItem', {
+                        return client.intlGet(this.guildId, 'alreadySubscribedToItem', {
                             name: itemName,
                         });
                     } else {
                         instance.marketSubscriptionList[orderType].push(itemId);
                         this.firstPollItems[orderType].push(itemId);
-                        Client.client.setInstance(this.guildId, instance);
+                        client.setInstance(this.guildId, instance);
 
-                        return Client.client.intlGet(this.guildId, 'justSubscribedToItem', {
+                        return client.intlGet(this.guildId, 'justSubscribedToItem', {
                             name: itemName,
                         });
                     }
@@ -1843,30 +1841,30 @@ class RustPlus extends RustPlusLib {
             case commandUnsub:
                 {
                     if (!['all', 'buy', 'sell'].includes(orderType)) {
-                        return Client.client.intlGet(this.guildId, 'notAValidOrderType', {
+                        return client.intlGet(this.guildId, 'notAValidOrderType', {
                             order: orderType,
                         });
                     }
 
-                    const itemId = Client.client.items.getClosestItemIdByName(name);
+                    const itemId = client.items.getClosestItemIdByName(name);
                     if (itemId === null) {
-                        return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+                        return client.intlGet(this.guildId, 'noItemWithNameFound', {
                             name: name,
                         });
                     }
-                    const itemName = Client.client.items.getName(itemId);
+                    const itemName = client.items.getName(itemId);
 
                     if (instance.marketSubscriptionList[orderType].includes(itemId)) {
                         instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
                             (e) => e !== itemId,
                         );
-                        Client.client.setInstance(this.guildId, instance);
+                        client.setInstance(this.guildId, instance);
 
-                        return Client.client.intlGet(this.guildId, 'removedSubscribeItem', {
+                        return client.intlGet(this.guildId, 'removedSubscribeItem', {
                             name: itemName,
                         });
                     } else {
-                        return Client.client.intlGet(this.guildId, 'notExistInSubscription', {
+                        return client.intlGet(this.guildId, 'notExistInSubscription', {
                             name: itemName,
                         });
                     }
@@ -1880,15 +1878,15 @@ class RustPlus extends RustPlusLib {
                     for (const [ot, itemIds] of Object.entries(instance.marketSubscriptionList)) {
                         let counter = 0;
                         for (const itemId of itemIds) {
-                            if (counter === 0) names[ot] += `${Client.client.intlGet(this.guildId, ot)}: `;
-                            names[ot] += `${Client.client.items.getName(itemId)} (${itemId}), `;
+                            if (counter === 0) names[ot] += `${client.intlGet(this.guildId, ot)}: `;
+                            names[ot] += `${client.items.getName(itemId)} (${itemId}), `;
                             counter += 1;
                         }
                         if (counter !== 0) names[ot] = names[ot].slice(0, -2);
                     }
 
                     if (names.all === '' && names.buy === '' && names.sell === '') {
-                        return Client.client.intlGet(this.guildId, 'subscriptionListEmpty');
+                        return client.intlGet(this.guildId, 'subscriptionListEmpty');
                     }
 
                     let str = '';
@@ -1909,29 +1907,29 @@ class RustPlus extends RustPlusLib {
     }
 
     getCommandMute() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         instance.generalSettings.muteInGameBotMessages = true;
         this.generalSettings.muteInGameBotMessages = true;
-        Client.client.setInstance(this.guildId, instance);
+        client.setInstance(this.guildId, instance);
 
-        return Client.client.intlGet(this.guildId, 'inGameBotMessagesMuted');
+        return client.intlGet(this.guildId, 'inGameBotMessagesMuted');
     }
 
     getCommandNote(command) {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         const prefix = this.generalSettings.prefix;
-        const commandNote = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxNote')}`;
-        const commandNoteEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxNote')}`;
-        const commandNotes = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxNotes')}`;
-        const commandNotesEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxNotes')}`;
-        const commandAdd = `${Client.client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
-        const commandAddEn = `${Client.client.intlGet('en', 'commandSyntaxAdd')}`;
-        const commandRemove = `${Client.client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
-        const commandRemoveEn = `${Client.client.intlGet('en', 'commandSyntaxRemove')}`;
+        const commandNote = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxNote')}`;
+        const commandNoteEn = `${prefix}${client.intlGet('en', 'commandSyntaxNote')}`;
+        const commandNotes = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxNotes')}`;
+        const commandNotesEn = `${prefix}${client.intlGet('en', 'commandSyntaxNotes')}`;
+        const commandAdd = `${client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
+        const commandAddEn = `${client.intlGet('en', 'commandSyntaxAdd')}`;
+        const commandRemove = `${client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
+        const commandRemoveEn = `${client.intlGet('en', 'commandSyntaxRemove')}`;
 
         if (command.toLowerCase() === `${commandNotes}` || command.toLowerCase() === `${commandNotesEn}`) {
             if (Object.keys(instance.serverList[this.serverId].notes).length === 0) {
-                return Client.client.intlGet(this.guildId, 'noSavedNotes');
+                return client.intlGet(this.guildId, 'noSavedNotes');
             }
 
             const strings = [];
@@ -1959,8 +1957,8 @@ class RustPlus extends RustPlusLib {
                     }
 
                     instance.serverList[this.serverId].notes[index] = `${rest}`;
-                    Client.client.setInstance(this.guildId, instance);
-                    return Client.client.intlGet(this.guildId, 'noteSaved');
+                    client.setInstance(this.guildId, instance);
+                    return client.intlGet(this.guildId, 'noteSaved');
                 }
                 break;
 
@@ -1971,14 +1969,14 @@ class RustPlus extends RustPlusLib {
 
                     if (!isNaN(id)) {
                         if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id)) {
-                            return Client.client.intlGet(this.guildId, 'noteIdDoesNotExist', { id: id });
+                            return client.intlGet(this.guildId, 'noteIdDoesNotExist', { id: id });
                         }
 
                         delete instance.serverList[this.serverId].notes[id];
-                        Client.client.setInstance(this.guildId, instance);
-                        return Client.client.intlGet(this.guildId, 'noteIdWasRemoved', { id: id });
+                        client.setInstance(this.guildId, instance);
+                        return client.intlGet(this.guildId, 'noteIdWasRemoved', { id: id });
                     } else {
-                        return Client.client.intlGet(this.guildId, 'noteIdInvalid');
+                        return client.intlGet(this.guildId, 'noteIdInvalid');
                     }
                 }
                 break;
@@ -2004,7 +2002,7 @@ class RustPlus extends RustPlusLib {
 
         return string !== ''
             ? `${amount}${string.slice(0, -2)}.`
-            : `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOffline')}`;
+            : `${amount}${client.intlGet(this.guildId, 'noOneIsOffline')}`;
     }
 
     getCommandOnline() {
@@ -2020,22 +2018,22 @@ class RustPlus extends RustPlusLib {
 
         return string !== ''
             ? `${amount}${string.slice(0, -2)}.`
-            : `${amount}${Client.client.intlGet(this.guildId, 'noOneIsOnline')}`;
+            : `${amount}${client.intlGet(this.guildId, 'noOneIsOnline')}`;
     }
 
     getCommandPlayer(command) {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         const battlemetricsId = instance.serverList[this.serverId].battlemetricsId;
         const prefix = this.generalSettings.prefix;
-        const commandPlayer = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxPlayer')}`;
-        const commandPlayerEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxPlayer')}`;
-        const commandPlayers = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxPlayers')}`;
-        const commandPlayersEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxPlayers')}`;
+        const commandPlayer = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxPlayer')}`;
+        const commandPlayerEn = `${prefix}${client.intlGet('en', 'commandSyntaxPlayer')}`;
+        const commandPlayers = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxPlayers')}`;
+        const commandPlayersEn = `${prefix}${client.intlGet('en', 'commandSyntaxPlayers')}`;
 
-        const bmInstance = Client.client.battlemetricsInstances[battlemetricsId];
+        const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
         if (!bmInstance || !bmInstance.lastUpdateSuccessful) {
-            return Client.client.intlGet(this.guildId, 'battlemetricsInstanceCouldNotBeFound', {
+            return client.intlGet(this.guildId, 'battlemetricsInstanceCouldNotBeFound', {
                 id: battlemetricsId,
             });
         }
@@ -2044,7 +2042,7 @@ class RustPlus extends RustPlusLib {
         if (command.toLowerCase() === `${commandPlayers}` || command.toLowerCase() === `${commandPlayersEn}`) {
             foundPlayers = bmInstance.getOnlinePlayerIdsOrderedByTime();
             if (foundPlayers.length === 0) {
-                return Client.client.intlGet(this.guildId, 'couldNotFindAnyPlayers');
+                return client.intlGet(this.guildId, 'couldNotFindAnyPlayers');
             }
         } else if (
             command.toLowerCase().startsWith(`${commandPlayer} `) ||
@@ -2062,7 +2060,7 @@ class RustPlus extends RustPlusLib {
             }
 
             if (foundPlayers.length === 0) {
-                return Client.client.intlGet(this.guildId, 'couldNotFindPlayer', {
+                return client.intlGet(this.guildId, 'couldNotFindPlayer', {
                     name: name,
                 });
             }
@@ -2073,7 +2071,7 @@ class RustPlus extends RustPlusLib {
         const trademark = this.generalSettings.trademark;
         const trademarkString = trademark === 'NOT SHOWING' ? '' : `${trademark} | `;
         const messageMaxLength = Constants.MAX_LENGTH_TEAM_MESSAGE - trademarkString.length;
-        const leftLength = `...xxx ${Client.client.intlGet(this.guildId, 'more')}.`.length;
+        const leftLength = `...xxx ${client.intlGet(this.guildId, 'more')}.`.length;
 
         let string = '';
         let playerIndex = 0;
@@ -2094,7 +2092,7 @@ class RustPlus extends RustPlusLib {
             string = string.slice(0, -2);
 
             if (playerIndex < foundPlayers.length) {
-                return Client.client.intlGet(this.guildId, 'morePlayers', {
+                return client.intlGet(this.guildId, 'morePlayers', {
                     players: string,
                     number: foundPlayers.length - playerIndex,
                 });
@@ -2113,12 +2111,12 @@ class RustPlus extends RustPlusLib {
                 `/${this.info.maxPlayers}`
             );
         } else {
-            const string = Client.client.intlGet(this.guildId, 'populationPlayers', {
+            const string = client.intlGet(this.guildId, 'populationPlayers', {
                 current: this.info.players,
                 max: this.info.maxPlayers,
             });
             const queuedPlayers = this.info.isQueue()
-                ? ` ${Client.client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}`
+                ? ` ${client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}`
                 : '';
 
             return `${string}${queuedPlayers}`;
@@ -2128,8 +2126,8 @@ class RustPlus extends RustPlusLib {
     async getCommandProx(command, callerSteamId) {
         const caller = this.team.getPlayer(callerSteamId);
         const prefix = this.generalSettings.prefix;
-        const commandProx = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxProx')}`;
-        const commandProxEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxProx')}`;
+        const commandProx = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxProx')}`;
+        const commandProxEn = `${prefix}${client.intlGet('en', 'commandSyntaxProx')}`;
 
         if (
             command.toLowerCase() !== `${commandProx}` &&
@@ -2142,22 +2140,22 @@ class RustPlus extends RustPlusLib {
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!this.isResponseValid(teamInfo)) return null;
-        TeamHandler.handler(this, Client.client, teamInfo.teamInfo);
+        TeamHandler.handler(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
 
         if (command.toLowerCase() === `${commandProx}` || command.toLowerCase() === `${commandProxEn}`) {
             const closestPlayers = [];
             let players = [...this.team.players].filter((e) => e.steamId !== callerSteamId && e.isAlive === true);
             if (players.length === 0) {
-                return Client.client.intlGet(this.guildId, 'onlyOneInTeam');
+                return client.intlGet(this.guildId, 'onlyOneInTeam');
             }
 
             for (let i = 0; i < 3; i++) {
                 if (players.length > 0) {
                     const player = players.reduce(function (prev, curr) {
                         if (
-                            Map.getDistance(prev.x, prev.y, caller.x, caller.y) <
-                            Map.getDistance(curr.x, curr.y, caller.x, caller.y)
+                            GameMap.getDistance(prev.x, prev.y, caller.x, caller.y) <
+                            GameMap.getDistance(curr.x, curr.y, caller.x, caller.y)
                         ) {
                             return prev;
                         } else {
@@ -2171,13 +2169,11 @@ class RustPlus extends RustPlusLib {
 
             let string = '';
             for (const player of closestPlayers) {
-                const distance = Math.floor(Map.getDistance(player.x, player.y, caller.x, caller.y));
+                const distance = Math.floor(GameMap.getDistance(player.x, player.y, caller.x, caller.y));
                 string += `${player.name} (${distance}m [${player.pos.location}]), `;
             }
 
-            return string === ''
-                ? Client.client.intlGet(this.guildId, 'allTeammatesAreDead')
-                : `${string.slice(0, -2)}.`;
+            return string === '' ? client.intlGet(this.guildId, 'allTeammatesAreDead') : `${string.slice(0, -2)}.`;
         }
 
         let memberName = null;
@@ -2189,9 +2185,9 @@ class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(memberName)) {
-                const distance = Math.floor(Map.getDistance(caller.x, caller.y, player.x, player.y));
-                const direction = Map.getAngleBetweenPoints(caller.x, caller.y, player.x, player.y);
-                return Client.client.intlGet(this.guildId, 'proxLocation', {
+                const distance = Math.floor(GameMap.getDistance(caller.x, caller.y, player.x, player.y));
+                const direction = GameMap.getAngleBetweenPoints(caller.x, caller.y, player.x, player.y);
+                return client.intlGet(this.guildId, 'proxLocation', {
                     name: player.name,
                     distance: distance,
                     caller: caller.name,
@@ -2201,15 +2197,15 @@ class RustPlus extends RustPlusLib {
             }
         }
 
-        return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
+        return client.intlGet(this.guildId, 'couldNotIdentifyMember', {
             name: memberName,
         });
     }
 
     getCommandRecycle(command) {
         const prefix = this.generalSettings.prefix;
-        const commandRecycle = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxRecycle')}`;
-        const commandRecycleEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxRecycle')}`;
+        const commandRecycle = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxRecycle')}`;
+        const commandRecycleEn = `${prefix}${client.intlGet('en', 'commandSyntaxRecycle')}`;
 
         if (command.toLowerCase().startsWith(`${commandRecycle} `)) {
             command = command.slice(`${commandRecycle} `.length).trim();
@@ -2232,33 +2228,33 @@ class RustPlus extends RustPlusLib {
             itemSearchQuantity = parseInt(lastWord);
         }
 
-        const item = Client.client.items.getClosestItemIdByName(itemSearchName);
+        const item = client.items.getClosestItemIdByName(itemSearchName);
         if (item === null || itemSearchName === '') {
-            const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            const str = client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: itemSearchName,
             });
             return str;
         }
 
         const itemId = item;
-        const itemName = Client.client.items.getName(itemId);
+        const itemName = client.items.getName(itemId);
         const quantity = itemSearchQuantity;
 
-        const recycleDetails = Client.client.rustlabs.getRecycleDetailsById(itemId);
+        const recycleDetails = client.rustlabs.getRecycleDetailsById(itemId);
         if (recycleDetails === null) {
-            const str = Client.client.intlGet(this.guildId, 'couldNotFindRecycleDetails', {
+            const str = client.intlGet(this.guildId, 'couldNotFindRecycleDetails', {
                 name: itemName,
             });
             return str;
         }
 
-        const recycleData = Client.client.rustlabs.getRecycleDataFromArray([
+        const recycleData = client.rustlabs.getRecycleDataFromArray([
             { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
         ]);
 
         let str = `${itemName}: `;
         for (const item of recycleData) {
-            str += `${Client.client.items.getName(item.itemId)} x${item.quantity}, `;
+            str += `${client.items.getName(item.itemId)} x${item.quantity}, `;
         }
         str = str.slice(0, -2);
 
@@ -2267,8 +2263,8 @@ class RustPlus extends RustPlusLib {
 
     getCommandResearch(command) {
         const prefix = this.generalSettings.prefix;
-        const commandResearch = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxResearch')}`;
-        const commandResearchEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxResearch')}`;
+        const commandResearch = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxResearch')}`;
+        const commandResearchEn = `${prefix}${client.intlGet('en', 'commandSyntaxResearch')}`;
 
         if (command.toLowerCase().startsWith(`${commandResearch} `)) {
             command = command.slice(`${commandResearch} `.length).trim();
@@ -2277,20 +2273,20 @@ class RustPlus extends RustPlusLib {
         }
         const itemResearchName = command;
 
-        const item = Client.client.items.getClosestItemIdByName(itemResearchName);
+        const item = client.items.getClosestItemIdByName(itemResearchName);
         if (item === null || itemResearchName === '') {
-            const str = Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            const str = client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: itemResearchName,
             });
             return str;
         }
 
         const itemId = item;
-        const itemName = Client.client.items.getName(itemId);
+        const itemName = client.items.getName(itemId);
 
-        const researchDetails = Client.client.rustlabs.getResearchDetailsById(itemId);
+        const researchDetails = client.rustlabs.getResearchDetailsById(itemId);
         if (researchDetails === null) {
-            const str = Client.client.intlGet(this.guildId, 'couldNotFindResearchDetails', {
+            const str = client.intlGet(this.guildId, 'couldNotFindResearchDetails', {
                 name: itemName,
             });
             return str;
@@ -2298,12 +2294,12 @@ class RustPlus extends RustPlusLib {
 
         let str = `${itemName}: `;
         if (researchDetails[2].researchTable !== null) {
-            const researchTable = `${Client.client.intlGet(this.guildId, 'researchTable')}`;
+            const researchTable = `${client.intlGet(this.guildId, 'researchTable')}`;
             const scrap = `${researchDetails[2].researchTable}`;
             str += `${researchTable} (${scrap})`;
         }
         if (researchDetails[2].workbench !== null) {
-            const type = `${Client.client.items.getName(researchDetails[2].workbench.type)}`;
+            const type = `${client.items.getName(researchDetails[2].workbench.type)}`;
             const scrap = researchDetails[2].workbench.scrap;
             const totalScrap = researchDetails[2].workbench.totalScrap;
             str += `, ${type} (${scrap} (${totalScrap}))`;
@@ -2316,8 +2312,8 @@ class RustPlus extends RustPlusLib {
     async getCommandSend(command, callerName) {
         const credentials = InstanceUtils.readCredentialsFile(this.guildId);
         const prefix = this.generalSettings.prefix;
-        const commandSend = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxSend')}`;
-        const commandSendEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxSend')}`;
+        const commandSend = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxSend')}`;
+        const commandSendEn = `${prefix}${client.intlGet('en', 'commandSyntaxSend')}`;
 
         if (command.toLowerCase().startsWith(`${commandSend} `)) {
             command = command.slice(`${commandSend} `.length).trim();
@@ -2328,13 +2324,13 @@ class RustPlus extends RustPlusLib {
         const message = command.slice(name.length + 1).trim();
 
         if (name === '' || message === '') {
-            return Client.client.intlGet(this.guildId, 'missingArguments');
+            return client.intlGet(this.guildId, 'missingArguments');
         }
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
                 if (!(player.steamId in credentials)) {
-                    return Client.client.intlGet(this.guildId, 'userNotRegistered', {
+                    return client.intlGet(this.guildId, 'userNotRegistered', {
                         user: player.name,
                     });
                 }
@@ -2347,17 +2343,17 @@ class RustPlus extends RustPlusLib {
                 };
 
                 if (user) {
-                    await Client.client.messageSend(user, content);
-                    return Client.client.intlGet(this.guildId, 'messageWasSent');
+                    await client.messageSend(user, content);
+                    return client.intlGet(this.guildId, 'messageWasSent');
                 }
 
-                return Client.client.intlGet(this.guildId, 'couldNotFindUser', {
+                return client.intlGet(this.guildId, 'couldNotFindUser', {
                     userId: discordUserId,
                 });
             }
         }
 
-        return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
+        return client.intlGet(this.guildId, 'couldNotIdentifyMember', {
             name: name,
         });
     }
@@ -2368,13 +2364,13 @@ class RustPlus extends RustPlusLib {
             const time = Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer);
             if (time) {
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
+                    return client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
                         time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer, 's'),
                         location: this.mapMarkers.crateSmallOilRigLocation,
                     });
                 } else {
                     strings.push(
-                        Client.client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
+                        client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
                             time: time,
                             location: this.mapMarkers.crateSmallOilRigLocation,
                         }),
@@ -2386,16 +2382,16 @@ class RustPlus extends RustPlusLib {
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceSmallOilRigWasTriggered === null) {
                 return isInfoChannel
-                    ? Client.client.intlGet(this.guildId, 'noData')
-                    : Client.client.intlGet(this.guildId, 'noDataOnSmallOilRig');
+                    ? client.intlGet(this.guildId, 'noData')
+                    : client.intlGet(this.guildId, 'noDataOnSmallOilRig');
             } else {
                 const secondsSince = (new Date() - this.mapMarkers.timeSinceSmallOilRigWasTriggered) / 1000;
                 if (isInfoChannel) {
-                    return Client.client.intlGet(this.guildId, 'timeSinceLastEvent', {
+                    return client.intlGet(this.guildId, 'timeSinceLastEvent', {
                         time: Timer.secondsToFullScale(secondsSince, 's'),
                     });
                 } else {
-                    return Client.client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnSmall', {
+                    return client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnSmall', {
                         time: Timer.secondsToFullScale(secondsSince),
                     });
                 }
@@ -2407,8 +2403,8 @@ class RustPlus extends RustPlusLib {
 
     getCommandStack(command) {
         const prefix = this.generalSettings.prefix;
-        const commandStack = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxStack')}`;
-        const commandStackEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxStack')}`;
+        const commandStack = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxStack')}`;
+        const commandStackEn = `${prefix}${client.intlGet('en', 'commandSyntaxStack')}`;
 
         if (command.toLowerCase().startsWith(`${commandStack} `)) {
             command = command.slice(`${commandStack} `.length).trim();
@@ -2416,24 +2412,24 @@ class RustPlus extends RustPlusLib {
             command = command.slice(`${commandStackEn} `.length).trim();
         }
 
-        const itemId = Client.client.items.getClosestItemIdByName(command);
+        const itemId = client.items.getClosestItemIdByName(command);
         if (itemId === null) {
-            return Client.client.intlGet(this.guildId, 'noItemWithNameFound', {
+            return client.intlGet(this.guildId, 'noItemWithNameFound', {
                 name: command,
             });
         }
 
-        const itemName = Client.client.items.getName(itemId);
-        const stackDetails = Client.client.rustlabs.getStackDetailsById(itemId);
+        const itemName = client.items.getName(itemId);
+        const stackDetails = client.rustlabs.getStackDetailsById(itemId);
         if (stackDetails === null) {
-            return Client.client.intlGet(this.guildId, 'couldNotFindStackDetails', {
+            return client.intlGet(this.guildId, 'couldNotFindStackDetails', {
                 name: itemName,
             });
         }
 
         const quantity = stackDetails[2].quantity;
 
-        return Client.client.intlGet(this.guildId, 'stackSizeOfItem', {
+        return client.intlGet(this.guildId, 'stackSizeOfItem', {
             item: itemName,
             quantity: quantity,
         });
@@ -2441,8 +2437,8 @@ class RustPlus extends RustPlusLib {
 
     getCommandSteamId(command, callerSteamId, callerName) {
         const prefix = this.generalSettings.prefix;
-        const commandSteamid = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxSteamid')}`;
-        const commandSteamidEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxSteamid')}`;
+        const commandSteamid = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxSteamid')}`;
+        const commandSteamidEn = `${prefix}${client.intlGet('en', 'commandSyntaxSteamid')}`;
 
         if (command.toLowerCase() === `${commandSteamid}` || command.toLowerCase() === `${commandSteamidEn}`) {
             if (callerSteamId === null || callerName === null) return null;
@@ -2465,7 +2461,7 @@ class RustPlus extends RustPlusLib {
                 }
             }
 
-            return Client.client.intlGet(this.guildId, 'couldNotIdentifyMember', {
+            return client.intlGet(this.guildId, 'couldNotIdentifyMember', {
                 name: name,
             });
         }
@@ -2487,13 +2483,13 @@ class RustPlus extends RustPlusLib {
         if (isInfoChannel) {
             return [time, this.time.getTimeTillDayOrNight('s')];
         } else {
-            const currentTime = Client.client.intlGet(this.guildId, 'inGameTime', { time: time });
+            const currentTime = client.intlGet(this.guildId, 'inGameTime', { time: time });
             const timeLeft = this.time.getTimeTillDayOrNight();
 
             if (timeLeft === null) return currentTime;
 
             const locString = this.time.isDay() ? 'timeTillNightfall' : 'timeTillDaylight';
-            const timeTilltransition = Client.client.intlGet(this.guildId, locString, { time: timeLeft });
+            const timeTilltransition = client.intlGet(this.guildId, locString, { time: timeLeft });
 
             return `${currentTime} ${timeTilltransition}`;
         }
@@ -2501,25 +2497,25 @@ class RustPlus extends RustPlusLib {
 
     getCommandTimer(command) {
         const prefix = this.generalSettings.prefix;
-        const commandTimer = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxTimer')}`;
-        const commandTimerEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxTimer')}`;
-        const commandTimers = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxTimers')}`;
-        const commandTimersEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxTimers')}`;
-        const commandAdd = `${Client.client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
-        const commandAddEn = `${Client.client.intlGet('en', 'commandSyntaxAdd')}`;
-        const commandRemove = `${Client.client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
-        const commandRemoveEn = `${Client.client.intlGet('en', 'commandSyntaxRemove')}`;
+        const commandTimer = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxTimer')}`;
+        const commandTimerEn = `${prefix}${client.intlGet('en', 'commandSyntaxTimer')}`;
+        const commandTimers = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxTimers')}`;
+        const commandTimersEn = `${prefix}${client.intlGet('en', 'commandSyntaxTimers')}`;
+        const commandAdd = `${client.intlGet(this.guildId, 'commandSyntaxAdd')}`;
+        const commandAddEn = `${client.intlGet('en', 'commandSyntaxAdd')}`;
+        const commandRemove = `${client.intlGet(this.guildId, 'commandSyntaxRemove')}`;
+        const commandRemoveEn = `${client.intlGet('en', 'commandSyntaxRemove')}`;
 
         if (command.toLowerCase() === `${commandTimers}` || command.toLowerCase() === `${commandTimersEn}`) {
             if (Object.keys(this.timers).length === 0) {
-                return Client.client.intlGet(this.guildId, 'noActiveTimers');
+                return client.intlGet(this.guildId, 'noActiveTimers');
             }
 
             const strings = [];
             for (const [id, content] of Object.entries(this.timers)) {
                 const timeLeft = Timer.getTimeLeftOfTimer(content.timer);
                 strings.push(
-                    Client.client.intlGet(this.guildId, 'timeLeftTimer', {
+                    client.intlGet(this.guildId, 'timeLeftTimer', {
                         id: parseInt(id),
                         time: timeLeft,
                         message: content.message,
@@ -2543,10 +2539,10 @@ class RustPlus extends RustPlusLib {
                 {
                     const time = rest.replace(/ .*/, '');
                     const message = rest.slice(time.length + 1);
-                    if (message === '') return Client.client.intlGet(this.guildId, 'missingTimerMessage');
+                    if (message === '') return client.intlGet(this.guildId, 'missingTimerMessage');
 
                     const timeSeconds = Timer.getSecondsFromStringTime(time);
-                    if (timeSeconds === null) return Client.client.intlGet(this.guildId, 'timeFormatInvalid');
+                    if (timeSeconds === null) return client.intlGet(this.guildId, 'timeFormatInvalid');
 
                     let id = 0;
                     while (Object.keys(this.timers).map(Number).includes(id)) {
@@ -2556,7 +2552,7 @@ class RustPlus extends RustPlusLib {
                     this.timers[id] = {
                         timer: new Timer.timer(() => {
                             this.sendInGameMessage(
-                                Client.client.intlGet(this.guildId, 'timer', { message: message }),
+                                client.intlGet(this.guildId, 'timer', { message: message }),
                                 'TIMER',
                             );
                             delete this.timers[id];
@@ -2565,7 +2561,7 @@ class RustPlus extends RustPlusLib {
                     };
                     this.timers[id].timer.start();
 
-                    return Client.client.intlGet(this.guildId, 'timerSet', { time: time });
+                    return client.intlGet(this.guildId, 'timerSet', { time: time });
                 }
                 break;
 
@@ -2573,16 +2569,16 @@ class RustPlus extends RustPlusLib {
             case commandRemove:
                 {
                     const id = parseInt(rest.replace(/ .*/, ''));
-                    if (isNaN(id)) return Client.client.intlGet(this.guildId, 'timerIdInvalid');
+                    if (isNaN(id)) return client.intlGet(this.guildId, 'timerIdInvalid');
 
                     if (!Object.keys(this.timers).map(Number).includes(id)) {
-                        return Client.client.intlGet(this.guildId, 'timerIdDoesNotExist', { id: id });
+                        return client.intlGet(this.guildId, 'timerIdDoesNotExist', { id: id });
                     }
 
                     this.timers[id].timer.stop();
                     delete this.timers[id];
 
-                    return Client.client.intlGet(this.guildId, 'timerRemoved', { id: id });
+                    return client.intlGet(this.guildId, 'timerRemoved', { id: id });
                 }
                 break;
 
@@ -2596,10 +2592,10 @@ class RustPlus extends RustPlusLib {
 
     async getCommandTranslateTo(command) {
         const prefix = this.generalSettings.prefix;
-        const commandTr = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxTranslateTo')}`;
-        const commandTrEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxTranslateTo')}`;
-        const commandLanguage = `${Client.client.intlGet(this.guildId, 'commandSyntaxLanguage')}`;
-        const commandLanguageEn = `${Client.client.intlGet('en', 'commandSyntaxLanguage')}`;
+        const commandTr = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxTranslateTo')}`;
+        const commandTrEn = `${prefix}${client.intlGet('en', 'commandSyntaxTranslateTo')}`;
+        const commandLanguage = `${client.intlGet(this.guildId, 'commandSyntaxLanguage')}`;
+        const commandLanguageEn = `${client.intlGet('en', 'commandSyntaxLanguage')}`;
 
         if (
             command.toLowerCase().startsWith(`${commandTr} ${commandLanguage} `) ||
@@ -2613,11 +2609,11 @@ class RustPlus extends RustPlusLib {
             }
 
             if (language in Languages) {
-                return Client.client.intlGet(this.guildId, 'languageCode', {
+                return client.intlGet(this.guildId, 'languageCode', {
                     code: Languages[language],
                 });
             } else {
-                return Client.client.intlGet(this.guildId, 'couldNotFindLanguage', {
+                return client.intlGet(this.guildId, 'couldNotFindLanguage', {
                     language: language,
                 });
             }
@@ -2632,13 +2628,13 @@ class RustPlus extends RustPlusLib {
         const text = command.slice(language.length).trim();
 
         if (language === '' || text === '') {
-            return Client.client.intlGet(this.guildId, 'missingArguments');
+            return client.intlGet(this.guildId, 'missingArguments');
         }
 
         try {
             return await Translate(text, language);
         } catch (e) {
-            return Client.client.intlGet(this.guildId, 'languageLangNotSupported', {
+            return client.intlGet(this.guildId, 'languageLangNotSupported', {
                 language: language,
             });
         }
@@ -2646,8 +2642,8 @@ class RustPlus extends RustPlusLib {
 
     async getCommandTranslateFromTo(command) {
         const prefix = this.generalSettings.prefix;
-        const commandTrf = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxTranslateFromTo')}`;
-        const commandTrfEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxTranslateFromTo')}`;
+        const commandTrf = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxTranslateFromTo')}`;
+        const commandTrfEn = `${prefix}${client.intlGet('en', 'commandSyntaxTranslateFromTo')}`;
 
         if (command.toLowerCase().startsWith(`${commandTrf}`)) {
             command = command.slice(`${commandTrf} `.length).trim();
@@ -2661,7 +2657,7 @@ class RustPlus extends RustPlusLib {
         const text = command.slice(languageTo.length).trim();
 
         if (languageFrom === '' || languageTo === '' || text === '') {
-            return Client.client.intlGet(this.guildId, 'missingArguments');
+            return client.intlGet(this.guildId, 'missingArguments');
         }
 
         try {
@@ -2671,19 +2667,19 @@ class RustPlus extends RustPlusLib {
             const invalidLanguage = regex.exec(e.message);
 
             if (invalidLanguage.length === 2) {
-                return Client.client.intlGet(this.guildId, 'languageLangNotSupported', {
+                return client.intlGet(this.guildId, 'languageLangNotSupported', {
                     language: invalidLanguage[1],
                 });
             }
 
-            return Client.client.intlGet(this.guildId, 'languageNotSupported');
+            return client.intlGet(this.guildId, 'languageNotSupported');
         }
     }
 
     async getCommandTTS(command, callerName) {
         const prefix = this.generalSettings.prefix;
-        const commandTTS = `${prefix}${Client.client.intlGet(this.guildId, 'commandSyntaxTTS')}`;
-        const commandTTSEn = `${prefix}${Client.client.intlGet('en', 'commandSyntaxTTS')}`;
+        const commandTTS = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxTTS')}`;
+        const commandTTSEn = `${prefix}${client.intlGet('en', 'commandSyntaxTTS')}`;
 
         let text = null;
         if (command.toLowerCase().startsWith(`${commandTTS}`)) {
@@ -2693,20 +2689,20 @@ class RustPlus extends RustPlusLib {
         }
 
         await DiscordMessages.sendTTSMessage(this.guildId, callerName, text);
-        return Client.client.intlGet(this.guildId, 'sentTextToSpeech');
+        return client.intlGet(this.guildId, 'sentTextToSpeech');
     }
 
     getCommandUnmute() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         instance.generalSettings.muteInGameBotMessages = false;
         this.generalSettings.muteInGameBotMessages = false;
-        Client.client.setInstance(this.guildId, instance);
+        client.setInstance(this.guildId, instance);
 
-        return Client.client.intlGet(this.guildId, 'inGameBotMessagesUnmuted');
+        return client.intlGet(this.guildId, 'inGameBotMessagesUnmuted');
     }
 
     getCommandUpkeep() {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         let cupboardFound = false;
         const strings = [];
         for (const [key, value] of Object.entries(instance.serverList[this.serverId].storageMonitors)) {
@@ -2714,47 +2710,47 @@ class RustPlus extends RustPlusLib {
 
             if (value.upkeep) {
                 cupboardFound = true;
-                const upkeepStr = Client.client.intlGet(this.guildId, 'upkeep').toLowerCase();
+                const upkeepStr = client.intlGet(this.guildId, 'upkeep').toLowerCase();
                 strings.push(`${value.name} [${key}] ${upkeepStr}: ${value.upkeep}`);
             }
         }
 
-        if (!cupboardFound) return Client.client.intlGet(this.guildId, 'noToolCupboardWereFound');
+        if (!cupboardFound) return client.intlGet(this.guildId, 'noToolCupboardWereFound');
 
         return strings;
     }
 
     getCommandUptime() {
-        let uptimeBot = Client.client.uptimeBot;
+        let uptimeBot = client.uptimeBot;
         let uptimeServer = this.uptimeServer;
 
         if (uptimeBot !== null) {
             const seconds = (new Date() - uptimeBot) / 1000;
             uptimeBot = Timer.secondsToFullScale(seconds);
         } else {
-            uptimeBot = Client.client.intlGet(this.guildId, 'offline');
+            uptimeBot = client.intlGet(this.guildId, 'offline');
         }
 
         if (uptimeServer !== null) {
             const seconds = (new Date() - uptimeServer) / 1000;
             uptimeServer = Timer.secondsToFullScale(seconds);
         } else {
-            uptimeServer = Client.client.intlGet(this.guildId, 'offline');
+            uptimeServer = client.intlGet(this.guildId, 'offline');
         }
 
-        let string = `${Client.client.intlGet(this.guildId, 'bot')}: ${uptimeBot} `;
-        string += `${Client.client.intlGet(this.guildId, 'server')}: ${uptimeServer}.`;
+        let string = `${client.intlGet(this.guildId, 'bot')}: ${uptimeBot} `;
+        string += `${client.intlGet(this.guildId, 'server')}: ${uptimeServer}.`;
 
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     getCommandWipe(isInfoChannel = false) {
         if (isInfoChannel) {
-            return Client.client.intlGet(this.guildId, 'dayOfWipe', {
+            return client.intlGet(this.guildId, 'dayOfWipe', {
                 day: Math.ceil(this.info.getSecondsSinceWipe() / (60 * 60 * 24)),
             });
         } else {
-            return Client.client.intlGet(this.guildId, 'timeSinceWipe', {
+            return client.intlGet(this.guildId, 'timeSinceWipe', {
                 time: this.info.getTimeSinceWipe(),
             });
         }

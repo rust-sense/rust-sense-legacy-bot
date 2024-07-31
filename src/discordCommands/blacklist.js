@@ -3,10 +3,10 @@ const Builder = require('@discordjs/builders');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
-const PermissionHandler = require('../handlers/permissionHandler');
+import * as PermissionHandler from '../handlers/permissionHandler';
 const Scrape = require('../util/scrape');
 
-module.exports = {
+export default {
     name: 'blacklist',
 
     getData(client, guildId) {

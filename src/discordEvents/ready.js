@@ -2,10 +2,10 @@ const Discord = require('discord.js');
 const Path = require('node:path');
 
 const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
-const Config = require('../config');
+import config from '../config';
 import { cwdPath } from '../service/resourceManager';
 
-module.exports = {
+export default {
     name: 'ready',
     once: true,
     async execute(client) {
@@ -24,7 +24,7 @@ module.exports = {
         );
 
         try {
-            await client.user.setUsername(Config.discord.username);
+            await client.user.setUsername(config.discord.username);
         } catch (e) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetUsername'));
         }
@@ -42,11 +42,11 @@ module.exports = {
 
         client.uptimeBot = new Date();
 
-        for (let guildArray of client.guilds.cache) {
+        for (const guildArray of client.guilds.cache) {
             const guild = guildArray[1];
 
             try {
-                await guild.members.me.setNickname(Config.discord.username);
+                await guild.members.me.setNickname(config.discord.username);
             } catch (e) {
                 client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetNickname'));
             }
