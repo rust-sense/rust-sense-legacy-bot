@@ -1,3 +1,21 @@
+type ConfigType = {
+    general: {
+        language: string;
+        pollingIntervalMs: number;
+        showCallStackError: boolean;
+        reconnectIntervalMs: number;
+    };
+    discord: {
+        username: string;
+        clientId: string;
+        token: string;
+        ownerUserId: string | null;
+    };
+    mongo: {
+        connectionString: string | null;
+    };
+};
+
 export default {
     general: {
         language: process.env.RPP_LANGUAGE || 'en',
@@ -11,4 +29,7 @@ export default {
         token: process.env.RPP_DISCORD_TOKEN || '',
         ownerUserId: process.env.RPP_DISCORD_OWNER_USER_ID || null,
     },
-};
+    mongo: {
+        connectionString: process.env.RPP_MONGO_CONNECTION_STRING || null,
+    },
+} as ConfigType;

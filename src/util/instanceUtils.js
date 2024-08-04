@@ -2,6 +2,8 @@ const fs = require('node:fs');
 
 import { loadJson, cwdPath, writeJson, writeJsonSync, loadJsonSync } from '../service/resourceManager';
 
+// TODO: delete this shit
+
 module.exports = {
     readInstanceFile: (guildId) => {
         return loadJsonSync(cwdPath('instances', `${guildId}.json`));

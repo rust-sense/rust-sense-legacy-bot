@@ -1,7 +1,9 @@
 const Discord = require('discord.js');
+const DiscordBot = require('./structures/DiscordBot');
 
 import { ensureAppStateDirs } from './service/resourceManager';
-const DiscordBot = require('./structures/DiscordBot');
+import * as mongoStorageService from './service/mongoStorage';
+import * as migrationService from './service/migration';
 
 ensureAppStateDirs();
 
@@ -18,7 +20,13 @@ export const client = new DiscordBot({
     disableEveryone: false,
 });
 
-client.build();
+async function start() {
+    await mongoStorageService.connect();
+
+    await migrationService.migrate();
+
+    //client.build();
+}
 
 process.on('unhandledRejection', (error) => {
     client.log(
@@ -31,3 +39,5 @@ process.on('unhandledRejection', (error) => {
 
     console.log(error);
 });
+
+start().catch(console.error);
