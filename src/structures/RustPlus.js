@@ -2253,7 +2253,7 @@ class RustPlus extends RustPlusLib {
         ]);
 
         let str = `${itemName}: `;
-        for (const item of recycleData) {
+        for (const item of recycleData['recycler']) {
             str += `${client.items.getName(item.itemId)} x${item.quantity}, `;
         }
         str = str.slice(0, -2);
