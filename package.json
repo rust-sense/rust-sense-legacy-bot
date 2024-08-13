@@ -1,6 +1,6 @@
 {
     "name": "rustplusplus",
-    "version": "1.17.0",
+    "version": "1.118.0",
     "description": "Rust Bot based on RustPlusPlus",
     "main": "dist/index.js",
     "scripts": {
