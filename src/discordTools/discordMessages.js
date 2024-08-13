@@ -598,11 +598,11 @@ module.exports = {
         await client.interactionEditReply(interaction, content);
     },
 
-    sendRecycleMessage: async (interaction, recycleDetails, quantity) => {
+    sendRecycleMessage: async function (interaction, recycleDetails, quantity, recyclerType) {
         const content = {
-            embeds: [DiscordEmbeds.getRecycleEmbed(interaction.guildId, recycleDetails, quantity)],
-            ephemeral: true,
-        };
+            embeds: [DiscordEmbeds.getRecycleEmbed(interaction.guildId, recycleDetails, quantity, recyclerType)],
+            ephemeral: true
+        }
 
         await client.interactionEditReply(interaction, content);
     },

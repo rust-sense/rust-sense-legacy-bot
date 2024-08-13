@@ -433,9 +433,8 @@ module.exports = {
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const grid = entity.location !== null ? ` (${entity.location})` : '';
 
-        let itemName = '',
-            itemQuantity = '';
-        for (const item of items) {
+        let itemName = '', itemQuantity = '';
+        for (const item of items['recycler']) {
             itemName += `\`${client.items.getName(item.itemId)}\`\n`;
             itemQuantity += `\`${item.quantity}\`\n`;
         }
@@ -1167,23 +1166,22 @@ module.exports = {
         });
     },
 
-    getRecycleEmbed: function (guildId, recycleDetails, quantity) {
-        const title = quantity === 1 ? `${recycleDetails[1].name}` : `${recycleDetails[1].name} x${quantity}`;
+    getRecycleEmbed: function (guildId, recycleDetails, quantity, recyclerType) {
+        let title = quantity === 1 ? `${recycleDetails[1].name}` : `${recycleDetails[1].name} x${quantity}`;
+        title += ` (${client.intlGet(guildId, recyclerType)})`;
 
         const recycleData = client.rustlabs.getRecycleDataFromArray([
             { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
         ]);
 
-        let items0 = '',
-            quantities0 = '';
-        for (const item of recycleDetails[2]) {
+        let items0 = '', quantities0 = '';
+        for (const item of recycleDetails[2][recyclerType]['yield']) {
             items0 += `${client.items.getName(item.id)}\n`;
-            quantities0 += item.probability !== 1 ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
+            quantities0 += (item.probability !== 1) ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
         }
 
-        let items1 = '',
-            quantities1 = '';
-        for (const item of recycleData) {
+        let items1 = '', quantities1 = '';
+        for (const item of recycleData[recyclerType]) {
             items1 += `${client.items.getName(item.itemId)}\n`;
             quantities1 += `${item.quantity}\n`;
         }
@@ -1373,7 +1371,7 @@ module.exports = {
 
         const recycleDetails = type === 'items' ? client.rustlabs.getRecycleDetailsById(itemId) : null;
         if (recycleDetails !== null) {
-            const details = recycleDetails[2];
+            const details = recycleDetails[2]['recycler']['yield'];
 
             let recycleString = '';
             for (const recycleItem of details) {
