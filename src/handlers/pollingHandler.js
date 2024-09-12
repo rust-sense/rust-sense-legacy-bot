@@ -1,46 +1,26 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const Info = require('../structures/Info');
-const InformationHandler = require('../handlers/informationHandler.js');
-const MapMarkers = require('../structures/MapMarkers.js');
-const SmartAlarmHandler = require('../handlers/smartAlarmHandler.js');
-const SmartSwitchHandler = require('../handlers/smartSwitchHandler.js');
-const StorageMonitorHandler = require('../handlers/storageMonitorHandler.js');
+const InformationHandler = require('../handlers/informationHandler');
+const MapMarkers = require('../structures/MapMarkers');
+const SmartAlarmHandler = require('../handlers/smartAlarmHandler');
+const SmartSwitchHandler = require('../handlers/smartSwitchHandler');
+const StorageMonitorHandler = require('../handlers/storageMonitorHandler');
 const Team = require('../structures/Team');
-const TeamHandler = require('../handlers/teamHandler.js');
+const TeamHandler = require('../handlers/teamHandler');
 const Time = require('../structures/Time');
-const TimeHandler = require('../handlers/timeHandler.js');
-const VendingMachines = require('../handlers/vendingMachineHandler.js');
+const TimeHandler = require('../handlers/timeHandler');
+const VendingMachines = require('../handlers/vendingMachineHandler');
 
 module.exports = {
     pollingHandler: async function (rustplus, client) {
         /* Poll information such as info, mapMarkers, teamInfo and time */
         let info = await rustplus.getInfoAsync();
-        if (!(await rustplus.isResponseValid(info))) return;
+        if (!rustplus.isResponseValid(info)) return;
         let mapMarkers = await rustplus.getMapMarkersAsync();
-        if (!(await rustplus.isResponseValid(mapMarkers))) return;
+        if (!rustplus.isResponseValid(mapMarkers)) return;
         let teamInfo = await rustplus.getTeamInfoAsync();
-        if (!(await rustplus.isResponseValid(teamInfo))) return;
+        if (!rustplus.isResponseValid(teamInfo)) return;
         let time = await rustplus.getTimeAsync();
-        if (!(await rustplus.isResponseValid(time))) return;
+        if (!rustplus.isResponseValid(time)) return;
 
         if (rustplus.isFirstPoll) {
             rustplus.info = new Info(info.info);

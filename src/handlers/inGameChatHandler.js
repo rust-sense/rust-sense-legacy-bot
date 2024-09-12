@@ -1,24 +1,4 @@
-/*
-    Copyright (C) 2023 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const Constants = require("../util/constants");
+const Constants = require('../util/constants');
 
 module.exports = {
     inGameChatHandler: async function (rustplus, client, message = null) {
@@ -26,7 +6,7 @@ module.exports = {
         const generalSettings = rustplus.generalSettings;
         const commandDelayMs = parseInt(generalSettings.commandDelay) * 1000;
         const trademark = generalSettings.trademark;
-        const trademarkString = (trademark === 'NOT SHOWING') ? '' : `${trademark} | `;
+        const trademarkString = trademark === 'NOT SHOWING' ? '' : `${trademark} | `;
         const messageMaxLength = Constants.MAX_LENGTH_TEAM_MESSAGE - trademarkString.length;
 
         /* Time to write a message from the queue. If message === null, that means that its a timer call. */
@@ -42,8 +22,7 @@ module.exports = {
 
                 await rustplus.sendTeamMessageAsync(messageFromQueue);
                 rustplus.log(client.intlGet(guildId, 'messageCap'), messageFromQueue);
-            }
-            else {
+            } else {
                 clearTimeout(rustplus.inGameChatTimeout);
                 rustplus.inGameChatTimeout = null;
             }
@@ -51,18 +30,16 @@ module.exports = {
 
         /* if there is a new message, add message to queue. */
         if (message !== null) {
-            if (rustplus.team === null || rustplus.team.allOffline ||
-                rustplus.generalSettings.muteInGameBotMessages) {
+            if (rustplus.team === null || rustplus.team.allOffline || rustplus.generalSettings.muteInGameBotMessages) {
                 return;
             }
 
             if (Array.isArray(message)) {
                 for (const msg of message) {
-                    handleMessage(rustplus, msg, trademarkString, messageMaxLength)
+                    handleMessage(rustplus, msg, trademarkString, messageMaxLength);
                 }
-            }
-            else if (typeof message === 'string') {
-                handleMessage(rustplus, message, trademarkString, messageMaxLength)
+            } else if (typeof message === 'string') {
+                handleMessage(rustplus, message, trademarkString, messageMaxLength);
             }
         }
 

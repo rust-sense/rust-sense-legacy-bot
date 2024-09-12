@@ -6,3 +6,8 @@ authtokens
 maps
 logs
 temp
+.idea
+dist
+.mise.local.toml
+.mise.*.local.toml
+.vscode

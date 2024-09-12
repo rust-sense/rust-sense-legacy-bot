@@ -1,25 +1,5 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const Constants = require('../util/constants.js');
-const Map = require('../util/map.js');
+const Constants = require('../util/constants');
+const GameMap = require('../util/GameMap');
 const Timer = require('../util/timer');
 
 class MapMarkers {
@@ -37,8 +17,8 @@ class MapMarkers {
             CargoShip: 5,
             Crate: 6,
             GenericRadius: 7,
-            PatrolHelicopter: 8
-        }
+            PatrolHelicopter: 8,
+        };
 
         this._players = [];
         this._vendingMachines = [];
@@ -72,26 +52,66 @@ class MapMarkers {
     }
 
     /* Getters and Setters */
-    get markers() { return this._markers; }
-    set markers(markers) { this._markers = markers; }
-    get rustplus() { return this._rustplus; }
-    set rustplus(rustplus) { this._rustplus = rustplus; }
-    get client() { return this._client; }
-    set client(client) { this._client = client; }
-    get types() { return this._types; }
-    set types(types) { this._types = types; }
-    get players() { return this._players; }
-    set players(players) { this._players = players; }
-    get vendingMachines() { return this._vendingMachines; }
-    set vendingMachines(vendingMachines) { this._vendingMachines = vendingMachines; }
-    get ch47s() { return this._ch47s; }
-    set ch47s(ch47s) { this._ch47s = ch47s; }
-    get cargoShips() { return this._cargoShips; }
-    set cargoShips(cargoShips) { this._cargoShips = cargoShips; }
-    get genericRadiuses() { return this._genericRadiuses; }
-    set genericRadiuses(genericRadiuses) { this._genericRadiuses = genericRadiuses; }
-    get patrolHelicopters() { return this._patrolHelicopters; }
-    set patrolHelicopters(patrolHelicopters) { this._patrolHelicopters = patrolHelicopters; }
+    get markers() {
+        return this._markers;
+    }
+    set markers(markers) {
+        this._markers = markers;
+    }
+    get rustplus() {
+        return this._rustplus;
+    }
+    set rustplus(rustplus) {
+        this._rustplus = rustplus;
+    }
+    get client() {
+        return this._client;
+    }
+    set client(client) {
+        this._client = client;
+    }
+    get types() {
+        return this._types;
+    }
+    set types(types) {
+        this._types = types;
+    }
+    get players() {
+        return this._players;
+    }
+    set players(players) {
+        this._players = players;
+    }
+    get vendingMachines() {
+        return this._vendingMachines;
+    }
+    set vendingMachines(vendingMachines) {
+        this._vendingMachines = vendingMachines;
+    }
+    get ch47s() {
+        return this._ch47s;
+    }
+    set ch47s(ch47s) {
+        this._ch47s = ch47s;
+    }
+    get cargoShips() {
+        return this._cargoShips;
+    }
+    set cargoShips(cargoShips) {
+        this._cargoShips = cargoShips;
+    }
+    get genericRadiuses() {
+        return this._genericRadiuses;
+    }
+    set genericRadiuses(genericRadiuses) {
+        this._genericRadiuses = genericRadiuses;
+    }
+    get patrolHelicopters() {
+        return this._patrolHelicopters;
+    }
+    set patrolHelicopters(patrolHelicopters) {
+        this._patrolHelicopters = patrolHelicopters;
+    }
 
     getType(type) {
         if (!Object.values(this.types).includes(type)) {
@@ -99,33 +119,47 @@ class MapMarkers {
         }
 
         switch (type) {
-            case this.types.Player: {
-                return this.players;
-            } break;
+            case this.types.Player:
+                {
+                    return this.players;
+                }
+                break;
 
-            case this.types.VendingMachine: {
-                return this.vendingMachines;
-            } break;
+            case this.types.VendingMachine:
+                {
+                    return this.vendingMachines;
+                }
+                break;
 
-            case this.types.CH47: {
-                return this.ch47s;
-            } break;
+            case this.types.CH47:
+                {
+                    return this.ch47s;
+                }
+                break;
 
-            case this.types.CargoShip: {
-                return this.cargoShips;
-            } break;
+            case this.types.CargoShip:
+                {
+                    return this.cargoShips;
+                }
+                break;
 
-            case this.types.GenericRadius: {
-                return this.genericRadiuses;
-            } break;
+            case this.types.GenericRadius:
+                {
+                    return this.genericRadiuses;
+                }
+                break;
 
-            case this.types.PatrolHelicopter: {
-                return this.patrolHelicopters;
-            } break;
+            case this.types.PatrolHelicopter:
+                {
+                    return this.patrolHelicopters;
+                }
+                break;
 
-            default: {
-                return null;
-            } break;
+            default:
+                {
+                    return null;
+                }
+                break;
         }
     }
 
@@ -145,19 +179,18 @@ class MapMarkers {
     }
 
     getMarkerByTypeId(type, id) {
-        return this.getType(type).find(e => e.id === id);
+        return this.getType(type).find((e) => e.id === id);
     }
 
     getMarkerByTypeXY(type, x, y) {
-        return this.getType(type).find(e => e.x === x && e.y === y);
+        return this.getType(type).find((e) => e.x === x && e.y === y);
     }
 
     isMarkerPresentByTypeId(type, id, markers = null) {
         if (markers) {
-            return markers.some(e => e.id === id);
-        }
-        else {
-            return this.getType(type).some(e => e.id === id);
+            return markers.some((e) => e.id === id);
+        } else {
+            return this.getType(type).some((e) => e.id === id);
         }
     }
 
@@ -170,7 +203,7 @@ class MapMarkers {
             }
         }
 
-        return newMarkersOfType
+        return newMarkersOfType;
     }
 
     getLeftMarkersOfTypeId(type, markers) {
@@ -178,7 +211,7 @@ class MapMarkers {
 
         for (let marker of this.getMarkersOfType(type, markers)) {
             if (this.isMarkerPresentByTypeId(type, marker.id)) {
-                leftMarkersOfType = leftMarkersOfType.filter(e => e.id !== marker.id);
+                leftMarkersOfType = leftMarkersOfType.filter((e) => e.id !== marker.id);
             }
         }
 
@@ -199,10 +232,9 @@ class MapMarkers {
 
     isMarkerPresentByTypeXY(type, x, y, markers = null) {
         if (markers) {
-            return markers.some(e => e.x === x && e.y === y);
-        }
-        else {
-            return this.getType(type).some(e => e.x === x && e.y === y);
+            return markers.some((e) => e.x === x && e.y === y);
+        } else {
+            return this.getType(type).some((e) => e.x === x && e.y === y);
         }
     }
 
@@ -223,7 +255,7 @@ class MapMarkers {
 
         for (let marker of this.getMarkersOfType(type, markers)) {
             if (this.isMarkerPresentByTypeXY(type, marker.x, marker.y)) {
-                leftMarkersOfType = leftMarkersOfType.filter(e => e.x !== marker.x) || e.y !== marker.y;
+                leftMarkersOfType = leftMarkersOfType.filter((e) => e.x !== marker.x) || e.y !== marker.y;
             }
         }
 
@@ -241,9 +273,6 @@ class MapMarkers {
 
         return remainingMarkersOfType;
     }
-
-
-
 
     /* Update event map markers */
 
@@ -264,7 +293,7 @@ class MapMarkers {
         /* Player markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             marker.location = pos;
 
@@ -273,13 +302,13 @@ class MapMarkers {
 
         /* Player markers that have left. */
         for (let marker of leftMarkers) {
-            this.players = this.players.filter(e => e.id !== marker.id);
+            this.players = this.players.filter((e) => e.id !== marker.id);
         }
 
         /* Player markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let player = this.getMarkerByTypeId(this.types.Player, marker.id);
 
             player.x = marker.x;
@@ -296,17 +325,18 @@ class MapMarkers {
         /* VendingMachine markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             marker.location = pos;
 
             if (!this.rustplus.isFirstPoll) {
-                if (!this.knownVendingMachines.some(e => e.x === marker.x && e.y === marker.y)) {
+                if (!this.knownVendingMachines.some((e) => e.x === marker.x && e.y === marker.y)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.vendingMachineDetectedSetting,
                         this.client.intlGet(this.rustplus.guildId, 'newVendingMachine', { location: pos.string }),
                         null,
-                        Constants.COLOR_NEW_VENDING_MACHINE);
+                        Constants.COLOR_NEW_VENDING_MACHINE,
+                    );
                 }
             }
 
@@ -316,13 +346,13 @@ class MapMarkers {
 
         /* VendingMachine markers that have left. */
         for (let marker of leftMarkers) {
-            this.vendingMachines = this.vendingMachines.filter(e => e.x !== marker.x) || e.y !== marker.y;
+            this.vendingMachines = this.vendingMachines.filter((e) => e.x !== marker.x) || e.y !== marker.y;
         }
 
         /* VendingMachine markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let vendingMachine = this.getMarkerByTypeXY(this.types.VendingMachine, marker.x, marker.y);
 
             vendingMachine.id = marker.id;
@@ -338,37 +368,41 @@ class MapMarkers {
         /* CH47 markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             marker.location = pos;
 
-            let smallOilRig = [], largeOilRig = [];
+            let smallOilRig = [],
+                largeOilRig = [];
             for (let monument of this.rustplus.map.monuments) {
                 if (monument.token === 'oil_rig_small') {
-                    smallOilRig.push({ x: monument.x, y: monument.y })
-                }
-                else if (monument.token === 'large_oil_rig') {
-                    largeOilRig.push({ x: monument.x, y: monument.y })
+                    smallOilRig.push({ x: monument.x, y: monument.y });
+                } else if (monument.token === 'large_oil_rig') {
+                    largeOilRig.push({ x: monument.x, y: monument.y });
                 }
             }
 
             let found = false;
             if (!this.rustplus.isFirstPoll) {
                 for (let oilRig of smallOilRig) {
-                    if (Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
-                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
+                    if (
+                        GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
+                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
+                    ) {
                         found = true;
-                        let oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        let oilRigLocation = GameMap.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
                         marker.ch47Type = 'smallOilRig';
 
                         this.rustplus.sendEvent(
                             this.rustplus.notificationSettings.heavyScientistCalledSetting,
-                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledSmall',
-                                { location: oilRigLocation.location }),
+                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledSmall', {
+                                location: oilRigLocation.location,
+                            }),
                             'small',
                             Constants.COLOR_HEAVY_SCIENTISTS_CALLED_SMALL,
                             this.rustplus.isFirstPoll,
-                            'small_oil_rig_logo.png');
+                            'small_oil_rig_logo.png',
+                        );
 
                         if (this.crateSmallOilRigTimer) {
                             this.crateSmallOilRigTimer.stop();
@@ -378,7 +412,8 @@ class MapMarkers {
                         this.crateSmallOilRigTimer = new Timer.timer(
                             this.notifyCrateSmallOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
-                            oilRigLocation.location);
+                            oilRigLocation.location,
+                        );
                         this.crateSmallOilRigTimer.start();
 
                         this.crateSmallOilRigLocation = oilRigLocation.location;
@@ -390,20 +425,24 @@ class MapMarkers {
 
             if (!found && !this.rustplus.isFirstPoll) {
                 for (let oilRig of largeOilRig) {
-                    if (Map.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
-                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
+                    if (
+                        GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
+                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
+                    ) {
                         found = true;
-                        let oilRigLocation = Map.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
+                        let oilRigLocation = GameMap.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
                         marker.ch47Type = 'largeOilRig';
 
                         this.rustplus.sendEvent(
                             this.rustplus.notificationSettings.heavyScientistCalledSetting,
-                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledLarge',
-                                { location: oilRigLocation.location }),
+                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledLarge', {
+                                location: oilRigLocation.location,
+                            }),
                             'large',
                             Constants.COLOR_HEAVY_SCIENTISTS_CALLED_LARGE,
                             this.rustplus.isFirstPoll,
-                            'large_oil_rig_logo.png');
+                            'large_oil_rig_logo.png',
+                        );
 
                         if (this.crateLargeOilRigTimer) {
                             this.crateLargeOilRigTimer.stop();
@@ -413,7 +452,8 @@ class MapMarkers {
                         this.crateLargeOilRigTimer = new Timer.timer(
                             this.notifyCrateLargeOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
-                            oilRigLocation.location);
+                            oilRigLocation.location,
+                        );
                         this.crateLargeOilRigTimer.start();
 
                         this.crateLargeOilRigLocation = oilRigLocation.location;
@@ -425,22 +465,23 @@ class MapMarkers {
 
             if (!found) {
                 /* Offset that is used to determine if CH47 just spawned */
-                let offset = 4 * Map.gridDiameter;
+                let offset = 4 * GameMap.gridDiameter;
 
                 /* If CH47 is located outside the grid system + the offset */
-                if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
+                if (GameMap.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.chinook47DetectedSetting,
                         this.client.intlGet(this.rustplus.guildId, 'chinook47EntersMap', { location: pos.string }),
                         'chinook',
-                        Constants.COLOR_CHINOOK47_ENTERS_MAP);
-                }
-                else {
+                        Constants.COLOR_CHINOOK47_ENTERS_MAP,
+                    );
+                } else {
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.chinook47DetectedSetting,
                         this.client.intlGet(this.rustplus.guildId, 'chinook47Located', { location: pos.string }),
                         'chinook',
-                        Constants.COLOR_CHINOOK47_LOCATED);
+                        Constants.COLOR_CHINOOK47_LOCATED,
+                    );
                 }
                 marker.ch47Type = 'crate';
             }
@@ -452,17 +493,19 @@ class MapMarkers {
         for (let marker of leftMarkers) {
             if (marker.ch47Type === 'crate') {
                 this.timeSinceCH47WasOut = new Date();
-                this.rustplus.log(this.client.intlGet(null, 'eventCap'),
-                    this.client.intlGet(null, 'chinook47LeftMap', { location: marker.location.string }));
+                this.rustplus.log(
+                    this.client.intlGet(null, 'eventCap'),
+                    this.client.intlGet(null, 'chinook47LeftMap', { location: marker.location.string }),
+                );
             }
 
-            this.ch47s = this.ch47s.filter(e => e.id !== marker.id);
+            this.ch47s = this.ch47s.filter((e) => e.id !== marker.id);
         }
 
         /* CH47 markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let ch47 = this.getMarkerByTypeId(this.types.CH47, marker.id);
 
             ch47.x = marker.x;
@@ -479,7 +522,7 @@ class MapMarkers {
         /* CargoShip markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             this.rustplus.cargoShipTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
@@ -488,29 +531,31 @@ class MapMarkers {
             marker.isDocked = false;
 
             /* Offset that is used to determine if CargoShip just spawned */
-            let offset = 4 * Map.gridDiameter;
+            let offset = 4 * GameMap.gridDiameter;
 
             /* If CargoShip is located outside the grid system + the offset */
-            if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
+            if (GameMap.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.cargoShipDetectedSetting,
                     this.client.intlGet(this.rustplus.guildId, 'cargoShipEntersMap', { location: pos.string }),
                     'cargo',
-                    Constants.COLOR_CARGO_SHIP_ENTERS_MAP);
+                    Constants.COLOR_CARGO_SHIP_ENTERS_MAP,
+                );
 
                 let instance = this.client.getInstance(this.rustplus.guildId);
                 this.cargoShipEgressTimers[marker.id] = new Timer.timer(
                     this.notifyCargoShipEgress.bind(this),
                     instance.serverList[this.rustplus.serverId].cargoShipEgressTimeMs,
-                    marker.id);
+                    marker.id,
+                );
                 this.cargoShipEgressTimers[marker.id].start();
-            }
-            else {
+            } else {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.cargoShipDetectedSetting,
                     this.client.intlGet(this.rustplus.guildId, 'cargoShipLocated', { location: pos.string }),
                     'cargo',
-                    Constants.COLOR_CARGO_SHIP_LOCATED);
+                    Constants.COLOR_CARGO_SHIP_LOCATED,
+                );
             }
 
             this.cargoShips.push(marker);
@@ -522,7 +567,8 @@ class MapMarkers {
                 this.rustplus.notificationSettings.cargoShipLeftSetting,
                 this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftMap', { location: marker.location.string }),
                 'cargo',
-                Constants.COLOR_CARGO_SHIP_LEFT_MAP);
+                Constants.COLOR_CARGO_SHIP_LEFT_MAP,
+            );
 
             if (this.cargoShipEgressTimers[marker.id]) {
                 this.cargoShipEgressTimers[marker.id].stop();
@@ -531,14 +577,14 @@ class MapMarkers {
 
             this.timeSinceCargoShipWasOut = new Date();
 
-            this.cargoShips = this.cargoShips.filter(e => e.id !== marker.id);
+            this.cargoShips = this.cargoShips.filter((e) => e.id !== marker.id);
             delete this.rustplus.cargoShipTracers[marker.id];
         }
 
         /* CargoShip markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let cargoShip = this.getMarkerByTypeId(this.types.CargoShip, marker.id);
 
             this.rustplus.cargoShipTracers[marker.id].push({ x: marker.x, y: marker.y });
@@ -553,10 +599,10 @@ class MapMarkers {
             /* If CargoShip is docked at Harbor */
             if (!this.rustplus.isFirstPoll && !cargoShip.isDocked) {
                 for (const harbor of harbors) {
-                    if (Map.getDistance(marker.x, marker.y, harbor.x, harbor.y) <= Constants.HARBOR_DOCK_DISTANCE) {
+                    if (GameMap.getDistance(marker.x, marker.y, harbor.x, harbor.y) <= Constants.HARBOR_DOCK_DISTANCE) {
                         if (marker.x === cargoShip.x && marker.y === cargoShip.y) {
                             /* CargoShip is now docked. */
-                            const harborLocation = Map.getPos(harbor.x, harbor.y, mapSize, this.rustplus);
+                            const harborLocation = GameMap.getPos(harbor.x, harbor.y, mapSize, this.rustplus);
                             cargoShip.isDocked = true;
                             this.rustplus.sendEvent(
                                 this.rustplus.notificationSettings.cargoShipDockingAtHarborSetting,
@@ -569,14 +615,17 @@ class MapMarkers {
             }
             else if (!this.rustplus.isFirstPoll && cargoShip.isDocked) {
                 for (const harbor of harbors) {
-                    if (Map.getDistance(marker.x, marker.y, harbor.x, harbor.y) <= Constants.HARBOR_DOCK_DISTANCE) {
+                    if (GameMap.getDistance(marker.x, marker.y, harbor.x, harbor.y) <= Constants.HARBOR_DOCK_DISTANCE) {
                         if (marker.x !== cargoShip.x || marker.y !== cargoShip.y) {
-                            const harborLocation = Map.getPos(harbor.x, harbor.y, mapSize, this.rustplus);
+                            const harborLocation = GameMap.getPos(harbor.x, harbor.y, mapSize, this.rustplus);
                             cargoShip.isDocked = false;
                             this.rustplus.sendEvent(
                                 this.rustplus.notificationSettings.cargoShipDockingAtHarborSetting,
-                                this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftHarbor',
-                                    { location: harborLocation.location }), 'cargo', Constants.COLOR_CARGO_SHIP_DOCKED
+                                this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftHarbor', {
+                                    location: harborLocation.location,
+                                }),
+                                'cargo',
+                                Constants.COLOR_CARGO_SHIP_DOCKED,
                             );
                         }
                     }
@@ -601,7 +650,7 @@ class MapMarkers {
 
         /* GenericRadius markers that have left. */
         for (let marker of leftMarkers) {
-            this.genericRadiuses = this.genericRadiuses.filter(e => e.id !== marker.id);
+            this.genericRadiuses = this.genericRadiuses.filter((e) => e.id !== marker.id);
         }
 
         /* GenericRadius markers that still remains. */
@@ -621,33 +670,34 @@ class MapMarkers {
         /* PatrolHelicopter markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             this.rustplus.patrolHelicopterTracers[marker.id] = [{ x: marker.x, y: marker.y }];
 
             marker.location = pos;
 
             /* Offset that is used to determine if PatrolHelicopter just spawned */
-            let offset = 4 * Map.gridDiameter;
+            let offset = 4 * GameMap.gridDiameter;
 
             /* If PatrolHelicopter is located outside the grid system + the offset */
-            if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
+            if (GameMap.isOutsideGridSystem(marker.x, marker.y, mapSize, offset)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDetectedSetting,
                     this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterEntersMap', {
-                        location: pos.string
+                        location: pos.string,
                     }),
                     'heli',
-                    Constants.COLOR_PATROL_HELICOPTER_ENTERS_MAP);
-            }
-            else {
+                    Constants.COLOR_PATROL_HELICOPTER_ENTERS_MAP,
+                );
+            } else {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDetectedSetting,
                     this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterLocatedAt', {
-                        location: pos.string
+                        location: pos.string,
                     }),
                     'heli',
-                    Constants.COLOR_PATROL_HELICOPTER_LOCATED_AT);
+                    Constants.COLOR_PATROL_HELICOPTER_LOCATED_AT,
+                );
             }
 
             this.patrolHelicopters.push(marker);
@@ -657,40 +707,41 @@ class MapMarkers {
         for (let marker of leftMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
 
-            if (Map.isOutsideGridSystem(marker.x, marker.y, mapSize)) {
+            if (GameMap.isOutsideGridSystem(marker.x, marker.y, mapSize)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterLeftSetting,
                     this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterLeftMap', {
-                        location: marker.location.string
+                        location: marker.location.string,
                     }),
                     'heli',
-                    Constants.COLOR_PATROL_HELICOPTER_LEFT_MAP);
+                    Constants.COLOR_PATROL_HELICOPTER_LEFT_MAP,
+                );
 
                 this.timeSincePatrolHelicopterWasOnMap = new Date();
-            }
-            else {
+            } else {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDestroyedSetting,
                     this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterTakenDown', {
-                        location: marker.location.string
+                        location: marker.location.string,
                     }),
                     'heli',
-                    Constants.COLOR_PATROL_HELICOPTER_TAKEN_DOWN);
+                    Constants.COLOR_PATROL_HELICOPTER_TAKEN_DOWN,
+                );
 
                 this.timeSincePatrolHelicopterWasDestroyed = new Date();
                 this.timeSincePatrolHelicopterWasOnMap = new Date();
 
-                this.patrolHelicopterDestroyedLocation = Map.getGridPos(marker.x, marker.y, mapSize);
+                this.patrolHelicopterDestroyedLocation = GameMap.getGridPos(marker.x, marker.y, mapSize);
             }
 
-            this.patrolHelicopters = this.patrolHelicopters.filter(e => e.id !== marker.id);
+            this.patrolHelicopters = this.patrolHelicopters.filter((e) => e.id !== marker.id);
             delete this.rustplus.patrolHelicopterTracers[marker.id];
         }
 
         /* PatrolHelicopter markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let patrolHelicopter = this.getMarkerByTypeId(this.types.PatrolHelicopter, marker.id);
 
             this.rustplus.patrolHelicopterTracers[marker.id].push({ x: marker.x, y: marker.y });
@@ -701,8 +752,6 @@ class MapMarkers {
         }
     }
 
-
-
     /* Timer notification functions */
 
     notifyCargoShipEgress(args) {
@@ -712,10 +761,11 @@ class MapMarkers {
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.cargoShipEgressSetting,
             this.client.intlGet(this.rustplus.guildId, 'cargoShipEntersEgressStage', {
-                location: marker.location.string
+                location: marker.location.string,
             }),
             'cargo',
-            Constants.COLOR_CARGO_SHIP_ENTERS_EGRESS_STAGE);
+            Constants.COLOR_CARGO_SHIP_ENTERS_EGRESS_STAGE,
+        );
 
         if (this.cargoShipEgressTimers[id]) {
             this.cargoShipEgressTimers[id].stop();
@@ -731,12 +781,13 @@ class MapMarkers {
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.lockedCrateOilRigUnlockedSetting,
             this.client.intlGet(this.rustplus.guildId, 'lockedCrateSmallOilRigUnlocked', {
-                location: oilRigLocation
+                location: oilRigLocation,
             }),
             'small',
             Constants.COLOR_LOCKED_CRATE_SMALL_OILRIG_UNLOCKED,
             this.rustplus.isFirstPoll,
-            'locked_crate_small_oil_rig_logo.png');
+            'locked_crate_small_oil_rig_logo.png',
+        );
 
         this.crateSmallOilRigTimer.stop();
         this.crateSmallOilRigTimer = null;
@@ -749,12 +800,13 @@ class MapMarkers {
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.lockedCrateOilRigUnlockedSetting,
             this.client.intlGet(this.rustplus.guildId, 'lockedCrateLargeOilRigUnlocked', {
-                location: oilRigLocation
+                location: oilRigLocation,
             }),
             'large',
             Constants.COLOR_LOCKED_CRATE_LARGE_OILRIG_UNLOCKED,
             this.rustplus.isFirstPoll,
-            'locked_crate_large_oil_rig_logo.png');
+            'locked_crate_large_oil_rig_logo.png',
+        );
 
         this.crateLargeOilRigTimer.stop();
         this.crateLargeOilRigTimer = null;
@@ -767,7 +819,7 @@ class MapMarkers {
         let minDistance = 1000000;
         let closestMonument = null;
         for (let monument of this.rustplus.map.monuments) {
-            let distance = Map.getDistance(x, y, monument.x, monument.y);
+            let distance = GameMap.getDistance(x, y, monument.x, monument.y);
             if (distance < minDistance && this.validCrateMonuments.includes(monument.token)) {
                 minDistance = distance;
                 closestMonument = monument;
