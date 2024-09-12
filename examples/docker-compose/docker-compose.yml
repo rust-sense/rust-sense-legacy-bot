@@ -4,6 +4,7 @@ services:
     volumes:
       - ./credentials:/app/credentials
       - ./instances:/app/instances
+      - ./authtokens:/app/authtokens
       - ./logs:/app/logs
       - ./maps:/app/maps
     environment:
