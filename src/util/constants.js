@@ -1,30 +1,11 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 module.exports = {
+    DEFAULT_LOCALE: 'en',
     DEFAULT_SERVER_URL: 'https://rust.facepunch.com',
     DEFAULT_SERVER_IMG: 'https://files.facepunch.com/lewis/1b2411b1/og-image.jpg',
     STEAM_PROFILES_URL: 'https://steamcommunity.com/profiles/',
     BATTLEMETRICS_PROFILE_URL: 'https://www.battlemetrics.com/players/',
     BATTLEMETRICS_SERVER_URL: 'https://www.battlemetrics.com/servers/rust/',
-    AFK_TIME_SECONDS: 5 * 60, /* 5 min */
+    AFK_TIME_SECONDS: 5 * 60 /* 5 min */,
     MAX_LENGTH_TEAM_MESSAGE: 128,
     STEAMID64_LENGTH: 17,
     STEAM_PROFILE_NAME_MAX_LENGTH: 32,
@@ -54,8 +35,8 @@ module.exports = {
     STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY: 48,
 
     /* Default timer times */
-    DEFAULT_CARGO_SHIP_EGRESS_TIME_MS: 50 * 60 * 1000, /* 50 min */
-    DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS: 15 * 60 * 1000, /* 15 min */
+    DEFAULT_CARGO_SHIP_EGRESS_TIME_MS: 50 * 60 * 1000 /* 50 min */,
+    DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS: 15 * 60 * 1000 /* 15 min */,
 
     /* Other constants */
     PATROL_HELI_DOWNED_RADIUS: 400,
@@ -108,5 +89,5 @@ module.exports = {
 
     GET_BATTLEMETRICS_PROFILE_LINK: function (playerId) {
         return `[${playerId}](${this.BATTLEMETRICS_PROFILE_URL}${playerId})`;
-    }
-}
+    },
+};
