@@ -489,7 +489,7 @@ module.exports = {
                 module.exports.getButton({
                     style: Discord.ButtonStyle.Link,
                     label: 'CREDENTIALS',
-                    url: 'https://github.com/alexemanuelol/rustplusplus-Credential-Application/releases/v1.2.0'
+                    url: 'https://github.com/alexemanuelol/rustplusplus-Credential-Application/releases/v1.3.0'
                 })
             )];
     },

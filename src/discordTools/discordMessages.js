@@ -533,6 +533,15 @@ module.exports = {
         await client.interactionEditReply(interaction, content);
     },
 
+    sendAuthTokensShowMessage: async function (interaction) {
+        const content = {
+            embeds: [await DiscordEmbeds.getAuthTokensShowEmbed(interaction.guildId)],
+            ephemeral: true,
+        };
+
+        await client.interactionEditReply(interaction, content);
+    },
+
     sendItemAvailableInVendingMachineMessage: async (rustplus, str) => {
         const instance = client.getInstance(rustplus.guildId);
 
@@ -601,8 +610,8 @@ module.exports = {
     sendRecycleMessage: async function (interaction, recycleDetails, quantity, recyclerType) {
         const content = {
             embeds: [DiscordEmbeds.getRecycleEmbed(interaction.guildId, recycleDetails, quantity, recyclerType)],
-            ephemeral: true
-        }
+            ephemeral: true,
+        };
 
         await client.interactionEditReply(interaction, content);
     },
