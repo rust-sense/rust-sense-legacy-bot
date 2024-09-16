@@ -17,13 +17,5 @@ module.exports = {
 
     writeCredentialsFile: (guildId, credentials) => {
         writeJsonSync(cwdPath('credentials', `${guildId}.json`), credentials);
-    },
-
-    readAuthTokensFile: (guildId) => {
-        return loadJsonSync(cwdPath('authtokens', `${guildId}.json`));
-    },
-
-    writeAuthTokensFile: (guildId, authTokens) => {
-        writeJsonSync(cwdPath('authtokens', `${guildId}.json`), credentials);
-    },
+    }
 }

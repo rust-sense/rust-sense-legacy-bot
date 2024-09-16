@@ -1,4 +1,4 @@
-const PushReceiver = require('push-receiver');
+const PushReceiverClient = require('@liamcottle/push-receiver/src/client');
 
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
@@ -32,9 +32,10 @@ module.exports = async (client, guild, steamId) => {
         return;
     }
 
-    if (client.fcmListenersLite[guild.id][steamId]) client.fcmListenersLite[guild.id][steamId].destroy();
-
-    const discordUserId = credentials[steamId].discordUserId;
+    if (client.fcmListenersLite[guild.id][steamId]) {
+        client.fcmListenersLite[guild.id][steamId].destroy();
+        delete client.fcmListenersLite[guild.id][steamId];
+    }
 
     client.log(
         client.intlGet(null, 'infoCap'),
@@ -44,111 +45,78 @@ module.exports = async (client, guild, steamId) => {
         }),
     );
 
-    let startTime = new Date();
-    client.fcmListenersLite[guild.id][steamId] = await PushReceiver.listen(
-        credentials[steamId].fcm_credentials,
-        async ({ notification, persistentId }) => {
-            /* Create a delay so that buffered notifications are ignored. */
-            if (new Date() - startTime < 10000) return;
+    const discordUserId = credentials[steamId].discord_user_id;
 
-            /* Parse the notification body. */
-            const full = notification;
-            const data = full.data;
-            const body = JSON.parse(data.body);
+    const androidId = credentials[steamId].gcm.android_id;
+    const securityToken = credentials[steamId].gcm.security_token;
+    client.fcmListenersLite[guild.id][steamId] = new PushReceiverClient(androidId, securityToken, [])
+    client.fcmListenersLite[guild.id][steamId].on('ON_DATA_RECEIVED', (data) => {
+        const appData = data.appData;
 
-            switch (data.channelId) {
-                case 'pairing':
-                    {
-                        switch (body.type) {
-                            case 'server':
-                                {
-                                    client.log(
-                                        'FCM LITE',
-                                        `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: server`,
-                                    );
-                                    pairingServer(client, guild, steamId, full, data, body);
-                                }
-                                break;
+        const title = appData.find(item => item.key === 'title')?.value;
+        const message = appData.find(item => item.key === 'message')?.value;
+        const channelId = appData.find(item => item.key === 'channelId')?.value;
+        const body = JSON.parse(appData.find(item => item.key === 'body')?.value);
 
-                            case 'entity':
-                                {
-                                    switch (body.entityName) {
-                                        case 'Smart Switch':
-                                            {
-                                                client.log(
-                                                    'FCM LITE',
-                                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Switch`,
-                                                );
-                                                pairingEntitySwitch(client, guild, full, data, body);
-                                            }
-                                            break;
+        switch (channelId) {
+            case 'pairing': {
+                switch (body.type) {
+                    case 'server': {
+                        client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: server`);
+                        pairingServer(client, guild, steamId, title, message, body);
+                    } break;
 
-                                        case 'Smart Alarm':
-                                            {
-                                                client.log(
-                                                    'FCM LITE',
-                                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Smart Alarm`,
-                                                );
-                                                pairingEntitySmartAlarm(client, guild, full, data, body);
-                                            }
-                                            break;
+                    case 'entity': {
+                        switch (body.entityName) {
+                            case 'Smart Switch': {
+                                client.log('FCM LITE',
+                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Switch`);
+                                pairingEntitySwitch(client, guild, title, message, body);
+                            } break;
 
-                                        case 'Storage Monitor':
-                                            {
-                                                client.log(
-                                                    'FCM LITE',
-                                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Storage Monitor`,
-                                                );
-                                                pairingEntityStorageMonitor(client, guild, full, data, body);
-                                            }
-                                            break;
+                            case 'Smart Alarm': {
+                                client.log('FCM LITE',
+                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Smart Alarm`);
+                                pairingEntitySmartAlarm(client, guild, title, message, body);
+                            } break;
 
-                                        default:
-                                            {
-                                                client.log(
-                                                    'FCM LITE',
-                                                    `GuildID: ${guild.id}, SteamID: ${steamId}, ` +
-                                                        `pairing: entity: other\n${JSON.stringify(full)}`,
-                                                );
-                                            }
-                                            break;
-                                    }
-                                }
-                                break;
+                            case 'Storage Monitor': {
+                                client.log('FCM LITE',
+                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Storage Monitor`);
+                                pairingEntityStorageMonitor(client, guild, title, message, body);
+                            } break;
 
-                            default:
-                                {
-                                }
-                                break;
+                            default: {
+                                client.log('FCM LITE',
+                                    `GuildID: ${guild.id}, SteamID: ${steamId}, ` +
+                                    `pairing: entity: other\n${JSON.stringify(data)}`);
+                            } break;
                         }
-                    }
-                    break;
+                    } break;
 
-                case 'player':
-                    {
-                        switch (body.type) {
-                            case 'death':
-                                {
-                                    client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, player: death`);
-                                    playerDeath(client, guild, full, data, body, discordUserId);
-                                }
-                                break;
+                    default: {
+                    } break;
+                }
+            } break;
 
-                            default:
-                                {
-                                }
-                                break;
-                        }
-                    }
-                    break;
+            case 'player': {
+                switch (body.type) {
+                    case 'death': {
+                        client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, player: death`);
+                        playerDeath(client, guild, title, message, body, discordUserId);
+                    } break;
 
-                default:
-                    {
-                    }
-                    break;
-            }
-        },
-    );
+                    default: {
+                    } break;
+                }
+            } break;
+
+            default: {
+            } break;
+        }
+    });
+
+    client.fcmListenersLite[guild.id][steamId].connect();
 };
 
 function isValidUrl(url) {
@@ -156,7 +124,7 @@ function isValidUrl(url) {
     return false;
 }
 
-async function pairingServer(client, guild, steamId, full, data, body) {
+async function pairingServer(client, guild, steamId, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
@@ -176,7 +144,7 @@ async function pairingServer(client, guild, steamId, full, data, body) {
     }
 }
 
-async function pairingEntitySwitch(client, guild, full, data, body) {
+async function pairingEntitySwitch(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!instance.serverList.hasOwnProperty(serverId)) return;
@@ -226,7 +194,7 @@ async function pairingEntitySwitch(client, guild, full, data, body) {
     }
 }
 
-async function pairingEntitySmartAlarm(client, guild, full, data, body) {
+async function pairingEntitySmartAlarm(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!instance.serverList.hasOwnProperty(serverId)) return;
@@ -274,7 +242,7 @@ async function pairingEntitySmartAlarm(client, guild, full, data, body) {
     await DiscordMessages.sendSmartAlarmMessage(guild.id, serverId, body.entityId);
 }
 
-async function pairingEntityStorageMonitor(client, guild, full, data, body) {
+async function pairingEntityStorageMonitor(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!instance.serverList.hasOwnProperty(serverId)) return;
@@ -341,7 +309,7 @@ async function pairingEntityStorageMonitor(client, guild, full, data, body) {
     }
 }
 
-async function playerDeath(client, guild, full, data, body, discordUserId) {
+async function playerDeath(client, guild, title, message, body, discordUserId) {
     const user = await DiscordTools.getUserById(guild.id, discordUserId);
     if (!user) return;
 
@@ -350,7 +318,7 @@ async function playerDeath(client, guild, full, data, body, discordUserId) {
     if (png === null) png = isValidUrl(body.img) ? body.img : Constants.DEFAULT_SERVER_IMG;
 
     const content = {
-        embeds: [DiscordEmbeds.getPlayerDeathEmbed(data, body, png)],
+        embeds: [DiscordEmbeds.getPlayerDeathEmbed({ title: title }, body, png)]
     };
 
     await client.messageSend(user, content);
