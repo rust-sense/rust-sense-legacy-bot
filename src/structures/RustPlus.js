@@ -2310,8 +2310,7 @@ class RustPlus extends RustPlusLib {
     }
 
     async getCommandSend(command, callerName) {
-        //const credentials = InstanceUtils.readCredentialsFile(this.guildId);
-        const authTokens = InstanceUtils.readAuthTokensFile(this.guildId);
+        const credentials = InstanceUtils.readCredentialsFile(this.guildId);
         const prefix = this.generalSettings.prefix;
         const commandSend = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxSend')}`;
         const commandSendEn = `${prefix}${client.intlGet('en', 'commandSyntaxSend')}`;
@@ -2330,14 +2329,13 @@ class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                if (!(player.steamId in authTokens)) {
+                if (!(player.steamId in credentials)) {
                     return client.intlGet(this.guildId, 'userNotRegistered', {
                         user: player.name
                     });
                 }
 
-                //const discordUserId = credentials[player.steamId].discordUserId;
-                const discordUserId = authTokens[player.steamId].discordUserId;
+                const discordUserId = credentials[player.steamId].discord_user_id;
                 const user = await DiscordTools.getUserById(this.guildId, discordUserId);
 
                 const content = {

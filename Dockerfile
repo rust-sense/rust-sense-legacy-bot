@@ -23,7 +23,6 @@ RUN apt-get update \
     && apt-get clean
 
 VOLUME [ "/app/credentials" ]
-VOLUME [ "/app/authtokens" ]
 VOLUME [ "/app/instances" ]
 VOLUME [ "/app/logs" ]
 VOLUME [ "/app/maps" ]
