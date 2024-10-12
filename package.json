@@ -28,7 +28,7 @@
         "axios": "^1.5.0",
         "colors": "^1.4.0",
         "discord-api-types": "^0.37.56",
-        "discord.js": "^14.13.0",
+        "discord.js": "^14.16.3",
         "ffmpeg-static": "^5.2.0",
         "gm": "^1.25.0",
         "intl-messageformat": "^10.5.14",
