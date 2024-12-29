@@ -393,34 +393,36 @@ class RustLabs {
                     }
 
                     /* Can the item be recycled further? */
-                    if (this.recycleData[item.itemId][recyclerType]['yield'].length > 0 && !item.itemIsBlueprint &&
-                        !IGNORED_RECYCLE_ITEMS.includes(item.itemId)) {
+                    if (
+                        this.recycleData[item.itemId][recyclerType]['yield'].length > 0 &&
+                        !item.itemIsBlueprint &&
+                        !IGNORED_RECYCLE_ITEMS.includes(item.itemId)
+                    ) {
                         noMoreIterations = false;
                         for (const recycleItem of this.recycleData[item.itemId][recyclerType]['yield']) {
                             for (let i = 0; i < item.quantity; i++) {
-                                if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability) continue;
+                                if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability)
+                                    continue;
 
-                                const found = expandedItems.find(e => e.itemId === recycleItem.id);
+                                const found = expandedItems.find((e) => e.itemId === recycleItem.id);
                                 if (found === undefined) {
                                     expandedItems.push({
                                         itemId: recycleItem.id,
                                         quantity: recycleItem.quantity,
-                                        itemIsBlueprint: false
+                                        itemIsBlueprint: false,
                                     });
-                                }
-                                else {
+                                } else {
                                     found.quantity += recycleItem.quantity;
                                 }
                             }
                         }
-                    }
-                    else {
-                        const found = expandedItems.find(e => e.itemId === item.itemId &&
-                            e.itemIsBlueprint === item.itemIsBlueprint);
+                    } else {
+                        const found = expandedItems.find(
+                            (e) => e.itemId === item.itemId && e.itemIsBlueprint === item.itemIsBlueprint,
+                        );
                         if (found === undefined) {
                             expandedItems.push(item);
-                        }
-                        else {
+                        } else {
                             found.quantity += item.quantity;
                         }
                     }

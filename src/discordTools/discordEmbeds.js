@@ -433,7 +433,8 @@ module.exports = {
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const grid = entity.location !== null ? ` (${entity.location})` : '';
 
-        let itemName = '', itemQuantity = '';
+        let itemName = '',
+            itemQuantity = '';
         for (const item of items['recycler']) {
             itemName += `\`${client.items.getName(item.itemId)}\`\n`;
             itemQuantity += `\`${item.quantity}\`\n`;
@@ -761,12 +762,14 @@ module.exports = {
         const smallOilRigFieldName = client.intlGet(guildId, 'smallOilRig');
         const largeOilRigFieldName = client.intlGet(guildId, 'largeOilRig');
         const chinook47FieldName = client.intlGet(guildId, 'chinook47');
+        const travelingVendorFieldName = client.intlGet(guildId, 'travelingVendor');
 
         const cargoShipMessage = rustplus.getCommandCargo(true);
         const patrolHelicopterMessage = rustplus.getCommandHeli(true);
         const smallOilMessage = rustplus.getCommandSmall(true);
         const largeOilMessage = rustplus.getCommandLarge(true);
         const ch47Message = rustplus.getCommandChinook(true);
+        const travelingVendorMessage = rustplus.getCommandTravelingVendor(true);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'eventInfo'),
@@ -780,6 +783,7 @@ module.exports = {
                 { name: smallOilRigFieldName, value: `\`${smallOilMessage}\``, inline: true },
                 { name: largeOilRigFieldName, value: `\`${largeOilMessage}\``, inline: true },
                 { name: chinook47FieldName, value: `\`${ch47Message}\``, inline: true },
+                { name: travelingVendorFieldName, value: `\`${travelingVendorMessage}\``, inline: true },
             ],
             timestamp: true,
         });
@@ -1174,13 +1178,15 @@ module.exports = {
             { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
         ]);
 
-        let items0 = '', quantities0 = '';
+        let items0 = '',
+            quantities0 = '';
         for (const item of recycleDetails[2][recyclerType]['yield']) {
             items0 += `${client.items.getName(item.id)}\n`;
-            quantities0 += (item.probability !== 1) ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
+            quantities0 += item.probability !== 1 ? `${parseInt(item.probability * 100)}%\n` : `${item.quantity}\n`;
         }
 
-        let items1 = '', quantities1 = '';
+        let items1 = '',
+            quantities1 = '';
         for (const item of recycleData[recyclerType]) {
             items1 += `${client.items.getName(item.itemId)}\n`;
             quantities1 += `${item.quantity}\n`;
@@ -1442,4 +1448,4 @@ module.exports = {
 
         return embed;
     },
-}
+};

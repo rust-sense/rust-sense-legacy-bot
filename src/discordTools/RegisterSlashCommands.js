@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const {REST, Routes} = require('discord.js');
+const { REST, Routes } = require('discord.js');
 
 import config from '../config';
 import discordCommands from '../discordCommands';
@@ -13,9 +13,7 @@ module.exports = async (client, guild) => {
     const rest = new REST().setToken(config.discord.token);
 
     try {
-        await rest.put(Routes.applicationGuildCommands(
-            config.discord.clientId, guild.id), 
-            { body: commands });
+        await rest.put(Routes.applicationGuildCommands(config.discord.clientId, guild.id), { body: commands });
     } catch (e) {
         client.log(
             client.intlGet(null, 'errorCap'),

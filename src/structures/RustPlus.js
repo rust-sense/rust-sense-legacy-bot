@@ -18,8 +18,8 @@ const RustPlusLite = require('../structures/RustPlusLite');
 const TeamHandler = require('../handlers/teamHandler');
 const Timer = require('../util/timer');
 
-import rustplusEvents from '../rustplusEvents'
 import { client } from '../index';
+import rustplusEvents from '../rustplusEvents';
 import { cwdPath } from '../service/resourceManager';
 
 const TOKENS_LIMIT = 24; /* Per player */
@@ -2331,7 +2331,7 @@ class RustPlus extends RustPlusLib {
             if (player.name.includes(name)) {
                 if (!(player.steamId in credentials)) {
                     return client.intlGet(this.guildId, 'userNotRegistered', {
-                        user: player.name
+                        user: player.name,
                     });
                 }
 
@@ -2754,6 +2754,48 @@ class RustPlus extends RustPlusLib {
                 time: this.info.getTimeSinceWipe(),
             });
         }
+    }
+
+    getCommandTravelingVendor(isInfoChannel = false) {
+        const strings = [];
+        for (const travelingVendor of this.mapMarkers.travelingVendors) {
+            if (isInfoChannel) {
+                return Client.client.intlGet(this.guildId, 'atLocation', {
+                    location: travelingVendor.location.string,
+                });
+            } else {
+                strings.push(
+                    Client.client.intlGet(this.guildId, 'travelingVendorLocatedAt', {
+                        location: travelingVendor.location.string,
+                    }),
+                );
+            }
+        }
+
+        if (strings.length === 0) {
+            const wasOnMap = this.mapMarkers.timeSinceTravelingVendorWasOnMap;
+
+            if (wasOnMap == null) {
+                return isInfoChannel
+                    ? Client.client.intlGet(this.guildId, 'notActive')
+                    : Client.client.intlGet(this.guildId, 'travelingVendorNotCurrentlyOnMap');
+            } else if (wasOnMap !== null) {
+                const secondsSince = (new Date() - wasOnMap) / 1000;
+                if (isInfoChannel) {
+                    const timeSince = Timer.secondsToFullScale(secondsSince, 's');
+                    return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                        time: timeSince,
+                    });
+                } else {
+                    const timeSince = Timer.secondsToFullScale(secondsSince);
+                    return Client.client.intlGet(this.guildId, 'timeSinceTravelingVendorWasOnMap', {
+                        time: timeSince,
+                    });
+                }
+            }
+        }
+
+        return strings;
     }
 }
 
