@@ -39,7 +39,8 @@
             "biome.json",
             "package.json",
             "tsconfig.json",
-            "renovate.json"
+            "renovate.json",
+            "**/*.md"
         ]
     },
     "vcs": {
