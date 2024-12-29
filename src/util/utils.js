@@ -1,25 +1,8 @@
-/*
-    Copyright (C) 2023 Alexander Emanuelsson (alexemanuelol)
+const fs = require('node:fs');
+const path = require('node:path');
+const { loadJsonResourceSync } = require('../service/resourceManager');
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const Fs = require('fs');
-const Path = require('path');
+const htmlReservedSymbols = loadJsonResourceSync('staticFiles/htmlReservedSymbols.json');
 
 module.exports = {
     parseArgs: function (str) {
@@ -48,9 +31,6 @@ module.exports = {
     },
 
     decodeHtml: function (str) {
-        const htmlReservedSymbols = JSON.parse(Fs.readFileSync(
-            Path.join(__dirname, '..', 'staticFiles', 'htmlReservedSymbols.json'), 'utf8'));
-
         for (const [key, value] of Object.entries(htmlReservedSymbols)) {
             str = str.replace(key, value);
         }
@@ -60,7 +40,7 @@ module.exports = {
 
     removeInvisibleCharacters: function (str) {
         str = str.replace(/[\u200B-\u200D\uFEFF]/g, '');
-        return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+        return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
     },
 
     findClosestString: function (string, array, threshold = 2) {
@@ -81,7 +61,7 @@ module.exports = {
 
         return minDistance > threshold ? null : closestString;
     },
-}
+};
 
 /* Function to calculate Levenshtein distance between two strings */
 function levenshteinDistance(s1, s2) {
@@ -103,13 +83,8 @@ function levenshteinDistance(s1, s2) {
         for (let j = 1; j <= n; j++) {
             if (s1[i - 1] === s2[j - 1]) {
                 dp[i][j] = dp[i - 1][j - 1];
-            }
-            else {
-                dp[i][j] = 1 + Math.min(
-                    dp[i - 1][j],
-                    dp[i][j - 1],
-                    dp[i - 1][j - 1]
-                );
+            } else {
+                dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
             }
         }
     }

@@ -1,25 +1,5 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const DiscordMessages = require('../discordTools/discordMessages.js');
-const Timer = require('../util/timer.js');
+const DiscordMessages = require('../discordTools/discordMessages');
+const Timer = require('../util/timer');
 
 module.exports = {
     handler: async function (rustplus, client) {
@@ -31,8 +11,7 @@ module.exports = {
 
         if (rustplus.smartAlarmIntervalCounter === 29) {
             rustplus.smartAlarmIntervalCounter = 0;
-        }
-        else {
+        } else {
             rustplus.smartAlarmIntervalCounter += 1;
         }
 
@@ -41,7 +20,7 @@ module.exports = {
                 instance = client.getInstance(guildId);
 
                 const info = await rustplus.getEntityInfoAsync(entityId);
-                if (!(await rustplus.isResponseValid(info))) {
+                if (!rustplus.isResponseValid(info)) {
                     if (instance.serverList[serverId].alarms[entityId].reachable) {
                         await DiscordMessages.sendSmartAlarmNotFoundMessage(guildId, serverId, entityId);
 
@@ -50,8 +29,7 @@ module.exports = {
 
                         await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                     }
-                }
-                else {
+                } else {
                     if (!instance.serverList[serverId].alarms[entityId].reachable) {
                         instance.serverList[serverId].alarms[entityId].reachable = true;
                         client.setInstance(guildId, instance);
@@ -70,13 +48,15 @@ module.exports = {
         const alarms = instance.serverList[serverId].alarms;
         const prefix = rustplus.generalSettings.prefix;
 
-        const entityId = Object.keys(alarms).find(e => command === `${prefix}${alarms[e].command}`);
+        const entityId = Object.keys(alarms).find((e) => command === `${prefix}${alarms[e].command}`);
         if (!entityId) return false;
 
         if (alarms[entityId].lastTrigger === null) {
-            rustplus.sendInGameMessage(client.intlGet(guildId, 'alarmHaveNotBeenTriggeredYet', {
-                alarm: alarms[entityId].name
-            }));
+            rustplus.sendInGameMessage(
+                client.intlGet(guildId, 'alarmHaveNotBeenTriggeredYet', {
+                    alarm: alarms[entityId].name,
+                }),
+            );
             return true;
         }
 
@@ -84,10 +64,12 @@ module.exports = {
         const timeSinceTriggerSeconds = Math.floor((new Date() - lastTriggerDate) / 1000);
         const time = Timer.secondsToFullScale(timeSinceTriggerSeconds);
 
-        rustplus.sendInGameMessage(client.intlGet(guildId, 'timeSinceAlarmWasTriggered', {
-            alarm: alarms[entityId].name,
-            time: time
-        }));
+        rustplus.sendInGameMessage(
+            client.intlGet(guildId, 'timeSinceAlarmWasTriggered', {
+                alarm: alarms[entityId].name,
+                time: time,
+            }),
+        );
         return true;
     },
-}
+};

@@ -1,46 +1,23 @@
-/*
-    Copyright (C) 2023 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const Items = require('./Items');
-const RustlabsBuildingBlocks = require('../staticFiles/rustlabsBuildingBlocks.json');
-const RustlabsOther = require('../staticFiles/rustlabsOther.json');
 
-const CraftData = require('../staticFiles/rustlabsCraftData.json');
-const ResearchData = require('../staticFiles/rustlabsResearchData.json');
-const RecycleData = require('../staticFiles/rustlabsRecycleData.json');
-const DurabilityData = require('../staticFiles/rustlabsDurabilityData.json');
-const SmeltingData = require('../staticFiles/rustlabsSmeltingData.json');
-const DespawnData = require('../staticFiles/rustlabsDespawnData.json');
-const StackData = require('../staticFiles/rustlabsStackData.json');
-const DecayData = require('../staticFiles/rustlabsDecayData.json');
-const UpkeepData = require('../staticFiles/rustlabsUpkeepData.json');
-const Utils = require('../util/utils.js');
+import { loadJsonResourceSync } from '../service/resourceManager';
 
-const IGNORED_RECYCLE_ITEMS = [
-    '-946369541' /* Low Grade Fuel */
-];
+const RustlabsBuildingBlocks = loadJsonResourceSync('staticFiles/rustlabsBuildingBlocks.json');
+const RustlabsOther = loadJsonResourceSync('staticFiles/rustlabsOther.json');
+const CraftData = loadJsonResourceSync('staticFiles/rustlabsCraftData.json');
+const ResearchData = loadJsonResourceSync('staticFiles/rustlabsResearchData.json');
+const RecycleData = loadJsonResourceSync('staticFiles/rustlabsRecycleData.json');
+const DurabilityData = loadJsonResourceSync('staticFiles/rustlabsDurabilityData.json');
+const SmeltingData = loadJsonResourceSync('staticFiles/rustlabsSmeltingData.json');
+const DespawnData = loadJsonResourceSync('staticFiles/rustlabsDespawnData.json');
+const StackData = loadJsonResourceSync('staticFiles/rustlabsStackData.json');
+const DecayData = loadJsonResourceSync('staticFiles/rustlabsDecayData.json');
+const UpkeepData = loadJsonResourceSync('staticFiles/rustlabsUpkeepData.json');
+const Utils = require('../util/utils');
 
+const IGNORED_RECYCLE_ITEMS = ['-946369541' /* Low Grade Fuel */];
 
 class RustLabs {
-
-
     /**
      *  Constructor for the RustLabs Class.
      */
@@ -60,20 +37,9 @@ class RustLabs {
         this._rustlabsBuildingBlocks = RustlabsBuildingBlocks;
         this._rustlabsOther = RustlabsOther;
 
-        this._durabilityGroups = [
-            'explosive',
-            'melee',
-            'throw',
-            'guns',
-            'torpedo',
-            'turret'
-        ];
+        this._durabilityGroups = ['explosive', 'melee', 'throw', 'guns', 'torpedo', 'turret'];
 
-        this._durabilityWhich = [
-            'hard',
-            'soft',
-            'both'
-        ];
+        this._durabilityWhich = ['hard', 'soft', 'both'];
 
         this._orderedBy = [
             'quantityHighFirst',
@@ -83,36 +49,68 @@ class RustLabs {
             'fuelHighFirst',
             'fuelLowFirst',
             'sulfurHighFirst',
-            'sulfurLowFirst'
+            'sulfurLowFirst',
         ];
 
         this._buildingBlocks = Object.keys(this.rustlabsBuildingBlocks);
         this._other = Object.keys(this.rustlabsOther);
     }
 
-
     /***********************************************************************************
      *  Getters
      **********************************************************************************/
 
-    get craftData() { return this._craftData; }
-    get researchData() { return this._researchData; }
-    get recycleData() { return this._recycleData; }
-    get durabilityData() { return this._durabilityData; }
-    get smeltingData() { return this._smeltingData; }
-    get despawnData() { return this._despawnData; }
-    get stackData() { return this._stackData; }
-    get decayData() { return this._decayData; }
-    get upkeepData() { return this._upkeepData; }
-    get items() { return this._items; }
-    get rustlabsBuildingBlocks() { return this._rustlabsBuildingBlocks; }
-    get rustlabsOther() { return this._rustlabsOther; }
-    get durabilityGroups() { return this._durabilityGroups }
-    get durabilityWhich() { return this._durabilityWhich; }
-    get orderedBy() { return this._orderedBy; }
-    get buildingBlocks() { return this._buildingBlocks; }
-    get other() { return this._other; }
-
+    get craftData() {
+        return this._craftData;
+    }
+    get researchData() {
+        return this._researchData;
+    }
+    get recycleData() {
+        return this._recycleData;
+    }
+    get durabilityData() {
+        return this._durabilityData;
+    }
+    get smeltingData() {
+        return this._smeltingData;
+    }
+    get despawnData() {
+        return this._despawnData;
+    }
+    get stackData() {
+        return this._stackData;
+    }
+    get decayData() {
+        return this._decayData;
+    }
+    get upkeepData() {
+        return this._upkeepData;
+    }
+    get items() {
+        return this._items;
+    }
+    get rustlabsBuildingBlocks() {
+        return this._rustlabsBuildingBlocks;
+    }
+    get rustlabsOther() {
+        return this._rustlabsOther;
+    }
+    get durabilityGroups() {
+        return this._durabilityGroups;
+    }
+    get durabilityWhich() {
+        return this._durabilityWhich;
+    }
+    get orderedBy() {
+        return this._orderedBy;
+    }
+    get buildingBlocks() {
+        return this._buildingBlocks;
+    }
+    get other() {
+        return this._other;
+    }
 
     /***********************************************************************************
      *  General functions
@@ -177,10 +175,13 @@ class RustLabs {
      */
     getArrayOrderedBy(array, key, orderedByLow) {
         if (orderedByLow) {
-            return array.sort(function (a, b) { return a[key] - b[key] });
-        }
-        else {
-            return array.sort(function (a, b) { return b[key] - a[key] });
+            return array.sort(function (a, b) {
+                return a[key] - b[key];
+            });
+        } else {
+            return array.sort(function (a, b) {
+                return b[key] - a[key];
+            });
         }
     }
 
@@ -192,44 +193,61 @@ class RustLabs {
      */
     getArrayOrderedByChoice(array, orderedBy = null) {
         switch (orderedBy) {
-            case 'quantityHighFirst': {
-                return this.getArrayOrderedBy(array, 'quantity', false);
-            } break;
+            case 'quantityHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'quantity', false);
+                }
+                break;
 
-            case 'quantityLowFirst': {
-                return this.getArrayOrderedBy(array, 'quantity', true);
-            } break;
+            case 'quantityLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'quantity', true);
+                }
+                break;
 
-            case 'timeHighFirst': {
-                return this.getArrayOrderedBy(array, 'time', false);
-            } break;
+            case 'timeHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'time', false);
+                }
+                break;
 
-            case 'timeLowFirst': {
-                return this.getArrayOrderedBy(array, 'time', true);
-            } break;
+            case 'timeLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'time', true);
+                }
+                break;
 
-            case 'fuelHighFirst': {
-                return this.getArrayOrderedBy(array, 'fuel', false);
-            } break;
+            case 'fuelHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'fuel', false);
+                }
+                break;
 
-            case 'fuelLowFirst': {
-                return this.getArrayOrderedBy(array, 'fuel', true);
-            } break;
+            case 'fuelLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'fuel', true);
+                }
+                break;
 
-            case 'sulfurHighFirst': {
-                return this.getArrayOrderedBy(array, 'sulfur', false);
-            } break;
+            case 'sulfurHighFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'sulfur', false);
+                }
+                break;
 
-            case 'sulfurLowFirst': {
-                return this.getArrayOrderedBy(array, 'sulfur', true);
-            } break;
+            case 'sulfurLowFirst':
+                {
+                    return this.getArrayOrderedBy(array, 'sulfur', true);
+                }
+                break;
 
-            default: {
-                return array;
-            } break;
+            default:
+                {
+                    return array;
+                }
+                break;
         }
     }
-
 
     /***********************************************************************************
      *  Craft functions
@@ -250,7 +268,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, craftDetails]
      */
     getCraftDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getCraftDetailsById(id);
@@ -265,7 +283,6 @@ class RustLabs {
         if (!this.hasCraftDetails(id)) return null;
         return [id, this.items.items[id], this.craftData[id]];
     }
-
 
     /***********************************************************************************
      *  Research functions
@@ -286,7 +303,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, researchDetails]
      */
     getResearchDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getResearchDetailsById(id);
@@ -301,7 +318,6 @@ class RustLabs {
         if (!this.hasResearchDetails(id)) return null;
         return [id, this.items.items[id], this.researchData[id]];
     }
-
 
     /***********************************************************************************
      *  Recycle functions
@@ -322,7 +338,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, recycleDetails]
      */
     getRecycleDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getRecycleDetailsById(id);
@@ -334,7 +350,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, recycleDetails]
      */
     getRecycleDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasRecycleDetails(id)) return null;
         return [id, this.items.items[id], this.recycleData[id]];
     }
@@ -349,12 +365,11 @@ class RustLabs {
         /* Remove element duplicates */
         const mergedItems = [];
         for (const item of items) {
-            const itemId = (typeof (item.itemId) === 'string') ? item.itemId : item.itemId.toString();
-            const found = mergedItems.find(e => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
+            const itemId = typeof item.itemId === 'string' ? item.itemId : item.itemId.toString();
+            const found = mergedItems.find((e) => e.itemId === itemId && e.itemIsBlueprint === item.itemIsBlueprint);
             if (found === undefined) {
                 mergedItems.push({ itemId: itemId, quantity: item.quantity, itemIsBlueprint: item.itemIsBlueprint });
-            }
-            else {
+            } else {
                 found.quantity += item.quantity;
             }
         }
@@ -378,34 +393,36 @@ class RustLabs {
                     }
 
                     /* Can the item be recycled further? */
-                    if (this.recycleData[item.itemId][recyclerType]['yield'].length > 0 && !item.itemIsBlueprint &&
-                        !IGNORED_RECYCLE_ITEMS.includes(item.itemId)) {
+                    if (
+                        this.recycleData[item.itemId][recyclerType]['yield'].length > 0 &&
+                        !item.itemIsBlueprint &&
+                        !IGNORED_RECYCLE_ITEMS.includes(item.itemId)
+                    ) {
                         noMoreIterations = false;
                         for (const recycleItem of this.recycleData[item.itemId][recyclerType]['yield']) {
                             for (let i = 0; i < item.quantity; i++) {
-                                if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability) continue;
+                                if (recycleItem.probability < 1 && Math.random() * 1 > recycleItem.probability)
+                                    continue;
 
-                                const found = expandedItems.find(e => e.itemId === recycleItem.id);
+                                const found = expandedItems.find((e) => e.itemId === recycleItem.id);
                                 if (found === undefined) {
                                     expandedItems.push({
                                         itemId: recycleItem.id,
                                         quantity: recycleItem.quantity,
-                                        itemIsBlueprint: false
+                                        itemIsBlueprint: false,
                                     });
-                                }
-                                else {
+                                } else {
                                     found.quantity += recycleItem.quantity;
                                 }
                             }
                         }
-                    }
-                    else {
-                        const found = expandedItems.find(e => e.itemId === item.itemId &&
-                            e.itemIsBlueprint === item.itemIsBlueprint);
+                    } else {
+                        const found = expandedItems.find(
+                            (e) => e.itemId === item.itemId && e.itemIsBlueprint === item.itemIsBlueprint,
+                        );
                         if (found === undefined) {
                             expandedItems.push(item);
-                        }
-                        else {
+                        } else {
                             found.quantity += item.quantity;
                         }
                     }
@@ -422,7 +439,6 @@ class RustLabs {
         return recycleData;
     }
 
-
     /***********************************************************************************
      *  Durability functions
      **********************************************************************************/
@@ -433,9 +449,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDurabilityDetails(itemIdOrName) {
-        return this.durabilityData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.durabilityData['items'].hasOwnProperty(itemIdOrName) ||
             this.durabilityData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.durabilityData['other'].hasOwnProperty(itemIdOrName);
+            this.durabilityData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -448,7 +466,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, durabilityDetails]
      */
     getDurabilityDetailsByName(name, group = null, which = null, orderedBy = null) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         if (group !== null && !this.durabilityGroups.includes(group)) return null;
         if (which !== null && !this.durabilityWhich.includes(which)) return null;
         if (orderedBy !== null && !this.orderedBy.includes(orderedBy)) return null;
@@ -461,8 +479,7 @@ class RustLabs {
             if (foundName) {
                 if (this.durabilityData['other'].hasOwnProperty(foundName)) {
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -473,8 +490,7 @@ class RustLabs {
             if (foundName) {
                 if (this.durabilityData['buildingBlocks'].hasOwnProperty(foundName)) {
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -485,8 +501,7 @@ class RustLabs {
             if (foundName) {
                 if (this.durabilityData['items'].hasOwnProperty(foundName)) {
                     return this.getDurabilityDetailsById(foundName, group, which, orderedBy);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -514,7 +529,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, durabilityDetails]
      */
     getDurabilityDetailsById(id, group = null, which = null, orderedBy = null) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasDurabilityDetails(id)) return null;
         if (group !== null && !this.durabilityGroups.includes(group)) return null;
         if (which !== null && !this.durabilityWhich.includes(which)) return null;
@@ -531,7 +546,6 @@ class RustLabs {
 
         return ['items', id, this.items.items[id], content];
     }
-
 
     /***********************************************************************************
      *  Smelting functions
@@ -552,7 +566,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, smeltingDetails]
      */
     getSmeltingDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getSmeltingDetailsById(id);
@@ -592,7 +606,6 @@ class RustLabs {
         return fromParameterSmeltingDetails;
     }
 
-
     /***********************************************************************************
      *  Despawn functions
      **********************************************************************************/
@@ -612,7 +625,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, despawnDetails]
      */
     getDespawnDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getDespawnDetailsById(id);
@@ -627,7 +640,6 @@ class RustLabs {
         if (!this.hasDespawnDetails(id)) return null;
         return [id, this.items.items[id], this.despawnData[id]];
     }
-
 
     /***********************************************************************************
      *  Stack functions
@@ -648,7 +660,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [id, itemDetails, stackDetails]
      */
     getStackDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
         const id = this.items.getClosestItemIdByName(name);
         if (!id) return null;
         return this.getStackDetailsById(id);
@@ -664,7 +676,6 @@ class RustLabs {
         return [id, this.items.items[id], this.stackData[id]];
     }
 
-
     /***********************************************************************************
      *  Decay functions
      **********************************************************************************/
@@ -675,9 +686,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDecayDetails(itemIdOrName) {
-        return this.decayData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.decayData['items'].hasOwnProperty(itemIdOrName) ||
             this.decayData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.decayData['other'].hasOwnProperty(itemIdOrName);
+            this.decayData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -687,7 +700,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, decayDetails]
      */
     getDecayDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
 
         let type = null;
 
@@ -697,8 +710,7 @@ class RustLabs {
             if (foundName) {
                 if (this.decayData['other'].hasOwnProperty(foundName)) {
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -709,8 +721,7 @@ class RustLabs {
             if (foundName) {
                 if (this.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -721,8 +732,7 @@ class RustLabs {
             if (foundName) {
                 if (this.decayData['items'].hasOwnProperty(foundName)) {
                     return this.getDecayDetailsById(foundName);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -739,12 +749,11 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, decayDetails]
      */
     getDecayDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasDecayDetails(id)) return null;
 
         return ['items', id, this.items.items[id], this.decayData['items'][id]];
     }
-
 
     /***********************************************************************************
      *  Upkeep functions
@@ -756,9 +765,11 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasUpkeepDetails(itemIdOrName) {
-        return this.upkeepData['items'].hasOwnProperty(itemIdOrName) ||
+        return (
+            this.upkeepData['items'].hasOwnProperty(itemIdOrName) ||
             this.upkeepData['buildingBlocks'].hasOwnProperty(itemIdOrName) ||
-            this.upkeepData['other'].hasOwnProperty(itemIdOrName);
+            this.upkeepData['other'].hasOwnProperty(itemIdOrName)
+        );
     }
 
     /**
@@ -768,7 +779,7 @@ class RustLabs {
      *      [type, id/name, itemDetails/name, upkeepDetails]
      */
     getUpkeepDetailsByName(name) {
-        if (typeof (name) !== 'string') return null;
+        if (typeof name !== 'string') return null;
 
         let type = null;
 
@@ -778,8 +789,7 @@ class RustLabs {
             if (foundName) {
                 if (this.upkeepData['other'].hasOwnProperty(foundName)) {
                     type = 'other';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -790,8 +800,7 @@ class RustLabs {
             if (foundName) {
                 if (this.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
                     type = 'buildingBlocks';
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -802,8 +811,7 @@ class RustLabs {
             if (foundName) {
                 if (this.upkeepData['items'].hasOwnProperty(foundName)) {
                     return this.getUpkeepDetailsById(foundName);
-                }
-                else {
+                } else {
                     foundName = null;
                 }
             }
@@ -820,7 +828,7 @@ class RustLabs {
      *  @return {array|null} null if something went wrong, otherwise [type, id, itemDetails, upkeepDetails]
      */
     getUpkeepDetailsById(id) {
-        if (typeof (id) !== 'string') return null;
+        if (typeof id !== 'string') return null;
         if (!this.hasUpkeepDetails(id)) return null;
 
         return ['items', id, this.items.items[id], this.upkeepData['items'][id]];

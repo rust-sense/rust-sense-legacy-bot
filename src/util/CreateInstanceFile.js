@@ -1,34 +1,15 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
+const fs = require('node:fs');
+const path = require('node:path');
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const Fs = require('fs');
-const Path = require('path');
-
-const InstanceUtils = require('../util/instanceUtils.js');
+const InstanceUtils = require('../util/instanceUtils');
 
 module.exports = (client, guild) => {
     let instance = null;
-    if (!Fs.existsSync(Path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
+    if (!fs.existsSync(path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
         instance = {
             firstTime: true,
             role: null,
+            adminRole: null,
             generalSettings: client.readGeneralSettingsTemplate(),
             notificationSettings: client.readNotificationSettingsTemplate(),
             channelId: {
@@ -44,14 +25,14 @@ module.exports = (client, guild) => {
                 alarms: null,
                 storageMonitors: null,
                 activity: null,
-                trackers: null
+                trackers: null,
             },
             informationMessageId: {
                 map: null,
                 server: null,
                 event: null,
                 team: null,
-                battlemetricsPlayers: null
+                battlemetricsPlayers: null,
             },
             activeServer: null,
             serverList: {},
@@ -60,18 +41,18 @@ module.exports = (client, guild) => {
             marketSubscriptionList: {
                 all: [],
                 buy: [],
-                sell: []
+                sell: [],
             },
             marketBlacklist: [],
             teamChatColors: {},
             blacklist: {
                 discordIds: [],
-                steamIds: []
+                steamIds: [],
             },
-            aliases: []
+            aliases: [],
+            customIntlMessages: {},
         };
-    }
-    else {
+    } else {
         instance = InstanceUtils.readInstanceFile(guild.id);
 
         if (!instance.hasOwnProperty('firstTime')) {
@@ -82,10 +63,13 @@ module.exports = (client, guild) => {
             instance.role = null;
         }
 
+        if (!instance.hasOwnProperty('adminRole')) {
+            instance.adminRole = null;
+        }
+
         if (!instance.hasOwnProperty('generalSettings')) {
             instance.generalSettings = client.readGeneralSettingsTemplate();
-        }
-        else {
+        } else {
             const generalSettings = client.readGeneralSettingsTemplate();
 
             for (const [key, value] of Object.entries(generalSettings)) {
@@ -97,15 +81,13 @@ module.exports = (client, guild) => {
 
         if (!instance.hasOwnProperty('notificationSettings')) {
             instance.notificationSettings = client.readNotificationSettingsTemplate();
-        }
-        else {
+        } else {
             const notificationSettings = client.readNotificationSettingsTemplate();
 
             for (const [key, value] of Object.entries(notificationSettings)) {
                 if (!instance.notificationSettings.hasOwnProperty(key)) {
                     instance.notificationSettings[key] = value;
-                }
-                else {
+                } else {
                     for (const [setting, settingValue] of Object.entries(value)) {
                         if (!instance.notificationSettings[key].hasOwnProperty(setting)) {
                             instance.notificationSettings[key][setting] = settingValue;
@@ -129,10 +111,9 @@ module.exports = (client, guild) => {
                 alarms: null,
                 storageMonitors: null,
                 activity: null,
-                trackers: null
-            }
-        }
-        else {
+                trackers: null,
+            };
+        } else {
             if (!instance.channelId.hasOwnProperty('category')) instance.channelId.category = null;
             if (!instance.channelId.hasOwnProperty('information')) instance.channelId.information = null;
             if (!instance.channelId.hasOwnProperty('servers')) instance.channelId.servers = null;
@@ -154,10 +135,9 @@ module.exports = (client, guild) => {
                 server: null,
                 event: null,
                 team: null,
-                battlemetricsPlayers: null
-            }
-        }
-        else {
+                battlemetricsPlayers: null,
+            };
+        } else {
             if (!instance.informationMessageId.hasOwnProperty('map')) instance.informationMessageId.map = null;
             if (!instance.informationMessageId.hasOwnProperty('server')) instance.informationMessageId.server = null;
             if (!instance.informationMessageId.hasOwnProperty('event')) instance.informationMessageId.event = null;
@@ -180,13 +160,15 @@ module.exports = (client, guild) => {
         if (!instance.marketSubscriptionList.hasOwnProperty('buy')) instance.marketSubscriptionList['buy'] = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('sell')) instance.marketSubscriptionList['sell'] = [];
         if (!instance.hasOwnProperty('teamChatColors')) instance.teamChatColors = {};
-        if (!instance.hasOwnProperty('blacklist')) instance.blacklist = {
-            discordIds: [],
-            steamIds: []
-        }
+        if (!instance.hasOwnProperty('blacklist'))
+            instance.blacklist = {
+                discordIds: [],
+                steamIds: [],
+            };
         if (!instance.blacklist.hasOwnProperty('discordIds')) instance.blacklist['discordIds'] = [];
         if (!instance.blacklist.hasOwnProperty('steamIds')) instance.blacklist['steamIds'] = [];
         if (!instance.hasOwnProperty('aliases')) instance.aliases = [];
+        if (!instance.hasOwnProperty('customIntlMessages')) instance.customIntlMessages = {};
 
         for (const serverId of Object.keys(instance.serverList)) {
             if (!Object.keys(instance.serverListLite).includes(serverId)) {
@@ -197,7 +179,7 @@ module.exports = (client, guild) => {
                 serverIp: instance.serverList[serverId].serverIp,
                 appPort: instance.serverList[serverId].appPort,
                 steamId: instance.serverList[serverId].steamId,
-                playerToken: instance.serverList[serverId].playerToken
+                playerToken: instance.serverList[serverId].playerToken,
             };
         }
     }

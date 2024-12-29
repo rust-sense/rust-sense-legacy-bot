@@ -1,53 +1,34 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
+const fs = require('node:fs');
+const path = require('node:path');
+const { REST, Routes } = require('discord.js');
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
-const Fs = require("fs");
-const Path = require('path');
-const Rest = require('@discordjs/rest');
-const Types = require('discord-api-types/v9');
-
-const Config = require('../../config');
+import config from '../config';
+import discordCommands from '../discordCommands';
 
 module.exports = async (client, guild) => {
-    const commands = [];
-    const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands')).filter(file => file.endsWith('.js'));
+    const commands = discordCommands.map((command) => command.getData(client, guild.id).toJSON());
 
-    for (const file of commandFiles) {
-        const command = require(`../commands/${file}`);
-        commands.push(command.getData(client, guild.id).toJSON());
-    }
+    console.debug('Registering commands:', commands);
 
-    const rest = new Rest.REST({ version: '9' }).setToken(Config.discord.token);
+    const rest = new REST().setToken(config.discord.token);
 
     try {
-        await rest.put(Types.Routes.applicationGuildCommands(Config.discord.clientId, guild.id), { body: commands });
-    }
-    catch (e) {
+        await rest.put(Routes.applicationGuildCommands(config.discord.clientId, guild.id), { body: commands });
+    } catch (e) {
         client.log(
             client.intlGet(null, 'errorCap'),
-            client.intlGet(null, 'couldNotRegisterSlashCommands', { guildId: guild.id }) +
-            client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
-            'error'
+            client.intlGet(null, 'couldNotRegisterSlashCommands', {
+                guildId: guild.id,
+            }) + client.intlGet(null, 'makeSureApplicationsCommandsEnabled'),
+            'error',
         );
         process.exit(1);
     }
-    client.log(client.intlGet(null, 'infoCap'),
-        client.intlGet(null, 'slashCommandsSuccessRegister', { guildId: guild.id }));
+
+    client.log(
+        client.intlGet(null, 'infoCap'),
+        client.intlGet(null, 'slashCommandsSuccessRegister', {
+            guildId: guild.id,
+        }),
+    );
 };

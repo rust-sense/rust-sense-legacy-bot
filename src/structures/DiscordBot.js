@@ -1,54 +1,39 @@
-/*
-    Copyright (C) 2022 Alexander Emanuelsson (alexemanuelol)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    https://github.com/alexemanuelol/rustplusplus
-
-*/
-
 const FormatJS = require('@formatjs/intl');
-const Discord = require('discord.js');
-const Fs = require('fs');
-const Path = require('path');
+import Discord from 'discord.js';
+const fs = require('node:fs');
+const path = require('node:path');
+const { IntlMessageFormat, isFormatXMLElementFn } = require('intl-messageformat');
 
 const Battlemetrics = require('../structures/Battlemetrics');
 const Cctv = require('./Cctv');
-const Config = require('../../config');
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
+import config from '../config';
+const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
-const InstanceUtils = require('../util/instanceUtils.js');
+const InstanceUtils = require('../util/instanceUtils');
 const Items = require('./Items');
-const Logger = require('./Logger.js');
-const PermissionHandler = require('../handlers/permissionHandler.js');
+const Logger = require('./Logger');
+import * as PermissionHandler from '../handlers/permissionHandler';
 const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
+const Constants = require('../util/constants');
+
+import discordCommands from '../discordCommands';
+import discordEvents from '../discordEvents';
+import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
 
 class DiscordBot extends Discord.Client {
     constructor(props) {
         super(props);
 
-        this.logger = new Logger(Path.join(__dirname, '..', '..', 'logs/discordBot.log'), 'default');
+        this.logger = new Logger(cwdPath('logs/discordBot.log'), 'default');
 
         this.commands = new Discord.Collection();
         this.fcmListeners = new Object();
         this.fcmListenersLite = new Object();
         this.instances = {};
-        this.guildIntl = {};
-        this.botIntl = null;
-        this.enIntl = null;
-        this.enMessages = JSON.parse(Fs.readFileSync(Path.join(__dirname, '..', 'languages', 'en.json')), 'utf8');
+
+        this.intlInstances = {};
+        this.customGuildIntl = {};
 
         this.rustplusInstances = new Object();
         this.activeRustplusInstances = new Object();
@@ -63,7 +48,7 @@ class DiscordBot extends Discord.Client {
         this.rustlabs = new RustLabs();
         this.cctv = new Cctv();
 
-        this.pollingIntervalMs = Config.general.pollingIntervalMs;
+        this.pollingIntervalMs = config.general.pollingIntervalMs;
 
         this.battlemetricsInstances = new Object();
 
@@ -74,116 +59,145 @@ class DiscordBot extends Discord.Client {
 
         this.loadDiscordCommands();
         this.loadDiscordEvents();
-        this.loadEnIntl();
-        this.loadBotIntl();
+        this.setupIntl();
     }
 
     loadDiscordCommands() {
-        const commandFiles = Fs.readdirSync(Path.join(__dirname, '..', 'commands'))
-            .filter(file => file.endsWith('.js'));
-        for (const file of commandFiles) {
-            const command = require(`../commands/${file}`);
+        for (const command of discordCommands) {
             this.commands.set(command.name, command);
         }
     }
 
     loadDiscordEvents() {
-        const eventFiles = Fs.readdirSync(Path.join(__dirname, '..', 'discordEvents'))
-            .filter(file => file.endsWith('.js'));
-        for (const file of eventFiles) {
-            const event = require(`../discordEvents/${file}`);
-
+        for (const event of discordEvents) {
             if (event.name === 'rateLimited') {
                 this.rest.on(event.name, (...args) => event.execute(this, ...args));
-            }
-            else if (event.once) {
+            } else if (event.once) {
                 this.once(event.name, (...args) => event.execute(this, ...args));
-            }
-            else {
+            } else {
                 this.on(event.name, (...args) => event.execute(this, ...args));
             }
         }
     }
 
-    loadEnIntl() {
-        const language = 'en';
-        const path = Path.join(__dirname, '..', 'languages', `${language}.json`);
-        const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
-        const cache = FormatJS.createIntlCache();
-        this.enIntl = FormatJS.createIntl({
-            locale: language,
-            defaultLocale: 'en',
-            messages: messages
-        }, cache);
+    setupIntl() {
+        this.localeCache = FormatJS.createIntlCache();
+
+        // Load english intl
+        this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+
+        // Load bot intl
+        this.checkLocaleIntlLoad(config.general.language);
     }
 
-    loadBotIntl() {
-        const language = Config.general.language;
-        const path = Path.join(__dirname, '..', 'languages', `${language}.json`);
-        const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
-        const cache = FormatJS.createIntlCache();
-        this.botIntl = FormatJS.createIntl({
-            locale: language,
-            defaultLocale: 'en',
-            messages: messages
-        }, cache);
+    createIntlForLocale(locale) {
+        const messages = loadJsonResourceSync(`languages/${locale}.json`);
+
+        const intlConfig = {
+            locale,
+            messages,
+            defaultLocale: Constants.DEFAULT_LOCALE,
+        };
+
+        return FormatJS.createIntl(intlConfig, this.localeCache);
     }
 
-    loadGuildIntl(guildId) {
-        const instance = InstanceUtils.readInstanceFile(guildId);
-        const language = instance.generalSettings.language;
-        const path = Path.join(__dirname, '..', 'languages', `${language}.json`);
-        const messages = JSON.parse(Fs.readFileSync(path, 'utf8'));
-        const cache = FormatJS.createIntlCache();
-        this.guildIntl[guildId] = FormatJS.createIntl({
-            locale: language,
-            defaultLocale: 'en',
-            messages: messages
-        }, cache);
-    }
-
-    loadGuildsIntl() {
-        for (const guild of this.guilds.cache) {
-            this.loadGuildIntl(guild[0]);
+    checkLocaleIntlLoad(locale) {
+        if (locale in this.intlInstances) {
+            return this.intlInstances[locale];
         }
+
+        const intlInstance = this.createIntlForLocale(locale);
+        this.intlInstances[locale] = intlInstance;
+
+        return intlInstance;
+    }
+
+    loadGuildIntl(guildId, instance) {
+        this.checkLocaleIntlLoad(instance.generalSettings.language);
+
+        for (const [key, message] of Object.entries(instance.customIntlMessages)) {
+            this.loadGuildCustomIntl(guildId, instance, key, message);
+        }
+    }
+
+    loadGuildCustomIntl(guildId, instance, key, message) {
+        if (!(guildId in this.customGuildIntl)) {
+            this.customGuildIntl[guildId] = {};
+        }
+
+        const messageFormat = new IntlMessageFormat(message, instance.generalSettings.language);
+        this.customGuildIntl[guildId][key] = messageFormat;
+    }
+
+    loadGuildsIntlFromCache() {
+        for (const guild of this.guilds.cache) {
+            const guildId = guild[0];
+            const instance = InstanceUtils.readInstanceFile(guildId);
+            this.loadGuildIntl(guildId, instance);
+        }
+    }
+
+    formatWithIntl(intlInstance, id, variables = {}) {
+        const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+        const defaultMessage = englishIntl.messages[id];
+
+        return intlInstance.formatMessage({ id, defaultMessage }, variables);
     }
 
     intlGet(guildId, id, variables = {}) {
-        let intl = null;
-        if (guildId && guildId !== 'en') {
-            intl = this.guildIntl[guildId];
-        }
-        else {
-            if (guildId === 'en') {
-                intl = this.enIntl;
-            }
-            else {
-                intl = this.botIntl;
-            }
+        // Bot Intl formatting
+        if (guildId === null) {
+            const intlInstance = this.checkLocaleIntlLoad(config.general.language);
+            return this.formatWithIntl(intlInstance, id, variables);
         }
 
-        return intl.formatMessage({
-            id: id,
-            defaultMessage: this.enMessages[id]
-        }, variables);
+        // English Intl formatting
+        if (guildId === Constants.DEFAULT_LOCALE) {
+            const intlInstance = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+            return this.formatWithIntl(intlInstance, id, variables);
+        }
+
+        // Guild custom Intl formatting
+        if (guildId in this.customGuildIntl && id in this.customGuildIntl[guildId]) {
+            const messageFormat = this.customGuildIntl[guildId][id];
+            return messageFormat.format(variables);
+        }
+
+        // Guild Intl instance formatting
+        const instance = this.getInstance(guildId);
+        const intlInstance = this.checkLocaleIntlLoad(instance.generalSettings.language);
+        return this.formatWithIntl(intlInstance, id, variables);
     }
 
     build() {
-        this.login(Config.discord.token).catch(error => {
+        this.login(config.discord.token).catch((error) => {
             switch (error.code) {
-                case 502: {
-                    this.log(this.intlGet(null, 'errorCap'),
-                        this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }), 'error')
-                } break;
+                case 502:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
+                    break;
 
-                case 503: {
-                    this.log(this.intlGet(null, 'errorCap'),
-                        this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }), 'error')
-                } break;
+                case 503:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
+                    break;
 
-                default: {
-                    this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
-                } break;
+                default:
+                    {
+                        this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
+                    }
+                    break;
             }
         });
     }
@@ -198,8 +212,8 @@ class DiscordBot extends Discord.Client {
         args['guild'] = `${interaction.member.guild.name} (${interaction.member.guild.id})`;
         args['channel'] = `${channel.name} (${interaction.channelId})`;
         args['user'] = `${interaction.user.username} (${interaction.user.id})`;
-        args[(type === 'slashCommand') ? 'command' : 'customid'] = (type === 'slashCommand') ?
-            `${interaction.commandName}` : `${interaction.customId}`;
+        args[type === 'slashCommand' ? 'command' : 'customid'] =
+            type === 'slashCommand' ? `${interaction.commandName}` : `${interaction.customId}`;
         args['id'] = `${verifyId}`;
 
         this.log(this.intlGet(null, 'infoCap'), this.intlGet(null, `${type}Interaction`, args));
@@ -211,18 +225,17 @@ class DiscordBot extends Discord.Client {
 
         await require('../discordTools/RegisterSlashCommands')(this, guild);
 
-        let category = await require('../discordTools/SetupGuildCategory')(this, guild);
+        const category = await require('../discordTools/SetupGuildCategory')(this, guild);
         await require('../discordTools/SetupGuildChannels')(this, guild, category);
+
         if (firstTime) {
             const perms = PermissionHandler.getPermissionsRemoved(this, guild);
             try {
                 await category.permissionOverwrites.set(perms);
-            }
-            catch (e) {
+            } catch (e) {
                 /* Ignore */
             }
-        }
-        else {
+        } else {
             await PermissionHandler.resetPermissionsAllChannels(this, guild);
         }
 
@@ -254,7 +267,7 @@ class DiscordBot extends Discord.Client {
         for (const [steamId, content] of Object.entries(credentials)) {
             if (steamId === 'hoster') continue;
 
-            if (!(memberIds.includes(content.discord_user_id))) {
+            if (!memberIds.includes(content.discord_user_id)) {
                 steamIdRemoveCredentials.push(steamId);
             }
         }
@@ -266,8 +279,7 @@ class DiscordBot extends Discord.Client {
                 }
                 delete this.fcmListeners[guild.id];
                 credentials.hoster = null;
-            }
-            else {
+            } else {
                 if (this.fcmListenersLite[guild.id][steamId]) {
                     this.fcmListenersLite[guild.id][steamId].destroy();
                 }
@@ -290,17 +302,15 @@ class DiscordBot extends Discord.Client {
     }
 
     readNotificationSettingsTemplate() {
-        return JSON.parse(Fs.readFileSync(
-            Path.join(__dirname, '..', 'templates/notificationSettingsTemplate.json'), 'utf8'));
+        return loadJsonResourceSync('templates/notificationSettingsTemplate.json');
     }
 
     readGeneralSettingsTemplate() {
-        return JSON.parse(Fs.readFileSync(
-            Path.join(__dirname, '..', 'templates/generalSettingsTemplate.json'), 'utf8'));
+        return loadJsonResourceSync('templates/generalSettingsTemplate.json');
     }
 
     createRustplusInstance(guildId, serverIp, appPort, steamId, playerToken) {
-        let rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
+        const rustplus = new RustPlus(guildId, serverIp, appPort, steamId, playerToken);
 
         /* Add rustplus instance to Object */
         this.rustplusInstances[guildId] = rustplus;
@@ -312,24 +322,25 @@ class DiscordBot extends Discord.Client {
     }
 
     createRustplusInstancesFromConfig() {
-        const files = Fs.readdirSync(Path.join(__dirname, '..', '..', 'instances'));
+        const files = fs.readdirSync(cwdPath('instances'));
 
-        files.forEach(file => {
-            if (!file.endsWith('.json')) return;
+        for (const file of files) {
+            if (!file.endsWith('.json')) continue;
 
             const guildId = file.replace('.json', '');
             const instance = this.getInstance(guildId);
-            if (!instance) return;
+            if (!instance) continue;
 
-            if (instance.activeServer !== null && instance.serverList.hasOwnProperty(instance.activeServer)) {
+            if (instance.activeServer !== null && Object.hasOwn(instance.serverList, instance.activeServer)) {
                 this.createRustplusInstance(
                     guildId,
                     instance.serverList[instance.activeServer].serverIp,
                     instance.serverList[instance.activeServer].appPort,
                     instance.serverList[instance.activeServer].steamId,
-                    instance.serverList[instance.activeServer].playerToken);
+                    instance.serverList[instance.activeServer].playerToken,
+                );
             }
-        });
+        }
     }
 
     resetRustplusVariables(guildId) {
@@ -348,7 +359,7 @@ class DiscordBot extends Discord.Client {
     }
 
     isJpgImageChanged(guildId, map) {
-        return ((JSON.stringify(this.rustplusMaps[guildId])) !== (JSON.stringify(map.jpgImage)));
+        return JSON.stringify(this.rustplusMaps[guildId]) !== JSON.stringify(map.jpgImage);
     }
 
     findAvailableTrackerId(guildId) {
@@ -356,7 +367,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.trackers.hasOwnProperty(randomNumber)) {
+            if (!Object.hasOwn(instance.trackers, randomNumber)) {
                 return randomNumber;
             }
         }
@@ -367,7 +378,7 @@ class DiscordBot extends Discord.Client {
 
         while (true) {
             const randomNumber = Math.floor(Math.random() * 1000);
-            if (!instance.serverList[serverId].switchGroups.hasOwnProperty(randomNumber)) {
+            if (!Object.hasOwn(instance.serverList[serverId].switchGroups, randomNumber)) {
                 return randomNumber;
             }
         }
@@ -390,19 +401,17 @@ class DiscordBot extends Discord.Client {
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
                     if (!activeInstances.includes(battlemetricsId)) {
                         activeInstances.push(battlemetricsId);
-                        if (this.battlemetricsInstances.hasOwnProperty(battlemetricsId)) {
+                        if (Object.hasOwn(this.battlemetricsInstances, battlemetricsId)) {
                             /* Update */
                             await this.battlemetricsInstances[battlemetricsId].evaluation();
-                        }
-                        else {
+                        } else {
                             /* Add */
                             const bmInstance = new Battlemetrics(battlemetricsId);
                             await bmInstance.setup();
                             this.battlemetricsInstances[battlemetricsId] = bmInstance;
                         }
                     }
-                }
-                else {
+                } else {
                     /* Battlemetrics ID is missing, try with server name. */
                     const name = instance.serverList[activeServer].title;
                     const bmInstance = new Battlemetrics(null, name);
@@ -417,8 +426,7 @@ class DiscordBot extends Discord.Client {
                                 activeInstances.push(bmInstance.id);
                                 await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
                             }
-                        }
-                        else {
+                        } else {
                             activeInstances.push(bmInstance.id);
                             this.battlemetricsInstances[bmInstance.id] = bmInstance;
                         }
@@ -432,8 +440,7 @@ class DiscordBot extends Discord.Client {
                     if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
                         /* Update */
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();
-                    }
-                    else {
+                    } else {
                         /* Add */
                         const bmInstance = new Battlemetrics(content.battlemetricsId);
                         await bmInstance.setup();
@@ -444,7 +451,7 @@ class DiscordBot extends Discord.Client {
         }
 
         /* Find instances that are no longer required and delete them. */
-        const remove = Object.keys(this.battlemetricsInstances).filter(e => !activeInstances.includes(e));
+        const remove = Object.keys(this.battlemetricsInstances).filter((e) => !activeInstances.includes(e));
         for (const id of remove) {
             delete this.battlemetricsInstances[id];
         }
@@ -453,10 +460,12 @@ class DiscordBot extends Discord.Client {
     async interactionReply(interaction, content) {
         try {
             return await interaction.reply(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionReplyFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionReplyFailed', { error: e }),
+                'error',
+            );
         }
 
         return undefined;
@@ -465,10 +474,12 @@ class DiscordBot extends Discord.Client {
     async interactionEditReply(interaction, content) {
         try {
             return await interaction.editReply(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionEditReplyFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionEditReplyFailed', { error: e }),
+                'error',
+            );
         }
 
         return undefined;
@@ -477,10 +488,12 @@ class DiscordBot extends Discord.Client {
     async interactionUpdate(interaction, content) {
         try {
             return await interaction.update(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'interactionUpdateFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(
+                this.intlGet(null, 'errorCap'),
+                this.intlGet(null, 'interactionUpdateFailed', { error: e }),
+                'error',
+            );
         }
 
         return undefined;
@@ -489,10 +502,8 @@ class DiscordBot extends Discord.Client {
     async messageEdit(message, content) {
         try {
             return await message.edit(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
         }
 
         return undefined;
@@ -501,10 +512,8 @@ class DiscordBot extends Discord.Client {
     async messageSend(channel, content) {
         try {
             return await channel.send(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
         }
 
         return undefined;
@@ -513,10 +522,8 @@ class DiscordBot extends Discord.Client {
     async messageReply(message, content) {
         try {
             return await message.reply(content);
-        }
-        catch (e) {
-            this.log(this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
+        } catch (e) {
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
         }
 
         return undefined;
@@ -525,27 +532,44 @@ class DiscordBot extends Discord.Client {
     async validatePermissions(interaction) {
         const instance = this.getInstance(interaction.guildId);
 
-        if (instance.blacklist['discordIds'].includes(interaction.user.id) &&
-            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
+        // If user is blacklisted, admin or not, deny the interaction
+        if (instance.blacklist['discordIds'].includes(interaction.user.id)) {
             return false;
         }
 
-        /* If role isn't setup yet, validate as true */
-        if (instance.role === null) return true;
+        // If role isn't setup yet, validate as true
+        if (instance.role === null) {
+            return true;
+        }
 
-        if (!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator) &&
-            !interaction.member.roles.cache.has(instance.role)) {
-            let role = DiscordTools.getRole(interaction.guildId, instance.role);
+        // If either admin or regular, allow the interaction
+        if (!this.isAdministrator(interaction) && !interaction.member.roles.cache.has(instance.role)) {
+            const role = DiscordTools.getRole(interaction.guildId, instance.role);
             const str = this.intlGet(interaction.guildId, 'notPartOfRole', { role: role.name });
             await this.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             this.log(this.intlGet(null, 'warningCap'), str);
             return false;
         }
+
         return true;
     }
 
     isAdministrator(interaction) {
-        return interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator);
+        const instance = this.getInstance(interaction.guildId);
+
+        if (interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)) {
+            return true;
+        }
+
+        if (instance.adminRole !== null && interaction.member.roles.cache.has(instance.adminRole)) {
+            return true;
+        }
+
+        if (config.discord.ownerUserId !== null && interaction.user.id === config.discord.ownerUserId) {
+            return true;
+        }
+
+        return false;
     }
 }
 
