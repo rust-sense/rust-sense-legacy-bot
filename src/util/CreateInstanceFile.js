@@ -150,11 +150,12 @@ module.exports = (client, guild) => {
         if (!instance.hasOwnProperty('serverList')) instance.serverList = {};
         if (!instance.hasOwnProperty('serverListLite')) instance.serverListLite = {};
         if (!instance.hasOwnProperty('trackers')) instance.trackers = {};
-        if (!instance.hasOwnProperty('marketSubscriptionList')) instance.marketSubscriptionList = {
-            all: [],
-            buy: [],
-            sell: []
-        }
+        if (!instance.hasOwnProperty('marketSubscriptionList'))
+            instance.marketSubscriptionList = {
+                all: [],
+                buy: [],
+                sell: [],
+            };
         if (!instance.hasOwnProperty('marketBlacklist')) instance.marketBlacklist = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('all')) instance.marketSubscriptionList['all'] = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('buy')) instance.marketSubscriptionList['buy'] = [];
