@@ -10,13 +10,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/rust-sense/legacy.git"
+        "url": "https://github.com/rust-sense/bot.git"
     },
     "author": "jamezrin",
     "bugs": {
-        "url": "https://github.com/rust-sense/legacy/issues"
+        "url": "https://github.com/rust-sense/bot/issues"
     },
-    "homepage": "https://github.com/rust-sense/legacy",
+    "homepage": "https://github.com/rust-sense/bot",
     "dependencies": {
         "@discordjs/builders": "^1.8.2",
         "@discordjs/opus": "^0.9.0",
