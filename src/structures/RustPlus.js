@@ -2760,12 +2760,12 @@ class RustPlus extends RustPlusLib {
         const strings = [];
         for (const travelingVendor of this.mapMarkers.travelingVendors) {
             if (isInfoChannel) {
-                return Client.client.intlGet(this.guildId, 'atLocation', {
+                return client.intlGet(this.guildId, 'atLocation', {
                     location: travelingVendor.location.string,
                 });
             } else {
                 strings.push(
-                    Client.client.intlGet(this.guildId, 'travelingVendorLocatedAt', {
+                    client.intlGet(this.guildId, 'travelingVendorLocatedAt', {
                         location: travelingVendor.location.string,
                     }),
                 );
@@ -2777,18 +2777,18 @@ class RustPlus extends RustPlusLib {
 
             if (wasOnMap == null) {
                 return isInfoChannel
-                    ? Client.client.intlGet(this.guildId, 'notActive')
-                    : Client.client.intlGet(this.guildId, 'travelingVendorNotCurrentlyOnMap');
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'travelingVendorNotCurrentlyOnMap');
             } else if (wasOnMap !== null) {
                 const secondsSince = (new Date() - wasOnMap) / 1000;
                 if (isInfoChannel) {
                     const timeSince = Timer.secondsToFullScale(secondsSince, 's');
-                    return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                    return client.intlGet(this.guildId, 'timeSinceLast', {
                         time: timeSince,
                     });
                 } else {
                     const timeSince = Timer.secondsToFullScale(secondsSince);
-                    return Client.client.intlGet(this.guildId, 'timeSinceTravelingVendorWasOnMap', {
+                    return client.intlGet(this.guildId, 'timeSinceTravelingVendorWasOnMap', {
                         time: timeSince,
                     });
                 }
