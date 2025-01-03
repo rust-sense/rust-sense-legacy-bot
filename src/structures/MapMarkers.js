@@ -787,7 +787,7 @@ class MapMarkers {
         /* TravelingVendor markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             marker.location = pos;
             marker.isHalted = false;
@@ -821,7 +821,7 @@ class MapMarkers {
         /* TravelingVendor markers that still remains. */
         for (let marker of remainingMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
-            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let pos = GameMap.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let travelingVendor = this.getMarkerByTypeId(this.types.TravelingVendor, marker.id);
 
             /* If TravelingVendor is halted */
