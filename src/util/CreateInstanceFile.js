@@ -43,6 +43,7 @@ module.exports = (client, guild) => {
                 buy: [],
                 sell: [],
             },
+            marketBlacklist: [],
             teamChatColors: {},
             blacklist: {
                 discordIds: [],
@@ -155,6 +156,7 @@ module.exports = (client, guild) => {
                 buy: [],
                 sell: [],
             };
+        if (!instance.hasOwnProperty('marketBlacklist')) instance.marketBlacklist = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('all')) instance.marketSubscriptionList['all'] = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('buy')) instance.marketSubscriptionList['buy'] = [];
         if (!instance.marketSubscriptionList.hasOwnProperty('sell')) instance.marketSubscriptionList['sell'] = [];

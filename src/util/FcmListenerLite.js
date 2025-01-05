@@ -49,93 +49,125 @@ module.exports = async (client, guild, steamId) => {
 
     const androidId = credentials[steamId].gcm.android_id;
     const securityToken = credentials[steamId].gcm.security_token;
-    client.fcmListenersLite[guild.id][steamId] = new PushReceiverClient(androidId, securityToken, [])
+    client.fcmListenersLite[guild.id][steamId] = new PushReceiverClient(androidId, securityToken, []);
     client.fcmListenersLite[guild.id][steamId].on('ON_DATA_RECEIVED', (data) => {
         const appData = data.appData;
 
         if (!appData) {
-            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, appData could not be found.`)
+            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, appData could not be found.`);
             return;
         }
 
-        const title = appData.find(item => item.key === 'title')?.value;
-        const message = appData.find(item => item.key === 'message')?.value;
-        const channelId = appData.find(item => item.key === 'channelId')?.value;
+        const title = appData.find((item) => item.key === 'title')?.value;
+        const message = appData.find((item) => item.key === 'message')?.value;
+        const channelId = appData.find((item) => item.key === 'channelId')?.value;
 
         if (!channelId) {
-            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, channelId could not be found.`)
+            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, channelId could not be found.`);
             return;
         }
 
-        const bodyCheck = appData.find(item => item.key === 'body');
+        const bodyCheck = appData.find((item) => item.key === 'body');
 
         if (!bodyCheck) {
-            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, body could not be found.`)
+            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, body could not be found.`);
             return;
         }
 
         const body = JSON.parse(bodyCheck.value);
 
         if (!body.type) {
-            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, body type could not be found.`)
+            client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${hoster}, body type could not be found.`);
             return;
         }
 
         switch (channelId) {
-            case 'pairing': {
-                switch (body.type) {
-                    case 'server': {
-                        client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: server`);
-                        pairingServer(client, guild, steamId, title, message, body);
-                    } break;
+            case 'pairing':
+                {
+                    switch (body.type) {
+                        case 'server':
+                            {
+                                client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: server`);
+                                pairingServer(client, guild, steamId, title, message, body);
+                            }
+                            break;
 
-                    case 'entity': {
-                        switch (body.entityName) {
-                            case 'Smart Switch': {
-                                client.log('FCM LITE',
-                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Switch`);
-                                pairingEntitySwitch(client, guild, title, message, body);
-                            } break;
+                        case 'entity':
+                            {
+                                switch (body.entityName) {
+                                    case 'Smart Switch':
+                                        {
+                                            client.log(
+                                                'FCM LITE',
+                                                `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Switch`,
+                                            );
+                                            pairingEntitySwitch(client, guild, title, message, body);
+                                        }
+                                        break;
 
-                            case 'Smart Alarm': {
-                                client.log('FCM LITE',
-                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Smart Alarm`);
-                                pairingEntitySmartAlarm(client, guild, title, message, body);
-                            } break;
+                                    case 'Smart Alarm':
+                                        {
+                                            client.log(
+                                                'FCM LITE',
+                                                `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Smart Alarm`,
+                                            );
+                                            pairingEntitySmartAlarm(client, guild, title, message, body);
+                                        }
+                                        break;
 
-                            case 'Storage Monitor': {
-                                client.log('FCM LITE',
-                                    `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Storage Monitor`);
-                                pairingEntityStorageMonitor(client, guild, title, message, body);
-                            } break;
+                                    case 'Storage Monitor':
+                                        {
+                                            client.log(
+                                                'FCM LITE',
+                                                `GuildID: ${guild.id}, SteamID: ${steamId}, pairing: entity: Storage Monitor`,
+                                            );
+                                            pairingEntityStorageMonitor(client, guild, title, message, body);
+                                        }
+                                        break;
 
-                            default: {
-                                client.log('FCM LITE',
-                                    `GuildID: ${guild.id}, SteamID: ${steamId}, ` +
-                                    `pairing: entity: other\n${JSON.stringify(data)}`);
-                            } break;
-                        }
-                    } break;
+                                    default:
+                                        {
+                                            client.log(
+                                                'FCM LITE',
+                                                `GuildID: ${guild.id}, SteamID: ${steamId}, ` +
+                                                    `pairing: entity: other\n${JSON.stringify(data)}`,
+                                            );
+                                        }
+                                        break;
+                                }
+                            }
+                            break;
 
-                    default: {
-                    } break;
+                        default:
+                            {
+                            }
+                            break;
+                    }
                 }
-            } break;
+                break;
 
-            case 'player': {
-                switch (body.type) {
-                    case 'death': {
-                        client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, player: death`);
-                        playerDeath(client, guild, title, message, body, discordUserId);
-                    } break;
+            case 'player':
+                {
+                    switch (body.type) {
+                        case 'death':
+                            {
+                                client.log('FCM LITE', `GuildID: ${guild.id}, SteamID: ${steamId}, player: death`);
+                                playerDeath(client, guild, title, message, body, discordUserId);
+                            }
+                            break;
 
-                    default: {
-                    } break;
+                        default:
+                            {
+                            }
+                            break;
+                    }
                 }
-            } break;
+                break;
 
-            default: {
-            } break;
+            default:
+                {
+                }
+                break;
         }
     });
 
@@ -341,7 +373,7 @@ async function playerDeath(client, guild, title, message, body, discordUserId) {
     if (png === null) png = isValidUrl(body.img) ? body.img : Constants.DEFAULT_SERVER_IMG;
 
     const content = {
-        embeds: [DiscordEmbeds.getPlayerDeathEmbed({ title: title }, body, png)]
+        embeds: [DiscordEmbeds.getPlayerDeathEmbed({ title: title }, body, png)],
     };
 
     await client.messageSend(user, content);

@@ -17,9 +17,9 @@ const RustLabs = require('../structures/RustLabs');
 const RustPlus = require('../structures/RustPlus');
 const Constants = require('../util/constants');
 
-import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
 import discordCommands from '../discordCommands';
 import discordEvents from '../discordEvents';
+import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
 
 class DiscordBot extends Discord.Client {
     constructor(props) {
@@ -267,7 +267,7 @@ class DiscordBot extends Discord.Client {
         for (const [steamId, content] of Object.entries(credentials)) {
             if (steamId === 'hoster') continue;
 
-            if (!(memberIds.includes(content.discord_user_id))) {
+            if (!memberIds.includes(content.discord_user_id)) {
                 steamIdRemoveCredentials.push(steamId);
             }
         }
