@@ -20,7 +20,7 @@ const Timer = require('../util/timer');
 
 import { client } from '../index';
 import rustplusEvents from '../rustplusEvents';
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */

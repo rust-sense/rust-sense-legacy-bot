@@ -3,7 +3,7 @@ const Path = require('node:path');
 
 const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
 import config from '../config';
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 export default {
     name: 'ready',

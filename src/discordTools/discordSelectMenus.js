@@ -5,7 +5,7 @@ import { client } from '../index';
 const Constants = require('../util/constants');
 const Languages = require('../util/languages');
 
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 module.exports = {
     getSelectMenu: function (options = {}) {

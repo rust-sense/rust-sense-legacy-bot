@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const Utils = require('../util/utils');
 
-const { loadJsonResourceSync } = require('../service/resourceManager');
+const { loadJsonResourceSync } = require('../utils/filesystemUtils');
 const jsonItems = loadJsonResourceSync('staticFiles/items.json');
 
 class Items {

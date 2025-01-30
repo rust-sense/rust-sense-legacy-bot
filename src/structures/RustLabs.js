@@ -1,6 +1,6 @@
 const Items = require('./Items');
 
-import { loadJsonResourceSync } from '../service/resourceManager';
+import { loadJsonResourceSync } from '../utils/filesystemUtils';
 
 const RustlabsBuildingBlocks = loadJsonResourceSync('staticFiles/rustlabsBuildingBlocks.json');
 const RustlabsOther = loadJsonResourceSync('staticFiles/rustlabsOther.json');

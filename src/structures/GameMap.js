@@ -5,7 +5,7 @@ const Jimp = require('jimp');
 const Constants = require('../util/constants');
 import { client } from '../index';
 
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 class GameMap {
     constructor(map, rustplus) {
