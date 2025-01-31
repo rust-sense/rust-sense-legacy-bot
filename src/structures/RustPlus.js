@@ -699,7 +699,7 @@ class RustPlus extends RustPlusLib {
         if (command.toLowerCase() === `${commandAlive}` || command.toLowerCase() === `${commandAliveEn}`) {
             const player = this.team.getPlayerLongestAlive();
             return client.intlGet(this.guildId, 'hasBeenAliveLongest', {
-                name: player.name,
+                name: getPlayerName(instance.generalSettings.teammateNameType, player),
                 time: player.getAliveTime(),
             });
         } else if (command.toLowerCase().startsWith(`${commandAlive} `)) {

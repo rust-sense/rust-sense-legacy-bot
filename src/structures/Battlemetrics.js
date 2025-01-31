@@ -4,7 +4,8 @@ import { client } from '../index';
 const Utils = require('../util/utils');
 
 import { loadJsonResourceSync } from '../utils/filesystemUtils';
-import { streamerModeUsernames } from '../staticFiles/streamerModeUsernames.json';
+
+const { streamerModeUsernames } = loadJsonResourceSync('staticFiles/streamerModeUsernames.json');
 
 const SERVER_LOG_SIZE = 1000;
 const CONNECTION_LOG_SIZE = 1000;

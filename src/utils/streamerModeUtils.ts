@@ -1,6 +1,6 @@
 import { loadJsonResourceSync } from './filesystemUtils';
 
-type StreamerModeUsernamesContent = {
+export type StreamerModeUsernamesContent = {
     streamerModeUsernames: string[];
 };
 
