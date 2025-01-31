@@ -1,6 +1,8 @@
 const Constants = require('../util/constants');
 const DiscordMessages = require('../discordTools/discordMessages');
 
+import { getPlayerName } from '../utils/playerNameUtils';
+
 module.exports = {
     handler: async function (rustplus, client, teamInfo) {
         /* Handle team changes */

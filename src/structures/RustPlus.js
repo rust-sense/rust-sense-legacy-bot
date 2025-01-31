@@ -21,6 +21,7 @@ const Timer = require('../util/timer');
 import { client } from '../index';
 import rustplusEvents from '../rustplusEvents';
 import { cwdPath } from '../utils/filesystemUtils';
+import { getPlayerName } from '../utils/playerNameUtils';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
