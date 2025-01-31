@@ -149,6 +149,25 @@ module.exports = async (client, interaction) => {
         );
 
         DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId, interaction);
+    } else if (interaction.customId.startsWith('TeammateNameType')) {
+        instance.generalSettings.teammateNameType = interaction.values[0];
+        client.setInstance(guildId, instance);
+
+        if (rustplus) {
+            rustplus.generalSettings.teammateNameType = interaction.values[0];
+        }
+
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'selectMenuValueChange', {
+                id: `${verifyId}`,
+                value: `${instance.generalSettings.teammateNameType}`,
+            }),
+        );
+
+        await client.interactionUpdate(interaction, {
+            components: [DiscordSelectMenus.getInGameTeammateNameMenu(guildId, interaction.values[0])],
+        });
     }
 
     client.log(

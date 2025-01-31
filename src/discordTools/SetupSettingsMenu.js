@@ -140,6 +140,18 @@ async function setupGeneralSettings(client, guildId, channel) {
         embeds: [
             DiscordEmbeds.getEmbed({
                 color: Constants.COLOR_SETTINGS,
+                title: client.intlGet(guildId, 'selectInGameTeammateNameSetting'),
+                thumbnail: `attachment://settings_logo.png`,
+            }),
+        ],
+        components: [DiscordSelectMenus.getInGameTeammateNameMenu(guildId, instance.generalSettings.teammateNameType)],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
+    });
+
+    await client.messageSend(channel, {
+        embeds: [
+            DiscordEmbeds.getEmbed({
+                color: Constants.COLOR_SETTINGS,
                 title: client.intlGet(guildId, 'commandDelaySetting'),
                 thumbnail: `attachment://settings_logo.png`,
             }),
