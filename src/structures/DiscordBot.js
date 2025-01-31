@@ -19,7 +19,7 @@ const Constants = require('../util/constants');
 
 import discordCommands from '../discordCommands';
 import discordEvents from '../discordEvents';
-import { cwdPath, loadJsonResourceSync } from '../service/resourceManager';
+import { cwdPath, loadJsonResourceSync } from '../utils/filesystemUtils';
 
 class DiscordBot extends Discord.Client {
     constructor(props) {

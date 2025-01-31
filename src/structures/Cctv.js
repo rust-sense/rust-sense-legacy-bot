@@ -1,7 +1,7 @@
 const Fs = require('node:fs');
 const Path = require('node:path');
 
-const { loadJsonResourceSync } = require('../service/resourceManager');
+const { loadJsonResourceSync } = require('../utils/filesystemUtils');
 const jsonCctv = loadJsonResourceSync('staticFiles/cctv.json');
 
 class Cctv {

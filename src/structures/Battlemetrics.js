@@ -3,8 +3,8 @@ const Axios = require('axios');
 import { client } from '../index';
 const Utils = require('../util/utils');
 
-import { loadJsonResourceSync } from '../service/resourceManager';
-const RandomUsernames = loadJsonResourceSync('staticFiles/RandomUsernames.json');
+import { loadJsonResourceSync } from '../utils/filesystemUtils';
+import { streamerModeUsernames } from '../staticFiles/streamerModeUsernames.json';
 
 const SERVER_LOG_SIZE = 1000;
 const CONNECTION_LOG_SIZE = 1000;
@@ -489,7 +489,7 @@ class Battlemetrics {
 
         const parsed = this.#parseMostTimePlayedApiResponse(data);
         for (const player of parsed.players) {
-            if (!RandomUsernames.RandomUsernames.includes(player.name)) this.streamerMode = false;
+            if (!streamerModeUsernames.includes(player.name)) this.streamerMode = false;
         }
     }
 
@@ -693,7 +693,7 @@ class Battlemetrics {
 
             const name = Utils.removeInvisibleCharacters(entity.attributes.name);
 
-            if (!RandomUsernames.RandomUsernames.includes(name)) this.streamerMode = false;
+            if (!streamerModeUsernames.includes(name)) this.streamerMode = false;
 
             /**
              * Attributes description from Battlemetrics API Documentation

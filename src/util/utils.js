@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadJsonResourceSync } = require('../service/resourceManager');
+const { loadJsonResourceSync } = require('../utils/filesystemUtils');
 
 const htmlReservedSymbols = loadJsonResourceSync('staticFiles/htmlReservedSymbols.json');
 

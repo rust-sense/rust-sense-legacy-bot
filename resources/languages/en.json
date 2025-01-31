@@ -818,5 +818,12 @@
     "wipeDetected": "Wipe detected!",
     "yield": "Yield",
     "youAreAlreadyLeader": "You are already leader.",
-    "youAreNotPairedWithServer": "Leader command does not work because you're not paired with the server."
+    "youAreNotPairedWithServer": "Leader command does not work because you're not paired with the server.",
+    "selectInGameTeammateNameSetting": "Name of the player mentioned in In-Game notifications.",
+    "teammateNameTypeReal": "Real Name",
+    "teammateNameTypeRealDescription": "The real name of the player in Steam",
+    "teammateNameTypeStreamerMode": "Streamer Mode Name",
+    "teammateNameTypeStreamerModeDescription": "The streamer mode name of the player",
+    "teammateNameTypeCombined": "Combined",
+    "teammateNameTypeCombinedDescription": "The real name of the player followed by the streamer mode name in parenthesis"
 }

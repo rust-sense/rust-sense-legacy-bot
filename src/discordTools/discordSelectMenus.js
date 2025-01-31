@@ -5,7 +5,7 @@ import { client } from '../index';
 const Constants = require('../util/constants');
 const Languages = require('../util/languages');
 
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 module.exports = {
     getSelectMenu: function (options = {}) {
@@ -294,6 +294,42 @@ module.exports = {
                         label: client.intlGet(guildId, 'commandsVoiceFemale'),
                         description: client.intlGet(guildId, 'commandsVoiceFemaleDescription'),
                         value: 'female',
+                    },
+                ],
+            }),
+        );
+    },
+
+    getInGameTeammateNameMenu: function (guildId, teammateNameType) {
+        const teammateNameTypeReal = client.intlGet(guildId, 'teammateNameTypeReal');
+        const teammateNameTypeStreamerMode = client.intlGet(guildId, 'teammateNameTypeStreamerMode');
+        const teammateNameTypeCombined = client.intlGet(guildId, 'teammateNameTypeCombined');
+
+        const placeholderMap = {
+            realName: teammateNameTypeReal,
+            streamerMode: teammateNameTypeStreamerMode,
+            combined: teammateNameTypeCombined,
+        };
+
+        return new Discord.ActionRowBuilder().addComponents(
+            module.exports.getSelectMenu({
+                customId: 'TeammateNameType',
+                placeholder: placeholderMap[teammateNameType],
+                options: [
+                    {
+                        label: teammateNameTypeReal,
+                        description: client.intlGet(guildId, 'teammateNameTypeRealDescription'),
+                        value: 'realName',
+                    },
+                    {
+                        label: teammateNameTypeStreamerMode,
+                        description: client.intlGet(guildId, 'teammateNameTypeStreamerModeDescription'),
+                        value: 'streamerMode',
+                    },
+                    {
+                        label: teammateNameTypeCombined,
+                        description: client.intlGet(guildId, 'teammateNameTypeCombinedDescription'),
+                        value: 'combined',
                     },
                 ],
             }),
