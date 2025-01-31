@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 
-import { cwdPath, loadJson, loadJsonSync, writeJson, writeJsonSync } from '../service/resourceManager';
+import { cwdPath, loadJson, loadJsonSync, writeJson, writeJsonSync } from '../utils/filesystemUtils';
 
 module.exports = {
     readInstanceFile: (guildId) => {

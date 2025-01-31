@@ -1,7 +1,7 @@
 const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 import { client } from '../index';
 
-import { loadJsonResourceSync } from '../service/resourceManager';
+import { loadJsonResourceSync } from '../utils/filesystemUtils';
 const Actors = loadJsonResourceSync('staticFiles/actors.json');
 
 module.exports = {

@@ -8,8 +8,6 @@ import discordCommands from '../discordCommands';
 module.exports = async (client, guild) => {
     const commands = discordCommands.map((command) => command.getData(client, guild.id).toJSON());
 
-    console.debug('Registering commands:', commands);
-
     const rest = new REST().setToken(config.discord.token);
 
     try {

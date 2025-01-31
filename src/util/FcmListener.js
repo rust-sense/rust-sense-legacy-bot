@@ -12,7 +12,7 @@ const InstanceUtils = require('../util/instanceUtils');
 const GameMap = require('./GameMap');
 const Scrape = require('../util/scrape');
 
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 module.exports = async (client, guild) => {
     const credentials = InstanceUtils.readCredentialsFile(guild.id);

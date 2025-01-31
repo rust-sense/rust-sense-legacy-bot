@@ -1,5 +1,5 @@
 const fs = require('node:fs');
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 module.exports = (client, guild) => {
     const guildCredentialsFilePath = cwdPath('credentials', `${guild.id}.json`);

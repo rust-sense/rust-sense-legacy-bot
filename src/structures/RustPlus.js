@@ -20,7 +20,7 @@ const Timer = require('../util/timer');
 
 import { client } from '../index';
 import rustplusEvents from '../rustplusEvents';
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
@@ -699,7 +699,7 @@ class RustPlus extends RustPlusLib {
         if (command.toLowerCase() === `${commandAlive}` || command.toLowerCase() === `${commandAliveEn}`) {
             const player = this.team.getPlayerLongestAlive();
             return client.intlGet(this.guildId, 'hasBeenAliveLongest', {
-                name: player.name,
+                name: getPlayerName(instance.generalSettings.teammateNameType, player),
                 time: player.getAliveTime(),
             });
         } else if (command.toLowerCase().startsWith(`${commandAlive} `)) {
@@ -713,7 +713,7 @@ class RustPlus extends RustPlusLib {
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
                 return client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
-                    name: player.name,
+                    name: getPlayerName(instance.generalSettings.teammateNameType, player),
                     time: player.getAliveTime(),
                 });
             }

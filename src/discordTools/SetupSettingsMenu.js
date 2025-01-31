@@ -6,7 +6,7 @@ const DiscordEmbeds = require('./discordEmbeds');
 const DiscordSelectMenus = require('./discordSelectMenus');
 const DiscordTools = require('./discordTools');
 
-import { cwdPath } from '../service/resourceManager';
+import { cwdPath } from '../utils/filesystemUtils';
 
 module.exports = async (client, guild, forced = false) => {
     const instance = client.getInstance(guild.id);
@@ -133,6 +133,18 @@ async function setupGeneralSettings(client, guildId, channel) {
             }),
         ],
         components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
+    });
+
+    await client.messageSend(channel, {
+        embeds: [
+            DiscordEmbeds.getEmbed({
+                color: Constants.COLOR_SETTINGS,
+                title: client.intlGet(guildId, 'selectInGameTeammateNameSetting'),
+                thumbnail: `attachment://settings_logo.png`,
+            }),
+        ],
+        components: [DiscordSelectMenus.getInGameTeammateNameMenu(guildId, instance.generalSettings.teammateNameType)],
         files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
