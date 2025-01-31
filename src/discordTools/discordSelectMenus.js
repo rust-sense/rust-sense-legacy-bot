@@ -314,7 +314,7 @@ module.exports = {
         return new Discord.ActionRowBuilder().addComponents(
             module.exports.getSelectMenu({
                 customId: 'TeammateNameType',
-                placeholder: placeholderMap[teammateNameType],
+                placeholder: placeholderMap[teammateNameType] ?? teammateNameTypeReal,
                 options: [
                     {
                         label: teammateNameTypeReal,
