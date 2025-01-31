@@ -713,7 +713,7 @@ class RustPlus extends RustPlusLib {
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
                 return client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
-                    name: player.name,
+                    name: getPlayerName(instance.generalSettings.teammateNameType, player),
                     time: player.getAliveTime(),
                 });
             }
