@@ -1,7 +1,7 @@
 import { PlayerInfo, PlayerNameType } from '../types/Player';
 import { getStreamerModeUsername } from './streamerModeUtils';
 
-export function getPlayerName(playerInfo: PlayerInfo, playerNameType: PlayerNameType): string {
+export function getPlayerName(playerNameType: PlayerNameType, playerInfo: PlayerInfo): string {
     switch (playerNameType) {
         case 'realName':
             return playerInfo.name;
