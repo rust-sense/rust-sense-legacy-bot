@@ -307,8 +307,8 @@ module.exports = {
 
         const placeholderMap = {
             realName: teammateNameTypeReal,
-            streamerMode: teammateNameTypeStreamerMode,
-            combined: teammateNameTypeCombined,
+            streamerModeName: teammateNameTypeStreamerMode,
+            combinedName: teammateNameTypeCombined,
         };
 
         return new Discord.ActionRowBuilder().addComponents(
@@ -324,12 +324,12 @@ module.exports = {
                     {
                         label: teammateNameTypeStreamerMode,
                         description: client.intlGet(guildId, 'teammateNameTypeStreamerModeDescription'),
-                        value: 'streamerMode',
+                        value: 'streamerModeName',
                     },
                     {
                         label: teammateNameTypeCombined,
                         description: client.intlGet(guildId, 'teammateNameTypeCombinedDescription'),
-                        value: 'combined',
+                        value: 'combinedName',
                     },
                 ],
             }),
