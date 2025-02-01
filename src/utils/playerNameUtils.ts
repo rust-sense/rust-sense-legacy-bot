@@ -8,7 +8,7 @@ export function getPlayerName(playerNameType: PlayerNameType, playerInfo: Player
             return playerInfo.name;
         case 'streamerModeName':
             return getStreamerModeUsername(playerInfo.steamId);
-        case 'combined':
+        case 'combinedName':
             return `${playerInfo.name} (${getStreamerModeUsername(playerInfo.steamId)})`;
     }
 }

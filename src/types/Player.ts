@@ -1,4 +1,4 @@
-export type PlayerNameType = 'realName' | 'streamerModeName' | 'combined';
+export type PlayerNameType = 'realName' | 'streamerModeName' | 'combinedName';
 
 export type PlayerInfo = {
     name: string;
