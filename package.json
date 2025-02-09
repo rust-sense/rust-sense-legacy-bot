@@ -6,7 +6,10 @@
     "scripts": {
         "start": "node dist/index.js",
         "build": "tsc",
-        "test": "tsc --noEmit"
+        "test": "tsc --noEmit",
+        "dev:tsc": "tsc -w",
+        "dev:node": "node --watch dist/index.js",
+        "dev": "concurrently -n \"tsc,node\" -c \"yellow.bold,green.bold\" \"npm run dev:tsc\" \"npm run dev:node\""
     },
     "repository": {
         "type": "git",
@@ -46,6 +49,7 @@
     "devDependencies": {
         "@biomejs/biome": "1.8.3",
         "@types/node": "^20.14.10",
+        "concurrently": "^9.1.2",
         "typescript": "^5.2.2"
     }
 }
