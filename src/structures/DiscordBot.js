@@ -325,11 +325,15 @@ class DiscordBot extends Discord.Client {
         const files = fs.readdirSync(cwdPath('instances'));
 
         for (const file of files) {
-            if (!file.endsWith('.json')) continue;
+            if (!file.endsWith('.json')) {
+                continue;
+            }
 
             const guildId = file.replace('.json', '');
             const instance = this.getInstance(guildId);
-            if (!instance) continue;
+            if (!instance) {
+                continue;
+            }
 
             if (instance.activeServer !== null && Object.hasOwn(instance.serverList, instance.activeServer)) {
                 this.createRustplusInstance(
@@ -395,7 +399,7 @@ class DiscordBot extends Discord.Client {
             const guildId = guild[0];
             const instance = this.getInstance(guildId);
             const activeServer = instance.activeServer;
-            if (activeServer !== null && instance.serverList.hasOwnProperty(activeServer)) {
+            if (activeServer !== null && Object.hasOwn(instance.serverList, activeServer)) {
                 if (instance.serverList[activeServer].battlemetricsId !== null) {
                     /* A Battlemetrics ID exist. */
                     const battlemetricsId = instance.serverList[activeServer].battlemetricsId;
@@ -421,7 +425,7 @@ class DiscordBot extends Discord.Client {
                         instance.serverList[activeServer].battlemetricsId = bmInstance.id;
                         this.setInstance(guildId, instance);
 
-                        if (this.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+                        if (Object.hasOwn(this.battlemetricsInstances, bmInstance.id)) {
                             if (!activeInstances.includes(bmInstance.id)) {
                                 activeInstances.push(bmInstance.id);
                                 await this.battlemetricsInstances[bmInstance.id].evaluation(bmInstance.data);
@@ -437,7 +441,7 @@ class DiscordBot extends Discord.Client {
             for (const [trackerId, content] of Object.entries(instance.trackers)) {
                 if (!activeInstances.includes(content.battlemetricsId)) {
                     activeInstances.push(content.battlemetricsId);
-                    if (this.battlemetricsInstances.hasOwnProperty(content.battlemetricsId)) {
+                    if (Object.hasOwn(this.battlemetricsInstances, content.battlemetricsId)) {
                         /* Update */
                         await this.battlemetricsInstances[content.battlemetricsId].evaluation();
                     } else {

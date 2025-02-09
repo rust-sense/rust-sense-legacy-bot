@@ -7,8 +7,8 @@ module.exports = {
     getModal: function (options = {}) {
         const modal = new Discord.ModalBuilder();
 
-        if (options.hasOwnProperty('customId')) modal.setCustomId(options.customId);
-        if (options.hasOwnProperty('title')) modal.setTitle(options.title.slice(0, 45));
+        if (Object.hasOwn(options, 'customId')) modal.setCustomId(options.customId);
+        if (Object.hasOwn(options, 'title')) modal.setTitle(options.title.slice(0, 45));
 
         return modal;
     },

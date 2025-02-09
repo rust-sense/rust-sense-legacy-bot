@@ -300,7 +300,7 @@ class Battlemetrics {
             parsed['players'].push(player);
         }
 
-        if (data.hasOwnProperty('links') && data['links'].hasOwnProperty('next')) {
+        if (Object.hasOwn(data, 'links') && data['links'].hasOwnProperty('next')) {
             parsed['next'] = data.links.next;
         }
 
@@ -317,7 +317,7 @@ class Battlemetrics {
 
         for (const name of data.included) {
             if (name.type !== 'identifier') continue;
-            if (!name.hasOwnProperty('attributes')) continue;
+            if (!Object.hasOwn(name, 'attributes')) continue;
             if (!name['attributes'].hasOwnProperty('type')) continue;
             if (name['attributes']['type'] !== 'name') continue;
             if (!name['attributes'].hasOwnProperty('identifier')) continue;
@@ -349,7 +349,7 @@ class Battlemetrics {
      *  @param {object} data Types 0 = Login, 1 = Logout. And time in iso format.
      */
     #updateConnectionLog(id, data) {
-        if (!this.players.hasOwnProperty(id)) return;
+        if (!Object.hasOwn(this.players, id)) return;
 
         if (this.players[id]['connectionLog'].length === PLAYER_CONNECTION_LOG_SIZE) {
             this.players[id]['connectionLog'].pop();
@@ -369,7 +369,7 @@ class Battlemetrics {
      *  @param {object} data From and To names and time in iso format.
      */
     #updateNameChangeHistory(id, data) {
-        if (!this.players.hasOwnProperty(id)) return;
+        if (!Object.hasOwn(this.players, id)) return;
 
         if (this.players[id]['nameChangeHistory'].length === NAME_CHANGE_LOG_SIZE) {
             this.players[id]['nameChangeHistory'].pop();
@@ -711,7 +711,7 @@ class Battlemetrics {
              *                  server.
              */
 
-            if (!this.players.hasOwnProperty(entity.id)) {
+            if (!Object.hasOwn(this.players, entity.id)) {
                 /* New Player */
                 this.players[entity.id] = new Object();
 
@@ -867,7 +867,7 @@ class Battlemetrics {
     getOnlineTime(playerId) {
         if (
             !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
+            !Object.hasOwn(this.players, playerId) ||
             !this.players[playerId]['updatedAt']
         ) {
             return null;
@@ -884,7 +884,7 @@ class Battlemetrics {
     getOfflineTime(playerId) {
         if (
             !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
+            !Object.hasOwn(this.players, playerId) ||
             !this.players[playerId]['logoutDate']
         ) {
             return null;
@@ -933,7 +933,7 @@ class Battlemetrics {
     getOfflineTime(playerId) {
         if (
             !this.lastUpdateSuccessful ||
-            !this.players.hasOwnProperty(playerId) ||
+            !Object.hasOwn(this.players, playerId) ||
             !this.players[playerId]['logoutDate']
         ) {
             return null;

@@ -259,7 +259,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasCraftDetails(itemId) {
-        return this.craftData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.craftData, itemId);
     }
 
     /**
@@ -294,7 +294,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasResearchDetails(itemId) {
-        return this.researchData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.researchData, itemId);
     }
 
     /**
@@ -329,7 +329,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasRecycleDetails(itemId) {
-        return this.recycleData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.recycleData, itemId);
     }
 
     /**
@@ -557,7 +557,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasSmeltingDetails(itemId) {
-        return this.smeltingData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.smeltingData, itemId);
     }
 
     /**
@@ -589,12 +589,12 @@ class RustLabs {
      *      from parameter item.
      */
     getSmeltingDetailsFromParameterById(id) {
-        if (!this.items.hasOwnProperty(id)) return null;
+        if (!Object.hasOwn(this.items, id)) return null;
         const fromParameterSmeltingDetails = new Object();
         for (const [smeltingTool, smeltingDetails] of Object.entries(this.smeltingData)) {
             for (const details of smeltingDetails) {
                 if (details.fromId === id) {
-                    if (!fromParameterSmeltingDetails.hasOwnProperty(smeltingTool)) {
+                    if (!Object.hasOwn(fromParameterSmeltingDetails, smeltingTool)) {
                         fromParameterSmeltingDetails[smeltingTool] = [];
                     }
 
@@ -616,7 +616,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasDespawnDetails(itemId) {
-        return this.despawnData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.despawnData, itemId);
     }
 
     /**
@@ -651,7 +651,7 @@ class RustLabs {
      *  @return {boolean} true if exist, otherwise false.
      */
     hasStackDetails(itemId) {
-        return this.stackData.hasOwnProperty(itemId);
+        return Object.hasOwn(this.stackData, itemId);
     }
 
     /**

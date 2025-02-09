@@ -156,7 +156,7 @@ class RustPlus extends RustPlusLib {
 
     isServerAvailable() {
         const instance = client.getInstance(this.guildId);
-        return instance.serverList.hasOwnProperty(this.serverId);
+        return Object.hasOwn(instance.serverList, this.serverId);
     }
 
     updateConnections(steamId, str) {
@@ -168,7 +168,7 @@ class RustPlus extends RustPlusLib {
         }
         this.allConnections.unshift(savedString);
 
-        if (!this.playerConnections.hasOwnProperty(steamId)) {
+        if (!Object.hasOwn(this.playerConnections, steamId)) {
             this.playerConnections[steamId] = [];
         }
 
@@ -187,7 +187,7 @@ class RustPlus extends RustPlusLib {
         }
         this.allDeaths.unshift(data);
 
-        if (!this.playerDeaths.hasOwnProperty(steamId)) {
+        if (!Object.hasOwn(this.playerDeaths, steamId)) {
             this.playerDeaths[steamId] = [];
         }
 
@@ -229,7 +229,7 @@ class RustPlus extends RustPlusLib {
         this.isDeleted = true;
         this.disconnect();
 
-        if (client.rustplusInstances.hasOwnProperty(this.guildId)) {
+        if (Object.hasOwn(client.rustplusInstances, this.guildId)) {
             if (client.rustplusInstances[this.guildId].serverId === this.serverId) {
                 delete client.rustplusInstances[this.guildId];
                 return true;
@@ -893,7 +893,7 @@ class RustPlus extends RustPlusLib {
 
             for (const player of this.team.players) {
                 if (player.name.includes(name)) {
-                    if (!this.playerConnections.hasOwnProperty(player.steamId)) {
+                    if (!Object.hasOwn(this.playerConnections, player.steamId)) {
                         this.playerConnections[player.steamId] = [];
                     }
 
@@ -1057,7 +1057,7 @@ class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                if (!this.playerDeaths.hasOwnProperty(player.steamId)) {
+                if (!Object.hasOwn(this.playerDeaths, player.steamId)) {
                     this.playerDeaths[player.steamId] = [];
                 }
 
@@ -1771,7 +1771,7 @@ class RustPlus extends RustPlusLib {
 
                     const locations = [];
                     for (const vendingMachine of this.mapMarkers.vendingMachines) {
-                        if (!vendingMachine.hasOwnProperty('sellOrders')) continue;
+                        if (!Object.hasOwn(vendingMachine, 'sellOrders')) continue;
 
                         for (const order of vendingMachine.sellOrders) {
                             if (order.amountInStock === 0) continue;

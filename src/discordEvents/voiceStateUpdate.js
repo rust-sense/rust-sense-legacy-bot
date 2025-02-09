@@ -11,7 +11,7 @@ export default {
 async function checkBotLeaveVoice(client, oldState, newState) {
     const guildId = oldState.guild.id;
 
-    if (!client.voiceLeaveTimeouts.hasOwnProperty(guildId)) client.voiceLeaveTimeouts[guildId] = null;
+    if (!Object.hasOwn(client.voiceLeaveTimeouts, guildId)) client.voiceLeaveTimeouts[guildId] = null;
 
     /* No channel involved. */
     if (oldState.channel === null && newState.channel === null) return;
