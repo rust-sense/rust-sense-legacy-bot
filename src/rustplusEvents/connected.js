@@ -45,7 +45,7 @@ export default {
         const info = await rustplus.getInfoAsync();
         if (rustplus.isResponseValid(info)) rustplus.info = new Info(info.info);
 
-        if (client.rustplusMaps.hasOwnProperty(guildId)) {
+        if (Object.hasOwn(client.rustplusMaps, guildId)) {
             if (client.isJpgImageChanged(guildId, map.map)) {
                 rustplus.map = new GameMap(map.map, rustplus);
 

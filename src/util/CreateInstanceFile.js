@@ -55,37 +55,37 @@ module.exports = (client, guild) => {
     } else {
         instance = InstanceUtils.readInstanceFile(guild.id);
 
-        if (!instance.hasOwnProperty('firstTime')) {
+        if (!Object.hasOwn(instance, 'firstTime')) {
             instance.firstTime = true;
         }
 
-        if (!instance.hasOwnProperty('role')) {
+        if (!Object.hasOwn(instance, 'role')) {
             instance.role = null;
         }
 
-        if (!instance.hasOwnProperty('adminRole')) {
+        if (!Object.hasOwn(instance, 'adminRole')) {
             instance.adminRole = null;
         }
 
-        if (!instance.hasOwnProperty('generalSettings')) {
+        if (!Object.hasOwn(instance, 'generalSettings')) {
             instance.generalSettings = client.readGeneralSettingsTemplate();
         } else {
             const generalSettings = client.readGeneralSettingsTemplate();
 
             for (const [key, value] of Object.entries(generalSettings)) {
-                if (!instance.generalSettings.hasOwnProperty(key)) {
+                if (!Object.hasOwn(instance.generalSettings, key)) {
                     instance.generalSettings[key] = value;
                 }
             }
         }
 
-        if (!instance.hasOwnProperty('notificationSettings')) {
+        if (!Object.hasOwn(instance, 'notificationSettings')) {
             instance.notificationSettings = client.readNotificationSettingsTemplate();
         } else {
             const notificationSettings = client.readNotificationSettingsTemplate();
 
             for (const [key, value] of Object.entries(notificationSettings)) {
-                if (!instance.notificationSettings.hasOwnProperty(key)) {
+                if (!Object.hasOwn(instance.notificationSettings, key)) {
                     instance.notificationSettings[key] = value;
                 } else {
                     for (const [setting, settingValue] of Object.entries(value)) {
@@ -97,7 +97,7 @@ module.exports = (client, guild) => {
             }
         }
 
-        if (!instance.hasOwnProperty('channelId')) {
+        if (!Object.hasOwn(instance, 'channelId')) {
             instance.channelId = {
                 category: null,
                 information: null,
@@ -114,22 +114,22 @@ module.exports = (client, guild) => {
                 trackers: null,
             };
         } else {
-            if (!instance.channelId.hasOwnProperty('category')) instance.channelId.category = null;
-            if (!instance.channelId.hasOwnProperty('information')) instance.channelId.information = null;
-            if (!instance.channelId.hasOwnProperty('servers')) instance.channelId.servers = null;
-            if (!instance.channelId.hasOwnProperty('settings')) instance.channelId.settings = null;
-            if (!instance.channelId.hasOwnProperty('commands')) instance.channelId.commands = null;
-            if (!instance.channelId.hasOwnProperty('events')) instance.channelId.events = null;
-            if (!instance.channelId.hasOwnProperty('teamchat')) instance.channelId.teamchat = null;
-            if (!instance.channelId.hasOwnProperty('switches')) instance.channelId.switches = null;
-            if (!instance.channelId.hasOwnProperty('switchGroups')) instance.channelId.switchGroups = null;
-            if (!instance.channelId.hasOwnProperty('alarms')) instance.channelId.alarms = null;
-            if (!instance.channelId.hasOwnProperty('storageMonitors')) instance.channelId.storageMonitors = null;
-            if (!instance.channelId.hasOwnProperty('activity')) instance.channelId.activity = null;
-            if (!instance.channelId.hasOwnProperty('trackers')) instance.channelId.trackers = null;
+            if (!Object.hasOwn(instance.channelId, 'category')) instance.channelId.category = null;
+            if (!Object.hasOwn(instance.channelId, 'information')) instance.channelId.information = null;
+            if (!Object.hasOwn(instance.channelId, 'servers')) instance.channelId.servers = null;
+            if (!Object.hasOwn(instance.channelId, 'settings')) instance.channelId.settings = null;
+            if (!Object.hasOwn(instance.channelId, 'commands')) instance.channelId.commands = null;
+            if (!Object.hasOwn(instance.channelId, 'events')) instance.channelId.events = null;
+            if (!Object.hasOwn(instance.channelId, 'teamchat')) instance.channelId.teamchat = null;
+            if (!Object.hasOwn(instance.channelId, 'switches')) instance.channelId.switches = null;
+            if (!Object.hasOwn(instance.channelId, 'switchGroups')) instance.channelId.switchGroups = null;
+            if (!Object.hasOwn(instance.channelId, 'alarms')) instance.channelId.alarms = null;
+            if (!Object.hasOwn(instance.channelId, 'storageMonitors')) instance.channelId.storageMonitors = null;
+            if (!Object.hasOwn(instance.channelId, 'activity')) instance.channelId.activity = null;
+            if (!Object.hasOwn(instance.channelId, 'trackers')) instance.channelId.trackers = null;
         }
 
-        if (!instance.hasOwnProperty('informationMessageId')) {
+        if (!Object.hasOwn(instance, 'informationMessageId')) {
             instance.informationMessageId = {
                 map: null,
                 server: null,
@@ -138,38 +138,38 @@ module.exports = (client, guild) => {
                 battlemetricsPlayers: null,
             };
         } else {
-            if (!instance.informationMessageId.hasOwnProperty('map')) instance.informationMessageId.map = null;
-            if (!instance.informationMessageId.hasOwnProperty('server')) instance.informationMessageId.server = null;
-            if (!instance.informationMessageId.hasOwnProperty('event')) instance.informationMessageId.event = null;
-            if (!instance.informationMessageId.hasOwnProperty('team')) instance.informationMessageId.team = null;
-            if (!instance.informationMessageId.hasOwnProperty('team'))
+            if (!Object.hasOwn(instance.informationMessageId, 'map')) instance.informationMessageId.map = null;
+            if (!Object.hasOwn(instance.informationMessageId, 'server')) instance.informationMessageId.server = null;
+            if (!Object.hasOwn(instance.informationMessageId, 'event')) instance.informationMessageId.event = null;
+            if (!Object.hasOwn(instance.informationMessageId, 'team')) instance.informationMessageId.team = null;
+            if (!Object.hasOwn(instance.informationMessageId, 'team'))
                 instance.informationMessageId.battlemetricsPlayers = null;
         }
 
-        if (!instance.hasOwnProperty('activeServer')) instance.activeServer = null;
-        if (!instance.hasOwnProperty('serverList')) instance.serverList = {};
-        if (!instance.hasOwnProperty('serverListLite')) instance.serverListLite = {};
-        if (!instance.hasOwnProperty('trackers')) instance.trackers = {};
-        if (!instance.hasOwnProperty('marketSubscriptionList'))
+        if (!Object.hasOwn(instance, 'activeServer')) instance.activeServer = null;
+        if (!Object.hasOwn(instance, 'serverList')) instance.serverList = {};
+        if (!Object.hasOwn(instance, 'serverListLite')) instance.serverListLite = {};
+        if (!Object.hasOwn(instance, 'trackers')) instance.trackers = {};
+        if (!Object.hasOwn(instance, 'marketSubscriptionList'))
             instance.marketSubscriptionList = {
                 all: [],
                 buy: [],
                 sell: [],
             };
-        if (!instance.hasOwnProperty('marketBlacklist')) instance.marketBlacklist = [];
-        if (!instance.marketSubscriptionList.hasOwnProperty('all')) instance.marketSubscriptionList['all'] = [];
-        if (!instance.marketSubscriptionList.hasOwnProperty('buy')) instance.marketSubscriptionList['buy'] = [];
-        if (!instance.marketSubscriptionList.hasOwnProperty('sell')) instance.marketSubscriptionList['sell'] = [];
-        if (!instance.hasOwnProperty('teamChatColors')) instance.teamChatColors = {};
-        if (!instance.hasOwnProperty('blacklist'))
+        if (!Object.hasOwn(instance, 'marketBlacklist')) instance.marketBlacklist = [];
+        if (!Object.hasOwn(instance.marketSubscriptionList, 'all')) instance.marketSubscriptionList['all'] = [];
+        if (!Object.hasOwn(instance.marketSubscriptionList, 'buy')) instance.marketSubscriptionList['buy'] = [];
+        if (!Object.hasOwn(instance.marketSubscriptionList, 'sell')) instance.marketSubscriptionList['sell'] = [];
+        if (!Object.hasOwn(instance, 'teamChatColors')) instance.teamChatColors = {};
+        if (!Object.hasOwn(instance, 'blacklist'))
             instance.blacklist = {
                 discordIds: [],
                 steamIds: [],
             };
-        if (!instance.blacklist.hasOwnProperty('discordIds')) instance.blacklist['discordIds'] = [];
-        if (!instance.blacklist.hasOwnProperty('steamIds')) instance.blacklist['steamIds'] = [];
-        if (!instance.hasOwnProperty('aliases')) instance.aliases = [];
-        if (!instance.hasOwnProperty('customIntlMessages')) instance.customIntlMessages = {};
+        if (!Object.hasOwn(instance.blacklist, 'discordIds')) instance.blacklist['discordIds'] = [];
+        if (!Object.hasOwn(instance.blacklist, 'steamIds')) instance.blacklist['steamIds'] = [];
+        if (!Object.hasOwn(instance, 'aliases')) instance.aliases = [];
+        if (!Object.hasOwn(instance, 'customIntlMessages')) instance.customIntlMessages = {};
 
         for (const serverId of Object.keys(instance.serverList)) {
             if (!Object.keys(instance.serverListLite).includes(serverId)) {
@@ -187,7 +187,7 @@ module.exports = (client, guild) => {
 
     /* Check every serverList for missing keys */
     for (const [serverId, content] of Object.entries(instance.serverList)) {
-        if (!content.hasOwnProperty('customCameraGroups')) content.customCameraGroups = {};
+        if (!Object.hasOwn(content, 'customCameraGroups')) content.customCameraGroups = {};
     }
 
     client.setInstance(guild.id, instance);

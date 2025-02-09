@@ -37,7 +37,7 @@ module.exports = {
         const actionSwitches = [];
         for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches)) {
             if (switches.includes(entityId)) {
-                if (rustplus.currentSwitchTimeouts.hasOwnProperty(entityId)) {
+                if (Object.hasOwn(rustplus.currentSwitchTimeouts, entityId)) {
                     clearTimeout(rustplus.currentSwitchTimeouts[entityId]);
                     delete rustplus.currentSwitchTimeouts[entityId];
                 }
@@ -132,7 +132,7 @@ module.exports = {
             return true;
         }
 
-        if (rustplus.currentSwitchTimeouts.hasOwnProperty(groupId)) {
+        if (Object.hasOwn(rustplus.currentSwitchTimeouts, groupId)) {
             clearTimeout(rustplus.currentSwitchTimeouts[groupId]);
             delete rustplus.currentSwitchTimeouts[groupId];
         }
@@ -166,8 +166,8 @@ module.exports = {
         rustplus.currentSwitchTimeouts[groupId] = setTimeout(async function () {
             const instance = client.getInstance(guildId);
             if (
-                !instance.serverList.hasOwnProperty(serverId) ||
-                !instance.serverList[serverId].switchGroups.hasOwnProperty(groupId)
+                !Object.hasOwn(instance.serverList, serverId) ||
+                !instance.serverList[serverId].Object.hasOwn(switchGroups, groupId)
             ) {
                 return;
             }

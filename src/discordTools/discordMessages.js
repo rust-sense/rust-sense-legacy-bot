@@ -382,7 +382,7 @@ module.exports = {
         const instance = client.getInstance(guildId);
 
         let color = Constants.COLOR_TEAMCHAT_DEFAULT;
-        if (instance.teamChatColors.hasOwnProperty(message.steamId)) {
+        if (Object.hasOwn(instance.teamChatColors, message.steamId)) {
             color = instance.teamChatColors[message.steamId];
         }
 

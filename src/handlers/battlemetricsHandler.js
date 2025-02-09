@@ -23,7 +23,7 @@ module.exports = {
             let condition = instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers;
             condition &= instance.activeServer !== null;
             condition &= bmId !== null;
-            condition &= client.battlemetricsInstances.hasOwnProperty(bmId);
+            condition &= Object.hasOwn(client.battlemetricsInstances, bmId);
             condition &= rustplus && rustplus.isOperational;
 
             if (condition) {
@@ -52,7 +52,7 @@ module.exports = {
                         if (player.steamId === null) continue;
 
                         let name = null;
-                        if (calledSteamProfiles.hasOwnProperty(player.steamId)) {
+                        if (Object.hasOwn(calledSteamProfiles, player.steamId)) {
                             name = calledSteamProfiles[player.steamId];
                         } else {
                             name = await Scrape.scrapeSteamProfileName(client, player.steamId);
@@ -203,7 +203,7 @@ module.exports = {
         const battlemetricsIds = [];
         if (
             battlemetricsIdActiveServer &&
-            client.battlemetricsInstances.hasOwnProperty(battlemetricsIdActiveServer) &&
+            Object.hasOwn(client.battlemetricsInstances, battlemetricsIdActiveServer) &&
             client.battlemetricsInstances[battlemetricsIdActiveServer].lastUpdateSuccessful
         ) {
             battlemetricsIds.push(battlemetricsIdActiveServer);
@@ -224,7 +224,7 @@ module.exports = {
             const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
             /* Server name changed? */
-            if (settings.battlemetricsServerNameChanges && bmInstance.serverEvaluation.hasOwnProperty('server_name')) {
+            if (settings.battlemetricsServerNameChanges && Object.hasOwn(bmInstance.serverEvaluation, 'server_name')) {
                 const oldName = bmInstance.serverEvaluation['server_name'].from;
                 const newName = bmInstance.serverEvaluation['server_name'].to;
 

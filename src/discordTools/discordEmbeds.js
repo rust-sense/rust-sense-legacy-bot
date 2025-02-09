@@ -10,16 +10,16 @@ module.exports = {
     getEmbed: function (options = {}) {
         const embed = new Discord.EmbedBuilder();
 
-        if (options.hasOwnProperty('title')) embed.setTitle(options.title);
-        if (options.hasOwnProperty('color')) embed.setColor(options.color);
-        if (options.hasOwnProperty('description')) embed.setDescription(options.description);
-        if (options.hasOwnProperty('thumbnail') && options.thumbnail !== '') embed.setThumbnail(options.thumbnail);
-        if (options.hasOwnProperty('image')) embed.setImage(options.image);
-        if (options.hasOwnProperty('url') && options.url !== '') embed.setURL(options.url);
-        if (options.hasOwnProperty('author')) embed.setAuthor(options.author);
-        if (options.hasOwnProperty('footer')) embed.setFooter(options.footer);
-        if (options.hasOwnProperty('timestamp')) embed.setTimestamp();
-        if (options.hasOwnProperty('fields')) embed.setFields(...options.fields);
+        if (Object.hasOwn(options, 'title')) embed.setTitle(options.title);
+        if (Object.hasOwn(options, 'color')) embed.setColor(options.color);
+        if (Object.hasOwn(options, 'description')) embed.setDescription(options.description);
+        if (Object.hasOwn(options, 'thumbnail') && options.thumbnail !== '') embed.setThumbnail(options.thumbnail);
+        if (Object.hasOwn(options, 'image')) embed.setImage(options.image);
+        if (Object.hasOwn(options, 'url') && options.url !== '') embed.setURL(options.url);
+        if (Object.hasOwn(options, 'author')) embed.setAuthor(options.author);
+        if (Object.hasOwn(options, 'footer')) embed.setFooter(options.footer);
+        if (Object.hasOwn(options, 'timestamp')) embed.setTimestamp();
+        if (Object.hasOwn(options, 'fields')) embed.setFields(...options.fields);
 
         return embed;
     },
@@ -51,7 +51,7 @@ module.exports = {
         const credentials = InstanceUtils.readCredentialsFile(guildId);
         const server = instance.serverList[serverId];
         let hoster = client.intlGet(guildId, 'unknown');
-        if (credentials.hasOwnProperty(server.steamId)) {
+        if (Object.hasOwn(credentials, server.steamId)) {
             hoster = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
             hoster = hoster.user.username;
         }
@@ -148,7 +148,7 @@ module.exports = {
             id += `${player.steamId === null && player.playerId === null ? client.intlGet(guildId, 'empty') : ''}`;
             id += '\n';
 
-            if (!bmInstance.players.hasOwnProperty(player.playerId) || !successful) {
+            if (!Object.hasOwn(bmInstance.players, player.playerId) || !successful) {
                 status += `${Constants.NOT_FOUND_EMOJI}\n`;
             } else {
                 let time = null;
@@ -332,7 +332,7 @@ module.exports = {
             itemQuantity = '',
             storageItems = new Object();
         for (const item of items) {
-            if (storageItems.hasOwnProperty(item.itemId)) {
+            if (Object.hasOwn(storageItems, item.itemId)) {
                 storageItems[item.itemId] += item.quantity;
             } else {
                 storageItems[item.itemId] = item.quantity;
@@ -369,7 +369,7 @@ module.exports = {
             switchId = '',
             switchActive = '';
         for (const groupSwitchId of group.switches) {
-            if (instance.serverList[serverId].switches.hasOwnProperty(groupSwitchId)) {
+            if (instance.serverList[serverId].Object.hasOwn(switches, groupSwitchId)) {
                 const sw = instance.serverList[serverId].switches[groupSwitchId];
                 const active = sw.active;
                 switchName += `${sw.name}${sw.location !== null ? ` ${sw.location}` : ''}\n`;
@@ -1213,7 +1213,7 @@ module.exports = {
         const serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
 
         let thumbnail = '';
-        if (instance.serverList.hasOwnProperty(serverId)) {
+        if (Object.hasOwn(instance.serverList, serverId)) {
             thumbnail = instance.serverList[serverId].img;
         }
         const embed = module.exports.getEmbed({

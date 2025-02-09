@@ -404,7 +404,7 @@ class GameMap {
                     /* Compensate for the text placement */
                     if (monument.token === 'DungeonBase') continue;
 
-                    let name = this.monumentInfo.hasOwnProperty(monument.token)
+                    let name = Object.hasOwn(this.monumentInfo, monument.token)
                         ? this.monumentInfo[monument.token].map
                         : monument.token;
                     let comp = name.length * 5;
