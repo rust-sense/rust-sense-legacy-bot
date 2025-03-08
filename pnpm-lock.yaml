@@ -8,6 +8,11 @@ overrides:
   jpeg-js: 0.4.4
   protobufjs: 7.2.6
 
+patchedDependencies:
+  '@liamcottle/rustplus.js':
+    hash: 6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c
+    path: patches/@liamcottle__rustplus.js.patch
+
 importers:
 
   .:
@@ -32,7 +37,7 @@ importers:
         version: 0.0.4
       '@liamcottle/rustplus.js':
         specifier: ^2.4.0
-        version: 2.4.0
+        version: 2.4.0(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)
       axios:
         specifier: ^1.5.0
         version: 1.7.9
@@ -3919,7 +3924,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@liamcottle/rustplus.js@2.4.0':
+  '@liamcottle/rustplus.js@2.4.0(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)':
     dependencies:
       axios: 1.7.9
       chrome-launcher: 0.15.2
