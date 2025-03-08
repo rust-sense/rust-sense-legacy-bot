@@ -272,7 +272,7 @@ async function pairingServer(client, guild, title, message, body) {
     await bmInstance.setup();
     if (bmInstance.lastUpdateSuccessful) {
         battlemetricsId = bmInstance.id;
-        if (!client.battlemetricsInstances.hasOwnProperty(bmInstance.id)) {
+        if (!Object.hasOwn(client.battlemetricsInstances, bmInstance.id)) {
             client.battlemetricsInstances[bmInstance.id] = bmInstance;
         }
     }
@@ -303,7 +303,9 @@ async function pairingServer(client, guild, title, message, body) {
         timeTillNight: server ? server.timeTillNight : null,
     };
 
-    if (!instance.serverListLite.hasOwnProperty(serverId)) instance.serverListLite[serverId] = new Object();
+    if (!Object.hasOwn(instance.serverListLite, serverId)) {
+        instance.serverListLite[serverId] = {}
+    }
 
     instance.serverListLite[serverId][body.playerId] = {
         serverIp: body.ip,
@@ -311,6 +313,7 @@ async function pairingServer(client, guild, title, message, body) {
         steamId: body.playerId,
         playerToken: body.playerToken,
     };
+
     client.setInstance(guild.id, instance);
 
     await DiscordMessages.sendServerMessage(guild.id, serverId, null);
@@ -319,10 +322,13 @@ async function pairingServer(client, guild, title, message, body) {
 async function pairingEntitySwitch(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
     const switches = instance.serverList[serverId].switches;
 
-    const entityExist = instance.serverList[serverId].switches.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].switches, body.entityId);
     instance.serverList[serverId].switches[body.entityId] = {
         active: entityExist ? switches[body.entityId].active : false,
         reachable: entityExist ? switches[body.entityId].reachable : true,
@@ -369,10 +375,13 @@ async function pairingEntitySwitch(client, guild, title, message, body) {
 async function pairingEntitySmartAlarm(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
     const alarms = instance.serverList[serverId].alarms;
 
-    const entityExist = instance.serverList[serverId].alarms.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].alarms, body.entityId);
     instance.serverList[serverId].alarms[body.entityId] = {
         active: entityExist ? alarms[body.entityId].active : false,
         reachable: entityExist ? alarms[body.entityId].reachable : true,
@@ -417,10 +426,13 @@ async function pairingEntitySmartAlarm(client, guild, title, message, body) {
 async function pairingEntityStorageMonitor(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
     const storageMonitors = instance.serverList[serverId].storageMonitors;
 
-    const entityExist = instance.serverList[serverId].storageMonitors.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].storageMonitors, body.entityId);
     instance.serverList[serverId].storageMonitors[body.entityId] = {
         name: entityExist ? storageMonitors[body.entityId].name : client.intlGet(guild.id, 'storageMonitor'),
         reachable: entityExist ? storageMonitors[body.entityId].reachable : true,
@@ -516,7 +528,9 @@ async function alarmRaidAlarm(client, guild, title, message, body) {
     const serverId = `${body.ip}-${body.port}`;
     const rustplus = client.rustplusInstances[guild.id];
 
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
 
     const files = [];
     if (body.img === '') {

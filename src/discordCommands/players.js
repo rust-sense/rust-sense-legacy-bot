@@ -183,7 +183,7 @@ async function playersPlayerIdHandler(client, interaction, battlemetricsId) {
 
     const playerId = interaction.options.getString('playerid');
 
-    if (!bmInstance.players.hasOwnProperty(playerId)) {
+    if (!Object.hasOwn(bmInstance.players, playerId)) {
         const str = client.intlGet(interaction.guildId, 'couldNotFindPlayerId', { id: playerId });
         await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str);

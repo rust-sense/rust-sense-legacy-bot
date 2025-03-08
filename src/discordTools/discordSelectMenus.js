@@ -11,15 +11,15 @@ module.exports = {
     getSelectMenu: function (options = {}) {
         const selectMenu = new Discord.StringSelectMenuBuilder();
 
-        if (options.hasOwnProperty('customId')) selectMenu.setCustomId(options.customId);
-        if (options.hasOwnProperty('placeholder')) selectMenu.setPlaceholder(options.placeholder);
-        if (options.hasOwnProperty('options')) {
+        if (Object.hasOwn(options, 'customId')) selectMenu.setCustomId(options.customId);
+        if (Object.hasOwn(options, 'placeholder')) selectMenu.setPlaceholder(options.placeholder);
+        if (Object.hasOwn(options, 'options')) {
             for (const option of options.options) {
                 option.description = option.description.substring(0, Constants.SELECT_MENU_MAX_DESCRIPTION_CHARACTERS);
             }
             selectMenu.setOptions(options.options);
         }
-        if (options.hasOwnProperty('disabled')) selectMenu.setDisabled(options.disabled);
+        if (Object.hasOwn(options, 'disabled')) selectMenu.setDisabled(options.disabled);
 
         return selectMenu;
     },

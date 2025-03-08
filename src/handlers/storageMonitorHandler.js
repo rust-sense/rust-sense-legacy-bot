@@ -7,7 +7,9 @@ module.exports = {
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 
-        if (!instance.serverList.hasOwnProperty(serverId)) return;
+        if (!Object.hasOwn(instance.serverList, serverId)) {
+            return;
+        }
 
         if (rustplus.storageMonitorIntervalCounter === 29) {
             rustplus.storageMonitorIntervalCounter = 0;
@@ -33,7 +35,7 @@ module.exports = {
 
                 if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
                     if (
-                        rustplus.storageMonitors.hasOwnProperty(entityId) &&
+                        Object.hasOwn(rustplus.storageMonitors, entityId) &&
                         rustplus.storageMonitors[entityId].capacity !== 0 &&
                         info.entityInfo.payload.capacity === 0
                     ) {

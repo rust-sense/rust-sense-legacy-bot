@@ -126,7 +126,7 @@ module.exports = async (client, interaction) => {
         const ids = JSON.parse(interaction.customId.replace('AutoDayNightOnOff', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!server || (server && !server.switches.hasOwnProperty(ids.entityId))) {
+        if (!server || (server && !Object.hasOwn(server.switches, ids.entityId))) {
             await interaction.message.delete();
             return;
         }

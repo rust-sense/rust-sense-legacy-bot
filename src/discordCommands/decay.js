@@ -42,7 +42,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestOtherNameByName(decayItemName);
                 if (foundName) {
-                    if (client.rustlabs.decayData['other'].hasOwnProperty(foundName)) {
+                    if (Object.hasOwn(client.rustlabs.decayData['other'], foundName)) {
                         type = 'other';
                     } else {
                         foundName = null;
@@ -53,7 +53,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
                 if (foundName) {
-                    if (client.rustlabs.decayData['buildingBlocks'].hasOwnProperty(foundName)) {
+                    if (Object.hasOwn(client.rustlabs.decayData['buildingBlocks'], foundName)) {
                         type = 'buildingBlocks';
                     } else {
                         foundName = null;
@@ -64,7 +64,7 @@ export default {
             if (!foundName) {
                 foundName = client.items.getClosestItemIdByName(decayItemName);
                 if (foundName) {
-                    if (!client.rustlabs.decayData['items'].hasOwnProperty(foundName)) {
+                    if (!Object.hasOwn(client.rustlabs.decayData['items'], foundName)) {
                         foundName = null;
                     }
                 }
@@ -74,6 +74,7 @@ export default {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
                     name: decayItemName,
                 });
+
                 await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(guildId, 'warningCap'), str);
                 return;

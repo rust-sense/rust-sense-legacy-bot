@@ -157,16 +157,12 @@ module.exports = async (client, guild, steamId) => {
                             break;
 
                         default:
-                            {
-                            }
                             break;
                     }
                 }
                 break;
 
             default:
-                {
-                }
                 break;
         }
     });
@@ -183,7 +179,9 @@ async function pairingServer(client, guild, steamId, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
-    if (!instance.serverListLite.hasOwnProperty(serverId)) instance.serverListLite[serverId] = new Object();
+    if (!Object.hasOwn(instance.serverListLite, serverId)) {
+        instance.serverListLite[serverId] = {};
+    }
 
     instance.serverListLite[serverId][steamId] = {
         serverIp: body.ip,
@@ -202,10 +200,13 @@ async function pairingServer(client, guild, steamId, title, message, body) {
 async function pairingEntitySwitch(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
     const switches = instance.serverList[serverId].switches;
 
-    const entityExist = instance.serverList[serverId].switches.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].switches, body.entityId);
     instance.serverList[serverId].switches[body.entityId] = {
         active: entityExist ? switches[body.entityId].active : false,
         reachable: entityExist ? switches[body.entityId].reachable : true,
@@ -220,6 +221,7 @@ async function pairingEntitySwitch(client, guild, title, message, body) {
         proximity: entityExist ? switches[body.entityId].proximity : Constants.PROXIMITY_SETTING_DEFAULT_METERS,
         messageId: entityExist ? switches[body.entityId].messageId : null,
     };
+
     client.setInstance(guild.id, instance);
 
     const rustplus = client.rustplusInstances[guild.id];
@@ -252,10 +254,13 @@ async function pairingEntitySwitch(client, guild, title, message, body) {
 async function pairingEntitySmartAlarm(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
     const alarms = instance.serverList[serverId].alarms;
 
-    const entityExist = instance.serverList[serverId].alarms.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].alarms, body.entityId);
     instance.serverList[serverId].alarms[body.entityId] = {
         active: entityExist ? alarms[body.entityId].active : false,
         reachable: entityExist ? alarms[body.entityId].reachable : true,
@@ -300,10 +305,13 @@ async function pairingEntitySmartAlarm(client, guild, title, message, body) {
 async function pairingEntityStorageMonitor(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!instance.serverList.hasOwnProperty(serverId)) return;
+    if (!Object.hasOwn(instance.serverList, serverId))  {
+        return;
+    }
+
     const storageMonitors = instance.serverList[serverId].storageMonitors;
 
-    const entityExist = instance.serverList[serverId].storageMonitors.hasOwnProperty(body.entityId);
+    const entityExist = Object.hasOwn(instance.serverList[serverId].storageMonitors, body.entityId);
     instance.serverList[serverId].storageMonitors[body.entityId] = {
         name: entityExist ? storageMonitors[body.entityId].name : client.intlGet(guild.id, 'storageMonitor'),
         reachable: entityExist ? storageMonitors[body.entityId].reachable : true,

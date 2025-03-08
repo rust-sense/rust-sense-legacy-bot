@@ -13,9 +13,9 @@ export default {
 
         if (!rustplus.isOperational) return;
 
-        if (message.hasOwnProperty('response')) {
+        if (Object.hasOwn(message, 'response')) {
             messageResponse(rustplus, client, message);
-        } else if (message.hasOwnProperty('broadcast')) {
+        } else if (Object.hasOwn(message, 'broadcast')) {
             messageBroadcast(rustplus, client, message);
         }
     },
@@ -26,13 +26,13 @@ async function messageResponse(rustplus, client, message) {
 }
 
 async function messageBroadcast(rustplus, client, message) {
-    if (message.broadcast.hasOwnProperty('teamChanged')) {
+    if (Object.hasOwn(message.broadcast, 'teamChanged')) {
         messageBroadcastTeamChanged(rustplus, client, message);
-    } else if (message.broadcast.hasOwnProperty('teamMessage')) {
+    } else if (Object.hasOwn(message.broadcast, 'teamMessage')) {
         messageBroadcastTeamMessage(rustplus, client, message);
-    } else if (message.broadcast.hasOwnProperty('entityChanged')) {
+    } else if (Object.hasOwn(message.broadcast, 'entityChanged')) {
         messageBroadcastEntityChanged(rustplus, client, message);
-    } else if (message.broadcast.hasOwnProperty('cameraRays')) {
+    } else if (Object.hasOwn(message.broadcast, 'cameraRays')) {
         messageBroadcastCameraRays(rustplus, client, message);
     }
 }
@@ -107,11 +107,11 @@ async function messageBroadcastEntityChanged(rustplus, client, message) {
     const instance = client.getInstance(rustplus.guildId);
     const entityId = message.broadcast.entityChanged.entityId;
 
-    if (instance.serverList[rustplus.serverId].switches.hasOwnProperty(entityId)) {
+    if (instance.serverList[rustplus.serverId].Object.hasOwn(switches, entityId)) {
         messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
-    } else if (instance.serverList[rustplus.serverId].alarms.hasOwnProperty(entityId)) {
+    } else if (instance.serverList[rustplus.serverId].Object.hasOwn(alarms, entityId)) {
         messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
-    } else if (instance.serverList[rustplus.serverId].storageMonitors.hasOwnProperty(entityId)) {
+    } else if (instance.serverList[rustplus.serverId].Object.hasOwn(storageMonitors, entityId)) {
         messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
     }
 }
@@ -133,7 +133,7 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus, client, messag
         return;
     }
 
-    if (rustplus.currentSwitchTimeouts.hasOwnProperty(entityId)) {
+    if (Object.hasOwn(rustplus.currentSwitchTimeouts, entityId)) {
         clearTimeout(rustplus.currentSwitchTimeouts[entityId]);
         delete rustplus.currentSwitchTimeouts[entityId];
     }
