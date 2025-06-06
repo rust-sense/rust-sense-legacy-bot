@@ -20,7 +20,7 @@ module.exports = {
 
                 rustplus.updateBotMessages(messageFromQueue);
 
-                await rustplus.sendTeamMessageAsync(messageFromQueue);
+                rustplus.sendTeamMessageAsync(messageFromQueue);
                 rustplus.log(client.intlGet(guildId, 'messageCap'), messageFromQueue);
             } else {
                 clearTimeout(rustplus.inGameChatTimeout);
