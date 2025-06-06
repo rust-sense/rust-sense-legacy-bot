@@ -796,22 +796,26 @@ class MapMarkers {
                 this.rustplus.notificationSettings.travelingVendorDetectedSetting,
                 this.client.intlGet(this.rustplus.guildId, 'travelingVendorSpawnedAt', { location: pos.string }),
                 'vendor',
-                Constants.COLOR_TRAVELING_VENDOR_LOCATED_AT);
+                Constants.COLOR_TRAVELING_VENDOR_LOCATED_AT,
+            );
 
             this.travelingVendors.push(marker);
         }
-        
+
         /* TravelingVendor markers that have left. */
         for (let marker of leftMarkers) {
             this.rustplus.sendEvent(
                 this.rustplus.notificationSettings.travelingVendorLeftSetting,
-                this.client.intlGet(this.rustplus.guildId, 'travelingVendorLeftMap', { location: marker.location.string }),
+                this.client.intlGet(this.rustplus.guildId, 'travelingVendorLeftMap', {
+                    location: marker.location.string,
+                }),
                 'vendor',
-                Constants.COLOR_TRAVELING_VENDOR_LEFT_MAP);
+                Constants.COLOR_TRAVELING_VENDOR_LEFT_MAP,
+            );
 
             this.timeSinceTravelingVendorWasOnMap = new Date();
 
-            this.travelingVendors = this.travelingVendors.filter(e => e.id !== marker.id);
+            this.travelingVendors = this.travelingVendors.filter((e) => e.id !== marker.id);
         }
 
         /* TravelingVendor markers that still remains. */
@@ -828,18 +832,21 @@ class MapMarkers {
                         this.rustplus.notificationSettings.travelingVendorHaltedSetting,
                         this.client.intlGet(this.rustplus.guildId, 'travelingVendorHaltedAt', { location: pos.string }),
                         'vendor',
-                        Constants.COLOR_TRAVELING_VENDOR_HALTED);
+                        Constants.COLOR_TRAVELING_VENDOR_HALTED,
+                    );
                 }
-            }
+            } else if (!this.rustplus.isFirstPoll && travelingVendor.isHalted) {
             /* If TravelingVendor is moving again */
-            else if (!this.rustplus.isFirstPoll && travelingVendor.isHalted) {
                 if (marker.x !== travelingVendor.x || marker.y !== travelingVendor.y) {
                     travelingVendor.isHalted = false;
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.travelingVendorHaltedSetting,
-                        this.client.intlGet(this.rustplus.guildId, 'travelingVendorResumedAt', { location: pos.string }),
+                        this.client.intlGet(this.rustplus.guildId, 'travelingVendorResumedAt', {
+                            location: pos.string,
+                        }),
                         'vendor',
-                        Constants.COLOR_TRAVELING_VENDOR_MOVING);
+                        Constants.COLOR_TRAVELING_VENDOR_MOVING,
+                    );
                 }
             }
             travelingVendor.x = marker.x;

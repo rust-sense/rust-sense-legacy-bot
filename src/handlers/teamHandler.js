@@ -120,7 +120,7 @@ module.exports = {
                                 name: getPlayerName(instance.generalSettings.teammateNameType, player),
                                 time: afkTime,
                             });
-                            
+
                             rustplus.sendInGameMessage(str);
                             rustplus.log(client.intlGet(null, 'infoCap'), str);
                         }
