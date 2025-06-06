@@ -36,8 +36,8 @@ importers:
         specifier: ^0.0.4
         version: 0.0.4
       '@liamcottle/rustplus.js':
-        specifier: ^2.4.0
-        version: 2.4.0(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)
+        specifier: git+https://github.com/alexemanuelol/rustplus.js.git#089cfd3db1b04709911948bce669273139c6a124
+        version: https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)
       axios:
         specifier: ^1.5.0
         version: 1.7.9
@@ -1076,11 +1076,15 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
+  '@liamcottle/push-receiver@0.0.3':
+    resolution: {integrity: sha512-YSXQzd7Fwfh1tG2O5xV+WjSf2nCoye7OSHPAxlzMXAtdK1XAdjGUaqJmCqagpxwsqY4a6FuWmyhvBWmDT5AAUQ==}
+
   '@liamcottle/push-receiver@0.0.4':
     resolution: {integrity: sha512-BzgNJieg4oLNxHNKxH/arRh05QaKFAlAP52SmjyYMfa5beechoojXvhtzNe7aCmIuqCaVfiekaRYvZxX3SIYMA==}
 
-  '@liamcottle/rustplus.js@2.4.0':
-    resolution: {integrity: sha512-Njiwy5bUCngylu5Mepsg8Q35eARofIYxT84uoF5uamhMxjePOLS8qohErPhNAY1EcoI1GY/k2ebyf8HYfHo7vQ==}
+  '@liamcottle/rustplus.js@https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124':
+    resolution: {tarball: https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124}
+    version: 2.5.0
     hasBin: true
 
   '@protobufjs/aspromise@1.1.2':
@@ -2147,9 +2151,6 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
-
-  push-receiver@2.1.1:
-    resolution: {integrity: sha512-2f+Rglq6B+J6x06JEypDkm48vGf0lPCSjqO/+1F7Pg/8gippvZRSb/vloWuQlWGJw8ulma7lgPei34HAnJba5w==}
 
   qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
@@ -3912,6 +3913,18 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@liamcottle/push-receiver@0.0.3':
+    dependencies:
+      axios: 1.7.9
+      http_ece: 1.2.0
+      long: 3.2.0
+      protobufjs: 7.2.6
+      request: 2.88.2
+      request-promise: 4.2.6(request@2.88.2)
+      uuid: 3.4.0
+    transitivePeerDependencies:
+      - debug
+
   '@liamcottle/push-receiver@0.0.4':
     dependencies:
       axios: 1.7.9
@@ -3924,8 +3937,9 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@liamcottle/rustplus.js@2.4.0(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)':
+  '@liamcottle/rustplus.js@https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)':
     dependencies:
+      '@liamcottle/push-receiver': 0.0.3
       axios: 1.7.9
       chrome-launcher: 0.15.2
       command-line-args: 5.2.1
@@ -3933,7 +3947,6 @@ snapshots:
       express: 4.19.2
       jimp: 0.22.12
       protobufjs: 7.2.6
-      push-receiver: 2.1.1
       uuid: 9.0.1
       ws: 8.18.0
     transitivePeerDependencies:
@@ -4968,15 +4981,6 @@ snapshots:
   psl@1.9.0: {}
 
   punycode@2.3.1: {}
-
-  push-receiver@2.1.1:
-    dependencies:
-      http_ece: 1.2.0
-      long: 3.2.0
-      protobufjs: 7.2.6
-      request: 2.88.2
-      request-promise: 4.2.6(request@2.88.2)
-      uuid: 3.4.0
 
   qs@6.11.0:
     dependencies:

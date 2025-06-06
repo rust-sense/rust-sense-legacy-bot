@@ -55,7 +55,6 @@ class MapMarkers {
     }
 
     /* Getters and Setters */
-<<<<<<< HEAD
     get markers() {
         return this._markers;
     }
