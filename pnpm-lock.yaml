@@ -8,11 +8,6 @@ overrides:
   jpeg-js: 0.4.4
   protobufjs: 7.2.6
 
-patchedDependencies:
-  '@liamcottle/rustplus.js':
-    hash: 6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c
-    path: patches/@liamcottle__rustplus.js.patch
-
 importers:
 
   .:
@@ -37,7 +32,7 @@ importers:
         version: 0.0.4
       '@liamcottle/rustplus.js':
         specifier: git+https://github.com/alexemanuelol/rustplus.js.git#089cfd3db1b04709911948bce669273139c6a124
-        version: https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)
+        version: https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124
       axios:
         specifier: ^1.5.0
         version: 1.7.9
@@ -3937,7 +3932,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@liamcottle/rustplus.js@https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124(patch_hash=6835b3a4626bed98a9c4826d49fc4a154560569a972fd16d7950ee05935ae71c)':
+  '@liamcottle/rustplus.js@https://codeload.github.com/alexemanuelol/rustplus.js/tar.gz/089cfd3db1b04709911948bce669273139c6a124':
     dependencies:
       '@liamcottle/push-receiver': 0.0.3
       axios: 1.7.9
