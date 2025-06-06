@@ -836,7 +836,7 @@ class MapMarkers {
                     );
                 }
             } else if (!this.rustplus.isFirstPoll && travelingVendor.isHalted) {
-            /* If TravelingVendor is moving again */
+                /* If TravelingVendor is moving again */
                 if (marker.x !== travelingVendor.x || marker.y !== travelingVendor.y) {
                     travelingVendor.isHalted = false;
                     this.rustplus.sendEvent(

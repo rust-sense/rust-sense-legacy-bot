@@ -9,7 +9,8 @@
         "test": "tsc --noEmit",
         "dev:tsc": "tsc -w",
         "dev:node": "node --watch dist/index.js",
-        "dev": "concurrently -n \"tsc,node\" -c \"yellow.bold,green.bold\" \"npm run dev:tsc\" \"npm run dev:node\""
+        "dev": "concurrently -n \"tsc,node\" -c \"yellow.bold,green.bold\" \"npm run dev:tsc\" \"npm run dev:node\"",
+        "format": "biome format --write"
     },
     "repository": {
         "type": "git",
