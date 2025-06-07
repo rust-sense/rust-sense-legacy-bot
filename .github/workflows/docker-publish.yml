@@ -39,7 +39,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=raw,value=unstable,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            type=semver,pattern=v{{version}}
+            type=semver,pattern={{version}}
 
   build-arch-manifest:
     strategy:
@@ -99,7 +99,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.type }}-digests
+          name: digests-${{ matrix.type }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -141,9 +141,9 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         env:
-          META_JSON: ${{ needs.get-metadata.outputs.json }}
+          METADATA_JSON: "${{ needs.get-metadata.outputs.json }}"
         run: |
-          docker buildx imagetools create -t $(jq -cr '.tags | map("--tag " + .) | join(" ")' <<< "$META_JSON") \
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$METADATA_JSON") \
               $(find . -type f -printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%f ')
 
       - name: Inspect image
