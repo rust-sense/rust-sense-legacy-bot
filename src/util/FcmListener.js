@@ -304,7 +304,7 @@ async function pairingServer(client, guild, title, message, body) {
     };
 
     if (!Object.hasOwn(instance.serverListLite, serverId)) {
-        instance.serverListLite[serverId] = {}
+        instance.serverListLite[serverId] = {};
     }
 
     instance.serverListLite[serverId][body.playerId] = {

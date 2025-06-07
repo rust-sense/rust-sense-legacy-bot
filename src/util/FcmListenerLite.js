@@ -305,7 +305,7 @@ async function pairingEntitySmartAlarm(client, guild, title, message, body) {
 async function pairingEntityStorageMonitor(client, guild, title, message, body) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
-    if (!Object.hasOwn(instance.serverList, serverId))  {
+    if (!Object.hasOwn(instance.serverList, serverId)) {
         return;
     }
 
