@@ -167,7 +167,7 @@ module.exports = {
             const instance = client.getInstance(guildId);
             if (
                 !Object.hasOwn(instance.serverList, serverId) ||
-                !instance.serverList[serverId].Object.hasOwn(switchGroups, groupId)
+                !Object.hasOwn(instance.serverList[serverId].switchGroups, groupId)
             ) {
                 return;
             }

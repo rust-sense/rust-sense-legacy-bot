@@ -107,11 +107,11 @@ async function messageBroadcastEntityChanged(rustplus, client, message) {
     const instance = client.getInstance(rustplus.guildId);
     const entityId = message.broadcast.entityChanged.entityId;
 
-    if (instance.serverList[rustplus.serverId].Object.hasOwn(switches, entityId)) {
+    if (Object.hasOwn(instance.serverList[rustplus.serverId].switches, entityId)) {
         messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
-    } else if (instance.serverList[rustplus.serverId].Object.hasOwn(alarms, entityId)) {
+    } else if (Object.hasOwn(instance.serverList[rustplus.serverId].alarms, entityId)) {
         messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
-    } else if (instance.serverList[rustplus.serverId].Object.hasOwn(storageMonitors, entityId)) {
+    } else if (Object.hasOwn(instance.serverList[rustplus.serverId].storageMonitors, entityId)) {
         messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
     }
 }

@@ -439,7 +439,7 @@ module.exports = {
 
         rustplus.currentSwitchTimeouts[entityId] = setTimeout(async function () {
             const instance = client.getInstance(guildId);
-            if (!instance.serverList[serverId].Object.hasOwn(switches, entityId)) return;
+            if (!Object.hasOwn(instance.serverList[serverId].switches, entityId)) return;
 
             await module.exports.smartSwitchCommandTurnOnOff(rustplus, client, entityId, !active);
 
