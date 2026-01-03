@@ -1,7 +1,7 @@
 const Builder = require('@discordjs/builders');
 
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
+const Constants = require('../util/constants.js');
+const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
 
 export default {
     name: 'market',
@@ -20,18 +20,9 @@ export default {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                {
-                                    name: client.intlGet(guildId, 'all'),
-                                    value: 'all',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'buy'),
-                                    value: 'buy',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'sell'),
-                                    value: 'sell',
-                                },
+                                { name: client.intlGet(guildId, 'all'), value: 'all' },
+                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
+                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
                             ),
                     )
                     .addStringOption((option) =>
@@ -57,18 +48,9 @@ export default {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                {
-                                    name: client.intlGet(guildId, 'all'),
-                                    value: 'all',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'buy'),
-                                    value: 'buy',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'sell'),
-                                    value: 'sell',
-                                },
+                                { name: client.intlGet(guildId, 'all'), value: 'all' },
+                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
+                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
                             ),
                     )
                     .addStringOption((option) =>
@@ -94,18 +76,9 @@ export default {
                             .setDescription(client.intlGet(guildId, 'commandsMarketOrderDesc'))
                             .setRequired(true)
                             .addChoices(
-                                {
-                                    name: client.intlGet(guildId, 'all'),
-                                    value: 'all',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'buy'),
-                                    value: 'buy',
-                                },
-                                {
-                                    name: client.intlGet(guildId, 'sell'),
-                                    value: 'sell',
-                                },
+                                { name: client.intlGet(guildId, 'all'), value: 'all' },
+                                { name: client.intlGet(guildId, 'buy'), value: 'buy' },
+                                { name: client.intlGet(guildId, 'sell'), value: 'sell' },
                             ),
                     )
                     .addStringOption((option) =>
@@ -123,6 +96,28 @@ export default {
             )
             .addSubcommand((subcommand) =>
                 subcommand.setName('list').setDescription(client.intlGet(guildId, 'commandsMarketListDesc')),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('blacklist')
+                    .setDescription(client.intlGet(guildId, 'commandsMarketBlaclistDesc'))
+                    .addStringOption((option) =>
+                        option
+                            .setName('choice')
+                            .setDescription(client.intlGet(guildId, 'commandsAddOrRemove'))
+                            .setRequired(true)
+                            .addChoices(
+                                { name: client.intlGet(guildId, 'add'), value: 'add' },
+                                { name: client.intlGet(guildId, 'remove'), value: 'remove' },
+                                { name: client.intlGet(guildId, 'show'), value: 'show' },
+                            ),
+                    )
+                    .addStringOption((option) =>
+                        option
+                            .setName('name')
+                            .setDescription(client.intlGet(guildId, 'theNameOfTheVendingMachine'))
+                            .setRequired(false),
+                    ),
             );
     },
 
@@ -188,7 +183,10 @@ export default {
                     const leftString = client.intlGet(interaction.guildId, 'remain');
                     for (const vendingMachine of rustplus.mapMarkers.vendingMachines) {
                         if (full) break;
-                        if (!Object.hasOwn(vendingMachine, 'sellOrders')) continue;
+
+                        if (!Object.hasOwn(vendingMachine, 'sellOrders')) {
+                            continue;
+                        }
 
                         for (const order of vendingMachine.sellOrders) {
                             if (order.amountInStock === 0) continue;
@@ -259,19 +257,13 @@ export default {
                         color: Constants.COLOR_DEFAULT,
                         title: client.intlGet(interaction.guildId, 'searchResult', { name: itemName }),
                         description: foundLines,
-                        footer: {
-                            text: `${instance.serverList[rustplus.serverId].title}`,
-                        },
+                        footer: { text: `${instance.serverList[rustplus.serverId].title}` },
                     });
 
-                    await client.interactionEditReply(interaction, {
-                        embeds: [embed],
-                    });
+                    await client.interactionEditReply(interaction, { embeds: [embed] });
                     rustplus.log(
                         client.intlGet(interaction.guildId, 'infoCap'),
-                        client.intlGet(interaction.guildId, 'searchResult', {
-                            name: itemName,
-                        }),
+                        client.intlGet(interaction.guildId, 'searchResult', { name: itemName }),
                     );
                 }
                 break;
@@ -443,9 +435,7 @@ export default {
                             DiscordEmbeds.getEmbed({
                                 color: Constants.COLOR_DEFAULT,
                                 title: client.intlGet(interaction.guildId, 'subscriptionList'),
-                                footer: {
-                                    text: instance.serverList[rustplus.serverId].title,
-                                },
+                                footer: { text: instance.serverList[rustplus.serverId].title },
                                 fields: [
                                     {
                                         name: client.intlGet(interaction.guildId, 'all'),
@@ -475,9 +465,85 @@ export default {
                 }
                 break;
 
-            default:
+            case 'blacklist':
                 {
+                    const choice = interaction.options.getString('choice');
+                    const name = interaction.options.getString('name');
+
+                    if (choice === 'add' && name !== null) {
+                        if (instance.marketBlacklist.includes(name)) {
+                            const str = client.intlGet(interaction.guildId, 'alreadyBlacklisted', {
+                                name: name,
+                            });
+                            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str);
+                        } else {
+                            instance.marketBlacklist.push(name);
+                            client.setInstance(interaction.guildId, instance);
+
+                            const str = client.intlGet(interaction.guildId, 'justBlacklisted', {
+                                name: name,
+                            });
+                            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+                            rustplus.log(client.intlGet(interaction.guildId, 'infoCap'), str);
+                        }
+                    } else if (choice === 'remove' && name !== null) {
+                        if (instance.marketBlacklist.includes(name)) {
+                            instance.marketBlacklist = instance.marketBlacklist.filter((e) => e !== name);
+                            client.setInstance(interaction.guildId, instance);
+
+                            const str = client.intlGet(interaction.guildId, 'removedBlacklist', {
+                                name: name,
+                            });
+                            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
+                            rustplus.log(client.intlGet(interaction.guildId, 'infoCap'), str);
+                        } else {
+                            const str = client.intlGet(interaction.guildId, 'notExistInBlacklist', {
+                                name: name,
+                            });
+                            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str);
+                        }
+                    } else if (choice === 'show') {
+                        let names = '';
+                        for (const name of instance.marketBlacklist) {
+                            names += `\`${name}\`\n`;
+                        }
+
+                        await client.interactionEditReply(interaction, {
+                            embeds: [
+                                DiscordEmbeds.getEmbed({
+                                    color: Constants.COLOR_DEFAULT,
+                                    title: client.intlGet(interaction.guildId, 'blacklist'),
+                                    footer: { text: instance.serverList[rustplus.serverId].title },
+                                    description: names === '' ? '\u200B' : names,
+                                }),
+                            ],
+                            ephemeral: true,
+                        });
+
+                        rustplus.log(
+                            client.intlGet(interaction.guildId, 'infoCap'),
+                            client.intlGet(interaction.guildId, 'showingBlacklist'),
+                        );
+                    } else if (choice === null || name === null) {
+                        const str = client.intlGet(interaction.guildId, 'noNameGiven');
+                        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                        rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str);
+                        return;
+                    }
+
+                    client.log(
+                        client.intlGet(null, 'infoCap'),
+                        client.intlGet(null, 'slashCommandValueChange', {
+                            id: `${verifyId}`,
+                            value: `blacklist, ${choice}, ${name}`,
+                        }),
+                    );
                 }
+                break;
+
+            default:
                 break;
         }
     },
