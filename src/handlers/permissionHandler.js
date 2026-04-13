@@ -50,6 +50,18 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
         everyoneAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
         perms.push({ id: guild.roles.everyone.id, allow: everyoneAllow, deny: everyoneDeny });
+
+        const botId = client.user?.id;
+        if (botId) {
+            perms.push({
+                id: botId,
+                allow: [
+                    Discord.PermissionFlagsBits.ViewChannel,
+                    Discord.PermissionFlagsBits.SendMessages,
+                    Discord.PermissionFlagsBits.ReadMessageHistory,
+                ],
+            });
+        }
     }
 
     for (const discordId of instance.blacklist['discordIds']) {

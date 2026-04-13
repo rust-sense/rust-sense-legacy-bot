@@ -6,7 +6,7 @@ import config from '../config';
 import { cwdPath } from '../utils/filesystemUtils';
 
 export default {
-    name: 'ready',
+    name: 'clientReady',
     once: true,
     async execute(client) {
         for (const guild of client.guilds.cache) {

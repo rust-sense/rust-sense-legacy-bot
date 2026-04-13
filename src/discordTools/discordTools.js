@@ -178,7 +178,7 @@ module.exports = {
         return undefined;
     },
 
-    addCategory: async function (guildId, name) {
+    addCategory: async function (guildId, name, permissionOverwrites = null) {
         const guild = module.exports.getGuild(guildId);
 
         if (guild) {
@@ -186,7 +186,7 @@ module.exports = {
                 return await guild.channels.create({
                     name: name,
                     type: Discord.ChannelType.GuildCategory,
-                    permissionOverwrites: [
+                    permissionOverwrites: permissionOverwrites ?? [
                         {
                             id: guild.roles.everyone.id,
                             deny: [Discord.PermissionFlagsBits.SendMessages],
@@ -220,21 +220,27 @@ module.exports = {
         return true;
     },
 
-    addTextChannel: async function (guildId, name) {
+    addTextChannel: async function (guildId, name, parentId = null, permissionOverwrites = null) {
         const guild = module.exports.getGuild(guildId);
 
         if (guild) {
             try {
-                return await guild.channels.create({
+                const options = {
                     name: name,
                     type: Discord.ChannelType.GuildText,
-                    permissionOverwrites: [
+                    permissionOverwrites: permissionOverwrites ?? [
                         {
                             id: guild.roles.everyone.id,
                             deny: [Discord.PermissionFlagsBits.SendMessages],
                         },
                     ],
-                });
+                };
+
+                if (parentId !== null) {
+                    options.parent = parentId;
+                }
+
+                return await guild.channels.create(options);
             } catch (e) {
                 client.log(
                     client.intlGet(null, 'errorCap'),

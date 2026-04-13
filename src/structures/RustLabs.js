@@ -1,19 +1,6 @@
 const Items = require('./Items');
-
-import { loadJsonResourceSync } from '../utils/filesystemUtils';
-
-const RustlabsBuildingBlocks = loadJsonResourceSync('staticFiles/rustlabsBuildingBlocks.json');
-const RustlabsOther = loadJsonResourceSync('staticFiles/rustlabsOther.json');
-const CraftData = loadJsonResourceSync('staticFiles/rustlabsCraftData.json');
-const ResearchData = loadJsonResourceSync('staticFiles/rustlabsResearchData.json');
-const RecycleData = loadJsonResourceSync('staticFiles/rustlabsRecycleData.json');
-const DurabilityData = loadJsonResourceSync('staticFiles/rustlabsDurabilityData.json');
-const SmeltingData = loadJsonResourceSync('staticFiles/rustlabsSmeltingData.json');
-const DespawnData = loadJsonResourceSync('staticFiles/rustlabsDespawnData.json');
-const StackData = loadJsonResourceSync('staticFiles/rustlabsStackData.json');
-const DecayData = loadJsonResourceSync('staticFiles/rustlabsDecayData.json');
-const UpkeepData = loadJsonResourceSync('staticFiles/rustlabsUpkeepData.json');
-const Utils = require('../util/utils');
+const getStaticFilesStorage = require('../util/getStaticFilesStorage');
+const Utils = require('../util/utils.js');
 
 const IGNORED_RECYCLE_ITEMS = ['-946369541' /* Low Grade Fuel */];
 
@@ -22,20 +9,24 @@ class RustLabs {
      *  Constructor for the RustLabs Class.
      */
     constructor() {
-        this._craftData = CraftData;
-        this._researchData = ResearchData;
-        this._recycleData = RecycleData;
-        this._durabilityData = DurabilityData;
-        this._smeltingData = SmeltingData;
-        this._despawnData = DespawnData;
-        this._stackData = StackData;
-        this._decayData = DecayData;
-        this._upkeepData = UpkeepData;
+        this._staticStorage = getStaticFilesStorage();
+
+        this._craftData = this.createDatasetView('rustlabsCraftData');
+        this._researchData = this.createDatasetView('rustlabsResearchData');
+        this._recycleData = this.createDatasetView('rustlabsRecycleData');
+        this._durabilityData = this.createGroupedDatasetView('rustlabsDurabilityData', {
+            cacheValues: false
+        });
+        this._smeltingData = this.createDatasetView('rustlabsSmeltingData');
+        this._despawnData = this.createDatasetView('rustlabsDespawnData');
+        this._stackData = this.createDatasetView('rustlabsStackData');
+        this._decayData = this.createGroupedDatasetView('rustlabsDecayData');
+        this._upkeepData = this.createGroupedDatasetView('rustlabsUpkeepData');
 
         this._items = new Items();
 
-        this._rustlabsBuildingBlocks = RustlabsBuildingBlocks;
-        this._rustlabsOther = RustlabsOther;
+        this._rustlabsBuildingBlocks = this.createDatasetView('rustlabsBuildingBlocks');
+        this._rustlabsOther = this.createDatasetView('rustlabsOther');
 
         this._durabilityGroups = ['explosive', 'melee', 'throw', 'guns', 'torpedo', 'turret'];
 
@@ -111,6 +102,63 @@ class RustLabs {
     get other() {
         return this._other;
     }
+
+    createDatasetView(dataset, options = {}) {
+        const group = options.group ?? '';
+        const cacheValues = options.cacheValues !== false;
+        const keys = this._staticStorage.getKeys(dataset, group);
+
+        const datasetView = Object.create(null);
+        Object.defineProperty(datasetView, 'hasOwnProperty', {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: key => Object.prototype.hasOwnProperty.call(datasetView, key)
+        });
+
+        for (const key of keys) {
+            let loaded = false;
+            let cachedValue = null;
+
+            Object.defineProperty(datasetView, key, {
+                enumerable: true,
+                configurable: false,
+                get: () => {
+                    if (cacheValues) {
+                        if (!loaded) {
+                            cachedValue = this._staticStorage.getEntry(dataset, key, group);
+                            loaded = true;
+                        }
+                        return cachedValue;
+                    }
+
+                    return this._staticStorage.getEntry(dataset, key, group);
+                }
+            });
+        }
+
+        return datasetView;
+    }
+
+    createGroupedDatasetView(dataset, options = {}) {
+        const cacheValues = options.cacheValues !== false;
+        const groupedDatasetView = Object.create(null);
+        groupedDatasetView['items'] = this.createDatasetView(dataset, {
+            group: 'items',
+            cacheValues: cacheValues
+        });
+        groupedDatasetView['buildingBlocks'] = this.createDatasetView(dataset, {
+            group: 'buildingBlocks',
+            cacheValues: cacheValues
+        });
+        groupedDatasetView['other'] = this.createDatasetView(dataset, {
+            group: 'other',
+            cacheValues: cacheValues
+        });
+
+        return groupedDatasetView;
+    }
+
 
     /***********************************************************************************
      *  General functions

@@ -10,3 +10,8 @@ dist
 .mise.local.toml
 .mise.*.local.toml
 .vscode
+data/staticData.sqlite-shm
+data/staticData.sqlite-wal
+data/runtimeData.sqlite
+data/runtimeData.sqlite-shm
+data/runtimeData.sqlite-wal

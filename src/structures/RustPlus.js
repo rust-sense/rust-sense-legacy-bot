@@ -14,6 +14,7 @@ const InstanceUtils = require('../util/instanceUtils');
 const Languages = require('../util/languages');
 const Logger = require('./Logger');
 const GameMap = require('../util/GameMap');
+const getRuntimeDataStorage = require('../util/getRuntimeDataStorage');
 const RustPlusLite = require('../structures/RustPlusLite');
 const TeamHandler = require('../handlers/teamHandler');
 const Timer = require('../util/timer');
@@ -32,6 +33,8 @@ class RustPlus extends RustPlusLib {
 
         this.serverId = `${this.server}-${this.port}`;
         this.guildId = guildId;
+        this.runtimeDataStorage = getRuntimeDataStorage();
+        this.persistentRuntimeStateRestored = false;
 
         this.leaderRustPlusInstance = null;
         this.uptimeServer = null;
@@ -67,6 +70,8 @@ class RustPlus extends RustPlusLib {
 
         /* Stores found vending machine items that are subscribed to */
         this.foundSubscriptionItems = { all: [], buy: [], sell: [] };
+        this.currentOrderList = [];  /* Stores the current order list from the market. */
+        this.currentOrderPage = 1;  /* Stores the current order page from the market. */
 
         /* When a new item is added to subscription list, dont notify about the already available items. */
         this.firstPollItems = { all: [], buy: [], sell: [] };
@@ -82,6 +87,8 @@ class RustPlus extends RustPlusLib {
             small: [],
             large: [],
             chinook: [],
+            travelingVendor: [],
+            deepSea: [],
         };
         this.patrolHelicopterTracers = new Object();
         this.cargoShipTracers = new Object();
@@ -108,6 +115,321 @@ class RustPlus extends RustPlusLib {
         for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers)) {
             this.markers[name] = { x: location.x, y: location.y, location: location.location };
         }
+    }
+
+    getRuntimeState(stateKey) {
+        return this.runtimeDataStorage.getServerState(this.guildId, this.serverId, stateKey);
+    }
+
+    setRuntimeState(stateKey, value) {
+        this.runtimeDataStorage.setServerState(this.guildId, this.serverId, stateKey, value);
+    }
+
+    deleteRuntimeState(stateKey) {
+        this.runtimeDataStorage.deleteServerState(this.guildId, this.serverId, stateKey);
+    }
+
+    dateToTimestamp(date) {
+        return (date instanceof Date) ? date.getTime() : null;
+    }
+
+    timestampToDate(timestamp) {
+        if (typeof (timestamp) !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) {
+            return null;
+        }
+        return new Date(timestamp);
+    }
+
+    getTimerEndAtMs(timer) {
+        if (!timer || !timer.getStateRunning()) return null;
+        const remainingMs = timer.getTimeLeft();
+        if (typeof (remainingMs) !== 'number' || remainingMs <= 0) return null;
+        return Date.now() + remainingMs;
+    }
+
+    persistCustomTimersState() {
+        const persistedTimers = [];
+        for (const [id, content] of Object.entries(this.timers)) {
+            if (!content || !content.timer || typeof (content.message) !== 'string') continue;
+
+            const endAtMs = this.getTimerEndAtMs(content.timer);
+            if (endAtMs === null) continue;
+
+            persistedTimers.push({
+                id: parseInt(id),
+                message: content.message,
+                endAtMs: endAtMs
+            });
+        }
+
+        if (persistedTimers.length === 0) {
+            this.deleteRuntimeState('customTimers');
+            return;
+        }
+
+        persistedTimers.sort((a, b) => a.id - b.id);
+        this.setRuntimeState('customTimers', { timers: persistedTimers });
+    }
+
+    restoreCustomTimersState() {
+        const persisted = this.getRuntimeState('customTimers');
+        if (!persisted || !Array.isArray(persisted.timers)) return;
+
+        for (const timerData of persisted.timers) {
+            const id = parseInt(timerData.id);
+            if (!Number.isInteger(id) || id < 0) continue;
+            if (this.timers.hasOwnProperty(id)) continue;
+            if (typeof (timerData.message) !== 'string' || timerData.message === '') continue;
+
+            const endAtMs = Number(timerData.endAtMs);
+            if (!Number.isFinite(endAtMs)) continue;
+            const remainingMs = Math.floor(endAtMs - Date.now());
+            if (remainingMs <= 0) continue;
+
+            this.timers[id] = {
+                timer: new Timer.timer(
+                    () => {
+                        this.sendInGameMessage(Client.client.intlGet(this.guildId, 'timer', {
+                            message: timerData.message
+                        }), 'TIMER');
+                        delete this.timers[id];
+                        this.persistCustomTimersState();
+                    },
+                    remainingMs
+                ),
+                message: timerData.message
+            };
+            this.timers[id].timer.start();
+        }
+
+        this.persistCustomTimersState();
+    }
+
+    buildMapMarkersRuntimeState() {
+        if (!this.mapMarkers) return null;
+
+        const cargoShipEgressTimers = [];
+        for (const [id, timer] of Object.entries(this.mapMarkers.cargoShipEgressTimers)) {
+            const endAtMs = this.getTimerEndAtMs(timer);
+            if (endAtMs === null) continue;
+
+            const parsedId = parseInt(id);
+            if (!Number.isInteger(parsedId)) continue;
+            const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, parsedId);
+
+            cargoShipEgressTimers.push({
+                id: parsedId,
+                endAtMs: endAtMs,
+                x: cargoShip ? cargoShip.x : null,
+                y: cargoShip ? cargoShip.y : null
+            });
+        }
+
+        const cargoShipsState = this.mapMarkers.cargoShips.map(cargoShip => ({
+            id: cargoShip.id,
+            x: cargoShip.x,
+            y: cargoShip.y,
+            onItsWayOut: cargoShip.onItsWayOut === true
+        }));
+
+        return {
+            timeSinceCargoShipWasOutMs: this.dateToTimestamp(this.mapMarkers.timeSinceCargoShipWasOut),
+            timeSinceCH47WasOutMs: this.dateToTimestamp(this.mapMarkers.timeSinceCH47WasOut),
+            timeSinceSmallOilRigWasTriggeredMs: this.dateToTimestamp(this.mapMarkers.timeSinceSmallOilRigWasTriggered),
+            timeSinceLargeOilRigWasTriggeredMs: this.dateToTimestamp(this.mapMarkers.timeSinceLargeOilRigWasTriggered),
+            timeSincePatrolHelicopterWasOnMapMs: this.dateToTimestamp(this.mapMarkers.timeSincePatrolHelicopterWasOnMap),
+            timeSincePatrolHelicopterWasDestroyedMs:
+                this.dateToTimestamp(this.mapMarkers.timeSincePatrolHelicopterWasDestroyed),
+            patrolHelicopterDestroyedLocation: this.mapMarkers.patrolHelicopterDestroyedLocation,
+            timeSinceTravelingVendorWasOnMapMs: this.dateToTimestamp(this.mapMarkers.timeSinceTravelingVendorWasOnMap),
+            timeSinceDeepSeaSpawnedMs: this.dateToTimestamp(this.mapMarkers.timeSinceDeepSeaSpawned),
+            timeSinceDeepSeaWasOnMapMs: this.dateToTimestamp(this.mapMarkers.timeSinceDeepSeaWasOnMap),
+            crateSmallOilRigLocation: this.mapMarkers.crateSmallOilRigLocation,
+            crateLargeOilRigLocation: this.mapMarkers.crateLargeOilRigLocation,
+            crateSmallOilRigUnlockAtMs: this.getTimerEndAtMs(this.mapMarkers.crateSmallOilRigTimer),
+            crateLargeOilRigUnlockAtMs: this.getTimerEndAtMs(this.mapMarkers.crateLargeOilRigTimer),
+            cargoShipEgressTimers: cargoShipEgressTimers,
+            cargoShipsState: cargoShipsState
+        };
+    }
+
+    persistMapMarkersRuntimeState() {
+        const state = this.buildMapMarkersRuntimeState();
+        if (state === null) return;
+        this.setRuntimeState('mapMarkers', state);
+    }
+
+    restoreOilRigCrateTimerFromState(type, unlockAtMs, location) {
+        if (!this.mapMarkers) return;
+
+        const safeLocation = (typeof (location) === 'string' && location !== '') ? location : null;
+        const safeUnlockAtMs = Number(unlockAtMs);
+        const remainingMs = Number.isFinite(safeUnlockAtMs) ? Math.floor(safeUnlockAtMs - Date.now()) : null;
+
+        if (type === 'small') {
+            if (this.mapMarkers.crateSmallOilRigTimer) {
+                this.mapMarkers.crateSmallOilRigTimer.stop();
+                this.mapMarkers.crateSmallOilRigTimer = null;
+            }
+
+            this.mapMarkers.crateSmallOilRigLocation = safeLocation;
+
+            if (safeLocation !== null && remainingMs !== null && remainingMs > 0) {
+                this.mapMarkers.crateSmallOilRigTimer = new Timer.timer(
+                    this.mapMarkers.notifyCrateSmallOilRigOpen.bind(this.mapMarkers),
+                    remainingMs,
+                    safeLocation
+                );
+                this.mapMarkers.crateSmallOilRigTimer.start();
+            }
+        }
+        else if (type === 'large') {
+            if (this.mapMarkers.crateLargeOilRigTimer) {
+                this.mapMarkers.crateLargeOilRigTimer.stop();
+                this.mapMarkers.crateLargeOilRigTimer = null;
+            }
+
+            this.mapMarkers.crateLargeOilRigLocation = safeLocation;
+
+            if (safeLocation !== null && remainingMs !== null && remainingMs > 0) {
+                this.mapMarkers.crateLargeOilRigTimer = new Timer.timer(
+                    this.mapMarkers.notifyCrateLargeOilRigOpen.bind(this.mapMarkers),
+                    remainingMs,
+                    safeLocation
+                );
+                this.mapMarkers.crateLargeOilRigTimer.start();
+            }
+        }
+    }
+
+    findCargoShipForPersistedState(cargoData, reservedCargoShipIds = new Set()) {
+        if (!this.mapMarkers) return null;
+
+        const availableCargoShips = this.mapMarkers.cargoShips.filter(cargoShip => !reservedCargoShipIds.has(cargoShip.id));
+        if (availableCargoShips.length === 0) return null;
+
+        const persistedId = parseInt(cargoData.id);
+        if (Number.isInteger(persistedId)) {
+            const cargoShipById = availableCargoShips.find(cargoShip => cargoShip.id === persistedId);
+            if (cargoShipById) return cargoShipById;
+        }
+
+        const persistedX = cargoData.x;
+        const persistedY = cargoData.y;
+        if (typeof (persistedX) === 'number' && Number.isFinite(persistedX) &&
+            typeof (persistedY) === 'number' && Number.isFinite(persistedY)) {
+            let closestCargoShip = null;
+            let closestDistance = Number.POSITIVE_INFINITY;
+
+            for (const cargoShip of availableCargoShips) {
+                const distance = Map.getDistance(cargoShip.x, cargoShip.y, persistedX, persistedY);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestCargoShip = cargoShip;
+                }
+            }
+
+            if (closestCargoShip !== null) return closestCargoShip;
+        }
+
+        if (availableCargoShips.length === 1) {
+            return availableCargoShips[0];
+        }
+
+        return null;
+    }
+
+    restoreMapMarkersRuntimeState() {
+        if (!this.mapMarkers) return;
+
+        const persisted = this.getRuntimeState('mapMarkers');
+        if (!persisted || typeof (persisted) !== 'object') return;
+
+        this.mapMarkers.timeSinceCargoShipWasOut = this.timestampToDate(persisted.timeSinceCargoShipWasOutMs);
+        this.mapMarkers.timeSinceCH47WasOut = this.timestampToDate(persisted.timeSinceCH47WasOutMs);
+        this.mapMarkers.timeSinceSmallOilRigWasTriggered =
+            this.timestampToDate(persisted.timeSinceSmallOilRigWasTriggeredMs);
+        this.mapMarkers.timeSinceLargeOilRigWasTriggered =
+            this.timestampToDate(persisted.timeSinceLargeOilRigWasTriggeredMs);
+        this.mapMarkers.timeSincePatrolHelicopterWasOnMap =
+            this.timestampToDate(persisted.timeSincePatrolHelicopterWasOnMapMs);
+        this.mapMarkers.timeSincePatrolHelicopterWasDestroyed =
+            this.timestampToDate(persisted.timeSincePatrolHelicopterWasDestroyedMs);
+        this.mapMarkers.timeSinceTravelingVendorWasOnMap =
+            this.timestampToDate(persisted.timeSinceTravelingVendorWasOnMapMs);
+        this.mapMarkers.timeSinceDeepSeaSpawned = this.timestampToDate(persisted.timeSinceDeepSeaSpawnedMs);
+        this.mapMarkers.timeSinceDeepSeaWasOnMap = this.timestampToDate(persisted.timeSinceDeepSeaWasOnMapMs);
+        this.mapMarkers.patrolHelicopterDestroyedLocation =
+            typeof (persisted.patrolHelicopterDestroyedLocation) === 'string' ?
+                persisted.patrolHelicopterDestroyedLocation : null;
+
+        this.mapMarkers.isDeepSeaActive = this.mapMarkers.timeSinceDeepSeaSpawned !== null;
+
+        this.restoreOilRigCrateTimerFromState(
+            'small',
+            persisted.crateSmallOilRigUnlockAtMs,
+            persisted.crateSmallOilRigLocation
+        );
+        this.restoreOilRigCrateTimerFromState(
+            'large',
+            persisted.crateLargeOilRigUnlockAtMs,
+            persisted.crateLargeOilRigLocation
+        );
+
+        for (const cargoShip of this.mapMarkers.cargoShips) {
+            cargoShip.onItsWayOut = false;
+        }
+
+        if (Array.isArray(persisted.cargoShipEgressTimers)) {
+            for (const [id, timer] of Object.entries(this.mapMarkers.cargoShipEgressTimers)) {
+                if (timer) timer.stop();
+                delete this.mapMarkers.cargoShipEgressTimers[id];
+            }
+
+            const reservedCargoShipIds = new Set();
+            for (const timerData of persisted.cargoShipEgressTimers) {
+                const cargoShip = this.findCargoShipForPersistedState(timerData, reservedCargoShipIds);
+                if (!cargoShip) continue;
+
+                const endAtMs = Number(timerData.endAtMs);
+                if (!Number.isFinite(endAtMs)) continue;
+                const remainingMs = Math.floor(endAtMs - Date.now());
+                if (remainingMs <= 0) continue;
+
+                const id = cargoShip.id;
+                reservedCargoShipIds.add(id);
+                cargoShip.onItsWayOut = false;
+
+                this.mapMarkers.cargoShipEgressTimers[id] = new Timer.timer(
+                    this.mapMarkers.notifyCargoShipEgress.bind(this.mapMarkers),
+                    remainingMs,
+                    id
+                );
+                this.mapMarkers.cargoShipEgressTimers[id].start();
+            }
+        }
+
+        if (Array.isArray(persisted.cargoShipsState)) {
+            const reservedCargoShipIds = new Set();
+            for (const cargoData of persisted.cargoShipsState) {
+                if (!cargoData || cargoData.onItsWayOut !== true) continue;
+
+                const cargoShip = this.findCargoShipForPersistedState(cargoData, reservedCargoShipIds);
+                if (!cargoShip) continue;
+                if (this.mapMarkers.cargoShipEgressTimers[cargoShip.id]) continue;
+
+                cargoShip.onItsWayOut = true;
+                reservedCargoShipIds.add(cargoShip.id);
+            }
+        }
+    }
+
+    restorePersistentRuntimeState() {
+        if (this.persistentRuntimeStateRestored) return;
+
+        this.restoreMapMarkersRuntimeState();
+        this.restoreCustomTimersState();
+        this.persistentRuntimeStateRestored = true;
     }
 
     build() {
@@ -198,12 +520,12 @@ class RustPlus extends RustPlusLib {
     }
 
     updateEvents(event, message) {
-        const commandCargoEn = `${client.intlGet('en', 'commandSyntaxCargo')}`;
-        const commandHeliEn = `${client.intlGet('en', 'commandSyntaxHeli')}`;
-        const commandSmallEn = `${client.intlGet('en', 'commandSyntaxSmall')}`;
-        const commandLargeEn = `${client.intlGet('en', 'commandSyntaxLarge')}`;
-        const commandChinookEn = `${client.intlGet('en', 'commandSyntaxChinook')}`;
-        if (![commandCargoEn, commandHeliEn, commandSmallEn, commandLargeEn, commandChinookEn].includes(event)) return;
+        const eventAliases = {
+            vendor: 'travelingVendor',
+        };
+        const eventKey = eventAliases[event] || event;
+        const supportedEvents = ['cargo', 'heli', 'small', 'large', 'chinook', 'travelingVendor', 'deepSea'];
+        if (!supportedEvents.includes(eventKey)) return;
 
         const str = `${Timer.getCurrentDateTime()} - ${message}`;
 
@@ -212,10 +534,10 @@ class RustPlus extends RustPlusLib {
         }
         this.events['all'].unshift(str);
 
-        if (this.events[event].length === 10) {
-            this.events[event].pop();
+        if (this.events[eventKey].length === 10) {
+            this.events[eventKey].pop();
         }
-        this.events[event].unshift(str);
+        this.events[eventKey].unshift(str);
     }
 
     updateBotMessages(message) {
@@ -1294,6 +1616,10 @@ class RustPlus extends RustPlusLib {
         const commandLargeEn = `${client.intlGet('en', 'commandSyntaxLarge')}`;
         const commandChinook = `${client.intlGet(this.guildId, 'commandSyntaxChinook')}`;
         const commandChinookEn = `${client.intlGet('en', 'commandSyntaxChinook')}`;
+        const commandTravelingVendor = `${client.intlGet(this.guildId, 'commandSyntaxTravelingVendor')}`;
+        const commandTravelingVendorEn = `${client.intlGet('en', 'commandSyntaxTravelingVendor')}`;
+        const commandDeepSea = `${client.intlGet(this.guildId, 'commandSyntaxDeepSea')}`;
+        const commandDeepSeaEn = `${client.intlGet('en', 'commandSyntaxDeepSea')}`;
 
         const EVENTS = [
             commandCargo,
@@ -1306,6 +1632,10 @@ class RustPlus extends RustPlusLib {
             commandLargeEn,
             commandChinook,
             commandChinookEn,
+            commandTravelingVendor,
+            commandTravelingVendorEn,
+            commandDeepSea,
+            commandDeepSeaEn,
         ];
 
         if (command.toLowerCase().startsWith(`${commandEvents}`)) {
@@ -1373,6 +1703,20 @@ class RustPlus extends RustPlusLib {
             case commandChinook:
                 {
                     event = 'chinook';
+                }
+                break;
+
+            case commandTravelingVendorEn:
+            case commandTravelingVendor:
+                {
+                    event = 'travelingVendor';
+                }
+                break;
+
+            case commandDeepSeaEn:
+            case commandDeepSea:
+                {
+                    event = 'deepSea';
                 }
                 break;
 
@@ -1732,6 +2076,8 @@ class RustPlus extends RustPlusLib {
         const prefix = this.generalSettings.prefix;
         const commandMarket = `${prefix}${client.intlGet(this.guildId, 'commandSyntaxMarket')}`;
         const commandMarketEn = `${prefix}${client.intlGet('en', 'commandSyntaxMarket')}`;
+        const commandNext = `${client.intlGet(this.guildId, 'commandSyntaxNext')}`;
+        const commandNextEn = `${client.intlGet('en', 'commandSyntaxNext')}`;
         const commandSearch = `${client.intlGet(this.guildId, 'commandSyntaxSearch')}`;
         const commandSearchEn = `${client.intlGet('en', 'commandSyntaxSearch')}`;
         const commandSub = `${client.intlGet(this.guildId, 'commandSyntaxSubscribe')}`;
@@ -1741,17 +2087,35 @@ class RustPlus extends RustPlusLib {
         const commandList = `${client.intlGet(this.guildId, 'commandSyntaxList')}`;
         const commandListEn = `${client.intlGet('en', 'commandSyntaxList')}`;
 
+        //Remove market part of the command -> search sell itemname
         if (command.toLowerCase().startsWith(`${commandMarket} `)) {
             command = command.slice(`${commandMarket} `.length).trim();
         } else {
             command = command.slice(`${commandMarketEn} `.length).trim();
         }
+        //Get subcommand and remove it from the command -> sell itemname
         const subcommand = command.replace(/ .*/, '');
         command = command.slice(subcommand.length + 1);
 
+        //Get ordertype from the command -> ordertype
         const orderType = command.replace(/ .*/, '');
-        const name = command.slice(orderType.length + 1);
+        let remainingCommand = command.slice(orderType.length + 1);
+        
+        let showImages = false;
+        let name = '';
 
+        //Check if images should be shown and get the item name -> itemname
+        if (remainingCommand.toLowerCase().startsWith('image ')) {
+            showImages = true;
+            name = remainingCommand.slice('image '.length).trim();
+            } 
+        else {
+            name = remainingCommand.trim();
+            }
+
+        const ORDERS_PER_PAGE = 10;
+        const orders = [];
+        let foundOrders = 0;
         switch (subcommand) {
             case commandSearchEn:
             case commandSearch:
@@ -1791,17 +2155,118 @@ class RustPlus extends RustPlusLib {
                                 (orderType === 'buy' && orderCurrencyId === parseInt(itemId)) ||
                                 (orderType === 'sell' && orderItemId === parseInt(itemId))
                             ) {
-                                if (locations.includes(vendingMachine.location.location)) continue;
-                                locations.push(vendingMachine.location.location);
+                                orders.push({
+                                    text: `${client.intlGet(this.guildId, 'foundItemInVendingMachine', {
+                                        item: showImages
+                                            ? `:${client.items.getShortName(order.itemId)}:`
+                                            : ` ${client.items.getName(order.itemId)}`,
+                                        quantity: order.quantity,
+                                        price: showImages
+                                            ? `:${client.items.getShortName(order.currencyId)}:`
+                                            : ` ${client.items.getName(order.currencyId)}`,
+                                        priceAmount: order.costPerItem,
+                                        stock: order.amountInStock,
+                                        location: vendingMachine.location.string,
+                                    })}`,
+                                });
                             }
                         }
                     }
 
-                    if (locations.length === 0) {
+                    if (orders.length === 0) {
+                        delete this.currentOrdersList;
+                        delete this.currentOrderPage;
                         return client.intlGet(this.guildId, 'noItemFound');
                     }
 
-                    return locations.join(', ');
+                    foundOrders = orders.length;
+                    const totalPages = Math.ceil(foundOrders / ORDERS_PER_PAGE);
+
+                    this.currentOrdersList = orders;
+                    this.currentOrderPage = 1;
+
+                    const firstPageOrders = orders.slice(0, ORDERS_PER_PAGE);
+
+                    if (totalPages > 1) {
+                        this.sendInGameMessage(
+                            client.intlGet(this.guildId, 'foundOrdersSummary', {
+                                foundOrders: foundOrders,
+                                currentPage: 1,
+                                totalPages: totalPages,
+                                nextCommand: `${prefix}market next`,
+                            }),
+                        );
+                    }
+                    if (totalPages === 1) {
+                        this.sendInGameMessage(
+                            client.intlGet(this.guildId, 'foundOrdersSummaryNoNext', {
+                                foundOrders: foundOrders,
+                            }),
+                        );
+                    }
+
+                    for (let i = 0; i < firstPageOrders.length; i++) {
+                        const order = firstPageOrders[i];
+                        const delay = i * 150;
+                        setTimeout(() => {
+                            this.sendInGameMessage(order.text);
+                        }, delay);
+                    }
+
+                    return null;
+                }
+                break;
+
+            case commandNextEn:
+            case commandNext:
+                {
+                    const orders = this.currentOrdersList;
+                    let currentPage = this.currentOrderPage || 0;
+
+                    if (!Array.isArray(orders) || orders.length === 0 || currentPage === 0) {
+                        delete this.currentOrdersList;
+                        delete this.currentOrderPage;
+                        return client.intlGet(this.guildId, 'noMorePages');
+                    }
+
+                    const totalPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
+
+                    if (currentPage >= totalPages) {
+                        delete this.currentOrdersList;
+                        delete this.currentOrderPage;
+                        return client.intlGet(this.guildId, 'noMorePages');
+                    }
+
+                    currentPage += 1;
+                    this.currentOrderPage = currentPage;
+
+                    const startIndex = (currentPage - 1) * ORDERS_PER_PAGE;
+                    const endIndex = startIndex + ORDERS_PER_PAGE;
+                    const nextPageOrders = orders.slice(startIndex, endIndex);
+
+                    this.sendInGameMessage(
+                        client.intlGet(this.guildId, 'foundOrdersSummary', {
+                            foundOrders: orders.length,
+                            currentPage: currentPage,
+                            totalPages: totalPages,
+                            nextCommand: currentPage < totalPages ? 'market next' : '',
+                        }),
+                    );
+
+                    for (let i = 0; i < nextPageOrders.length; i++) {
+                        const order = nextPageOrders[i];
+                        const delay = i * 150;
+                        setTimeout(() => {
+                            this.sendInGameMessage(order.text);
+                        }, delay);
+                    }
+
+                    if (currentPage >= totalPages) {
+                        delete this.currentOrdersList;
+                        delete this.currentOrderPage;
+                    }
+
+                    return null;
                 }
                 break;
 
@@ -2797,6 +3262,57 @@ class RustPlus extends RustPlusLib {
         }
 
         return strings;
+    }
+
+    getCommandDeepSea(isInfoChannel = false) {
+        const instance = Client.client.getInstance(this.guildId);
+        const deepSeaSettings = instance.serverList[this.serverId];
+        const deepSeaMinWipeCooldown = deepSeaSettings.deepSeaMinWipeCooldownMs;
+        const deepSeaMaxWipeCooldown = deepSeaSettings.deepSeaMaxWipeCooldownMs;
+        const deepSeaWipeDuration = deepSeaSettings.deepSeaWipeDurationMs;
+        const wasOnMap = this.mapMarkers.timeSinceDeepSeaWasOnMap;
+        const isOnMap = this.mapMarkers.timeSinceDeepSeaSpawned;
+        const now = new Date();
+
+        if (isOnMap !== null) {
+            const secondsLeft = Math.max(0, (deepSeaWipeDuration - (now - isOnMap)) / 1000);
+            if (isInfoChannel) {
+                return Client.client.intlGet(this.guildId, 'activeFor', {
+                    time: Timer.secondsToFullScale(secondsLeft, 's')
+                });
+            }
+
+            return Client.client.intlGet(this.guildId, 'timeDeepSeaIsActiveFor', {
+                time: Timer.secondsToFullScale(secondsLeft)
+            });
+        }
+
+        if (wasOnMap === null) {
+            return isInfoChannel ? Client.client.intlGet(this.guildId, 'notActive') :
+                Client.client.intlGet(this.guildId, 'deepSeaNotCurrentlyOnMap');
+        }
+
+        const secondsSince = (now - wasOnMap) / 1000;
+        if (isInfoChannel) {
+            return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+                time: Timer.secondsToFullScale(secondsSince, 's')
+            });
+        }
+
+        const respawnMinSeconds = Math.max(0, (deepSeaMinWipeCooldown - (now - wasOnMap)) / 1000);
+        const respawnMaxSeconds = Math.max(0, (deepSeaMaxWipeCooldown - (now - wasOnMap)) / 1000);
+        if (respawnMinSeconds === 0) {
+            return Client.client.intlGet(this.guildId, 'deepSeaCanRespawnNow', {
+                time: Timer.secondsToFullScale(secondsSince),
+                respawnMax: Timer.secondsToFullScale(respawnMaxSeconds, 's')
+            });
+        }
+
+        return Client.client.intlGet(this.guildId, 'timeSinceDeepSeaWasOnMap', {
+            time: Timer.secondsToFullScale(secondsSince),
+            respawnMin: Timer.secondsToFullScale(respawnMinSeconds, 's'),
+            respawnMax: Timer.secondsToFullScale(respawnMaxSeconds, 's')
+        });
     }
 }
 
