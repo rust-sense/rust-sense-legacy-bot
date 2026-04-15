@@ -45,7 +45,7 @@
     },
     "resolutions": {
         "jpeg-js": "0.4.4",
-        "protobufjs": "7.2.6"
+        "protobufjs": "7.5.5"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.3",
