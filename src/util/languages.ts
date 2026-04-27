@@ -1,4 +1,4 @@
-module.exports = {
+export const languages: Record<string, string> = {
     afar: 'aa',
     abkhazian: 'ab',
     afrikaans: 'af',

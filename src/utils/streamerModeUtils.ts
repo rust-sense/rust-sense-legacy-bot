@@ -27,6 +27,7 @@ function calculateStreamerModeUsername(steamId64String: string) {
     const idx = Number(modLength);
 
     const username = streamerModeUsernames[idx];
+    if (!username) return steamId64String;
 
     if (LOOKUP_CACHE.size >= LOOKUP_CACHE_MAX_SIZE) {
         LOOKUP_CACHE.delete(LOOKUP_CACHE.keys().next().value!);
