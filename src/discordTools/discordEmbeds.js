@@ -5,6 +5,7 @@ const Constants = require('../util/constants');
 const DiscordTools = require('./discordTools');
 const InstanceUtils = require('../util/instanceUtils');
 const Timer = require('../util/timer');
+const Utils = require('../util/utils');
 
 function isValidUrl(url) {
     if (url.startsWith('https') || url.startsWith('http')) {
@@ -35,7 +36,7 @@ module.exports = {
     getSmartSwitchEmbed: function (guildId, serverId, entityId) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].switches[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: `${entity.name}${grid}`,
@@ -73,9 +74,7 @@ module.exports = {
             const bmInstance = client.battlemetricsInstances[bmId];
             if (bmInstance) {
                 description += `__**${client.intlGet(guildId, 'streamerMode')}:**__ `;
-                description +=
-                    (bmInstance.streamerMode ? client.intlGet(guildId, 'onCap') : client.intlGet(guildId, 'offCap')) +
-                    '\n';
+                description += Utils.getActiveStr(client, guildId, bmInstance.streamerMode) + '\n';
             }
         }
         description += `\n${server.description}`;
@@ -243,7 +242,7 @@ module.exports = {
     getSmartAlarmEmbed: function (guildId, serverId, entityId) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].alarms[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
         let description = `**ID**: \`${entityId}\`\n`;
         description += `**${client.intlGet(guildId, 'lastTrigger')}:** `;
 
@@ -280,7 +279,7 @@ module.exports = {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const rustplus = client.rustplusInstances[guildId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         let description = `**ID** \`${entityId}\``;
 
@@ -352,8 +351,8 @@ module.exports = {
             itemQuantity += `\`${quantity}\`\n`;
         }
 
-        if (itemName === '') itemName = client.intlGet(guildId, 'empty');
-        if (itemQuantity === '') itemQuantity = client.intlGet(guildId, 'empty');
+        itemName = Utils.orEmpty(client, guildId, itemName);
+        itemQuantity = Utils.orEmpty(client, guildId, itemQuantity);
 
         return module.exports.getEmbed({
             title: `${entity.name}${grid}`,
@@ -423,7 +422,7 @@ module.exports = {
     getNotFoundSmartDeviceEmbed: function (guildId, serverId, entityId, type) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId][type][entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: `${entity.name}${grid}`,
@@ -439,7 +438,7 @@ module.exports = {
     getStorageMonitorRecycleEmbed: function (guildId, serverId, entityId, items) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].storageMonitors[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         let itemName = '',
             itemQuantity = '';
@@ -457,8 +456,8 @@ module.exports = {
                 `**${client.intlGet(guildId, 'name')}** ` + `\`${entity.name}${grid}\`\n**ID** \`${entityId}\``,
         });
 
-        if (itemName === '') itemName = client.intlGet(guildId, 'empty');
-        if (itemQuantity === '') itemQuantity = client.intlGet(guildId, 'empty');
+        itemName = Utils.orEmpty(client, guildId, itemName);
+        itemQuantity = Utils.orEmpty(client, guildId, itemQuantity);
 
         embed.addFields(
             { name: client.intlGet(guildId, 'item'), value: itemName, inline: true },
@@ -471,7 +470,7 @@ module.exports = {
     getDecayingNotificationEmbed: function (guildId, serverId, entityId) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].storageMonitors[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'isDecaying', {
@@ -488,7 +487,7 @@ module.exports = {
     getStorageMonitorDisconnectNotificationEmbed: function (guildId, serverId, entityId) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].storageMonitors[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'isNoLongerConnected', {
@@ -508,7 +507,7 @@ module.exports = {
         const entity = server.storageMonitors[entityId];
         const credentials = InstanceUtils.readCredentialsFile(guildId);
         const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'smartDeviceNotFound', {
@@ -529,7 +528,7 @@ module.exports = {
         const entity = instance.serverList[serverId].switches[entityId];
         const credentials = InstanceUtils.readCredentialsFile(guildId);
         const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'smartDeviceNotFound', {
@@ -550,7 +549,7 @@ module.exports = {
         const entity = server.alarms[entityId];
         const credentials = InstanceUtils.readCredentialsFile(guildId);
         const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'smartDeviceNotFound', {
@@ -613,7 +612,7 @@ module.exports = {
     getAlarmEmbed: function (guildId, serverId, entityId) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].alarms[entityId];
-        const grid = entity.location !== null ? ` (${entity.location})` : '';
+        const grid = Utils.getGridSuffix(entity.location);
 
         return module.exports.getEmbed({
             color: Constants.COLOR_DEFAULT,
@@ -771,6 +770,7 @@ module.exports = {
         const largeOilRigFieldName = client.intlGet(guildId, 'largeOilRig');
         const chinook47FieldName = client.intlGet(guildId, 'chinook47');
         const travelingVendorFieldName = client.intlGet(guildId, 'travelingVendor');
+        const deepSeaFieldName = client.intlGet(guildId, 'deepSea');
 
         const cargoShipMessage = rustplus.getCommandCargo(true);
         const patrolHelicopterMessage = rustplus.getCommandHeli(true);
@@ -778,6 +778,7 @@ module.exports = {
         const largeOilMessage = rustplus.getCommandLarge(true);
         const ch47Message = rustplus.getCommandChinook(true);
         const travelingVendorMessage = rustplus.getCommandTravelingVendor(true);
+        const deepSeaMessage = rustplus.getCommandDeepSea(true);
 
         return module.exports.getEmbed({
             title: client.intlGet(guildId, 'eventInfo'),
@@ -792,6 +793,7 @@ module.exports = {
                 { name: largeOilRigFieldName, value: `\`${largeOilMessage}\``, inline: true },
                 { name: chinook47FieldName, value: `\`${ch47Message}\``, inline: true },
                 { name: travelingVendorFieldName, value: `\`${travelingVendorMessage}\``, inline: true },
+                { name: deepSeaFieldName, value: `\`${deepSeaMessage}\``, inline: true },
             ],
             timestamp: true,
         });
@@ -1030,9 +1032,9 @@ module.exports = {
             hoster += `${credential === credentials.hoster ? `${Constants.LEADER_EMOJI}\n` : '\u200B\n'}`;
         }
 
-        if (names === '') names = client.intlGet(guildId, 'empty');
-        if (steamIds === '') steamIds = client.intlGet(guildId, 'empty');
-        if (hoster === '') hoster = client.intlGet(guildId, 'empty');
+        names = Utils.orEmpty(client, guildId, names);
+        steamIds = Utils.orEmpty(client, guildId, steamIds);
+        hoster = Utils.orEmpty(client, guildId, hoster);
 
         return module.exports.getEmbed({
             color: Constants.COLOR_DEFAULT,
@@ -1070,7 +1072,7 @@ module.exports = {
     },
 
     getHelpEmbed: function (guildId) {
-        const repository = 'https://github.com/alexemanuelol/rustplusplus';
+        const repository = 'https://github.com/faithix/rustplusplus';
         const credentials = `${repository}/blob/master/docs/credentials.md`;
         const pairServer = `${repository}/blob/master/docs/pair_and_connect_to_server.md`;
         const commands = `${repository}/blob/master/docs/commands.md`;

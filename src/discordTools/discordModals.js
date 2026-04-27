@@ -66,6 +66,30 @@ module.exports = {
                     style: Discord.TextInputStyle.Short,
                 }),
             ),
+            new Discord.ActionRowBuilder().addComponents(
+                TextInput.getTextInput({
+                    customId: 'DeepSeaMinWipeCooldownTime',
+                    label: client.intlGet(guildId, 'customTimerEditDeepSeaMinWipeCooldownLabel'),
+                    value: `${server.deepSeaMinWipeCooldownMs / 1000}`,
+                    style: Discord.TextInputStyle.Short,
+                }),
+            ),
+            new Discord.ActionRowBuilder().addComponents(
+                TextInput.getTextInput({
+                    customId: 'DeepSeaMaxWipeCooldownTime',
+                    label: client.intlGet(guildId, 'customTimerEditDeepSeaMaxWipeCooldownLabel'),
+                    value: `${server.deepSeaMaxWipeCooldownMs / 1000}`,
+                    style: Discord.TextInputStyle.Short,
+                }),
+            ),
+            new Discord.ActionRowBuilder().addComponents(
+                TextInput.getTextInput({
+                    customId: 'DeepSeaWipeDurationTime',
+                    label: client.intlGet(guildId, 'customTimerEditDeepSeaWipeDurationLabel'),
+                    value: `${server.deepSeaWipeDurationMs / 1000}`,
+                    style: Discord.TextInputStyle.Short,
+                }),
+            ),
         );
 
         return modal;

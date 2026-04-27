@@ -243,7 +243,7 @@ class DiscordBot extends Discord.Client {
         const credentials = InstanceUtils.readCredentialsFile(guild.id);
         for (const steamId of Object.keys(credentials)) {
             if (steamId !== credentials.hoster && steamId !== 'hoster') {
-                require('../util/FcmListenerLite')(this, guild, steamId);
+                require('../util/FcmListener')(this, guild, steamId);
             }
         }
 

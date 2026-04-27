@@ -1,4 +1,5 @@
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
@@ -20,7 +21,7 @@ export default {
     async execute(client, interaction) {
         const guildId = interaction.guildId;
 
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
@@ -29,36 +30,8 @@ export default {
         const despawnItemName = interaction.options.getString('name');
         const despawnItemId = interaction.options.getString('id');
 
-        let itemId = null;
-        if (despawnItemName !== null) {
-            const item = client.items.getClosestItemIdByName(despawnItemName);
-            if (item === null) {
-                const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: despawnItemName,
-                });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
-                return;
-            } else {
-                itemId = item;
-            }
-        } else if (despawnItemId !== null) {
-            if (client.items.itemExist(despawnItemId)) {
-                itemId = despawnItemId;
-            } else {
-                const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: despawnItemId,
-                });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
-                return;
-            }
-        } else if (despawnItemName === null && despawnItemId === null) {
-            const str = client.intlGet(guildId, 'noNameIdGiven');
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
-            return;
-        }
+        const itemId = await Utils.resolveItemId(client, interaction, guildId, despawnItemName, despawnItemId);
+        if (itemId === null) return;
         const itemName = client.items.getName(itemId);
 
         const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);

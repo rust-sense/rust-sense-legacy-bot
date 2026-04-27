@@ -1,7 +1,15 @@
 import { client } from '../index';
 
+const GRID_DIAMETER = 146.28571;
+const MARGIN = 1;
+
+function getNumberOfGrids(mapSize) {
+    const n = Math.floor(mapSize / GRID_DIAMETER);
+    return Math.max(1, n);
+}
+
 module.exports = {
-    gridDiameter: 146.25,
+    gridDiameter: GRID_DIAMETER,
 
     getPos: function (x, y, mapSize, rustplus) {
         const correctedMapSize = module.exports.getCorrectedMapSize(mapSize);
@@ -39,57 +47,64 @@ module.exports = {
             pos.location = module.exports.getGridPos(x, y, mapSize);
         }
 
-        for (const monument of rustplus.map.monuments) {
-            if (monument.token === 'DungeonBase' || !(monument.token in rustplus.map.monumentInfo)) continue;
-            if (
-                module.exports.getDistance(x, y, monument.x, monument.y) <=
-                rustplus.map.monumentInfo[monument.token].radius
-            ) {
-                pos.monument = rustplus.map.monumentInfo[monument.token].clean;
-                break;
+        if (rustplus?.map?.monuments && rustplus?.map?.monumentInfo) {
+            for (const monument of rustplus.map.monuments) {
+                if (monument.token === 'DungeonBase') continue;
+                if (!Object.prototype.hasOwnProperty.call(rustplus.map.monumentInfo, monument.token)) continue;
+
+                if (
+                    module.exports.getDistance(x, y, monument.x, monument.y) <=
+                    rustplus.map.monumentInfo[monument.token].radius
+                ) {
+                    pos.monument = rustplus.map.monumentInfo[monument.token].clean;
+                    break;
+                }
             }
         }
 
         pos.string = `${pos.location}${pos.monument !== null ? ` (${pos.monument})` : ''}`;
-
         return pos;
     },
 
     getGridPos: function (x, y, mapSize) {
-        const correctedMapSize = module.exports.getCorrectedMapSize(mapSize);
+        if (module.exports.isOutsideGridSystem(x, y, mapSize)) return null;
 
-        /* Outside the grid system */
-        if (module.exports.isOutsideGridSystem(x, y, correctedMapSize)) {
-            return null;
-        }
-
-        const gridPosLetters = module.exports.getGridPosLettersX(x, correctedMapSize);
-        const gridPosNumber = module.exports.getGridPosNumberY(y, correctedMapSize);
+        const gridPosLetters = module.exports.getGridPosLettersX(x, mapSize);
+        const gridPosNumber = module.exports.getGridPosNumberY(y, mapSize);
 
         return gridPosLetters + gridPosNumber;
     },
 
     getGridPosLettersX: function (x, mapSize) {
-        let counter = 1;
-        for (let startGrid = 0; startGrid < mapSize; startGrid += module.exports.gridDiameter) {
-            if (x >= startGrid && x <= startGrid + module.exports.gridDiameter) {
-                /* We're at the correct grid! */
-                return module.exports.numberToLetters(counter);
-            }
-            counter++;
+        const numberOfGrids = getNumberOfGrids(mapSize);
+        const gridDiameter = mapSize / numberOfGrids;
+
+        let grid;
+        for (grid = 0; grid < numberOfGrids; grid++) {
+            if (grid === (numberOfGrids - 1) || x > mapSize) break;
+
+            const left = grid * gridDiameter;
+            const right = left + gridDiameter;
+
+            if ((x + MARGIN) < right) break;
         }
+        return module.exports.numberToLetters(grid + 1);
     },
 
     getGridPosNumberY: function (y, mapSize) {
-        let counter = 1;
-        const numberOfGrids = Math.floor(mapSize / module.exports.gridDiameter);
-        for (let startGrid = 0; startGrid < mapSize; startGrid += module.exports.gridDiameter) {
-            if (y >= startGrid && y <= startGrid + module.exports.gridDiameter) {
-                /* We're at the correct grid! */
-                return numberOfGrids - counter;
-            }
-            counter++;
+        const numberOfGrids = getNumberOfGrids(mapSize);
+        const gridDiameter = mapSize / numberOfGrids;
+
+        let grid;
+        for (grid = 0; grid < numberOfGrids; grid++) {
+            if (grid === (numberOfGrids - 1) || y > mapSize) break;
+
+            const upper = mapSize - (grid * gridDiameter);
+            const lower = upper - gridDiameter;
+
+            if ((y - MARGIN) > lower) break;
         }
+        return grid;
     },
 
     numberToLetters: function (num) {
@@ -116,7 +131,6 @@ module.exports = {
     },
 
     getDistance: function (x1, y1, x2, y2) {
-        /* Pythagoras is the man! */
         const a = x1 - x2;
         const b = y1 - y2;
         return Math.sqrt(a * a + b * b);
@@ -130,9 +144,11 @@ module.exports = {
     },
 
     isOutsideRowOrColumn: function (x, y, mapSize) {
-        if ((x < 0 && y > mapSize) || (x < 0 && y < 0) || (x > mapSize && y > mapSize) || (x > mapSize && y < 0)) {
-            return true;
-        }
-        return false;
+        return (
+            (x < 0 && y > mapSize) ||
+            (x < 0 && y < 0) ||
+            (x > mapSize && y > mapSize) ||
+            (x > mapSize && y < 0)
+        );
     },
 };

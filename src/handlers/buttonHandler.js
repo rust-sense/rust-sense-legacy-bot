@@ -5,28 +5,17 @@ const DiscordTools = require('../discordTools/discordTools');
 const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
 const DiscordButtons = require('../discordTools/discordButtons');
 const DiscordModals = require('../discordTools/discordModals');
+const Utils = require('../util/utils');
 
 module.exports = async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
-    const verifyId = Math.floor(100000 + Math.random() * 900000);
+    const verifyId = Utils.generateVerifyId();
     client.logInteraction(interaction, verifyId, 'userButton');
 
-    if (
-        instance.blacklist['discordIds'].includes(interaction.user.id) &&
-        !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
-    ) {
-        client.log(
-            client.intlGet(null, 'infoCap'),
-            client.intlGet(null, 'userPartOfBlacklist', {
-                id: `${verifyId}`,
-                user: `${interaction.user.username} (${interaction.user.id})`,
-            }),
-        );
-        return;
-    }
+    if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
 
     if (interaction.customId.startsWith('DiscordNotification')) {
         const ids = JSON.parse(interaction.customId.replace('DiscordNotification', ''));
@@ -766,7 +755,7 @@ module.exports = async (client, interaction) => {
         if (instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord) {
             const user = interaction.user.username;
             const name = server.switches[ids.entityId].name;
-            const status = active ? client.intlGet(guildId, 'onCap') : client.intlGet(guildId, 'offCap');
+            const status = Utils.getActiveStr(client, guildId, active);
             const str = client.intlGet(guildId, 'userTurnedOnOffSmartSwitchFromDiscord', {
                 user: user,
                 name: name,
@@ -1048,7 +1037,7 @@ module.exports = async (client, interaction) => {
                 if (instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord) {
                     const user = interaction.user.username;
                     const name = server.switchGroups[ids.groupId].name;
-                    const status = active ? client.intlGet(guildId, 'onCap') : client.intlGet(guildId, 'offCap');
+                    const status = Utils.getActiveStr(client, guildId, active);
                     const str = client.intlGet(guildId, 'userTurnedOnOffSmartSwitchGroupFromDiscord', {
                         user: user,
                         name: name,

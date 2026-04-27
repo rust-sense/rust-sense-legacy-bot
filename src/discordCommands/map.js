@@ -1,4 +1,5 @@
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 const Discord = require('discord.js');
 
 const Constants = require('../util/constants');
@@ -31,7 +32,7 @@ export default {
         const instance = client.getInstance(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;

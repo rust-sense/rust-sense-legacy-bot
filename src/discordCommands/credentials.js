@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
@@ -70,7 +71,7 @@ export default {
     },
 
     async execute(client, interaction) {
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
@@ -150,10 +151,10 @@ async function addCredentials(client, interaction, verifyId) {
     if (isHoster) {
         require('../util/FcmListener')(client, DiscordTools.getGuild(interaction.guildId));
         if (prevHoster !== null) {
-            require('../util/FcmListenerLite')(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
+            require('../util/FcmListener')(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
         }
     } else {
-        require('../util/FcmListenerLite')(client, DiscordTools.getGuild(interaction.guildId), steamId);
+        require('../util/FcmListener')(client, DiscordTools.getGuild(interaction.guildId), steamId);
 
         const rustplus = client.rustplusInstances[guildId];
         if (rustplus && rustplus.team.leaderSteamId === steamId) {
@@ -300,7 +301,7 @@ async function setHosterCredentials(client, interaction, verifyId) {
 
     require('../util/FcmListener')(client, DiscordTools.getGuild(interaction.guildId));
     if (prevHoster !== null) {
-        require('../util/FcmListenerLite')(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
+        require('../util/FcmListener')(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
     }
 
     client.log(

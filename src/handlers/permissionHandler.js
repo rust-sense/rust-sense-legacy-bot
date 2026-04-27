@@ -50,6 +50,18 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
         everyoneAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
         perms.push({ id: guild.roles.everyone.id, allow: everyoneAllow, deny: everyoneDeny });
+
+        const botId = client.user?.id;
+        if (botId) {
+            perms.push({
+                id: botId,
+                allow: [
+                    Discord.PermissionFlagsBits.ViewChannel,
+                    Discord.PermissionFlagsBits.SendMessages,
+                    Discord.PermissionFlagsBits.ReadMessageHistory,
+                ],
+            });
+        }
     }
 
     for (const discordId of instance.blacklist['discordIds']) {
@@ -97,7 +109,9 @@ export async function resetPermissionsAllChannels(client, guild) {
     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
     if (category) {
         const perms = getPermissionsReset(client, guild);
-        await category.permissionOverwrites.set(perms).catch((e) => {});
+        await category.permissionOverwrites.set(perms).catch((e) => {
+            client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+        });
     }
 
     for (const [name, id] of Object.entries(instance.channelId)) {
@@ -106,7 +120,9 @@ export async function resetPermissionsAllChannels(client, guild) {
         const channel = DiscordTools.getTextChannelById(guild.id, id);
         if (channel) {
             const perms = getPermissionsReset(client, guild, permissionWrite);
-            await channel.permissionOverwrites.set(perms).catch((e) => {});
+            await channel.permissionOverwrites.set(perms).catch((e) => {
+                client.log(client.intlGet(null, 'warningCap'), `Failed to set channel permissions: ${e.message}`, 'warn');
+            });
         }
     }
 }

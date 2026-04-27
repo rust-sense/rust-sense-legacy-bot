@@ -1,14 +1,14 @@
 const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 import { client } from '../index';
+const getStaticFilesStorage = require('../util/getStaticFilesStorage');
 
-import { loadJsonResourceSync } from '../utils/filesystemUtils';
-const Actors = loadJsonResourceSync('staticFiles/actors.json');
+const Actors = getStaticFilesStorage().getDatasetObject('actors');
 
 module.exports = {
     sendDiscordVoiceMessage: async function (guildId, text) {
         const connection = getVoiceConnection(guildId);
         const voice = await this.getVoice(guildId);
-        const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`;
+        const url = `https://cache-a.oddcast.com/tts/genC.php?EID=${voice.EID}&LID=${voice.LID}&VID=${voice.VID}&TXT=${encodeURIComponent(text)}&EXT=mp3`;
 
         if (connection) {
             const stream = (await (await fetch(url)).blob()).stream();

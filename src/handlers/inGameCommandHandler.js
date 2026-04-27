@@ -101,7 +101,10 @@ module.exports = {
             commandLowerCase.startsWith(`${prefix}${client.intlGet('en', 'commandSyntaxMarket')} `) ||
             commandLowerCase.startsWith(`${prefix}${client.intlGet(guildId, 'commandSyntaxMarket')} `)
         ) {
-            rustplus.sendInGameMessage(rustplus.getCommandMarket(command));
+            const response = rustplus.getCommandMarket(command);
+            if (typeof response === 'string' && response.length > 0) {
+                rustplus.sendInGameMessage(response);
+            }
         } else if (
             commandLowerCase === `${prefix}${client.intlGet('en', 'commandSyntaxMute')}` ||
             commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxMute')}`
@@ -228,6 +231,11 @@ module.exports = {
             commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxTravelingVendor')}`
         ) {
             rustplus.sendInGameMessage(rustplus.getCommandTravelingVendor());
+        } else if (
+            commandLowerCase === `${prefix}${client.intlGet('en', 'commandSyntaxDeepSea')}` ||
+            commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxDeepSea')}`
+        ) {
+            rustplus.sendInGameMessage(rustplus.getCommandDeepSea());
         } else {
             /* Maybe a custom command? */
 

@@ -1,0 +1,13 @@
+services:
+  rustplusbot:
+    image: ghcr.io/faithix/rustplusplus:master
+    container_name: rustplusbot
+    environment:
+      - RPP_DISCORD_TOKEN=TOKEN
+      - RPP_DISCORD_CLIENT_ID=CLIENT_ID
+    volumes:
+      - ./logs:/app/logs
+      - ./instances:/app/instances
+      - ./credentials:/app/credentials
+      - ./maps:/app/maps
+    restart: unless-stopped

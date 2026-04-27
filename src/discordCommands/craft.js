@@ -1,4 +1,5 @@
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
@@ -27,7 +28,7 @@ export default {
     async execute(client, interaction) {
         const guildId = interaction.guildId;
 
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
@@ -37,36 +38,8 @@ export default {
         const craftItemId = interaction.options.getString('id');
         const craftItemQuantity = interaction.options.getInteger('quantity');
 
-        let itemId = null;
-        if (craftItemName !== null) {
-            const item = client.items.getClosestItemIdByName(craftItemName);
-            if (item === null) {
-                const str = client.intlGet(guildId, 'noItemWithNameFound', {
-                    name: craftItemName,
-                });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
-                return;
-            } else {
-                itemId = item;
-            }
-        } else if (craftItemId !== null) {
-            if (client.items.itemExist(craftItemId)) {
-                itemId = craftItemId;
-            } else {
-                const str = client.intlGet(guildId, 'noItemWithIdFound', {
-                    id: craftItemId,
-                });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
-                return;
-            }
-        } else if (craftItemName === null && craftItemId === null) {
-            const str = client.intlGet(guildId, 'noNameIdGiven');
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
-            return;
-        }
+        const itemId = await Utils.resolveItemId(client, interaction, guildId, craftItemName, craftItemId);
+        if (itemId === null) return;
         const itemName = client.items.getName(itemId);
 
         const craftDetails = client.rustlabs.getCraftDetailsById(itemId);

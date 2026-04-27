@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const InstanceUtils = require('../util/instanceUtils');
+const Constants = require('./constants');
 
 module.exports = (client, guild) => {
     let instance = null;
@@ -47,6 +48,9 @@ module.exports = (client, guild) => {
             teamChatColors: {},
             blacklist: {
                 discordIds: [],
+                steamIds: [],
+            },
+            whitelist: {
                 steamIds: [],
             },
             aliases: [],
@@ -168,6 +172,11 @@ module.exports = (client, guild) => {
             };
         if (!Object.hasOwn(instance.blacklist, 'discordIds')) instance.blacklist['discordIds'] = [];
         if (!Object.hasOwn(instance.blacklist, 'steamIds')) instance.blacklist['steamIds'] = [];
+        if (!Object.hasOwn(instance, 'whitelist'))
+            instance.whitelist = {
+                steamIds: [],
+            };
+        if (!Object.hasOwn(instance.whitelist, 'steamIds')) instance.whitelist['steamIds'] = [];
         if (!Object.hasOwn(instance, 'aliases')) instance.aliases = [];
         if (!Object.hasOwn(instance, 'customIntlMessages')) instance.customIntlMessages = {};
 
@@ -188,6 +197,21 @@ module.exports = (client, guild) => {
     /* Check every serverList for missing keys */
     for (const [serverId, content] of Object.entries(instance.serverList)) {
         if (!Object.hasOwn(content, 'customCameraGroups')) content.customCameraGroups = {};
+        if (!Object.hasOwn(content, 'cargoShipEgressTimeMs')) {
+            content.cargoShipEgressTimeMs = Constants.DEFAULT_CARGO_SHIP_EGRESS_TIME_MS;
+        }
+        if (!Object.hasOwn(content, 'oilRigLockedCrateUnlockTimeMs')) {
+            content.oilRigLockedCrateUnlockTimeMs = Constants.DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS;
+        }
+        if (!Object.hasOwn(content, 'deepSeaMinWipeCooldownMs')) {
+            content.deepSeaMinWipeCooldownMs = Constants.DEFAULT_DEEP_SEA_MIN_WIPE_COOLDOWN_MS;
+        }
+        if (!Object.hasOwn(content, 'deepSeaMaxWipeCooldownMs')) {
+            content.deepSeaMaxWipeCooldownMs = Constants.DEFAULT_DEEP_SEA_MAX_WIPE_COOLDOWN_MS;
+        }
+        if (!Object.hasOwn(content, 'deepSeaWipeDurationMs')) {
+            content.deepSeaWipeDurationMs = Constants.DEFAULT_DEEP_SEA_WIPE_DURATION_MS;
+        }
     }
 
     client.setInstance(guild.id, instance);

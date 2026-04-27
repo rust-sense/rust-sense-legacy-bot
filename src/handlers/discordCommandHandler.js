@@ -96,7 +96,7 @@ module.exports = {
             commandLowerCase.startsWith(`${prefix}${client.intlGet('en', 'commandSyntaxMarket')} `) ||
             commandLowerCase.startsWith(`${prefix}${client.intlGet(guildId, 'commandSyntaxMarket')} `)
         ) {
-            response = rustplus.getCommandMarket(command);
+            response = client.intlGet(rustplus.guildId, 'commandNotPossibleDiscord');
         } else if (
             commandLowerCase === `${prefix}${client.intlGet('en', 'commandSyntaxMute')}` ||
             commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxMute')}`
@@ -223,6 +223,11 @@ module.exports = {
             commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxTravelingVendor')}`
         ) {
             response = rustplus.getCommandTravelingVendor();
+        } else if (
+            commandLowerCase === `${prefix}${client.intlGet('en', 'commandSyntaxDeepSea')}` ||
+            commandLowerCase === `${prefix}${client.intlGet(guildId, 'commandSyntaxDeepSea')}`
+        ) {
+            response = rustplus.getCommandDeepSea();
         } else {
             /* Smart Switches/ Group Switches are not currently supported through discord. */
             return false;
