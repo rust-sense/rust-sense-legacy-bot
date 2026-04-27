@@ -1,8 +1,35 @@
-const GameMap = require('../util/GameMap');
-const Timer = require('../util/timer');
+import * as GameMap from '../util/GameMap.js';
+import * as Timer from '../util/timer.js';
 
-class Info {
-    constructor(info) {
+interface InfoData {
+    name: string;
+    headerImage: string;
+    url: string;
+    map: string;
+    mapSize: number;
+    wipeTime: number;
+    players: number;
+    maxPlayers: number;
+    queuedPlayers: number;
+    seed: number;
+    salt: number;
+}
+
+export default class Info {
+    private _name: string;
+    private _headerImage: string;
+    private _url: string;
+    private _map: string;
+    private _mapSize: number;
+    private _wipeTime: number;
+    private _players: number;
+    private _maxPlayers: number;
+    private _queuedPlayers: number;
+    private _seed: number;
+    private _salt: number;
+    private _correctedMapSize: number;
+
+    constructor(info: InfoData) {
         this._name = info.name;
         this._headerImage = info.headerImage;
         this._url = info.url;
@@ -19,126 +46,126 @@ class Info {
     }
 
     /* Getters and Setters */
-    get name() {
+    get name(): string {
         return this._name;
     }
-    set name(name) {
+    set name(name: string) {
         this._name = name;
     }
-    get headerImage() {
+    get headerImage(): string {
         return this._headerImage;
     }
-    set headerImage(headerImage) {
+    set headerImage(headerImage: string) {
         this._headerImage = headerImage;
     }
-    get url() {
+    get url(): string {
         return this._url;
     }
-    set url(url) {
+    set url(url: string) {
         this._url = url;
     }
-    get map() {
+    get map(): string {
         return this._map;
     }
-    set map(map) {
+    set map(map: string) {
         this._map = map;
     }
-    get mapSize() {
+    get mapSize(): number {
         return this._mapSize;
     }
-    set mapSize(mapSize) {
+    set mapSize(mapSize: number) {
         this._mapSize = mapSize;
     }
-    get wipeTime() {
+    get wipeTime(): number {
         return this._wipeTime;
     }
-    set wipeTime(wipeTime) {
+    set wipeTime(wipeTime: number) {
         this._wipeTime = wipeTime;
     }
-    get players() {
+    get players(): number {
         return this._players;
     }
-    set players(players) {
+    set players(players: number) {
         this._players = players;
     }
-    get maxPlayers() {
+    get maxPlayers(): number {
         return this._maxPlayers;
     }
-    set maxPlayers(maxPlayers) {
+    set maxPlayers(maxPlayers: number) {
         this._maxPlayers = maxPlayers;
     }
-    get queuedPlayers() {
+    get queuedPlayers(): number {
         return this._queuedPlayers;
     }
-    set queuedPlayers(queuedPlayers) {
+    set queuedPlayers(queuedPlayers: number) {
         this._queuedPlayers = queuedPlayers;
     }
-    get seed() {
+    get seed(): number {
         return this._seed;
     }
-    set seed(seed) {
+    set seed(seed: number) {
         this._seed = seed;
     }
-    get salt() {
+    get salt(): number {
         return this._salt;
     }
-    set salt(salt) {
+    set salt(salt: number) {
         this._salt = salt;
     }
-    get correctedMapSize() {
+    get correctedMapSize(): number {
         return this._correctedMapSize;
     }
-    set correctedMapSize(correctedMapSize) {
+    set correctedMapSize(correctedMapSize: number) {
         this._correctedMapSize = correctedMapSize;
     }
 
     /* Change checkers */
-    isNameChanged(info) {
+    isNameChanged(info: InfoData): boolean {
         return this.name !== info.name;
     }
-    isHeaderImageChanged(info) {
+    isHeaderImageChanged(info: InfoData): boolean {
         return this.headerImage !== info.headerImage;
     }
-    isUrlChanged(info) {
+    isUrlChanged(info: InfoData): boolean {
         return this.url !== info.url;
     }
-    isMapChanged(info) {
+    isMapChanged(info: InfoData): boolean {
         return this.map !== info.map;
     }
-    isMapSizeChanged(info) {
+    isMapSizeChanged(info: InfoData): boolean {
         return this.mapSize !== info.mapSize;
     }
-    isWipeTimeChanged(info) {
+    isWipeTimeChanged(info: InfoData): boolean {
         return this.wipeTime !== info.wipeTime;
     }
-    isPlayersChanged(info) {
+    isPlayersChanged(info: InfoData): boolean {
         return this.players !== info.players;
     }
-    isMaxPlayersChanged(info) {
+    isMaxPlayersChanged(info: InfoData): boolean {
         return this.maxPlayers !== info.maxPlayers;
     }
-    isQueuedPlayersChanged(info) {
+    isQueuedPlayersChanged(info: InfoData): boolean {
         return this.queuedPlayers !== info.queuedPlayers;
     }
-    isSeedChanged(info) {
+    isSeedChanged(info: InfoData): boolean {
         return this.seed !== info.seed;
     }
-    isSaltChanged(info) {
+    isSaltChanged(info: InfoData): boolean {
         return this.salt !== info.salt;
     }
 
     /* Other checkers */
-    isMaxPlayersIncreased(info) {
+    isMaxPlayersIncreased(info: InfoData): boolean {
         return this.maxPlayers < info.maxPlayers;
     }
-    isMaxPlayersDecreased(info) {
+    isMaxPlayersDecreased(info: InfoData): boolean {
         return this.maxPlayers > info.maxPlayers;
     }
-    isQueue() {
+    isQueue(): boolean {
         return this.queuedPlayers !== 0;
     }
 
-    updateInfo(info) {
+    updateInfo(info: InfoData): void {
         this.name = info.name;
         this.headerImage = info.headerImage;
         this.url = info.url;
@@ -154,12 +181,10 @@ class Info {
         this.correctedMapSize = GameMap.getCorrectedMapSize(info.mapSize);
     }
 
-    getSecondsSinceWipe() {
-        return (new Date() - new Date(this.wipeTime * 1000)) / 1000;
+    getSecondsSinceWipe(): number {
+        return (new Date().getTime() - new Date(this.wipeTime * 1000).getTime()) / 1000;
     }
-    getTimeSinceWipe(ignore = '') {
+    getTimeSinceWipe(ignore = ''): string {
         return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore);
     }
 }
-
-module.exports = Info;

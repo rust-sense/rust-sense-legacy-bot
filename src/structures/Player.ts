@@ -1,9 +1,41 @@
-const Constants = require('../util/constants');
-const GameMap = require('../util/GameMap');
-const Time = require('../util/timer');
+import * as Constants from '../util/constants.js';
+import * as GameMap from '../util/GameMap.js';
+import * as Time from '../util/timer.js';
 
-class Player {
-    constructor(player, rustplus) {
+interface PlayerData {
+    steamId: string | number;
+    name: string;
+    x: number;
+    y: number;
+    isOnline: boolean;
+    spawnTime: number;
+    isAlive: boolean;
+    deathTime: number;
+}
+
+interface RustplusLike {
+    info: { mapSize: number };
+    guildId: string;
+    promoteToLeaderAsync: (steamId: string) => Promise<unknown>;
+}
+
+export default class Player {
+    private _steamId: string;
+    private _name: string;
+    private _x: number;
+    private _y: number;
+    private _isOnline: boolean;
+    private _spawnTime: number;
+    private _isAlive: boolean;
+    private _deathTime: number;
+    private _rustplus: RustplusLike;
+    private _pos: string | null = null;
+    private _lastMovement = new Date();
+    private _teamLeader = false;
+    private _afkSeconds = 0;
+    private _wentOfflineTime: Date | null = null;
+
+    constructor(player: PlayerData, rustplus: RustplusLike) {
         this._steamId = player.steamId.toString();
         this._name = player.name;
         this._x = player.x;
@@ -15,156 +47,150 @@ class Player {
 
         this._rustplus = rustplus;
 
-        this._pos = null;
-        this._lastMovement = new Date();
-        this._teamLeader = false;
-        this._afkSeconds = 0;
-        this._wentOfflineTime = null;
-
         this.updatePos();
     }
 
     /* Getters and Setters */
-    get steamId() {
+    get steamId(): string {
         return this._steamId;
     }
-    set steamId(steamId) {
+    set steamId(steamId: string) {
         this._steamId = steamId;
     }
-    get name() {
+    get name(): string {
         return this._name;
     }
-    set name(name) {
+    set name(name: string) {
         this._name = name;
     }
-    get x() {
+    get x(): number {
         return this._x;
     }
-    set x(x) {
+    set x(x: number) {
         this._x = x;
     }
-    get y() {
+    get y(): number {
         return this._y;
     }
-    set y(y) {
+    set y(y: number) {
         this._y = y;
     }
-    get isOnline() {
+    get isOnline(): boolean {
         return this._isOnline;
     }
-    set isOnline(isOnline) {
+    set isOnline(isOnline: boolean) {
         this._isOnline = isOnline;
     }
-    get spawnTime() {
+    get spawnTime(): number {
         return this._spawnTime;
     }
-    set spawnTime(spawnTime) {
+    set spawnTime(spawnTime: number) {
         this._spawnTime = spawnTime;
     }
-    get isAlive() {
+    get isAlive(): boolean {
         return this._isAlive;
     }
-    set isAlive(isAlive) {
+    set isAlive(isAlive: boolean) {
         this._isAlive = isAlive;
     }
-    get deathTime() {
+    get deathTime(): number {
         return this._deathTime;
     }
-    set deathTime(deathTime) {
+    set deathTime(deathTime: number) {
         this._deathTime = deathTime;
     }
-    get rustplus() {
+    get rustplus(): RustplusLike {
         return this._rustplus;
     }
-    set rustplus(rustplus) {
+    set rustplus(rustplus: RustplusLike) {
         this._rustplus = rustplus;
     }
-    get pos() {
+    get pos(): string | null {
         return this._pos;
     }
-    set pos(pos) {
+    set pos(pos: string | null) {
         this._pos = pos;
     }
-    get lastMovement() {
+    get lastMovement(): Date {
         return this._lastMovement;
     }
-    set lastMovement(lastMovement) {
+    set lastMovement(lastMovement: Date) {
         this._lastMovement = lastMovement;
     }
-    get teamLeader() {
+    get teamLeader(): boolean {
         return this._teamLeader;
     }
-    set teamLeader(teamLeader) {
+    set teamLeader(teamLeader: boolean) {
         this._teamLeader = teamLeader;
     }
-    get afkSeconds() {
+    get afkSeconds(): number {
         return this._afkSeconds;
     }
-    set afkSeconds(afkSeconds) {
+    set afkSeconds(afkSeconds: number) {
         this._afkSeconds = afkSeconds;
     }
-    get wentOfflineTime() {
+    get wentOfflineTime(): Date | null {
         return this._wentOfflineTime;
     }
-    set wentOfflineTime(wentOfflineTime) {
+    set wentOfflineTime(wentOfflineTime: Date | null) {
         this._wentOfflineTime = wentOfflineTime;
     }
 
     /* Change checkers */
-    isSteamIdChanged(player) {
+    isSteamIdChanged(player: PlayerData): boolean {
         return this.steamId !== player.steamId.toString();
     }
-    isNameChanged(player) {
+    isNameChanged(player: PlayerData): boolean {
         return this.name !== player.name;
     }
-    isXChanged(player) {
+    isXChanged(player: PlayerData): boolean {
         return this.x !== player.x;
     }
-    isYChanged(player) {
+    isYChanged(player: PlayerData): boolean {
         return this.y !== player.y;
     }
-    isOnlineChanged(player) {
+    isOnlineChanged(player: PlayerData): boolean {
         return this.isOnline !== player.isOnline;
     }
-    isSpawnTimeChanged(player) {
+    isSpawnTimeChanged(player: PlayerData): boolean {
         return this.spawnTime !== player.spawnTime;
     }
-    isAliveChanged(player) {
+    isAliveChanged(player: PlayerData): boolean {
         return this.isAlive !== player.isAlive;
     }
-    isDeathTimeChanged(player) {
+    isDeathTimeChanged(player: PlayerData): boolean {
         return this.deathTime !== player.deathTime;
     }
 
     /* Other checkers */
-    isGoneOnline(player) {
+    isGoneOnline(player: PlayerData): boolean {
         return this.isOnline === false && player.isOnline === true;
     }
-    isGoneOffline(player) {
+    isGoneOffline(player: PlayerData): boolean {
         return this.isOnline === true && player.isOnline === false;
     }
-    isGoneAlive(player) {
+    isGoneAlive(player: PlayerData): boolean {
         return this.isAlive === false && player.isAlive === true;
     }
-    isGoneDead(player) {
+    isGoneDead(player: PlayerData): boolean {
         return (this.isAlive === true && player.isAlive === false) || this.isDeathTimeChanged(player);
     }
-    isMoved(player) {
+    isMoved(player: PlayerData): boolean {
         return this.isXChanged(player) || this.isYChanged(player);
     }
-    isAfk() {
+    isAfk(): boolean {
         return this.afkSeconds >= Constants.AFK_TIME_SECONDS;
     }
-    isGoneAfk(player) {
+    isGoneAfk(player: PlayerData): boolean {
         return (
             !this.isAfk() &&
             !this.isMoved(player) &&
             this.isOnline &&
-            (new Date() - this.lastMovement) / 1000 >= Constants.AFK_TIME_SECONDS
+            (new Date().getTime() - this.lastMovement.getTime()) / 1000 >= Constants.AFK_TIME_SECONDS
         );
     }
 
-    updatePlayer(player) {
+    updatePlayer(player: PlayerData): void {
         if (this.isGoneOffline(player)) {
             this.wentOfflineTime = new Date();
         }
@@ -181,7 +207,7 @@ class Player {
             if (!this.isOnline && !this.isGoneOnline(player)) {
                 this.afkSeconds = 0;
             } else {
-                this.afkSeconds = (new Date() - this.lastMovement) / 1000;
+                this.afkSeconds = (new Date().getTime() - this.lastMovement.getTime()) / 1000;
             }
         }
 
@@ -197,7 +223,7 @@ class Player {
         this.updatePos();
     }
 
-    updatePos() {
+    updatePos(): void {
         if (this.isAlive || this.isOnline) {
             this.pos = GameMap.getPos(this.x, this.y, this.rustplus.info.mapSize, this.rustplus);
         } else {
@@ -205,37 +231,35 @@ class Player {
         }
     }
 
-    getAfkSeconds() {
-        return (new Date() - this.lastMovement) / 1000;
+    getAfkSeconds(): number {
+        return (new Date().getTime() - this.lastMovement.getTime()) / 1000;
     }
-    getAfkTime(ignore = '') {
+    getAfkTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getAfkSeconds(), ignore);
     }
 
-    getAliveSeconds() {
+    getAliveSeconds(): number {
         if (this.spawnTime === 0) return 0;
-        return (new Date() - new Date(this.spawnTime * 1000)) / 1000;
+        return (new Date().getTime() - new Date(this.spawnTime * 1000).getTime()) / 1000;
     }
-    getAliveTime(ignore = '') {
+    getAliveTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getAliveSeconds(), ignore);
     }
 
-    getDeathSeconds() {
+    getDeathSeconds(): number {
         if (this.deathTime === 0) return 0;
-        return (new Date() - new Date(this.deathTime * 1000)) / 1000;
+        return (new Date().getTime() - new Date(this.deathTime * 1000).getTime()) / 1000;
     }
-    getDeathTime(ignore = '') {
+    getDeathTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getDeathSeconds(), ignore);
     }
-    getOfflineTime(ignore = '') {
+    getOfflineTime(ignore = ''): string | null {
         if (this.wentOfflineTime === null) return null;
-        const seconds = (new Date() - this.wentOfflineTime) / 1000;
+        const seconds = (new Date().getTime() - this.wentOfflineTime.getTime()) / 1000;
         return Time.secondsToFullScale(seconds, ignore);
     }
 
-    async assignLeader() {
+    async assignLeader(): Promise<unknown> {
         return await this.rustplus.promoteToLeaderAsync(this.steamId);
     }
 }
-
-module.exports = Player;
