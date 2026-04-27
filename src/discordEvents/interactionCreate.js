@@ -2,6 +2,20 @@ const Discord = require('discord.js');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
+function safeDeferUpdate(client, interaction) {
+    if (interaction.isButton()) {
+        try {
+            interaction.deferUpdate();
+        } catch (e) {
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'couldNotDeferInteraction'),
+                'error',
+            );
+        }
+    }
+}
+
 export default {
     name: 'interactionCreate',
     async execute(client, interaction) {
@@ -10,17 +24,7 @@ export default {
         /* Check so that the interaction comes from valid channels */
         if (!Object.values(instance.channelId).includes(interaction.channelId) && !interaction.isCommand) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'interactionInvalidChannel'));
-            if (interaction.isButton()) {
-                try {
-                    interaction.deferUpdate();
-                } catch (e) {
-                    client.log(
-                        client.intlGet(null, 'errorCap'),
-                        client.intlGet(null, 'couldNotDeferInteraction'),
-                        'error',
-                    );
-                }
-            }
+            safeDeferUpdate(client, interaction);
         }
 
         if (interaction.isButton()) {
@@ -46,18 +50,7 @@ export default {
             require('../handlers/modalHandler')(client, interaction);
         } else {
             client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'unknownInteraction'), 'error');
-
-            if (interaction.isButton()) {
-                try {
-                    interaction.deferUpdate();
-                } catch (e) {
-                    client.log(
-                        client.intlGet(null, 'errorCap'),
-                        client.intlGet(null, 'couldNotDeferInteraction'),
-                        'error',
-                    );
-                }
-            }
+            safeDeferUpdate(client, interaction);
         }
     },
 };

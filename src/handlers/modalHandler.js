@@ -1,5 +1,3 @@
-const Discord = require('discord.js');
-
 const Battlemetrics = require('../structures/Battlemetrics');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
@@ -7,27 +5,16 @@ const DiscordMessages = require('../discordTools/discordMessages');
 const Keywords = require('../util/keywords');
 const Scrape = require('../util/scrape');
 const TrackerInputParser = require('../util/trackerInputParser');
+const Utils = require('../util/utils');
 
 module.exports = async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
 
-    const verifyId = Math.floor(100000 + Math.random() * 900000);
+    const verifyId = Utils.generateVerifyId();
     client.logInteraction(interaction, verifyId, 'userModal');
 
-    if (
-        instance.blacklist['discordIds'].includes(interaction.user.id) &&
-        !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
-    ) {
-        client.log(
-            client.intlGet(null, 'infoCap'),
-            client.intlGet(null, 'userPartOfBlacklist', {
-                id: `${verifyId}`,
-                user: `${interaction.user.username} (${interaction.user.id})`,
-            }),
-        );
-        return;
-    }
+    if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
 
     if (interaction.customId.startsWith('CustomTimersEdit')) {
         const ids = JSON.parse(interaction.customId.replace('CustomTimersEdit', ''));

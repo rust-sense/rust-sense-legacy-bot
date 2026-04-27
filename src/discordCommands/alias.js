@@ -1,4 +1,5 @@
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
@@ -44,7 +45,7 @@ export default {
     },
 
     async execute(client, interaction) {
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;

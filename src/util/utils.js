@@ -1,10 +1,72 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const Discord = require('discord.js');
 const { loadJsonResourceSync } = require('../utils/filesystemUtils');
 
 const htmlReservedSymbols = loadJsonResourceSync('staticFiles/htmlReservedSymbols.json');
 
 module.exports = {
+    generateVerifyId: function () {
+        return Math.floor(100000 + Math.random() * 900000);
+    },
+
+    isBlacklisted: function (client, instance, interaction, verifyId) {
+        if (
+            instance.blacklist['discordIds'].includes(interaction.user.id) &&
+            !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
+        ) {
+            client.log(
+                client.intlGet(null, 'infoCap'),
+                client.intlGet(null, 'userPartOfBlacklist', {
+                    id: `${verifyId}`,
+                    user: `${interaction.user.username} (${interaction.user.id})`,
+                }),
+            );
+            return true;
+        }
+        return false;
+    },
+
+    getGridSuffix: function (location) {
+        return location !== null ? ` (${location})` : '';
+    },
+
+    getActiveStr: function (client, guildId, active) {
+        return active ? client.intlGet(guildId, 'onCap') : client.intlGet(guildId, 'offCap');
+    },
+
+    orEmpty: function (client, guildId, value) {
+        return value === '' ? client.intlGet(guildId, 'empty') : value;
+    },
+
+    resolveItemId: async function (client, interaction, guildId, itemName, itemId) {
+        const DiscordEmbeds = require('../discordTools/discordEmbeds');
+        if (itemName !== null) {
+            const item = client.items.getClosestItemIdByName(itemName);
+            if (item === null) {
+                const str = client.intlGet(guildId, 'noItemWithNameFound', { name: itemName });
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str);
+                return null;
+            }
+            return item;
+        } else if (itemId !== null) {
+            if (client.items.itemExist(itemId)) {
+                return itemId;
+            }
+            const str = client.intlGet(guildId, 'noItemWithIdFound', { id: itemId });
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str);
+            return null;
+        } else {
+            const str = client.intlGet(guildId, 'noNameIdGiven');
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str);
+            return null;
+        }
+    },
+
+
     parseArgs: function (str) {
         return str.trim().split(/[ ]+/);
     },

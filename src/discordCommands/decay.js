@@ -1,4 +1,5 @@
 const Builder = require('@discordjs/builders');
+const Utils = require('../util/utils');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const Timer = require('../util/timer');
@@ -24,7 +25,7 @@ export default {
     async execute(client, interaction) {
         const guildId = interaction.guildId;
 
-        const verifyId = Math.floor(100000 + Math.random() * 900000);
+        const verifyId = Utils.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;

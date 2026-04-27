@@ -1,30 +1,17 @@
-const Discord = require('discord.js');
-
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordSelectMenus = require('../discordTools/discordSelectMenus');
 const DiscordTools = require('../discordTools/discordTools');
+const Utils = require('../util/utils');
 
 module.exports = async (client, interaction) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
-    const verifyId = Math.floor(100000 + Math.random() * 900000);
+    const verifyId = Utils.generateVerifyId();
     client.logInteraction(interaction, verifyId, 'userSelectMenu');
 
-    if (
-        instance.blacklist['discordIds'].includes(interaction.user.id) &&
-        !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
-    ) {
-        client.log(
-            client.intlGet(null, 'infoCap'),
-            client.intlGet(null, 'userPartOfBlacklist', {
-                id: `${verifyId}`,
-                user: `${interaction.user.username} (${interaction.user.id})`,
-            }),
-        );
-        return;
-    }
+    if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
 
     if (interaction.customId === 'language') {
         instance.generalSettings.language = interaction.values[0];
