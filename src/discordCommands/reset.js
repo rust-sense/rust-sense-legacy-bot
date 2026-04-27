@@ -70,7 +70,9 @@ export default {
                     await require('../discordTools/SetupGuildChannels')(client, guild, category);
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     await DiscordTools.clearTextChannel(guild.id, instance.channelId.information, 100);
                     await DiscordTools.clearTextChannel(guild.id, instance.channelId.switches, 100);
@@ -132,7 +134,9 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     await require('../discordTools/SetupServerList')(client, guild);
 
@@ -153,7 +157,9 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     await require('../discordTools/SetupSettingsMenu')(client, guild, true);
 
@@ -177,7 +183,9 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     const rustplus = client.rustplusInstances[guild.id];
                     if (rustplus && rustplus.isOperational) {
@@ -221,7 +229,9 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     const rustplus = client.rustplusInstances[guild.id];
                     if (rustplus && rustplus.isOperational) {
@@ -245,7 +255,9 @@ export default {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild);
 
                     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {});
+                    await category.permissionOverwrites.set(perms).catch((e) => {
+                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                });
 
                     await require('../discordTools/SetupTrackers')(client, guild);
 
