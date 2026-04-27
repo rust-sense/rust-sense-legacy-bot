@@ -1,7 +1,7 @@
-import { createContainer, asClass, asValue, Lifetime } from 'awilix';
-import type { Container } from 'awilix';
+import { createContainer, asClass, asValue } from 'awilix';
+import type { AwilixContainer } from 'awilix';
 
-export const container: Container = createContainer({
+export const container: AwilixContainer = createContainer({
     injectionMode: 'PROXY',
 });
 

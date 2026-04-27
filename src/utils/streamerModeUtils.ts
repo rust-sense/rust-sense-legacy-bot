@@ -1,4 +1,4 @@
-import { loadJsonResourceSync } from './filesystemUtils';
+import { loadJsonResourceSync } from './filesystemUtils.js';
 
 export type StreamerModeUsernamesContent = {
     streamerModeUsernames: string[];

@@ -1,4 +1,4 @@
-import { client } from '../index';
+import { client } from '../index.js';
 
 export function getSmartDevice(guildId: string, entityId: string) {
     /* Temporary function till discord modals gets more functional */

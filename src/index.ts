@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 
-import { ensureAppStateDirs } from './utils/filesystemUtils';
+import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 const DiscordBot = require('./structures/DiscordBot');
 
 export const client = new DiscordBot({

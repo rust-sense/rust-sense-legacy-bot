@@ -1,5 +1,5 @@
-import { PlayerInfo, PlayerNameType } from '../types/Player';
-import { getStreamerModeUsername } from './streamerModeUtils';
+import { PlayerInfo, PlayerNameType } from '../types/Player.js';
+import { getStreamerModeUsername } from './streamerModeUtils.js';
 
 export function getPlayerName(playerNameType: PlayerNameType, playerInfo: PlayerInfo): string {
     switch (playerNameType) {
