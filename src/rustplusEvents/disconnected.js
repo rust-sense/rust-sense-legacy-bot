@@ -20,6 +20,7 @@ export default {
                 client.rustplusLiteReconnectTimers[guildId] = null;
             }
             rustplus.leaderRustPlusInstance.isActive = false;
+            rustplus.leaderRustPlusInstance.removeAllListeners();
             rustplus.leaderRustPlusInstance.disconnect();
             rustplus.leaderRustPlusInstance = null;
         }
