@@ -376,7 +376,7 @@ module.exports = {
             switchId = '',
             switchActive = '';
         for (const groupSwitchId of group.switches) {
-            if (instance.serverList[serverId].Object.hasOwn(switches, groupSwitchId)) {
+            if (Object.hasOwn(instance.serverList[serverId].switches, groupSwitchId)) {
                 const sw = instance.serverList[serverId].switches[groupSwitchId];
                 const active = sw.active;
                 switchName += `${sw.name}${sw.location !== null ? ` ${sw.location}` : ''}\n`;
