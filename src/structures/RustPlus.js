@@ -1889,7 +1889,7 @@ class RustPlus extends RustPlusLib {
                 if (this.team.leaderSteamId === this.playerId) {
                     await this.team.changeLeadership(callerSteamId);
                 } else {
-                    this.leaderRustPlusInstance.promoteToLeaderAsync(callerSteamId);
+                    await this.leaderRustPlusInstance.promoteToLeaderAsync(callerSteamId);
                 }
 
                 const player = this.team.getPlayer(callerSteamId);
@@ -1928,7 +1928,7 @@ class RustPlus extends RustPlusLib {
                         if (this.team.leaderSteamId === this.playerId) {
                             await this.team.changeLeadership(player.steamId);
                         } else {
-                            this.leaderRustPlusInstance.promoteToLeaderAsync(player.steamId);
+                            await this.leaderRustPlusInstance.promoteToLeaderAsync(player.steamId);
                         }
 
                         return client.intlGet(this.guildId, 'leaderTransferred', {
