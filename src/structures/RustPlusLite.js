@@ -88,7 +88,6 @@ class RustPlusLite extends RustPlusLib {
 
         if (Object.keys(response).length === 0) {
             this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsEmpty'), 'error');
-            clearInterval(this.pollingTaskId);
             return false;
         }
 
