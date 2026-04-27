@@ -17,7 +17,7 @@ env:
 
 jobs:
   get-metadata:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     if: github.event_name != 'pull_request'
 
@@ -52,10 +52,10 @@ jobs:
         include:
           - type: linux-amd64
             docker-platform: linux/amd64
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
           - type: linux-arm64
             docker-platform: linux/arm64
-            runner: arc-runner-rust-sense
+            runner: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.runner }}
 
@@ -105,7 +105,7 @@ jobs:
           retention-days: 1
 
   merge-manifest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     if: github.event_name != 'pull_request'
 
