@@ -10,7 +10,7 @@ export function cwdPath(...paths: string[]) {
 export async function ensureAppStateDirs() {
     const paths = APP_STATE_DIR_NAMES.map((dirName) => cwdPath(dirName));
 
-    await Promise.all(paths.map((fullPath) => fs.promises.mkdir(fullPath).catch((e) => {})));
+    await Promise.all(paths.map((fullPath) => fs.promises.mkdir(fullPath, { recursive: true })));
 }
 
 function parseJson<T>(jsonData: string): T {
