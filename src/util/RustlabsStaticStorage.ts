@@ -18,14 +18,14 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
+import Path from 'path';
+import { fileURLToPath } from 'url';
 
-let DatabaseSync = null;
+let DatabaseSync: typeof import('node:sqlite').DatabaseSync | null = null;
 try {
-    ({ DatabaseSync } = require('node:sqlite'));
-}
-catch (e) {
+    ({ DatabaseSync } = await import('node:sqlite'));
+} catch (_e) {
     /* node:sqlite unavailable in this runtime. */
 }
 
@@ -37,7 +37,13 @@ const DEFAULT_JSON_SOURCE_DIRECTORY = 'static-json';
 const META_TABLE = 'static_files_meta';
 const DATA_TABLE = 'static_files_data';
 
-const DATASET_CONFIG = {
+interface DatasetConfigEntry {
+    file: string;
+    grouped?: boolean;
+    groups?: string[];
+}
+
+const DATASET_CONFIG: Record<string, DatasetConfigEntry> = {
     actors: { file: 'actors.json' },
     cctv: { file: 'cctv.json' },
     htmlReservedSymbols: { file: 'htmlReservedSymbols.json' },
@@ -51,7 +57,7 @@ const DATASET_CONFIG = {
     rustlabsDurabilityData: {
         file: 'rustlabsDurabilityData.json',
         grouped: true,
-        groups: ['items', 'buildingBlocks', 'other']
+        groups: ['items', 'buildingBlocks', 'other'],
     },
     rustlabsSmeltingData: { file: 'rustlabsSmeltingData.json' },
     rustlabsDespawnData: { file: 'rustlabsDespawnData.json' },
@@ -59,25 +65,54 @@ const DATASET_CONFIG = {
     rustlabsDecayData: {
         file: 'rustlabsDecayData.json',
         grouped: true,
-        groups: ['items', 'buildingBlocks', 'other']
+        groups: ['items', 'buildingBlocks', 'other'],
     },
     rustlabsUpkeepData: {
         file: 'rustlabsUpkeepData.json',
         grouped: true,
-        groups: ['items', 'buildingBlocks', 'other']
-    }
+        groups: ['items', 'buildingBlocks', 'other'],
+    },
 };
 
-class RustlabsStaticStorage {
-    constructor(options = {}) {
-        this.dataPath = options.dataPath ?? RustlabsStaticStorage.getDefaultDataPath();
-        this.sourceDirectory = options.sourceDirectory ??
-            RustlabsStaticStorage.getDefaultJsonSourcePath(this.dataPath);
-        this.sqlitePath = options.sqlitePath ?? RustlabsStaticStorage.getDefaultSqlitePath(this.dataPath);
+interface RustlabsStaticStorageOptions {
+    dataPath?: string;
+    sourceDirectory?: string;
+    sqlitePath?: string;
+}
 
-        this.db = null;
-        this.statements = null;
-        this.datasetCache = new Map();
+interface BuildDatabaseOptions {
+    dataPath?: string;
+    sourceDirectory?: string;
+    databasePath?: string;
+}
+
+interface BuildResult {
+    schemaVersion: string;
+    sourceDirectory: string;
+    databasePath: string;
+    totalRows: number;
+    datasetRows: Record<string, number>;
+}
+
+interface Statements {
+    getKeys: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    hasEntry: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    getEntry: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    getDatasetEntries: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+}
+
+export default class RustlabsStaticStorage {
+    private dataPath: string;
+    private sourceDirectory: string;
+    private sqlitePath: string;
+    private db: import('node:sqlite').DatabaseSync | null = null;
+    private statements: Statements | null = null;
+    private datasetCache = new Map<string, unknown>();
+
+    constructor(options: RustlabsStaticStorageOptions = {}) {
+        this.dataPath = options.dataPath ?? RustlabsStaticStorage.getDefaultDataPath();
+        this.sourceDirectory = options.sourceDirectory ?? RustlabsStaticStorage.getDefaultJsonSourcePath(this.dataPath);
+        this.sqlitePath = options.sqlitePath ?? RustlabsStaticStorage.getDefaultSqlitePath(this.dataPath);
 
         if (DatabaseSync === null) {
             throw new Error(
@@ -96,32 +131,33 @@ class RustlabsStaticStorage {
         this.prepareStatements();
     }
 
-    static getProjectRootPath() {
+    static getProjectRootPath(): string {
+        const __dirname = Path.dirname(fileURLToPath(import.meta.url));
         return Path.join(__dirname, '..', '..');
     }
 
-    static getDefaultDataPath() {
+    static getDefaultDataPath(): string {
         return Path.join(RustlabsStaticStorage.getProjectRootPath(), DEFAULT_DATA_DIRECTORY);
     }
 
-    static getDefaultJsonSourcePath(dataPath = RustlabsStaticStorage.getDefaultDataPath()) {
+    static getDefaultJsonSourcePath(dataPath = RustlabsStaticStorage.getDefaultDataPath()): string {
         return Path.join(dataPath, DEFAULT_JSON_SOURCE_DIRECTORY);
     }
 
-    static getDefaultSqlitePath(dataPath = RustlabsStaticStorage.getDefaultDataPath()) {
+    static getDefaultSqlitePath(dataPath = RustlabsStaticStorage.getDefaultDataPath()): string {
         return Path.join(dataPath, SQLITE_DATABASE_FILE);
     }
 
     /* Backward compatible alias used in earlier refactor. */
-    static getDefaultStaticFilesPath() {
+    static getDefaultStaticFilesPath(): string {
         return RustlabsStaticStorage.getDefaultJsonSourcePath();
     }
 
-    static getDatasetConfig() {
+    static getDatasetConfig(): Record<string, DatasetConfigEntry> {
         return DATASET_CONFIG;
     }
 
-    static buildDatabaseFromJsonFiles(options = {}) {
+    static buildDatabaseFromJsonFiles(options: BuildDatabaseOptions = {}): BuildResult {
         if (DatabaseSync === null) {
             throw new Error('node:sqlite is unavailable. Use Node.js 22+ to build the static database.');
         }
@@ -130,15 +166,13 @@ class RustlabsStaticStorage {
         const sourceDirectory = options.sourceDirectory ?? RustlabsStaticStorage.getDefaultJsonSourcePath(dataPath);
         const databasePath = options.databasePath ?? RustlabsStaticStorage.getDefaultSqlitePath(dataPath);
 
-        const missingFiles = [];
+        const missingFiles: string[] = [];
         for (const { file } of Object.values(DATASET_CONFIG)) {
             const jsonPath = Path.join(sourceDirectory, file);
             if (!Fs.existsSync(jsonPath)) missingFiles.push(jsonPath);
         }
         if (missingFiles.length > 0) {
-            throw new Error(
-                `Missing source JSON files for static DB build:\n${missingFiles.join('\n')}`
-            );
+            throw new Error(`Missing source JSON files for static DB build:\n${missingFiles.join('\n')}`);
         }
 
         const databaseDirectory = Path.dirname(databasePath);
@@ -148,7 +182,7 @@ class RustlabsStaticStorage {
 
         const db = new DatabaseSync(databasePath);
         let totalRows = 0;
-        const datasetRows = {};
+        const datasetRows: Record<string, number> = {};
         try {
             db.exec(`
                 CREATE TABLE IF NOT EXISTS ${META_TABLE} (
@@ -183,13 +217,15 @@ class RustlabsStaticStorage {
 
             for (const [dataset, config] of Object.entries(DATASET_CONFIG)) {
                 const jsonPath = Path.join(sourceDirectory, config.file);
-                const jsonData = JSON.parse(Fs.readFileSync(jsonPath, 'utf8'));
+                const jsonData = JSON.parse(Fs.readFileSync(jsonPath, 'utf8')) as Record<string, unknown>;
 
                 let rowCount = 0;
-                if (config.grouped) {
+                if (config.grouped && config.groups) {
                     for (const groupName of config.groups) {
-                        const groupData = Object.prototype.hasOwnProperty.call(jsonData, groupName) &&
-                            jsonData[groupName] !== null ? jsonData[groupName] : {};
+                        const groupData =
+                            Object.prototype.hasOwnProperty.call(jsonData, groupName) && jsonData[groupName] !== null
+                                ? (jsonData[groupName] as Record<string, unknown>)
+                                : {};
 
                         for (const [dataKey, value] of Object.entries(groupData)) {
                             insertDataStatement.run(dataset, groupName, dataKey, JSON.stringify(value));
@@ -197,8 +233,7 @@ class RustlabsStaticStorage {
                             totalRows += 1;
                         }
                     }
-                }
-                else {
+                } else {
                     for (const [dataKey, value] of Object.entries(jsonData)) {
                         insertDataStatement.run(dataset, '', dataKey, JSON.stringify(value));
                         rowCount += 1;
@@ -214,80 +249,83 @@ class RustlabsStaticStorage {
             insertMetaStatement.run('sourceDirectory', sourceDirectory);
 
             db.exec('COMMIT');
-        }
-        catch (e) {
+        } catch (e) {
             try {
                 db.exec('ROLLBACK');
-            }
-            catch (rollbackError) {
+            } catch (_rollbackError) {
                 /* Ignore rollback errors and throw original exception. */
             }
             throw e;
-        }
-        finally {
+        } finally {
             db.close();
         }
 
         return {
             schemaVersion: SQLITE_SCHEMA_VERSION,
-            sourceDirectory: sourceDirectory,
-            databasePath: databasePath,
-            totalRows: totalRows,
-            datasetRows: datasetRows
+            sourceDirectory,
+            databasePath,
+            totalRows,
+            datasetRows,
         };
     }
 
-    close() {
+    close(): void {
         if (this.db !== null) {
             this.db.close();
             this.db = null;
         }
     }
 
-    isUsingSqlite() {
+    isUsingSqlite(): boolean {
         return true;
     }
 
-    getKeys(dataset, group = '') {
+    getKeys(dataset: string, group = ''): string[] {
         const config = this.getConfig(dataset);
         const normalizedGroup = this.normalizeGroup(config, group);
 
-        return this.statements.getKeys
-            .all(dataset, normalizedGroup)
-            .map(row => row.data_key);
+        return (this.statements?.getKeys.all(dataset, normalizedGroup) as { data_key: string }[]).map(
+            (row) => row.data_key
+        );
     }
 
-    hasEntry(dataset, key, group = '') {
+    hasEntry(dataset: string, key: string | number, group = ''): boolean {
         const config = this.getConfig(dataset);
         const normalizedGroup = this.normalizeGroup(config, group);
         const normalizedKey = this.normalizeKey(key);
 
-        return this.statements.hasEntry
-            .get(dataset, normalizedGroup, normalizedKey) !== undefined;
+        return (
+            (this.statements?.hasEntry.get(dataset, normalizedGroup, normalizedKey) as { found: number } | undefined) !==
+            undefined
+        );
     }
 
-    getEntry(dataset, key, group = '') {
+    getEntry(dataset: string, key: string | number, group = ''): unknown | null {
         const config = this.getConfig(dataset);
         const normalizedGroup = this.normalizeGroup(config, group);
         const normalizedKey = this.normalizeKey(key);
 
-        const row = this.statements.getEntry
-            .get(dataset, normalizedGroup, normalizedKey);
+        const row = this.statements?.getEntry.get(dataset, normalizedGroup, normalizedKey) as
+            | { json_value: string }
+            | undefined;
         if (row === undefined) return null;
         return JSON.parse(row.json_value);
     }
 
-    getDatasetObject(dataset, group = '') {
+    getDatasetObject(dataset: string, group = ''): Record<string, unknown> {
         const config = this.getConfig(dataset);
         const normalizedGroup = this.normalizeGroup(config, group);
         const cacheKey = this.getCacheKey(dataset, normalizedGroup);
 
         if (this.datasetCache.has(cacheKey)) {
-            return this.datasetCache.get(cacheKey);
+            return this.datasetCache.get(cacheKey) as Record<string, unknown>;
         }
 
-        const rows = this.statements.getDatasetEntries.all(dataset, normalizedGroup);
-        const objectData = {};
+        const rows = this.statements?.getDatasetEntries.all(dataset, normalizedGroup) as {
+            data_key: string;
+            json_value: string;
+        }[];
+        const objectData: Record<string, unknown> = {};
         for (const row of rows) {
             objectData[row.data_key] = JSON.parse(row.json_value);
         }
@@ -296,40 +334,48 @@ class RustlabsStaticStorage {
         return objectData;
     }
 
-    validateSchema() {
-        const metaTable = this.db.prepare(`
+    private validateSchema(): void {
+        if (!this.db) return;
+        const metaTable = this.db
+            .prepare(`
             SELECT name
             FROM sqlite_master
             WHERE type = 'table' AND name = ?
-        `).get(META_TABLE);
-        const dataTable = this.db.prepare(`
+        `)
+            .get(META_TABLE) as { name: string } | undefined;
+        const dataTable = this.db
+            .prepare(`
             SELECT name
             FROM sqlite_master
             WHERE type = 'table' AND name = ?
-        `).get(DATA_TABLE);
+        `)
+            .get(DATA_TABLE) as { name: string } | undefined;
 
         if (!metaTable || !dataTable) {
             throw new Error(
                 `Static SQLite database at "${this.sqlitePath}" is missing required tables. ` +
-                'Run "npm run build:static-db".'
+                    'Run "npm run build:static-db".'
             );
         }
 
-        const schemaVersionRow = this.db.prepare(`
+        const schemaVersionRow = this.db
+            .prepare(`
             SELECT value
             FROM ${META_TABLE}
             WHERE key = 'schemaVersion'
-        `).get();
+        `)
+            .get() as { value: string } | undefined;
 
         if (!schemaVersionRow || schemaVersionRow.value !== SQLITE_SCHEMA_VERSION) {
             throw new Error(
                 `Static SQLite database schema mismatch (expected ${SQLITE_SCHEMA_VERSION}, got ` +
-                `${schemaVersionRow ? schemaVersionRow.value : 'missing'}). Run "npm run build:static-db".`
+                    `${schemaVersionRow ? schemaVersionRow.value : 'missing'}). Run "npm run build:static-db".`
             );
         }
     }
 
-    prepareStatements() {
+    private prepareStatements(): void {
+        if (!this.db) return;
         this.statements = {
             getKeys: this.db.prepare(`
                 SELECT data_key
@@ -353,35 +399,37 @@ class RustlabsStaticStorage {
                 FROM ${DATA_TABLE}
                 WHERE dataset = ? AND group_name = ?
                 ORDER BY data_key
-            `)
+            `),
         };
     }
 
-    getCacheKey(dataset, group) {
+    private getCacheKey(dataset: string, group: string): string {
         return `${dataset}|${group}`;
     }
 
-    getConfig(dataset) {
+    private getConfig(dataset: string): DatasetConfigEntry {
         if (!Object.prototype.hasOwnProperty.call(DATASET_CONFIG, dataset)) {
             throw new Error(`Unknown dataset: ${dataset}`);
         }
-        return DATASET_CONFIG[dataset];
+        const config = DATASET_CONFIG[dataset];
+        if (!config) {
+            throw new Error(`Unknown dataset: ${dataset}`);
+        }
+        return config;
     }
 
-    normalizeGroup(config, group) {
+    private normalizeGroup(config: DatasetConfigEntry, group: string): string {
         if (!config.grouped) return '';
 
-        if (typeof (group) !== 'string' || !config.groups.includes(group)) {
+        if (typeof group !== 'string' || !config.groups?.includes(group)) {
             throw new Error(`Invalid grouped dataset key: ${group}`);
         }
 
         return group;
     }
 
-    normalizeKey(key) {
-        if (typeof (key) === 'string') return key;
+    private normalizeKey(key: string | number): string {
+        if (typeof key === 'string') return key;
         return `${key}`;
     }
 }
-
-module.exports = RustlabsStaticStorage;

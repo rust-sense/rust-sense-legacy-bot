@@ -18,27 +18,41 @@
 
 */
 
-const Fs = require('fs');
-const Path = require('path');
+import Fs from 'fs';
+import Path from 'path';
+import { fileURLToPath } from 'url';
 
-let DatabaseSync = null;
+let DatabaseSync: typeof import('node:sqlite').DatabaseSync | null = null;
 try {
-    ({ DatabaseSync } = require('node:sqlite'));
-}
-catch (e) {
+    ({ DatabaseSync } = await import('node:sqlite'));
+} catch (_e) {
     /* node:sqlite unavailable in this runtime. */
 }
 
 const DATABASE_FILE_NAME = 'runtimeData.sqlite';
 const TABLE_NAME = 'runtime_server_state';
 
-class RuntimeDataStorage {
-    constructor(options = {}) {
+interface RuntimeDataStorageOptions {
+    dataPath?: string;
+    databasePath?: string;
+}
+
+interface Statements {
+    getServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    upsertServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    deleteServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+}
+
+export default class RuntimeDataStorage {
+    private dataPath: string;
+    private databasePath: string;
+    private db: import('node:sqlite').DatabaseSync | null = null;
+    private statements: Statements | null = null;
+
+    constructor(options: RuntimeDataStorageOptions = {}) {
+        const __dirname = Path.dirname(fileURLToPath(import.meta.url));
         this.dataPath = options.dataPath ?? Path.join(__dirname, '..', '..', 'data');
         this.databasePath = options.databasePath ?? Path.join(this.dataPath, DATABASE_FILE_NAME);
-
-        this.db = null;
-        this.statements = null;
 
         if (DatabaseSync === null) {
             throw new Error(
@@ -55,30 +69,31 @@ class RuntimeDataStorage {
         this.prepareStatements();
     }
 
-    close() {
+    close(): void {
         if (this.db !== null) {
             this.db.close();
             this.db = null;
         }
     }
 
-    getServerState(guildId, serverId, stateKey) {
+    getServerState(guildId: string, serverId: string, stateKey: string): unknown | null {
+        if (!this.statements) return null;
         const row = this.statements.getServerState.get(
             this.normalize(guildId),
             this.normalize(serverId),
             this.normalize(stateKey)
-        );
+        ) as { value_json: string } | undefined;
         if (row === undefined) return null;
 
         try {
             return JSON.parse(row.value_json);
-        }
-        catch (e) {
+        } catch (_e) {
             return null;
         }
     }
 
-    setServerState(guildId, serverId, stateKey, value) {
+    setServerState(guildId: string, serverId: string, stateKey: string, value: unknown): void {
+        if (!this.statements) return;
         this.statements.upsertServerState.run(
             this.normalize(guildId),
             this.normalize(serverId),
@@ -88,7 +103,8 @@ class RuntimeDataStorage {
         );
     }
 
-    deleteServerState(guildId, serverId, stateKey) {
+    deleteServerState(guildId: string, serverId: string, stateKey: string): void {
+        if (!this.statements) return;
         this.statements.deleteServerState.run(
             this.normalize(guildId),
             this.normalize(serverId),
@@ -96,7 +112,8 @@ class RuntimeDataStorage {
         );
     }
 
-    prepareDatabase() {
+    private prepareDatabase(): void {
+        if (!this.db) return;
         this.db.exec(`
             CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
                 guild_id TEXT NOT NULL,
@@ -109,7 +126,8 @@ class RuntimeDataStorage {
         `);
     }
 
-    prepareStatements() {
+    private prepareStatements(): void {
+        if (!this.db) return;
         this.statements = {
             getServerState: this.db.prepare(`
                 SELECT value_json
@@ -125,14 +143,12 @@ class RuntimeDataStorage {
             deleteServerState: this.db.prepare(`
                 DELETE FROM ${TABLE_NAME}
                 WHERE guild_id = ? AND server_id = ? AND state_key = ?
-            `)
+            `),
         };
     }
 
-    normalize(value) {
-        if (typeof (value) === 'string') return value;
+    private normalize(value: string | number): string {
+        if (typeof value === 'string') return value;
         return `${value}`;
     }
 }
-
-module.exports = RuntimeDataStorage;

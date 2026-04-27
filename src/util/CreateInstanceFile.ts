@@ -1,18 +1,27 @@
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
-const InstanceUtils = require('../util/instanceUtils');
-const Constants = require('./constants');
+import * as InstanceUtils from './instanceUtils.js';
+import * as Constants from './constants.js';
+import type { Instance } from '../types/instance.js';
 
-module.exports = (client, guild) => {
-    let instance = null;
-    if (!fs.existsSync(path.join(__dirname, '..', '..', 'instances', `${guild.id}.json`))) {
+interface ClientLike {
+    readGeneralSettingsTemplate: () => Record<string, unknown>;
+    readNotificationSettingsTemplate: () => Record<string, unknown>;
+    setInstance: (guildId: string, instance: Instance) => void;
+}
+
+export default function createInstanceFile(client: ClientLike, guild: { id: string }): void {
+    let instance: Instance | null = null;
+    const instancePath = path.join(process.cwd(), 'instances', `${guild.id}.json`);
+    
+    if (!fs.existsSync(instancePath)) {
         instance = {
             firstTime: true,
             role: null,
             adminRole: null,
-            generalSettings: client.readGeneralSettingsTemplate(),
-            notificationSettings: client.readNotificationSettingsTemplate(),
+            generalSettings: client.readGeneralSettingsTemplate() as Instance['generalSettings'],
+            notificationSettings: client.readNotificationSettingsTemplate() as Instance['notificationSettings'],
             channelId: {
                 category: null,
                 information: null,
@@ -72,29 +81,30 @@ module.exports = (client, guild) => {
         }
 
         if (!Object.hasOwn(instance, 'generalSettings')) {
-            instance.generalSettings = client.readGeneralSettingsTemplate();
+            instance.generalSettings = client.readGeneralSettingsTemplate() as Instance['generalSettings'];
         } else {
             const generalSettings = client.readGeneralSettingsTemplate();
 
             for (const [key, value] of Object.entries(generalSettings)) {
                 if (!Object.hasOwn(instance.generalSettings, key)) {
-                    instance.generalSettings[key] = value;
+                    instance.generalSettings[key] = value as never;
                 }
             }
         }
 
         if (!Object.hasOwn(instance, 'notificationSettings')) {
-            instance.notificationSettings = client.readNotificationSettingsTemplate();
+            instance.notificationSettings = client.readNotificationSettingsTemplate() as Instance['notificationSettings'];
         } else {
             const notificationSettings = client.readNotificationSettingsTemplate();
 
             for (const [key, value] of Object.entries(notificationSettings)) {
                 if (!Object.hasOwn(instance.notificationSettings, key)) {
-                    instance.notificationSettings[key] = value;
+                    instance.notificationSettings[key] = value as Instance['notificationSettings'][string];
                 } else {
-                    for (const [setting, settingValue] of Object.entries(value)) {
-                        if (!instance.notificationSettings[key].hasOwnProperty(setting)) {
-                            instance.notificationSettings[key][setting] = settingValue;
+                    const subSettings = value as Record<string, unknown>;
+                    for (const [setting, settingValue] of Object.entries(subSettings)) {
+                        if (!Object.hasOwn(instance.notificationSettings[key] ?? {}, setting)) {
+                            (instance.notificationSettings[key] ?? {})[setting] = settingValue as never;
                         }
                     }
                 }
@@ -182,20 +192,24 @@ module.exports = (client, guild) => {
 
         for (const serverId of Object.keys(instance.serverList)) {
             if (!Object.keys(instance.serverListLite).includes(serverId)) {
-                instance.serverListLite[serverId] = new Object();
+                instance.serverListLite[serverId] = {};
             }
 
-            instance.serverListLite[serverId][instance.serverList[serverId].steamId] = {
-                serverIp: instance.serverList[serverId].serverIp,
-                appPort: instance.serverList[serverId].appPort,
-                steamId: instance.serverList[serverId].steamId,
-                playerToken: instance.serverList[serverId].playerToken,
+            const server = instance.serverList[serverId];
+            if (!server) continue;
+            const liteEntry = instance.serverListLite[serverId];
+            if (!liteEntry) continue;
+            liteEntry[server.steamId] = {
+                serverIp: server.serverIp,
+                appPort: server.appPort,
+                steamId: server.steamId,
+                playerToken: server.playerToken,
             };
         }
     }
 
     /* Check every serverList for missing keys */
-    for (const [serverId, content] of Object.entries(instance.serverList)) {
+    for (const [_serverId, content] of Object.entries(instance.serverList)) {
         if (!Object.hasOwn(content, 'customCameraGroups')) content.customCameraGroups = {};
         if (!Object.hasOwn(content, 'cargoShipEgressTimeMs')) {
             content.cargoShipEgressTimeMs = Constants.DEFAULT_CARGO_SHIP_EGRESS_TIME_MS;
@@ -215,4 +229,4 @@ module.exports = (client, guild) => {
     }
 
     client.setInstance(guild.id, instance);
-};
+}
