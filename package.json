@@ -2,15 +2,15 @@
     "name": "rustplusplus",
     "version": "1.30.1",
     "description": "A NodeJS Discord Bot that uses the rustplus.js library to utilize the power of the Rust+ Companion App with additional Quality-of-Life features.",
-    "main": "index.ts",
+    "type": "module",
+    "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
         "build": "tsc",
         "test": "tsc --noEmit",
-        "dev:tsc": "tsc -w",
-        "dev:node": "node --watch dist/index.js",
-        "dev": "concurrently -n \"tsc,node\" -c \"yellow.bold,green.bold\" \"npm run dev:tsc\" \"npm run dev:node\"",
-        "format": "biome format --write"
+        "dev": "tsx watch src/index.ts",
+        "format": "biome format --write",
+        "lint": "biome lint"
     },
     "repository": {
         "type": "git",
@@ -23,12 +23,12 @@
     "homepage": "https://github.com/rust-sense/bot",
     "dependencies": {
         "@discordjs/builders": "^1.11.2",
-        "@discordjs/opus": "^0.9.0",
         "@discordjs/rest": "^2.5.1",
         "@discordjs/voice": "^0.18.0",
         "@formatjs/intl": "^2.10.4",
         "@liamcottle/push-receiver": "^0.0.4",
         "@liamcottle/rustplus.js": "git+https://github.com/alexemanuelol/rustplus.js.git#089cfd3db1b04709911948bce669273139c6a124",
+        "awilix": "^12.0.4",
         "axios": "^1.5.0",
         "colors": "^1.4.0",
         "discord-api-types": "^0.38.15",
@@ -40,7 +40,6 @@
         "lodash": "^4.17.21",
         "sodium-native": "^4.0.4",
         "translate": "^1.4.1",
-        "ts-node": "^10.9.1",
         "winston": "^3.10.0"
     },
     "resolutions": {
@@ -49,8 +48,10 @@
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.3",
+        "@types/gm": "^1.25.0",
+        "@types/lodash": "^4.17.0",
         "@types/node": "^20.14.10",
-        "concurrently": "^9.1.2",
+        "tsx": "^4.0.0",
         "typescript": "^5.2.2"
     }
 }
