@@ -28,5 +28,5 @@ process.on('unhandledRejection', (error) => {
         'error',
     );
 
-    console.log(error);
+    console.error(error);
 });
