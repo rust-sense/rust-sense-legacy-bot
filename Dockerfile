@@ -19,11 +19,13 @@ COPY --from=build /app/resources /app/resources
 COPY --from=build /app/dist /app/dist
 
 RUN apt-get update \
-    && apt-get install -y graphicsmagick \
+    && apt-get install -y graphicsmagick gosu \
     && apt-get clean
 
-RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
-    && chown -R node:node /app/credentials /app/instances /app/logs /app/maps /app/authtokens
+RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 VOLUME [ "/app/credentials" ]
 VOLUME [ "/app/instances" ]
@@ -31,6 +33,4 @@ VOLUME [ "/app/logs" ]
 VOLUME [ "/app/maps" ]
 VOLUME [ "/app/authtokens" ]
 
-USER node
-
-CMD [ "pnpm", "start" ]
+ENTRYPOINT [ "docker-entrypoint.sh" ]
