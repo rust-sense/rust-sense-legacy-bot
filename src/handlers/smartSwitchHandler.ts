@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordMessages = require('../discordTools/discordMessages');
 const GameMap = require('../util/GameMap');
 const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');

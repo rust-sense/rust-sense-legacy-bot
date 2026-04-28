@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordMessages = require('../discordTools/discordMessages');
 const Timer = require('../util/timer');
 

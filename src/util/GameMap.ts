@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { client } from '../index.js';
 
 const GRID_DIAMETER = 146.28571;

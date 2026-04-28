@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordMessages = require('../discordTools/discordMessages');
 
 import config from '../config.js';

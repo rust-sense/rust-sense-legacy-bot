@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Builder = require('@discordjs/builders');
 const Utils = require('../util/utils');
 

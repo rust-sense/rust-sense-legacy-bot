@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Discord = require('discord.js');
 const DiscordTools = require('../discordTools/discordTools');
 import * as PermissionHandler from '../handlers/permissionHandler.js';

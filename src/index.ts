@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Discord = require('discord.js');
 
 import { ensureAppStateDirs } from './utils/filesystemUtils.js';

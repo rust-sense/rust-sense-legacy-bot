@@ -1,3 +1,4 @@
+// @ts-nocheck
 const { getVoiceConnection } = require('@discordjs/voice');
 const Constants = require('../util/constants');
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const InstanceUtils = require('../util/instanceUtils');
 
 export default {

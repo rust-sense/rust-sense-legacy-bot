@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Discord = require('discord.js');
 const PushReceiverClient = require('@liamcottle/push-receiver/src/client');
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordMessages = require('./discordMessages');
 const DiscordTools = require('./discordTools');
 

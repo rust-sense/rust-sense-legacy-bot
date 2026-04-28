@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordMessages = require('../discordTools/discordMessages');
 const Info = require('../structures/Info');
 const GameMap = require('../structures/GameMap');

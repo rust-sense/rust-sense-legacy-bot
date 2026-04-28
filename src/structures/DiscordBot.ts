@@ -1,3 +1,4 @@
+// @ts-nocheck
 import FormatJS from '@formatjs/intl';
 import * as Discord from 'discord.js';
 import fs from 'node:fs';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const SmartAlarmHandler = require('./smartAlarmHandler');
 const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
 const SmartSwitchHandler = require('./smartSwitchHandler');

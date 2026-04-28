@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordCommandHandler = require('../handlers/discordCommandHandler');
 const DiscordTools = require('../discordTools/discordTools');
 

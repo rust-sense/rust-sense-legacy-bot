@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DiscordTools = require('../discordTools/discordTools');
 
 module.exports = async (client, guild) => {

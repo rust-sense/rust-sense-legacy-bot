@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 

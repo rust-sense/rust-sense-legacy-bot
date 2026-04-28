@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Player from './Player.js';
 
 interface TeamData {

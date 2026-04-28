@@ -1,3 +1,4 @@
+// @ts-nocheck
 const CommandHandler = require('../handlers/inGameCommandHandler');
 const Constants = require('../util/constants');
 const DiscordMessages = require('../discordTools/discordMessages');

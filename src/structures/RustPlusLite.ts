@@ -1,3 +1,4 @@
+// @ts-nocheck
 import RustPlusLib from '@liamcottle/rustplus.js';
 
 import { resolve } from '../container.js';

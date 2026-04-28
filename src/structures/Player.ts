@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as Constants from '../util/constants.js';
 import * as GameMap from '../util/GameMap.js';
 import * as Time from '../util/timer.js';

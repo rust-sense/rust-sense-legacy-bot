@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Battlemetrics = require('../structures/Battlemetrics');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');

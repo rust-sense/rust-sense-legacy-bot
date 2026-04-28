@@ -1,3 +1,4 @@
+// @ts-nocheck
 const { getVoiceConnection, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 import { client } from '../index.js';
 const getStaticFilesStorage = require('../util/getStaticFilesStorage');

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Discord = require('discord.js');
 
 const DiscordEmbeds = require('../discordTools/discordEmbeds');

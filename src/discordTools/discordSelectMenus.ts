@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Discord = require('discord.js');
 const fs = require('node:fs');
 

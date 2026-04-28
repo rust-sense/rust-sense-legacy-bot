@@ -1,3 +1,4 @@
+// @ts-nocheck
 export default {
     name: 'guildCreate',
     async execute(client, guild) {

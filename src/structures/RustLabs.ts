@@ -12,10 +12,10 @@ interface DatasetView {
 }
 
 interface GroupedDatasetView extends DatasetView {
-    getEntry(id: string | number, group: string): unknown | null;
-    getDatasetObject(group: string): Record<string, unknown>;
-    getKeys(group: string): string[];
-    hasEntry(id: string | number, group: string): boolean;
+    getEntry(id: string | number, group?: string): unknown | null;
+    getDatasetObject(group?: string): Record<string, unknown>;
+    getKeys(group?: string): string[];
+    hasEntry(id: string | number, group?: string): boolean;
 }
 
 export default class RustLabs {

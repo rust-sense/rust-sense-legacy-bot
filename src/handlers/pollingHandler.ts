@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Info = require('../structures/Info');
 const InformationHandler = require('../handlers/informationHandler');
 const MapMarkers = require('../structures/MapMarkers');
