@@ -189,7 +189,7 @@ class RustPlus extends RustPlusLib {
             this.timers[id] = {
                 timer: new Timer.timer(
                     () => {
-                        this.sendInGameMessage(Client.client.intlGet(this.guildId, 'timer', {
+                        this.sendInGameMessage(client.intlGet(this.guildId, 'timer', {
                             message: timerData.message
                         }), 'TIMER');
                         delete this.timers[id];
@@ -3266,7 +3266,7 @@ class RustPlus extends RustPlusLib {
     }
 
     getCommandDeepSea(isInfoChannel = false) {
-        const instance = Client.client.getInstance(this.guildId);
+        const instance = client.getInstance(this.guildId);
         const deepSeaSettings = instance.serverList[this.serverId];
         const deepSeaMinWipeCooldown = deepSeaSettings.deepSeaMinWipeCooldownMs;
         const deepSeaMaxWipeCooldown = deepSeaSettings.deepSeaMaxWipeCooldownMs;
@@ -3278,24 +3278,24 @@ class RustPlus extends RustPlusLib {
         if (isOnMap !== null) {
             const secondsLeft = Math.max(0, (deepSeaWipeDuration - (now - isOnMap)) / 1000);
             if (isInfoChannel) {
-                return Client.client.intlGet(this.guildId, 'activeFor', {
+                return client.intlGet(this.guildId, 'activeFor', {
                     time: Timer.secondsToFullScale(secondsLeft, 's')
                 });
             }
 
-            return Client.client.intlGet(this.guildId, 'timeDeepSeaIsActiveFor', {
+            return client.intlGet(this.guildId, 'timeDeepSeaIsActiveFor', {
                 time: Timer.secondsToFullScale(secondsLeft)
             });
         }
 
         if (wasOnMap === null) {
-            return isInfoChannel ? Client.client.intlGet(this.guildId, 'notActive') :
-                Client.client.intlGet(this.guildId, 'deepSeaNotCurrentlyOnMap');
+            return isInfoChannel ? client.intlGet(this.guildId, 'notActive') :
+                client.intlGet(this.guildId, 'deepSeaNotCurrentlyOnMap');
         }
 
         const secondsSince = (now - wasOnMap) / 1000;
         if (isInfoChannel) {
-            return Client.client.intlGet(this.guildId, 'timeSinceLast', {
+            return client.intlGet(this.guildId, 'timeSinceLast', {
                 time: Timer.secondsToFullScale(secondsSince, 's')
             });
         }
@@ -3303,13 +3303,13 @@ class RustPlus extends RustPlusLib {
         const respawnMinSeconds = Math.max(0, (deepSeaMinWipeCooldown - (now - wasOnMap)) / 1000);
         const respawnMaxSeconds = Math.max(0, (deepSeaMaxWipeCooldown - (now - wasOnMap)) / 1000);
         if (respawnMinSeconds === 0) {
-            return Client.client.intlGet(this.guildId, 'deepSeaCanRespawnNow', {
+            return client.intlGet(this.guildId, 'deepSeaCanRespawnNow', {
                 time: Timer.secondsToFullScale(secondsSince),
                 respawnMax: Timer.secondsToFullScale(respawnMaxSeconds, 's')
             });
         }
 
-        return Client.client.intlGet(this.guildId, 'timeSinceDeepSeaWasOnMap', {
+        return client.intlGet(this.guildId, 'timeSinceDeepSeaWasOnMap', {
             time: Timer.secondsToFullScale(secondsSince),
             respawnMin: Timer.secondsToFullScale(respawnMinSeconds, 's'),
             respawnMax: Timer.secondsToFullScale(respawnMaxSeconds, 's')
