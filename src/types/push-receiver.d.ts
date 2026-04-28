@@ -30,3 +30,13 @@ declare module '@liamcottle/push-receiver' {
 
     export default PushReceiver;
 }
+
+declare module '@liamcottle/push-receiver/src/client' {
+    import { EventEmitter } from 'events';
+
+    export default class Client extends EventEmitter {
+        constructor(androidId: any, securityToken: any, persistentIds: any[]);
+        connect(): void;
+        destroy(): void;
+    }
+}

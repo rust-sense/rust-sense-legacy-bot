@@ -1,17 +1,17 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
-
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import { getSmartDevice } from '../service/smartDevice.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'alarm',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('alarm')
             .setDescription(client.intlGet(guildId, 'commandsAlarmDesc'))
             .addSubcommand((subcommand) =>
@@ -99,14 +99,14 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -120,8 +120,8 @@ export default {
                         const str = client.intlGet(guildId, 'invalidId', {
                             id: entityId,
                         });
-                        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                        client.log(client.intlGet(null, 'warningCap'), str);
+                        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
                         return;
                     }
 
@@ -136,16 +136,17 @@ export default {
                             id: `${verifyId}`,
                             value: `edit, ${entityId}, ${image}.png`,
                         }),
+                        'info',
                     );
 
                     await DiscordMessages.sendSmartAlarmMessage(guildId, device.serverId, entityId);
 
                     const str = client.intlGet(guildId, 'smartAlarmEditSuccess', { name: entity.name });
-                    await client.interactionEditReply(
+                    await (client as any).interactionEditReply(
                         interaction,
-                        DiscordEmbeds.getActionInfoEmbed(0, str, instance.serverList[device.serverId].title),
+                        DiscordEmbedsAny.getActionInfoEmbed(0, str, instance.serverList[device.serverId].title),
                     );
-                    client.log(client.intlGet(null, 'infoCap'), str);
+                    client.log(client.intlGet(null, 'infoCap'), str, 'info');
                 }
                 break;
 

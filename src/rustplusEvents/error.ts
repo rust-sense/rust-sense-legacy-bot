@@ -1,9 +1,8 @@
-// @ts-nocheck
-const DiscordMessages = require('../discordTools/discordMessages');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 export default {
     name: 'error',
-    async execute(rustplus, client, err) {
+    async execute(rustplus: any, client: any, err: any) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
 
         rustplus.log(client.intlGet(null, 'errorCap'), err, 'error');
@@ -36,7 +35,7 @@ export default {
     },
 };
 
-function errorTimedOut(rustplus, client, err) {
+function errorTimedOut(rustplus: any, client: any, err: any) {
     if (err.syscall === 'connect') {
         rustplus.log(
             client.intlGet(null, 'errorCap'),
@@ -48,7 +47,7 @@ function errorTimedOut(rustplus, client, err) {
     }
 }
 
-function errorNotFound(rustplus, client, err) {
+function errorNotFound(rustplus: any, client: any, err: any) {
     if (err.syscall === 'getaddrinfo') {
         rustplus.log(
             client.intlGet(null, 'errorCap'),
@@ -60,7 +59,7 @@ function errorNotFound(rustplus, client, err) {
     }
 }
 
-async function errorConnRefused(rustplus, client, err) {
+async function errorConnRefused(rustplus: any, client: any, err: any) {
     rustplus.log(
         client.intlGet(null, 'errorCap'),
         client.intlGet(null, 'connectionRefusedTo', {
@@ -70,7 +69,7 @@ async function errorConnRefused(rustplus, client, err) {
     );
 }
 
-function errorOther(rustplus, client, err) {
+function errorOther(rustplus: any, client: any, err: any) {
     if (err.toString() === 'Error: WebSocket was closed before the connection was established') {
         rustplus.log(
             client.intlGet(null, 'errorCap'),

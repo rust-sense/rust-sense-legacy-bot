@@ -1,4 +1,3 @@
-// @ts-nocheck
 import RustPlusLib from '@liamcottle/rustplus.js';
 
 import { resolve } from '../container.js';
@@ -47,7 +46,7 @@ export default class RustPlusLite extends RustPlusLib {
 
     loadRustPlusLiteEvents(): void {
         for (const event of rustplusLiteEvents) {
-            this.on(event.name, (...args: unknown[]) => event.execute(this, getClient(), ...args));
+            this.on(event.name, (...args: unknown[]) => (event.execute as any)(this, getClient(), ...args));
         }
     }
 
@@ -57,7 +56,7 @@ export default class RustPlusLite extends RustPlusLib {
 
     async getInfoAsync(timeout = 10000): Promise<unknown> {
         try {
-            return await this.sendRequestAsync(
+            return await (this as any).sendRequestAsync(
                 {
                     getInfo: {},
                 },
@@ -72,7 +71,7 @@ export default class RustPlusLite extends RustPlusLib {
 
     async promoteToLeaderAsync(steamId: string, timeout = 10000): Promise<unknown> {
         try {
-            return await this.sendRequestAsync(
+            return await (this as any).sendRequestAsync(
                 {
                     promoteToLeader: {
                         steamId,

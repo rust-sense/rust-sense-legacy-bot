@@ -1,19 +1,27 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import { TextInputBuilder } from 'discord.js';
 
-module.exports = {
-    getTextInput: function (options = {}) {
-        const textInput = new Discord.TextInputBuilder();
+interface TextInputOptions {
+    customId?: string;
+    label?: string;
+    value?: string;
+    style?: number;
+    minLength?: number;
+    maxLength?: number;
+    placeholder?: string;
+    required?: boolean;
+}
 
-        if (Object.hasOwn(options, 'customId')) textInput.setCustomId(options.customId);
-        if (Object.hasOwn(options, 'label')) textInput.setLabel(options.label.slice(0, 45));
-        if (Object.hasOwn(options, 'value')) textInput.setValue(options.value);
-        if (Object.hasOwn(options, 'style')) textInput.setStyle(options.style);
-        if (Object.hasOwn(options, 'minLength')) textInput.setMinLength(options.minLength);
-        if (Object.hasOwn(options, 'maxLength')) textInput.setMaxLength(options.maxLength);
-        if (Object.hasOwn(options, 'placeholder')) textInput.setPlaceholder(options.placeholder);
-        if (Object.hasOwn(options, 'required')) textInput.setRequired(options.required);
+export function getTextInput(options: TextInputOptions = {}) {
+    const textInput = new TextInputBuilder();
 
-        return textInput;
-    },
-};
+    if (Object.hasOwn(options, 'customId')) textInput.setCustomId(options.customId!);
+    if (Object.hasOwn(options, 'label')) textInput.setLabel(options.label!.slice(0, 45));
+    if (Object.hasOwn(options, 'value')) textInput.setValue(options.value!);
+    if (Object.hasOwn(options, 'style')) textInput.setStyle(options.style!);
+    if (Object.hasOwn(options, 'minLength')) textInput.setMinLength(options.minLength!);
+    if (Object.hasOwn(options, 'maxLength')) textInput.setMaxLength(options.maxLength!);
+    if (Object.hasOwn(options, 'placeholder')) textInput.setPlaceholder(options.placeholder!);
+    if (Object.hasOwn(options, 'required')) textInput.setRequired(options.required!);
+
+    return textInput;
+}

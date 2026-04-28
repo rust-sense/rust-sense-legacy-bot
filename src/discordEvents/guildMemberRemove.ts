@@ -1,9 +1,9 @@
-// @ts-nocheck
-const InstanceUtils = require('../util/instanceUtils');
+import * as InstanceUtils from '../util/instanceUtils.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'guildMemberRemove',
-    async execute(client, member) {
+    async execute(client: DiscordBot, member: any) {
         const guildId = member.guild.id;
         const userId = member.user.id;
 
@@ -13,11 +13,11 @@ export default {
             (e) => credentials[e] && credentials[e].discord_user_id === userId,
         );
 
-        if (!(steamId in credentials)) return;
+        if (!steamId || !(steamId in credentials)) return;
 
         if (steamId === credentials.hoster) {
             if (client.fcmListeners[guildId]) {
-                client.fcmListeners[guildId].destroy();
+                (client.fcmListeners[guildId] as any).destroy();
             }
             delete client.fcmListeners[guildId];
             credentials.hoster = null;

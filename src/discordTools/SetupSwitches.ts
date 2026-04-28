@@ -1,14 +1,14 @@
-// @ts-nocheck
-const DiscordMessages = require('./discordMessages');
-const DiscordTools = require('./discordTools');
+import * as DiscordMessages from './discordMessages.js';
+import * as DiscordTools from './discordTools.js';
+import type { DiscordBot } from '../types/discord.js';
 
-module.exports = async (client, rustplus) => {
+export default async function setupSwitches(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
 
     if (rustplus.isNewConnection) {
-        await DiscordTools.clearTextChannel(guildId, instance.channelId.switches, 100);
+        await DiscordTools.clearTextChannel(guildId, instance.channelId.switches as string, 100);
     }
 
     for (const entityId in instance.serverList[serverId].switches) {
@@ -30,4 +30,4 @@ module.exports = async (client, rustplus) => {
 
         await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
     }
-};
+}

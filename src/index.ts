@@ -1,8 +1,7 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import * as Discord from 'discord.js';
 
 import { ensureAppStateDirs } from './utils/filesystemUtils.js';
-const DiscordBot = require('./structures/DiscordBot');
+import DiscordBot from './structures/DiscordBot.js';
 
 export const client = new DiscordBot({
     intents: [
@@ -14,7 +13,7 @@ export const client = new DiscordBot({
     ],
     retryLimit: 2,
     restRequestTimeout: 60000,
-});
+} as Discord.ClientOptions);
 
 ensureAppStateDirs().then(() => {
     client.build();

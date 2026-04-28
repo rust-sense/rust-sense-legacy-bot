@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'node:fs';
 import path from 'node:path';
 import * as Discord from 'discord.js';
@@ -46,7 +45,7 @@ export async function resolveItemId(
     itemName: string | null,
     itemId: string | null,
 ): Promise<string | null> {
-    const DiscordEmbeds = await import('../discordTools/discordEmbeds.js');
+    const DiscordEmbeds = await import('../discordTools/discordEmbeds.js') as any;
     if (itemName !== null) {
         const item = client.items.getClosestItemIdByName(itemName);
         if (item === null) {

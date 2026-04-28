@@ -1,15 +1,13 @@
-// @ts-nocheck
-const Discord = require('discord.js');
-const fs = require('node:fs');
+import * as Discord from 'discord.js';
+import fs from 'node:fs';
 
 import { client } from '../index.js';
-const Constants = require('../util/constants');
-const Languages = require('../util/languages');
+import * as Constants from '../util/constants.js';
+import * as Languages from '../util/languages.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 
-module.exports = {
-    getSelectMenu: function (options = {}) {
+export function getSelectMenu(options: any = {}) {
         const selectMenu = new Discord.StringSelectMenuBuilder();
 
         if (Object.hasOwn(options, 'customId')) selectMenu.setCustomId(options.customId);
@@ -23,9 +21,9 @@ module.exports = {
         if (Object.hasOwn(options, 'disabled')) selectMenu.setDisabled(options.disabled);
 
         return selectMenu;
-    },
+    }
 
-    getLanguageSelectMenu: async (guildId, language) => {
+export async function getLanguageSelectMenu(guildId: string, language: string) {
         const languageFiles = await fs.promises.readdir(cwdPath('resources', 'languages'));
         const languageJsonFiles = languageFiles.filter((file) => file.endsWith('.json'));
 
@@ -47,17 +45,17 @@ module.exports = {
         if (!currentLanguage) currentLanguage = client.intlGet(guildId, 'unknown');
 
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'language',
                 placeholder: `${currentLanguage} (${language})`,
                 options: options,
             }),
         );
-    },
+    }
 
-    getPrefixSelectMenu: function (guildId, prefix) {
+export function getPrefixSelectMenu(guildId: string, prefix: string) {
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'Prefix',
                 placeholder: client.intlGet(guildId, 'currentPrefixPlaceholder', { prefix: prefix }),
                 options: [
@@ -89,9 +87,9 @@ module.exports = {
                 ],
             }),
         );
-    },
+    }
 
-    getTrademarkOption: function (guildId, trademark) {
+export function getTrademarkOption(guildId: string, trademark: string) {
         return {
             label: trademark,
             description: client.intlGet(guildId, 'trademarkShownBeforeMessage', {
@@ -99,19 +97,19 @@ module.exports = {
             }),
             value: trademark,
         };
-    },
+    }
 
-    getTrademarkSelectMenu: function (guildId, trademark) {
+export function getTrademarkSelectMenu(guildId: string, trademark: string) {
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'Trademark',
                 placeholder: `${trademark === 'NOT SHOWING' ? client.intlGet(guildId, 'notShowingCap') : trademark}`,
                 options: [
-                    module.exports.getTrademarkOption(guildId, 'rustplusplus'),
-                    module.exports.getTrademarkOption(guildId, 'Rust++'),
-                    module.exports.getTrademarkOption(guildId, 'R++'),
-                    module.exports.getTrademarkOption(guildId, 'RPP'),
-                    module.exports.getTrademarkOption(guildId, 'BOT'),
+                    getTrademarkOption(guildId, 'rustplusplus'),
+                    getTrademarkOption(guildId, 'Rust++'),
+                    getTrademarkOption(guildId, 'R++'),
+                    getTrademarkOption(guildId, 'RPP'),
+                    getTrademarkOption(guildId, 'BOT'),
                     {
                         label: client.intlGet(guildId, 'notShowingCap'),
                         description: client.intlGet(guildId, 'hideTrademark'),
@@ -120,11 +118,11 @@ module.exports = {
                 ],
             }),
         );
-    },
+    }
 
-    getCommandDelaySelectMenu: function (guildId, delay) {
+export function getCommandDelaySelectMenu(guildId: string, delay: string) {
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'CommandDelay',
                 placeholder: client.intlGet(guildId, 'currentCommandDelay', { delay: delay }),
                 options: [
@@ -192,9 +190,9 @@ module.exports = {
                 ],
             }),
         );
-    },
+    }
 
-    getSmartSwitchSelectMenu: function (guildId, serverId, entityId) {
+export function getSmartSwitchSelectMenu(guildId: string, serverId: string, entityId: number) {
         const instance = client.getInstance(guildId);
         const entity = instance.serverList[serverId].switches[entityId];
         const identifier = JSON.stringify({ serverId: serverId, entityId: entityId });
@@ -222,7 +220,7 @@ module.exports = {
         else if (entity.autoDayNightOnOff === 8) autoDayNightOnOffString += autoOffAnyOnline;
 
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: `AutoDayNightOnOff${identifier}`,
                 placeholder: `${autoDayNightOnOffString}`,
                 options: [
@@ -274,11 +272,11 @@ module.exports = {
                 ],
             }),
         );
-    },
+    }
 
-    getVoiceGenderSelectMenu: function (guildId, gender) {
+export function getVoiceGenderSelectMenu(guildId: string, gender: string) {
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'VoiceGender',
                 placeholder: `${
                     gender === 'male'
@@ -299,9 +297,9 @@ module.exports = {
                 ],
             }),
         );
-    },
+    }
 
-    getInGameTeammateNameMenu: function (guildId, teammateNameType) {
+export function getInGameTeammateNameMenu(guildId: string, teammateNameType: string) {
         const teammateNameTypeReal = client.intlGet(guildId, 'teammateNameTypeReal');
         const teammateNameTypeStreamerMode = client.intlGet(guildId, 'teammateNameTypeStreamerMode');
         const teammateNameTypeCombined = client.intlGet(guildId, 'teammateNameTypeCombined');
@@ -313,7 +311,7 @@ module.exports = {
         };
 
         return new Discord.ActionRowBuilder().addComponents(
-            module.exports.getSelectMenu({
+            getSelectMenu({
                 customId: 'TeammateNameType',
                 placeholder: placeholderMap[teammateNameType] ?? teammateNameTypeReal,
                 options: [
@@ -335,5 +333,4 @@ module.exports = {
                 ],
             }),
         );
-    },
-};
+    }

@@ -1,11 +1,10 @@
-// @ts-nocheck
-const DiscordMessages = require('../discordTools/discordMessages');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 import config from '../config.js';
 
 export default {
     name: 'disconnected',
-    async execute(rustplus, client) {
+    async execute(rustplus: any, client: any) {
         if (!rustplus.isServerAvailable() && !rustplus.isDeleted) {
             rustplus.deleteThisRustplusInstance();
         }

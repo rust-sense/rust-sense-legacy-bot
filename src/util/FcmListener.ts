@@ -1,15 +1,24 @@
-// @ts-nocheck
-const Discord = require('discord.js');
-const PushReceiverClient = require('@liamcottle/push-receiver/src/client');
+import * as DiscordModule from 'discord.js';
+const Discord: any = DiscordModule;
+import * as PushReceiverClientModule from '@liamcottle/push-receiver/src/client';
+const PushReceiverClient: any = PushReceiverClientModule;
 
-const Battlemetrics = require('../structures/Battlemetrics');
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
-const DiscordTools = require('../discordTools/discordTools');
-const InstanceUtils = require('../util/instanceUtils');
-const GameMap = require('./GameMap');
-const Scrape = require('../util/scrape');
+import * as BattlemetricsModule from '../structures/Battlemetrics.js';
+const Battlemetrics: any = BattlemetricsModule;
+import * as ConstantsModule from '../util/constants.js';
+const Constants: any = ConstantsModule;
+import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
+const DiscordEmbeds: any = DiscordEmbedsModule;
+import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+const DiscordMessages: any = DiscordMessagesModule;
+import * as DiscordToolsModule from '../discordTools/discordTools.js';
+const DiscordTools: any = DiscordToolsModule;
+import * as InstanceUtilsModule from '../util/instanceUtils.js';
+const InstanceUtils: any = InstanceUtilsModule;
+import * as GameMapModule from './GameMap.js';
+const GameMap: any = GameMapModule;
+import * as ScrapeModule from '../util/scrape.js';
+const Scrape: any = ScrapeModule;
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 
@@ -19,7 +28,7 @@ import { cwdPath } from '../utils/filesystemUtils.js';
  * the full feature set. When steamId is provided the listener runs in lite mode
  * for that specific guild member (credentials stored in serverListLite only).
  */
-module.exports = async (client, guild, steamId = null) => {
+export default async (client: any, guild: any, steamId: string | null = null) => {
     const isLite = steamId !== null;
     const logPrefix = isLite ? 'FCM Lite' : 'FCM Host';
 
@@ -97,7 +106,7 @@ module.exports = async (client, guild, steamId = null) => {
         client.fcmListeners[guild.id] = listener;
     }
 
-    listener.on('ON_DATA_RECEIVED', (data) => {
+    listener.on('ON_DATA_RECEIVED', (data: any) => {
         const appData = data.appData;
 
         if (!appData) {
@@ -105,16 +114,16 @@ module.exports = async (client, guild, steamId = null) => {
             return;
         }
 
-        const title = appData.find((item) => item.key === 'title')?.value;
-        const message = appData.find((item) => item.key === 'message')?.value;
-        const channelId = appData.find((item) => item.key === 'channelId')?.value;
+        const title = appData.find((item: any) => item.key === 'title')?.value;
+        const message = appData.find((item: any) => item.key === 'message')?.value;
+        const channelId = appData.find((item: any) => item.key === 'channelId')?.value;
 
         if (!channelId) {
             client.log(logPrefix, `GuildID: ${guild.id}, SteamID: ${activeSteamId}, channelId could not be found.`);
             return;
         }
 
-        const bodyCheck = appData.find((item) => item.key === 'body');
+        const bodyCheck = appData.find((item: any) => item.key === 'body');
 
         if (!bodyCheck) {
             client.log(logPrefix, `GuildID: ${guild.id}, SteamID: ${activeSteamId}, body could not be found.`);
@@ -305,11 +314,11 @@ module.exports = async (client, guild, steamId = null) => {
     listener.connect();
 };
 
-function isValidUrl(url) {
+function isValidUrl(url: string): boolean {
     return url.startsWith('https') || url.startsWith('http');
 }
 
-async function pairingServer(client, guild, title, message, body, isLite, activeSteamId) {
+async function pairingServer(client: any, guild: any, title: any, message: any, body: any, isLite: boolean, activeSteamId: any) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
@@ -398,7 +407,7 @@ async function pairingServer(client, guild, title, message, body, isLite, active
     }
 }
 
-async function pairingEntitySwitch(client, guild, body, pairingPlayerId) {
+async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPlayerId: any) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
@@ -430,7 +439,7 @@ async function pairingEntitySwitch(client, guild, body, pairingPlayerId) {
 
         const teamInfo = await rustplus.getTeamInfoAsync();
         if (rustplus.isResponseValid(teamInfo)) {
-            const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === pairingPlayerId);
+            const player = teamInfo.teamInfo.members.find((e: any) => e.steamId.toString() === pairingPlayerId);
             if (player) {
                 const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].switches[body.entityId].location = location.location;
@@ -448,7 +457,7 @@ async function pairingEntitySwitch(client, guild, body, pairingPlayerId) {
     }
 }
 
-async function pairingEntitySmartAlarm(client, guild, body, pairingPlayerId) {
+async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairingPlayerId: any) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
@@ -480,7 +489,7 @@ async function pairingEntitySmartAlarm(client, guild, body, pairingPlayerId) {
 
         const teamInfo = await rustplus.getTeamInfoAsync();
         if (rustplus.isResponseValid(teamInfo)) {
-            const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === pairingPlayerId);
+            const player = teamInfo.teamInfo.members.find((e: any) => e.steamId.toString() === pairingPlayerId);
             if (player) {
                 const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].alarms[body.entityId].location = location.location;
@@ -496,7 +505,7 @@ async function pairingEntitySmartAlarm(client, guild, body, pairingPlayerId) {
     await DiscordMessages.sendSmartAlarmMessage(guild.id, serverId, body.entityId);
 }
 
-async function pairingEntityStorageMonitor(client, guild, body, pairingPlayerId) {
+async function pairingEntityStorageMonitor(client: any, guild: any, body: any, pairingPlayerId: any) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
@@ -528,7 +537,7 @@ async function pairingEntityStorageMonitor(client, guild, body, pairingPlayerId)
 
         const teamInfo = await rustplus.getTeamInfoAsync();
         if (rustplus.isResponseValid(teamInfo)) {
-            const player = teamInfo.teamInfo.members.find((e) => e.steamId.toString() === pairingPlayerId);
+            const player = teamInfo.teamInfo.members.find((e: any) => e.steamId.toString() === pairingPlayerId);
             if (player) {
                 const location = GameMap.getPos(player.x, player.y, rustplus.info.correctedMapSize, rustplus);
                 instance.serverList[serverId].storageMonitors[body.entityId].location = location.location;
@@ -563,7 +572,7 @@ async function pairingEntityStorageMonitor(client, guild, body, pairingPlayerId)
     }
 }
 
-async function alarmAlarm(client, guild, title, message, body) {
+async function alarmAlarm(client: any, guild: any, title: any, message: any, body: any) {
     /* Unfortunately the alarm notification from the fcm listener is unreliable. The notification does not include
     which entityId that got triggered which makes it impossible to know which Smart Alarms are still being used
     actively. Also, from testing it seems that notifications don't always reach this fcm listener which makes it even
@@ -586,14 +595,14 @@ async function alarmAlarm(client, guild, title, message, body) {
         (!rustplus || rustplus.serverId !== serverId) &&
         instance.generalSettings.fcmAlarmNotificationEnabled
     ) {
-        server.alarms[entityId].lastTrigger = Math.floor(new Date() / 1000);
+        server.alarms[entityId].lastTrigger = Math.floor(new Date() as any / 1000);
         client.setInstance(guild.id, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
         client.log(client.intlGet(null, 'infoCap'), `${title}: ${message}`);
     }
 }
 
-async function alarmRaidAlarm(client, guild, title, message, body) {
+async function alarmRaidAlarm(client: any, guild: any, title: any, message: any, body: any) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     const rustplus = client.rustplusInstances[guild.id];
@@ -619,7 +628,7 @@ async function alarmRaidAlarm(client, guild, title, message, body) {
     client.log(client.intlGet(null, 'infoCap'), `${title} ${message}`);
 }
 
-async function playerDeath(client, guild, title, message, body, discordUserId) {
+async function playerDeath(client: any, guild: any, title: any, message: any, body: any, discordUserId: any) {
     const user = await DiscordTools.getUserById(guild.id, discordUserId);
     if (!user) return;
 
@@ -632,7 +641,7 @@ async function playerDeath(client, guild, title, message, body, discordUserId) {
     });
 }
 
-async function teamLogin(client, guild, title, message, body) {
+async function teamLogin(client: any, guild: any, title: any, message: any, body: any) {
     const instance = client.getInstance(guild.id);
     const rustplus = client.rustplusInstances[guild.id];
     const serverId = `${body.ip}-${body.port}`;

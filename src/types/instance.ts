@@ -32,8 +32,8 @@ export interface Whitelist {
 }
 
 export interface Alias {
-    id: number;
-    command: string;
+    index: number;
+    alias: string;
     value: string;
 }
 
@@ -46,6 +46,10 @@ export interface MarketSubscriptionList {
 export interface GeneralSettings {
     prefix: string;
     language: string;
+    voiceGender: string;
+    commandDelay: string;
+    trademark: string;
+    teammateNameType: string;
     pollingIntervalMs: number;
     reconnectIntervalMs: number;
     showCallStackError: boolean;
@@ -98,6 +102,8 @@ export interface Tracker {
     lastScreenshot: string | null;
     lastOnline: string | null;
     lastWipe: string | null;
+    messageId: string | null;
+    clanTag: string | null;
 }
 
 export interface Marker {
@@ -114,6 +120,10 @@ export interface SmartSwitch {
     location: string | null;
     x: number | null;
     y: number | null;
+    image: string | null;
+    command: string;
+    autoDayNightOnOff: number;
+    proximity: number;
 }
 
 export interface SmartAlarm {
@@ -124,6 +134,11 @@ export interface SmartAlarm {
     location: string | null;
     x: number | null;
     y: number | null;
+    image: string | null;
+    message: string;
+    command: string;
+    lastTrigger: number | null;
+    inGame: boolean;
 }
 
 export interface StorageMonitorItem {
@@ -151,6 +166,9 @@ export interface SwitchGroup {
     name: string;
     switches: number[];
     active: boolean;
+    image: string | null;
+    command: string;
+    serverId: string;
 }
 
 export interface CustomCameraGroup {
@@ -181,6 +199,7 @@ export interface Server {
     deepSeaWipeDurationMs: number;
     timeTillDay: number | null;
     timeTillNight: number | null;
+    messageId: string | null;
 }
 
 export interface Credentials {

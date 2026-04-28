@@ -1,14 +1,20 @@
-// @ts-nocheck
-const Battlemetrics = require('../structures/Battlemetrics');
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
-const Keywords = require('../util/keywords');
-const Scrape = require('../util/scrape');
-const TrackerInputParser = require('../util/trackerInputParser');
-const Utils = require('../util/utils');
+import Battlemetrics from '../structures/Battlemetrics.js';
+import * as ConstantsModule from '../util/constants.js';
+const Constants: any = ConstantsModule;
+import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
+const DiscordEmbeds: any = DiscordEmbedsModule;
+import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+const DiscordMessages: any = DiscordMessagesModule;
+import * as KeywordsModule from '../util/keywords.js';
+const Keywords: any = KeywordsModule;
+import * as ScrapeModule from '../util/scrape.js';
+const Scrape: any = ScrapeModule;
+import * as TrackerInputParserModule from '../util/trackerInputParser.js';
+const TrackerInputParser: any = TrackerInputParserModule;
+import * as UtilsModule from '../util/utils.js';
+const Utils: any = UtilsModule;
 
-module.exports = async (client, interaction) => {
+export default async (client: any, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
 
@@ -68,7 +74,7 @@ module.exports = async (client, interaction) => {
                 server.battlemetricsId = battlemetricsId;
                 server.connect = `connect ${bmInstance.server_ip}:${bmInstance.server_port}`;
             } else {
-                const bmInstance = new Battlemetrics(battlemetricsId);
+                const bmInstance: any = new Battlemetrics(battlemetricsId);
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
                     client.battlemetricsInstances[battlemetricsId] = bmInstance;
@@ -202,7 +208,7 @@ module.exports = async (client, interaction) => {
         }
 
         server.switchGroups[ids.groupId].switches = server.switchGroups[ids.groupId].switches.filter(
-            (e) => e !== switchId,
+            (e: any) => e !== switchId,
         );
         client.setInstance(interaction.guildId, instance);
 
@@ -289,13 +295,13 @@ module.exports = async (client, interaction) => {
 
         if (trackerBattlemetricsId !== tracker.battlemetricsId) {
             if (Object.hasOwn(client.battlemetricsInstances, trackerBattlemetricsId)) {
-                const bmInstance = client.battlemetricsInstances[trackerBattlemetricsId];
+                const bmInstance: any = client.battlemetricsInstances[trackerBattlemetricsId];
                 tracker.battlemetricsId = trackerBattlemetricsId;
                 tracker.serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
                 tracker.img = Constants.DEFAULT_SERVER_IMG;
                 tracker.title = bmInstance.server_name;
             } else {
-                const bmInstance = new Battlemetrics(trackerBattlemetricsId);
+                const bmInstance: any = new Battlemetrics(trackerBattlemetricsId);
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
                     client.battlemetricsInstances[trackerBattlemetricsId] = bmInstance;
@@ -351,8 +357,8 @@ module.exports = async (client, interaction) => {
         const bmInstance = client.battlemetricsInstances[tracker.battlemetricsId];
 
         if (
-            (isSteamId64 && tracker.players.some((e) => e.steamId === id)) ||
-            (!isSteamId64 && tracker.players.some((e) => e.playerId === id && e.steamId === null))
+            (isSteamId64 && tracker.players.some((e: any) => e.steamId === id)) ||
+            (!isSteamId64 && tracker.players.some((e: any) => e.playerId === id && e.steamId === null))
         ) {
             interaction.deferUpdate();
             return;
@@ -425,11 +431,11 @@ module.exports = async (client, interaction) => {
         const previousLength = tracker.players.length;
 
         if (useRawRemoval) {
-            tracker.players = tracker.players.filter((e) => e.steamId !== id && e.playerId !== id);
+            tracker.players = tracker.players.filter((e: any) => e.steamId !== id && e.playerId !== id);
         } else if (isSteamId64) {
-            tracker.players = tracker.players.filter((e) => e.steamId !== id);
+            tracker.players = tracker.players.filter((e: any) => e.steamId !== id);
         } else {
-            tracker.players = tracker.players.filter((e) => e.playerId !== id);
+            tracker.players = tracker.players.filter((e: any) => e.playerId !== id);
         }
 
         if (useRawRemoval && previousLength === tracker.players.length) {

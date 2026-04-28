@@ -195,7 +195,7 @@ export default class GameMap {
     static async getMapImage(rustplus: RustplusLike): Promise<Buffer | null> {
         const mapImage = client.rustplusMaps[rustplus.guildId];
         if (!mapImage) return null;
-        return Buffer.from(mapImage, 'base64');
+        return Buffer.from(mapImage as string, 'base64');
     }
 
     async setupMapMarkers(): Promise<void> {

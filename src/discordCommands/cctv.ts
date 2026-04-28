@@ -1,14 +1,13 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'cctv',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('cctv')
             .setDescription(client.intlGet(guildId, 'commandsCctvDesc'))
             .addStringOption(option =>
@@ -30,22 +29,22 @@ export default {
 
     },
 
-    async execute(client, interaction) {
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+    async execute(client: DiscordBot, interaction: any) {
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await client.validatePermissions(interaction)) return;
+        if (!await (client as any).validatePermissions(interaction)) return;
 
         const monument = interaction.options.getString('monument');
-        const cctvCodes = client.cctv.getCodes(monument);
-        const dynamic = client.cctv.isDynamic(monument);
+        const cctvCodes = (client as any).cctv.getCodes(monument);
+        const dynamic = (client as any).cctv.isDynamic(monument);
 
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
             id: `${verifyId}`,
             value: `${monument}`
-        }));
+        }), 'info');
 
         await DiscordMessages.sendCctvMessage(interaction, monument, cctvCodes, dynamic);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsCctvDesc'));
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsCctvDesc'), 'info');
     },
 };

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as Constants from '../util/constants.js';
 import * as GameMap from '../util/GameMap.js';
 import * as Time from '../util/timer.js';
@@ -30,7 +29,7 @@ export default class Player {
     private _isAlive: boolean;
     private _deathTime: number;
     private _rustplus: RustplusLike;
-    private _pos: string | null = null;
+    private _pos: { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null = null;
     private _lastMovement = new Date();
     private _teamLeader = false;
     private _afkSeconds = 0;
@@ -106,10 +105,10 @@ export default class Player {
     set rustplus(rustplus: RustplusLike) {
         this._rustplus = rustplus;
     }
-    get pos(): string | null {
+    get pos(): { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null {
         return this._pos;
     }
-    set pos(pos: string | null) {
+    set pos(pos: { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null) {
         this._pos = pos;
     }
     get lastMovement(): Date {

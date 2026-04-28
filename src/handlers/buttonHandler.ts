@@ -1,14 +1,19 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import * as Discord from 'discord.js';
 
-const DiscordMessages = require('../discordTools/discordMessages');
-const DiscordTools = require('../discordTools/discordTools');
-const SmartSwitchGroupHandler = require('./smartSwitchGroupHandler');
-const DiscordButtons = require('../discordTools/discordButtons');
-const DiscordModals = require('../discordTools/discordModals');
-const Utils = require('../util/utils');
+import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+const DiscordMessages: any = DiscordMessagesModule;
+import * as DiscordToolsModule from '../discordTools/discordTools.js';
+const DiscordTools: any = DiscordToolsModule;
+import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
+const SmartSwitchGroupHandler: any = SmartSwitchGroupHandlerModule;
+import * as DiscordButtonsModule from '../discordTools/discordButtons.js';
+const DiscordButtons: any = DiscordButtonsModule;
+import * as DiscordModalsModule from '../discordTools/discordModals.js';
+const DiscordModals: any = DiscordModalsModule;
+import * as UtilsModule from '../util/utils.js';
+const Utils: any = UtilsModule;
 
-module.exports = async (client, interaction) => {
+export default async (client: any, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
@@ -551,12 +556,12 @@ module.exports = async (client, interaction) => {
         interaction.deferUpdate();
 
         const groupsToUpdate = [];
-        for (const [entityId, content] of Object.entries(server.switches)) {
+        for (const [entityId, content] of Object.entries(server.switches) as [string, any][]) {
             if (!content.reachable) {
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.switches, content.messageId);
                 delete server.switches[entityId];
 
-                for (const [groupId, groupContent] of Object.entries(server.switchGroups)) {
+                for (const [groupId, groupContent] of Object.entries(server.switchGroups) as [string, any][]) {
                     if (groupContent.switches.includes(`${entityId}`) && !groupsToUpdate.includes(groupId)) {
                         groupsToUpdate.push(groupId);
                     }
@@ -568,14 +573,14 @@ module.exports = async (client, interaction) => {
             await DiscordMessages.sendSmartSwitchGroupMessage(guildId, ids.serverId, groupId);
         }
 
-        for (const [entityId, content] of Object.entries(server.alarms)) {
+        for (const [entityId, content] of Object.entries(server.alarms) as [string, any][]) {
             if (!content.reachable) {
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.alarms, content.messageId);
                 delete server.alarms[entityId];
             }
         }
 
-        for (const [entityId, content] of Object.entries(server.storageMonitors)) {
+        for (const [entityId, content] of Object.entries(server.storageMonitors) as [string, any][]) {
             if (!content.reachable) {
                 await DiscordTools.deleteMessageById(guildId, instance.channelId.storageMonitors, content.messageId);
                 delete server.storageMonitors[entityId];
@@ -706,7 +711,7 @@ module.exports = async (client, interaction) => {
             delete client.rustplusInstances[guildId];
         }
 
-        for (const [entityId, content] of Object.entries(server.alarms)) {
+        for (const [entityId, content] of Object.entries(server.alarms) as [string, any][]) {
             await DiscordTools.deleteMessageById(guildId, instance.channelId.alarms, content.messageId);
         }
 
@@ -815,7 +820,7 @@ module.exports = async (client, interaction) => {
             delete rustplus.currentSwitchTimeouts[ids.entityId];
         }
 
-        for (const [groupId, content] of Object.entries(server.switchGroups)) {
+        for (const [groupId, content] of Object.entries(server.switchGroups) as [string, any][]) {
             if (content.switches.includes(ids.entityId.toString())) {
                 server.switchGroups[groupId].switches = content.switches.filter((e) => e !== ids.entityId.toString());
                 client.setInstance(guildId, instance);

@@ -1,9 +1,11 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import { InteractionType } from 'discord.js';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import type { DiscordBot } from '../types/discord.js';
 
-function safeDeferUpdate(client, interaction) {
+const DiscordEmbedsAny = DiscordEmbeds as any;
+
+function safeDeferUpdate(client: DiscordBot, interaction: any) {
     if (interaction.isButton()) {
         try {
             interaction.deferUpdate();
@@ -19,20 +21,22 @@ function safeDeferUpdate(client, interaction) {
 
 export default {
     name: 'interactionCreate',
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const instance = client.getInstance(interaction.guildId);
 
         /* Check so that the interaction comes from valid channels */
         if (!Object.values(instance.channelId).includes(interaction.channelId) && !interaction.isCommand) {
-            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'interactionInvalidChannel'));
+            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'interactionInvalidChannel'), 'warning');
             safeDeferUpdate(client, interaction);
         }
 
         if (interaction.isButton()) {
-            require('../handlers/buttonHandler')(client, interaction);
+            const ButtonHandler = await import('../handlers/buttonHandler.js');
+            await (ButtonHandler as any).default(client, interaction);
         } else if (interaction.isStringSelectMenu()) {
-            require('../handlers/selectMenuHandler')(client, interaction);
-        } else if (interaction.type === Discord.InteractionType.ApplicationCommand) {
+            const SelectMenuHandler = await import('../handlers/selectMenuHandler.js');
+            await (SelectMenuHandler as any).default(client, interaction);
+        } else if (interaction.type === InteractionType.ApplicationCommand) {
             const command = interaction.client.commands.get(interaction.commandName);
 
             /* If the command doesn't exist, return */
@@ -44,11 +48,12 @@ export default {
                 client.log(client.intlGet(null, 'errorCap'), e, 'error');
 
                 const str = client.intlGet(interaction.guildId, 'errorExecutingCommand');
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
                 client.log(client.intlGet(null, 'errorCap'), str, 'error');
             }
-        } else if (interaction.type === Discord.InteractionType.ModalSubmit) {
-            require('../handlers/modalHandler')(client, interaction);
+        } else if (interaction.type === InteractionType.ModalSubmit) {
+            const ModalHandler = await import('../handlers/modalHandler.js');
+            await (ModalHandler as any).default(client, interaction);
         } else {
             client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'unknownInteraction'), 'error');
             safeDeferUpdate(client, interaction);

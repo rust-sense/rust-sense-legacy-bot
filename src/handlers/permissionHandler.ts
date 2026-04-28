@@ -1,7 +1,6 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import * as Discord from 'discord.js';
 
-const DiscordTools = require('../discordTools/discordTools');
+import * as DiscordTools from '../discordTools/discordTools.js';
 
 import config from '../config.js';
 
@@ -118,7 +117,7 @@ export async function resetPermissionsAllChannels(client, guild) {
     for (const [name, id] of Object.entries(instance.channelId)) {
         const permissionWrite = writeableChannels.includes(name);
 
-        const channel = DiscordTools.getTextChannelById(guild.id, id);
+        const channel = DiscordTools.getTextChannelById(guild.id, id as string);
         if (channel) {
             const perms = getPermissionsReset(client, guild, permissionWrite);
             await channel.permissionOverwrites.set(perms).catch((e) => {

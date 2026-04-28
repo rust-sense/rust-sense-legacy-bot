@@ -1,13 +1,12 @@
-// @ts-nocheck
-const fs = require('node:fs');
-const path = require('node:path');
-const { REST, Routes } = require('discord.js');
+import { REST, Routes } from 'discord.js';
+import type { Guild } from 'discord.js';
 
 import config from '../config.js';
-import discordCommands from '../discordCommands';
+import discordCommands from '../discordCommands/index.js';
+import type { DiscordBot } from '../types/discord.js';
 
-module.exports = async (client, guild) => {
-    const commands = discordCommands.map((command) => command.getData(client, guild.id).toJSON());
+export default async function registerSlashCommands(client: DiscordBot, guild: Guild) {
+    const commands = discordCommands.map((command: any) => command.getData(client, guild.id).toJSON());
 
     const rest = new REST().setToken(config.discord.token);
 
@@ -29,5 +28,6 @@ module.exports = async (client, guild) => {
         client.intlGet(null, 'slashCommandsSuccessRegister', {
             guildId: guild.id,
         }),
+        'info',
     );
-};
+}

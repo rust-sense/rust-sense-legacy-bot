@@ -1,15 +1,16 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds.js');
-const DiscordMessages = require('../discordTools/discordMessages.js');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'recycle',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('recycle')
             .setDescription(client.intlGet(guildId, 'commandsRecycleDesc'))
             .addStringOption((option) =>
@@ -37,13 +38,13 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const recycleItemName = interaction.options.getString('name');
@@ -51,17 +52,17 @@ export default {
         const recycleItemQuantity = interaction.options.getInteger('quantity');
         const recycleItemRecyclerType = interaction.options.getString('recycler-type');
 
-        const itemId = await Utils.resolveItemId(client, interaction, guildId, recycleItemName, recycleItemId);
+        const itemId = await (client as any).resolveItemId(interaction, guildId, recycleItemName, recycleItemId);
         if (itemId === null) return;
-        const itemName = client.items.getName(itemId);
+        const itemName = (client as any).items.getName(itemId);
 
-        const recycleDetails = client.rustlabs.getRecycleDetailsById(itemId);
+        const recycleDetails = (client as any).rustlabs.getRecycleDetailsById(itemId);
         if (recycleDetails === null) {
             const str = client.intlGet(guildId, 'couldNotFindRecycleDetails', {
                 name: itemName,
             });
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -74,9 +75,10 @@ export default {
                 id: `${verifyId}`,
                 value: `${recycleItemName} ${recycleItemId} ${recycleItemQuantity} ${recycleItemRecyclerType}`,
             }),
+            'info',
         );
 
         await DiscordMessages.sendRecycleMessage(interaction, recycleDetails, quantity, recyclerType);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsRecycleDesc'));
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsRecycleDesc'), 'info');
     },
 };

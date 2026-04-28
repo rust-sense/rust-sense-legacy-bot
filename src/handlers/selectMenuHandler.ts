@@ -1,10 +1,12 @@
-// @ts-nocheck
-const DiscordMessages = require('../discordTools/discordMessages');
-const DiscordSelectMenus = require('../discordTools/discordSelectMenus');
-const DiscordTools = require('../discordTools/discordTools');
-const Utils = require('../util/utils');
+import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+const DiscordMessages: any = DiscordMessagesModule;
+import * as DiscordSelectMenusModule from '../discordTools/discordSelectMenus.js';
+const DiscordSelectMenus: any = DiscordSelectMenusModule;
+import * as DiscordToolsModule from '../discordTools/discordTools.js';
+const DiscordTools: any = DiscordToolsModule;
+import * as Utils from '../util/utils.js';
 
-module.exports = async (client, interaction) => {
+export default async (client: any, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
@@ -37,7 +39,7 @@ module.exports = async (client, interaction) => {
         });
 
         const guild = DiscordTools.getGuild(guildId);
-        await require('../discordTools/RegisterSlashCommands')(client, guild);
+        await (await import('../discordTools/RegisterSlashCommands.js')).default(client, guild);
     } else if (interaction.customId === 'Prefix') {
         instance.generalSettings.prefix = interaction.values[0];
         client.setInstance(guildId, instance);

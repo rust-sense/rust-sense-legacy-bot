@@ -1,15 +1,16 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
+import * as Constants from '../util/constants.js';
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'alias',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('alias')
             .setDescription(client.intlGet(guildId, 'commandsAliasDesc'))
             .addSubcommand((subcommand) =>
@@ -45,11 +46,11 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+    async execute(client: DiscordBot, interaction: any) {
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -85,11 +86,12 @@ export default {
                     `${interaction.options.getSubcommand()} ${interaction.options.getString('alias')} ` +
                     `${interaction.options.getString('value')} ${interaction.options.getInteger('index')}`,
             }),
+            'info',
         );
     },
 };
 
-async function addAlias(client, interaction) {
+async function addAlias(client: DiscordBot, interaction: any) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 
@@ -99,15 +101,15 @@ async function addAlias(client, interaction) {
     for (const alias of instance.aliases) {
         if (alias.alias === aliasParameter) {
             const str = client.intlGet(guildId, 'aliasAlreadyExist');
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
     }
 
     let index = 0;
     while (true) {
-        if (!instance.aliases.some((e) => e.index === index)) break;
+        if (!instance.aliases.some((e: any) => e.index === index)) break;
         index += 1;
     }
 
@@ -119,34 +121,34 @@ async function addAlias(client, interaction) {
     client.setInstance(guildId, instance);
 
     const str = client.intlGet(guildId, 'aliasWasAdded');
-    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-    client.log(client.intlGet(guildId, 'infoCap'), str);
+    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(guildId, 'infoCap'), str, 'info');
     return;
 }
 
-async function removeAlias(client, interaction) {
+async function removeAlias(client: DiscordBot, interaction: any) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 
     const indexParameter = interaction.options.getInteger('index');
 
-    if (!instance.aliases.some((e) => e.index === indexParameter)) {
+    if (!instance.aliases.some((e: any) => e.index === indexParameter)) {
         const str = client.intlGet(guildId, 'aliasIndexCouldNotBeFound');
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(guildId, 'warningCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
         return;
     }
 
-    instance.aliases = instance.aliases.filter((e) => e.index !== indexParameter);
+    instance.aliases = instance.aliases.filter((e: any) => e.index !== indexParameter);
     client.setInstance(guildId, instance);
 
     const str = client.intlGet(guildId, 'aliasWasRemoved');
-    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-    client.log(client.intlGet(guildId, 'infoCap'), str);
+    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(guildId, 'infoCap'), str, 'info');
     return;
 }
 
-async function showAlias(client, interaction) {
+async function showAlias(client: DiscordBot, interaction: any) {
     const guildId = interaction.guildId;
     const instance = client.getInstance(guildId);
 
@@ -221,13 +223,13 @@ async function showAlias(client, interaction) {
         });
     }
 
-    const embed = DiscordEmbeds.getEmbed({
+    const embed = DiscordEmbedsAny.getEmbed({
         title: title,
         color: Constants.COLOR_DEFAULT,
         fields: fields,
         timestamp: true,
     });
 
-    await client.interactionEditReply(interaction, { embeds: [embed] });
-    client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsAliasShowDesc'));
+    await (client as any).interactionEditReply(interaction, { embeds: [embed] });
+    client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsAliasShowDesc'), 'info');
 }

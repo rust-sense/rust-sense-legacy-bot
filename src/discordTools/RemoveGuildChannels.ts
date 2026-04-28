@@ -1,22 +1,23 @@
-// @ts-nocheck
-const DiscordTools = require('../discordTools/discordTools');
+import type { Guild } from 'discord.js';
+import type { DiscordBot } from '../types/discord.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 
-module.exports = async (client, guild) => {
+export default async function removeGuildChannels(client: DiscordBot, guild: Guild) {
     const instance = client.getInstance(guild.id);
 
-    let categoryId = null;
+    let categoryId: string | null = null;
     for (const [channelName, channelId] of Object.entries(instance.channelId)) {
         if (channelName === 'category') {
             categoryId = channelId;
             continue;
         }
 
-        await DiscordTools.removeTextChannel(guild.id, channelId);
-        instance.channelId[channelName] = null;
+        await DiscordTools.removeTextChannel(guild.id, channelId as string);
+        (instance.channelId as unknown as Record<string, string | null>)[channelName] = null;
     }
 
     await DiscordTools.removeCategory(guild.id, categoryId);
-    instance.channelId['category'] = null;
+    instance.channelId.category = null;
 
     client.setInstance(guild.id, instance);
-};
+}

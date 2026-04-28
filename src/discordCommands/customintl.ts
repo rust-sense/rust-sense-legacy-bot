@@ -1,20 +1,17 @@
-// @ts-nocheck
-const _ = require('lodash');
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
-const DiscordTools = require('../discordTools/discordTools');
-const InstanceUtils = require('../util/instanceUtils');
-const instanceUtils = require('../util/instanceUtils');
-const Constants = require('../util/constants');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Constants from '../util/constants.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'customintl',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('customintl')
             .setDescription(client.intlGet(guildId, 'commandsCustomIntlDesc'))
             .addSubcommand((subcommand) =>
@@ -50,11 +47,11 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+    async execute(client: DiscordBot, interaction: any) {
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -76,13 +73,13 @@ export default {
     },
 };
 
-async function setCustomIntl(client, interaction, verifyId) {
+async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
-    if (!client.isAdministrator(interaction)) {
+    if (!(client as any).isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
-        client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str);
+        (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
         return;
     }
 
@@ -91,34 +88,34 @@ async function setCustomIntl(client, interaction, verifyId) {
 
     const guildInstance = client.getInstance(guildId);
 
-    const defaultIntl = client.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+    const defaultIntl = (client as any).checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
     if (!(messageKey in defaultIntl.messages)) {
         const str = client.intlGet(guildId, 'customIntlSetKeyDoesNotExist', {
             key: messageKey,
         });
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(guildId, 'warningCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
         return;
     }
 
     guildInstance.customIntlMessages[messageKey] = messageText;
-    client.loadGuildCustomIntl(guildId, guildInstance, messageKey, messageText);
+    (client as any).loadGuildCustomIntl(guildId, guildInstance, messageKey, messageText);
     client.setInstance(guildId, guildInstance);
 
     const str = client.intlGet(interaction.guildId, 'customIntlSetSuccess', {
         key: messageKey,
     });
-    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-    client.log(client.intlGet(null, 'infoCap'), str);
+    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(null, 'infoCap'), str, 'info');
 }
 
-async function resetCustomIntl(client, interaction, verifyId) {
+async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
-    if (!client.isAdministrator(interaction)) {
+    if (!(client as any).isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
-        client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str);
+        (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
         return;
     }
 
@@ -130,23 +127,23 @@ async function resetCustomIntl(client, interaction, verifyId) {
         const str = client.intlGet(guildId, 'customIntlResetKeyNotCustomized', {
             key: messageKey,
         });
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(guildId, 'warningCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
         return;
     }
 
     delete guildInstance.customIntlMessages[messageKey];
-    delete client.customGuildIntl[guildId][messageKey];
+    delete (client as any).customGuildIntl[guildId][messageKey];
     client.setInstance(guildId, guildInstance);
 
     const str = client.intlGet(interaction.guildId, 'customIntlResetSuccess', {
         key: messageKey,
     });
-    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-    client.log(client.intlGet(null, 'infoCap'), str);
+    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    client.log(client.intlGet(null, 'infoCap'), str, 'info');
 }
 
-async function showCustomIntl(client, interaction, verifyId) {
+async function showCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
     const guildInstance = client.getInstance(guildId);
@@ -163,7 +160,7 @@ async function showCustomIntl(client, interaction, verifyId) {
     let keyStringsCharacters = 0,
         messageStringsCharacters = 0;
 
-    for (const [key, message] of Object.entries(guildInstance.customIntlMessages)) {
+    for (const [key, message] of Object.entries(guildInstance.customIntlMessages as Record<string, string>)) {
         const keyString = `${key}\n`;
         const messageString = `${message}\n`;
 
@@ -207,13 +204,13 @@ async function showCustomIntl(client, interaction, verifyId) {
         });
     }
 
-    const embed = DiscordEmbeds.getEmbed({
+    const embed = DiscordEmbedsAny.getEmbed({
         title: title,
         color: Constants.COLOR_DEFAULT,
         fields: fields,
         timestamp: true,
     });
 
-    await client.interactionEditReply(interaction, { embeds: [embed] });
-    client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCustomIntlShowDesc'));
+    await (client as any).interactionEditReply(interaction, { embeds: [embed] });
+    client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsCustomIntlShowDesc'), 'info');
 }

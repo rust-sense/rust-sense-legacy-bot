@@ -1,15 +1,14 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
-const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 
-const DiscordMessages = require('../discordTools/discordMessages');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'voice',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('voice')
             .setDescription(client.intlGet(guildId, 'commandsVoiceDesc'))
             .addSubcommand((subcommand) =>
@@ -20,11 +19,11 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+    async execute(client: DiscordBot, interaction: any) {
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -59,6 +58,7 @@ export default {
                                         ? voiceChannel.guild.name
                                         : client.intlGet(interaction.guildId, 'unknown'),
                             }),
+                            'info',
                         );
                     } else {
                         await DiscordMessages.sendVoiceMessage(
@@ -85,6 +85,7 @@ export default {
                                 id: interaction.member.voice.channel.id,
                                 guild: interaction.member.guild.name,
                             }),
+                            'info',
                         );
                     }
                 }
@@ -102,6 +103,7 @@ export default {
                 id: `${verifyId}`,
                 value: `${interaction.options.getSubcommand()}`,
             }),
+            'info',
         );
     },
 };

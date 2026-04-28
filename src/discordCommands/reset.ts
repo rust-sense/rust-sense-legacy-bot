@@ -1,17 +1,18 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
-const DiscordTools = require('../discordTools/discordTools');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'reset',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('reset')
             .setDescription(client.intlGet(guildId, 'commandsResetDesc'))
             .addSubcommand((subcommand) =>
@@ -44,18 +45,18 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const instance = client.getInstance(interaction.guildId);
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(client as any).isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
-            client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str);
+            (client as any).interactionReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -66,40 +67,50 @@ export default {
         switch (interaction.options.getSubcommand()) {
             case 'discord':
                 {
-                    await require('../discordTools/RemoveGuildChannels')(client, guild);
+                    const RemoveGuildChannels = await import('../discordTools/RemoveGuildChannels.js');
+                    await (RemoveGuildChannels as any).default(client, guild);
 
-                    const category = await require('../discordTools/SetupGuildCategory')(client, guild);
-                    await require('../discordTools/SetupGuildChannels')(client, guild, category);
+                    const SetupGuildCategory = await import('../discordTools/SetupGuildCategory.js');
+                    const category = await (SetupGuildCategory as any).default(client, guild);
+                    const SetupGuildChannels = await import('../discordTools/SetupGuildChannels.js');
+                    await (SetupGuildChannels as any).default(client, guild, category);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.information, 100);
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.switches, 100);
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.switchGroups, 100);
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.storageMonitors, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.information as string, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switches as string, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switchGroups as string, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.storageMonitors as string, 100);
 
-                    const rustplus = client.rustplusInstances[guild.id];
+                    const rustplus = (client as any).rustplusInstances[guild!.id];
                     if (rustplus && rustplus.isOperational) {
                         await rustplus.map.writeMap(false, true);
                         await DiscordMessages.sendUpdateMapInformationMessage(rustplus);
                     }
 
-                    await require('../discordTools/SetupServerList')(client, guild);
-                    await require('../discordTools/SetupSettingsMenu')(client, guild, true);
+                    const SetupServerList = await import('../discordTools/SetupServerList.js');
+                    await (SetupServerList as any).default(client, guild);
+                    const SetupSettingsMenu = await import('../discordTools/SetupSettingsMenu.js');
+                    await (SetupSettingsMenu as any).default(client, guild, true);
 
                     if (rustplus && rustplus.isOperational) {
-                        await require('../discordTools/SetupSwitches')(client, rustplus);
-                        await require('../discordTools/SetupSwitchGroups')(client, rustplus);
-                        await require('../discordTools/SetupAlarms')(client, rustplus);
-                        await require('../discordTools/SetupStorageMonitors')(client, rustplus);
+                        const SetupSwitches = await import('../discordTools/SetupSwitches.js');
+                        await (SetupSwitches as any).default(client, rustplus);
+                        const SetupSwitchGroups = await import('../discordTools/SetupSwitchGroups.js');
+                        await (SetupSwitchGroups as any).default(client, rustplus);
+                        const SetupAlarms = await import('../discordTools/SetupAlarms.js');
+                        await (SetupAlarms as any).default(client, rustplus);
+                        const SetupStorageMonitors = await import('../discordTools/SetupStorageMonitors.js');
+                        await (SetupStorageMonitors as any).default(client, rustplus);
                     }
 
-                    await require('../discordTools/SetupTrackers')(client, guild);
+                    const SetupTrackers = await import('../discordTools/SetupTrackers.js');
+                    await (SetupTrackers as any).default(client, guild);
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -107,15 +118,16 @@ export default {
                             id: `${verifyId}`,
                             value: `discord`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'information':
                 {
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.information, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.information as string, 100);
 
-                    const rustplus = client.rustplusInstances[guild.id];
+                    const rustplus = (client as any).rustplusInstances[guild!.id];
                     if (rustplus && rustplus.isOperational) {
                         await rustplus.map.writeMap(false, true);
                         await DiscordMessages.sendUpdateMapInformationMessage(rustplus);
@@ -127,22 +139,24 @@ export default {
                             id: `${verifyId}`,
                             value: `information`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'servers':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    await require('../discordTools/SetupServerList')(client, guild);
+                    const SetupServerList = await import('../discordTools/SetupServerList.js');
+                    await (SetupServerList as any).default(client, guild);
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -150,22 +164,24 @@ export default {
                             id: `${verifyId}`,
                             value: `servers`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'settings':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    await require('../discordTools/SetupSettingsMenu')(client, guild, true);
+                    const SetupSettingsMenu = await import('../discordTools/SetupSettingsMenu.js');
+                    await (SetupSettingsMenu as any).default(client, guild, true);
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -173,29 +189,32 @@ export default {
                             id: `${verifyId}`,
                             value: `settings`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'switches':
                 {
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.switches, 100);
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.switchGroups, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switches as string, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switchGroups as string, 100);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    const rustplus = client.rustplusInstances[guild.id];
+                    const rustplus = (client as any).rustplusInstances[guild!.id];
                     if (rustplus && rustplus.isOperational) {
-                        await require('../discordTools/SetupSwitches')(client, rustplus);
-                        await require('../discordTools/SetupSwitchGroups')(client, rustplus);
+                        const SetupSwitches = await import('../discordTools/SetupSwitches.js');
+                        await (SetupSwitches as any).default(client, rustplus);
+                        const SetupSwitchGroups = await import('../discordTools/SetupSwitchGroups.js');
+                        await (SetupSwitchGroups as any).default(client, rustplus);
                     }
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -203,15 +222,17 @@ export default {
                             id: `${verifyId}`,
                             value: `switches`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'alarms':
                 {
-                    const rustplus = client.rustplusInstances[guild.id];
+                    const rustplus = (client as any).rustplusInstances[guild!.id];
                     if (rustplus && rustplus.isOperational) {
-                        await require('../discordTools/SetupAlarms')(client, rustplus);
+                        const SetupAlarms = await import('../discordTools/SetupAlarms.js');
+                        await (SetupAlarms as any).default(client, rustplus);
                     }
 
                     client.log(
@@ -220,27 +241,29 @@ export default {
                             id: `${verifyId}`,
                             value: `alarms`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'storagemonitors':
                 {
-                    await DiscordTools.clearTextChannel(guild.id, instance.channelId.storageMonitors, 100);
+                    await DiscordTools.clearTextChannel(guild!.id, instance.channelId.storageMonitors as string, 100);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    const rustplus = client.rustplusInstances[guild.id];
+                    const rustplus = (client as any).rustplusInstances[guild!.id];
                     if (rustplus && rustplus.isOperational) {
-                        await require('../discordTools/SetupStorageMonitors')(client, rustplus);
+                        const SetupStorageMonitors = await import('../discordTools/SetupStorageMonitors.js');
+                        await (SetupStorageMonitors as any).default(client, rustplus);
                     }
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -248,22 +271,24 @@ export default {
                             id: `${verifyId}`,
                             value: `storagemonitors`,
                         }),
+                        'info',
                     );
                 }
                 break;
 
             case 'trackers':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild);
+                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
-                    await category.permissionOverwrites.set(perms).catch((e) => {
-                    client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
-                });
+                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    await category!.permissionOverwrites.set(perms).catch((e: any) => {
+                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warning');
+                    });
 
-                    await require('../discordTools/SetupTrackers')(client, guild);
+                    const SetupTrackers = await import('../discordTools/SetupTrackers.js');
+                    await (SetupTrackers as any).default(client, guild);
 
-                    await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                    await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),
@@ -271,6 +296,7 @@ export default {
                             id: `${verifyId}`,
                             value: `trackers`,
                         }),
+                        'info',
                     );
                 }
                 break;
@@ -280,7 +306,7 @@ export default {
         }
 
         const str = client.intlGet(interaction.guildId, 'resetSuccess');
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-        client.log(client.intlGet(null, 'infoCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+        client.log(client.intlGet(null, 'infoCap'), str, 'info');
     },
 };

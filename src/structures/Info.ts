@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as GameMap from '../util/GameMap.js';
 import * as Timer from '../util/timer.js';
 

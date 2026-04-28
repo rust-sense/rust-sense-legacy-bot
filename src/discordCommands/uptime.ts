@@ -1,15 +1,14 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordMessages = require('../discordTools/discordMessages');
-const Timer = require('../util/timer');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Timer from '../util/timer.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'uptime',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('uptime')
             .setDescription(client.intlGet(guildId, 'commandsUptimeDesc'))
             .addSubcommand((subcommand) =>
@@ -20,13 +19,13 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
-        const rustplus = client.rustplusInstances[interaction.guildId];
+    async execute(client: DiscordBot, interaction: any) {
+        const rustplus = (client as any).rustplusInstances[interaction.guildId];
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         let string = '';
@@ -66,9 +65,10 @@ export default {
                 id: `${verifyId}`,
                 value: `${interaction.options.getSubcommand()}`,
             }),
+            'info',
         );
 
         await DiscordMessages.sendUptimeMessage(interaction, string);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsUptimeDesc'));
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsUptimeDesc'), 'info');
     },
 };

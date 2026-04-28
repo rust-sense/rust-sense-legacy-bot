@@ -1,12 +1,10 @@
-// @ts-nocheck
-const DiscordMessages = require('../discordTools/discordMessages');
-const Info = require('../structures/Info');
-const GameMap = require('../structures/GameMap');
-const PollingHandler = require('../handlers/pollingHandler');
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as PollingHandlerModule from '../handlers/pollingHandler.js';
+const PollingHandler = PollingHandlerModule as any;
 
 export default {
     name: 'connected',
-    async execute(rustplus, client) {
+    async execute(rustplus: any, client: any) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
 
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'connectedToServer'));
@@ -44,8 +42,12 @@ export default {
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
         const info = await rustplus.getInfoAsync();
-        if (rustplus.isResponseValid(info)) rustplus.info = new Info(info.info);
+        if (rustplus.isResponseValid(info)) {
+            const { default: Info } = await import('../structures/Info.js');
+            rustplus.info = new Info(info.info);
+        }
 
+        const { default: GameMap } = await import('../structures/GameMap.js');
         if (Object.hasOwn(client.rustplusMaps, guildId)) {
             if (client.isJpgImageChanged(guildId, map.map)) {
                 rustplus.map = new GameMap(map.map, rustplus);
@@ -81,10 +83,10 @@ export default {
         await DiscordMessages.sendServerMessage(guildId, serverId, null);
 
         /* Setup Smart Devices */
-        await require('../discordTools/SetupSwitches')(client, rustplus);
-        await require('../discordTools/SetupSwitchGroups')(client, rustplus);
-        await require('../discordTools/SetupAlarms')(client, rustplus);
-        await require('../discordTools/SetupStorageMonitors')(client, rustplus);
+        await (await import('../discordTools/SetupSwitches.js')).default(client, rustplus);
+        await (await import('../discordTools/SetupSwitchGroups.js')).default(client, rustplus);
+        await (await import('../discordTools/SetupAlarms.js')).default(client, rustplus);
+        await (await import('../discordTools/SetupStorageMonitors.js')).default(client, rustplus);
         rustplus.isNewConnection = false;
         rustplus.loadMarkers();
 

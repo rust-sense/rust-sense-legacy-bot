@@ -1,18 +1,19 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordTools = require('../discordTools/discordTools');
+import * as Constants from '../util/constants.js';
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
-const Scrape = require('../util/scrape');
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
+const Scrape = await import('../util/scrape.js') as any;
 
 export default {
     name: 'blacklist',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('blacklist')
             .setDescription(client.intlGet(guildId, 'commandsBlacklistDesc'))
             .addSubcommand((subcommand) =>
@@ -54,19 +55,19 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(client as any).isAdministrator(interaction)) {
             const str = client.intlGet(guildId, 'missingPermission');
-            await client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str);
+            await (client as any).interactionReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -82,8 +83,8 @@ export default {
 
                     if (discordUser === null && steamid === null) {
                         const str = client.intlGet(guildId, 'missingArguments');
-                        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                        client.log(client.intlGet(null, 'warningCap'), str);
+                        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
                         return;
                     }
 
@@ -101,7 +102,7 @@ export default {
                             instance.blacklist['discordIds'].push(discordUser.id);
                             client.setInstance(guildId, instance);
 
-                            await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                            await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                             str +=
                                 client.intlGet(guildId, 'userAddedToBlacklist', {
@@ -112,7 +113,7 @@ export default {
 
                     if (steamid !== null) {
                         let name = '';
-                        const steamName = await Scrape.scrapeSteamProfileName(client, steamid);
+                        const steamName = await Scrape.default.scrapeSteamProfileName(client, steamid);
                         if (steamName) name += `${steamName} (${steamid})`;
                         else name += `${steamid}`;
 
@@ -138,10 +139,11 @@ export default {
                             id: `${verifyId}`,
                             value: `add, ${discordUser}, ${steamid}`,
                         }),
+                        'info',
                     );
 
-                    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
-                    client.log(client.intlGet(null, 'infoCap'), str);
+                    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(successful, str));
+                    client.log(client.intlGet(null, 'infoCap'), str, 'info');
                     return;
                 }
                 break;
@@ -153,8 +155,8 @@ export default {
 
                     if (discordUser === null && steamid === null) {
                         const str = client.intlGet(guildId, 'missingArguments');
-                        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                        client.log(client.intlGet(null, 'warningCap'), str);
+                        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
                         return;
                     }
 
@@ -170,11 +172,11 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['discordIds'] = instance.blacklist['discordIds'].filter(
-                                (e) => e !== discordUser.id,
+                                (e: string) => e !== discordUser.id,
                             );
                             client.setInstance(guildId, instance);
 
-                            await PermissionHandler.resetPermissionsAllChannels(client, guild);
+                            await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
                             str +=
                                 client.intlGet(guildId, 'userRemovedFromBlacklist', {
@@ -185,7 +187,7 @@ export default {
 
                     if (steamid !== null) {
                         let name = '';
-                        const steamName = await Scrape.scrapeSteamProfileName(client, steamid);
+                        const steamName = await Scrape.default.scrapeSteamProfileName(client, steamid);
                         if (steamName) name += `${steamName} (${steamid})`;
                         else name += `${steamid}`;
 
@@ -197,7 +199,7 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['steamIds'] = instance.blacklist['steamIds'].filter(
-                                (e) => e !== steamid,
+                                (e: string) => e !== steamid,
                             );
                             client.setInstance(guildId, instance);
                             str +=
@@ -213,10 +215,11 @@ export default {
                             id: `${verifyId}`,
                             value: `remove, ${discordUser}, ${steamid}`,
                         }),
+                        'info',
                     );
 
-                    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
-                    client.log(client.intlGet(null, 'infoCap'), str);
+                    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(successful, str));
+                    client.log(client.intlGet(null, 'infoCap'), str, 'info');
                     return;
                 }
                 break;
@@ -237,16 +240,16 @@ export default {
 
                     for (const steamId of instance.blacklist['steamIds']) {
                         let name = '';
-                        const steamName = await Scrape.scrapeSteamProfileName(client, steamId);
+                        const steamName = await Scrape.default.scrapeSteamProfileName(client, steamId);
                         if (steamName) name = `${steamName} (${steamId})`;
                         else name = `${steamId}`;
 
                         steamIds += `${name}\n`;
                     }
 
-                    await client.interactionEditReply(interaction, {
+                    await (client as any).interactionEditReply(interaction, {
                         embeds: [
-                            DiscordEmbeds.getEmbed({
+                            DiscordEmbedsAny.getEmbed({
                                 color: Constants.COLOR_DEFAULT,
                                 title: client.intlGet(guildId, 'blacklist'),
                                 fields: [
@@ -266,7 +269,7 @@ export default {
                         ephemeral: true,
                     });
 
-                    client.log(client.intlGet(guildId, 'infoCap'), client.intlGet(guildId, 'showingBlacklist'));
+                    client.log(client.intlGet(guildId, 'infoCap'), client.intlGet(guildId, 'showingBlacklist'), 'info');
                 }
                 break;
 

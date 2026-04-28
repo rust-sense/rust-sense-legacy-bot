@@ -1,7 +1,7 @@
-// @ts-nocheck
-const DiscordMessages = require('./discordMessages');
+import * as DiscordMessages from './discordMessages.js';
+import type { DiscordBot } from '../types/discord.js';
 
-module.exports = async (client, rustplus) => {
+export default async function setupAlarms(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
@@ -25,4 +25,4 @@ module.exports = async (client, rustplus) => {
 
         await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
     }
-};
+}

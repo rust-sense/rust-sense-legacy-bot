@@ -1,15 +1,16 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const Timer = require('../util/timer');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as Timer from '../util/timer.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'decay',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('decay')
             .setDescription(client.intlGet(guildId, 'commandsDecayDesc'))
             .addStringOption((option) =>
@@ -23,13 +24,13 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const decayItemName = interaction.options.getString('name');
@@ -42,9 +43,9 @@ export default {
         if (decayItemName !== null) {
             let foundName = null;
             if (!foundName) {
-                foundName = client.rustlabs.getClosestOtherNameByName(decayItemName);
+                foundName = (client as any).rustlabs.getClosestOtherNameByName(decayItemName);
                 if (foundName) {
-                    if (Object.hasOwn(client.rustlabs.decayData['other'], foundName)) {
+                    if (Object.hasOwn((client as any).rustlabs.decayData['other'], foundName)) {
                         type = 'other';
                     } else {
                         foundName = null;
@@ -53,9 +54,9 @@ export default {
             }
 
             if (!foundName) {
-                foundName = client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
+                foundName = (client as any).rustlabs.getClosestBuildingBlockNameByName(decayItemName);
                 if (foundName) {
-                    if (Object.hasOwn(client.rustlabs.decayData['buildingBlocks'], foundName)) {
+                    if (Object.hasOwn((client as any).rustlabs.decayData['buildingBlocks'], foundName)) {
                         type = 'buildingBlocks';
                     } else {
                         foundName = null;
@@ -64,9 +65,9 @@ export default {
             }
 
             if (!foundName) {
-                foundName = client.items.getClosestItemIdByName(decayItemName);
+                foundName = (client as any).items.getClosestItemIdByName(decayItemName);
                 if (foundName) {
-                    if (!Object.hasOwn(client.rustlabs.decayData['items'], foundName)) {
+                    if (!Object.hasOwn((client as any).rustlabs.decayData['items'], foundName)) {
                         foundName = null;
                     }
                 }
@@ -77,45 +78,45 @@ export default {
                     name: decayItemName,
                 });
 
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
                 return;
             }
             itemId = foundName;
         } else if (decayItemId !== null) {
-            if (client.items.itemExist(decayItemId)) {
+            if ((client as any).items.itemExist(decayItemId)) {
                 itemId = decayItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
                     id: decayItemId,
                 });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
                 return;
             }
         } else if (decayItemName === null && decayItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
 
         let itemName = null;
         let decayDetails = null;
         if (type === 'items') {
-            itemName = client.items.getName(itemId);
-            decayDetails = client.rustlabs.getDecayDetailsById(itemId);
+            itemName = (client as any).items.getName(itemId);
+            decayDetails = (client as any).rustlabs.getDecayDetailsById(itemId);
         } else {
             itemName = itemId;
-            decayDetails = client.rustlabs.getDecayDetailsByName(itemId);
+            decayDetails = (client as any).rustlabs.getDecayDetailsByName(itemId);
         }
 
         if (decayDetails === null) {
             const str = client.intlGet(guildId, 'couldNotFindDecayDetails', {
                 name: itemName,
             });
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -127,8 +128,8 @@ export default {
                 hp: hp,
                 max: details.hp,
             });
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -183,9 +184,10 @@ export default {
                 id: `${verifyId}`,
                 value: `${decayItemName} ${decayItemId} ${decayItemHp}`,
             }),
+            'info',
         );
 
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, decayString));
-        client.log(client.intlGet(null, 'infoCap'), decayString);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, decayString));
+        client.log(client.intlGet(null, 'infoCap'), decayString, 'info');
     },
 };

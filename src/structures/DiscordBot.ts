@@ -1,4 +1,3 @@
-// @ts-nocheck
 import FormatJS from '@formatjs/intl';
 import * as Discord from 'discord.js';
 import fs from 'node:fs';
@@ -27,7 +26,7 @@ export default class DiscordBot extends Discord.Client {
     commands: Discord.Collection<string, unknown>;
     fcmListeners: Record<string, unknown> = {};
     fcmListenersLite: Record<string, unknown> = {};
-    instances: Record<string, unknown> = {};
+    instances: Record<string, import('../types/instance.js').Instance> = {};
     intlInstances: Record<string, unknown> = {};
     customGuildIntl: Record<string, unknown> = {};
     rustplusInstances: Record<string, unknown> = {};
@@ -73,12 +72,13 @@ export default class DiscordBot extends Discord.Client {
 
     loadDiscordEvents(): void {
         for (const event of discordEvents) {
+            const handler = (...args: unknown[]) => (event.execute as any)(this, ...args);
             if (event.name === 'rateLimited') {
-                this.rest.on(event.name, (...args: unknown[]) => event.execute(this, ...args));
+                this.rest.on(event.name, handler);
             } else if ((event as { once?: boolean }).once) {
-                this.once(event.name, (...args: unknown[]) => event.execute(this, ...args));
+                this.once(event.name, handler);
             } else {
-                this.on(event.name, (...args: unknown[]) => event.execute(this, ...args));
+                this.on(event.name, handler);
             }
         }
     }
@@ -139,11 +139,11 @@ export default class DiscordBot extends Discord.Client {
         return message;
     }
 
-    getInstance(guildId: string): unknown {
+    getInstance(guildId: string): import('../types/instance.js').Instance {
         return this.instances[guildId];
     }
 
-    setInstance(guildId: string, instance: unknown): void {
+    setInstance(guildId: string, instance: import('../types/instance.js').Instance): void {
         this.instances[guildId] = instance;
     }
 
@@ -161,5 +161,25 @@ export default class DiscordBot extends Discord.Client {
 
     build(): void {
         /* Build implementation */
+    }
+
+    interactionUpdate(interaction: unknown, content: unknown): Promise<{ id: string } | undefined> {
+        throw new Error('Method not implemented.');
+    }
+
+    messageEdit(message: unknown, content: unknown): Promise<{ id: string }> {
+        throw new Error('Method not implemented.');
+    }
+
+    messageSend(channel: unknown, content: unknown): Promise<{ id: string }> {
+        throw new Error('Method not implemented.');
+    }
+
+    interactionReply(interaction: unknown, content: unknown): Promise<{ id: string } | undefined> {
+        throw new Error('Method not implemented.');
+    }
+
+    interactionEditReply(interaction: unknown, content: unknown): Promise<{ id: string } | undefined> {
+        throw new Error('Method not implemented.');
     }
 }

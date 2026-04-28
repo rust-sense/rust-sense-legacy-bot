@@ -1,43 +1,45 @@
-// @ts-nocheck
-const Discord = require('discord.js');
-const Path = require('node:path');
+import { ActivityType } from 'discord.js';
 
-const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
+import * as BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
 import config from '../config.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
+import createInstanceFile from '../util/CreateInstanceFile.js';
+import createCredentialsFile from '../util/CreateCredentialsFile.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'ready',
     once: true,
-    async execute(client) {
+    async execute(client: DiscordBot) {
         for (const guild of client.guilds.cache) {
-            require('../util/CreateInstanceFile')(client, guild[1]);
-            require('../util/CreateCredentialsFile')(client, guild[1]);
-            client.fcmListenersLite[guild[0]] = new Object();
+            createInstanceFile(client, guild[1]);
+            createCredentialsFile(client, guild[1]);
+            client.fcmListenersLite[guild[0]] = {};
         }
 
-        client.loadGuildsIntlFromCache();
+        (client as any).loadGuildsIntlFromCache();
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'loggedInAs', {
-                name: client.user.tag,
+                name: (client as any).user.tag,
             }),
+            'info',
         );
 
         try {
-            await client.user.setUsername(config.discord.username);
+            await (client as any).user.setUsername(config.discord.username);
         } catch (e) {
-            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetUsername'));
+            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetUsername'), 'warning');
         }
 
         try {
-            await client.user.setAvatar(cwdPath('resources/images/rustplusplus_logo.png'));
+            await (client as any).user.setAvatar(cwdPath('resources/images/rustplusplus_logo.png'));
         } catch (e) {
-            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetAvatar'));
+            client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetAvatar'), 'warning');
         }
 
-        client.user.setPresence({
-            activities: [{ name: '/help', type: Discord.ActivityType.Listening }],
+        (client as any).user.setPresence({
+            activities: [{ name: '/help', type: ActivityType.Listening }],
             status: 'online',
         });
 
@@ -49,16 +51,16 @@ export default {
             try {
                 await guild.members.me.setNickname(config.discord.username);
             } catch (e) {
-                client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetNickname'));
+                client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetNickname'), 'warning');
             }
-            await client.syncCredentialsWithUsers(guild);
-            await client.setupGuild(guild);
+            await (client as any).syncCredentialsWithUsers(guild);
+            await (client as any).setupGuild(guild);
         }
 
-        await client.updateBattlemetricsInstances();
-        BattlemetricsHandler.handler(client, true);
-        client.battlemetricsIntervalId = setInterval(BattlemetricsHandler.handler, 60000, client, false);
+        await (client as any).updateBattlemetricsInstances();
+        (BattlemetricsHandler as any).handler(client, true);
+        (client as any).battlemetricsIntervalId = setInterval((BattlemetricsHandler as any).handler, 60000, client, false);
 
-        client.createRustplusInstancesFromConfig();
+        (client as any).createRustplusInstancesFromConfig();
     },
 };

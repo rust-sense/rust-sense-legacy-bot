@@ -1,16 +1,17 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const Constants = require('../util/constants');
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordTools = require('../discordTools/discordTools');
+import * as Constants from '../util/constants.js';
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'players',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('players')
             .setDescription(client.intlGet(guildId, 'commandsPlayersDesc'))
             .addSubcommand((subcommand) =>
@@ -69,21 +70,21 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+    async execute(client: DiscordBot, interaction: any) {
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         let battlemetricsId = interaction.options.getString('battlemetricsid');
 
         if (!battlemetricsId) {
-            const rustplus = client.rustplusInstances[interaction.guildId];
+            const rustplus = (client as any).rustplusInstances[interaction.guildId];
             if (!rustplus || (rustplus && !rustplus.isOperational)) {
                 const str = client.intlGet(interaction.guildId, 'notConnectedToRustServer');
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(null, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(null, 'warningCap'), str, 'warning');
                 return;
             }
 
@@ -91,21 +92,21 @@ export default {
             const server = instance.serverList[rustplus.serverId];
             if (!server || (server && !server.battlemetricsId)) {
                 const str = client.intlGet(interaction.guildId, 'invalidBattlemetricsId');
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(null, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(null, 'warningCap'), str, 'warning');
                 return;
             }
 
             battlemetricsId = server.battlemetricsId;
         }
 
-        const bmInstance = client.battlemetricsInstances[battlemetricsId];
+        const bmInstance = (client as any).battlemetricsInstances[battlemetricsId];
         if (!bmInstance || !bmInstance.lastUpdateSuccessful) {
             const str = client.intlGet(interaction.guildId, 'battlemetricsInstanceCouldNotBeFound', {
                 id: battlemetricsId,
             });
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -139,12 +140,13 @@ export default {
                     `${interaction.options.getString('status')} ` +
                     `${interaction.options.getString('battlemetricsid')} `,
             }),
+            'info',
         );
     },
 };
 
-async function playersNameHandler(client, interaction, battlemetricsId) {
-    const bmInstance = client.battlemetricsInstances[battlemetricsId];
+async function playersNameHandler(client: DiscordBot, interaction: any, battlemetricsId: string) {
+    const bmInstance = (client as any).battlemetricsInstances[battlemetricsId];
 
     const status = interaction.options.getString('status');
     const name = interaction.options.getString('name');
@@ -170,8 +172,8 @@ async function playersNameHandler(client, interaction, battlemetricsId) {
 
     if (foundPlayers.length === 0) {
         const str = client.intlGet(interaction.guildId, 'couldNotFindAnyPlayers');
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
         return;
     } else if (foundPlayers.length === 1) {
         await displaySpecificUser(client, interaction, battlemetricsId, foundPlayers[0]);
@@ -180,24 +182,24 @@ async function playersNameHandler(client, interaction, battlemetricsId) {
     }
 }
 
-async function playersPlayerIdHandler(client, interaction, battlemetricsId) {
-    const bmInstance = client.battlemetricsInstances[battlemetricsId];
+async function playersPlayerIdHandler(client: DiscordBot, interaction: any, battlemetricsId: string) {
+    const bmInstance = (client as any).battlemetricsInstances[battlemetricsId];
 
     const playerId = interaction.options.getString('playerid');
 
     if (!Object.hasOwn(bmInstance.players, playerId)) {
         const str = client.intlGet(interaction.guildId, 'couldNotFindPlayerId', { id: playerId });
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
         return;
     }
 
     await displaySpecificUser(client, interaction, battlemetricsId, playerId);
 }
 
-async function displaySpecificUser(client, interaction, battlemetricsId, playerId) {
+async function displaySpecificUser(client: DiscordBot, interaction: any, battlemetricsId: string, playerId: string) {
     const guildId = interaction.guildId;
-    const bmInstance = client.battlemetricsInstances[battlemetricsId];
+    const bmInstance = (client as any).battlemetricsInstances[battlemetricsId];
 
     const userName = bmInstance.players[playerId]['name'];
 
@@ -205,13 +207,13 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
     const data = await bmInstance.getProfileData(playerId);
 
     for (const name of bmInstance.players[playerId]['nameChangeHistory']) {
-        if (!profileNames.some((e) => e['name'] === name['from'])) {
+        if (!profileNames.some((e: any) => e['name'] === name['from'])) {
             profileNames.push({ name: name['from'], lastSeen: name['time'] });
         }
     }
 
     for (const name of data) {
-        if (!profileNames.some((e) => e['name'] === name['name'])) {
+        if (!profileNames.some((e: any) => e['name'] === name['name'])) {
             profileNames.push({
                 name: name['name'],
                 lastSeen: name['lastSeen'],
@@ -219,7 +221,7 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
         }
     }
 
-    if (!profileNames.some((e) => e['name'] === userName)) {
+    if (!profileNames.some((e: any) => e['name'] === userName)) {
         profileNames.unshift({ name: userName, lastSeen: null });
     }
 
@@ -235,7 +237,7 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
     description += `__**${client.intlGet(guildId, 'status')}:**__ ${status}\n`;
     description += `__**${onOffString}:**__ ${time !== null ? `[${time[1]}]` : ''}\n`;
 
-    const embed = DiscordEmbeds.getEmbed({
+    const embed = DiscordEmbedsAny.getEmbed({
         title: `${client.intlGet(interaction.guildId, 'playersSearch')}: ${userName}`,
         color: Constants.COLOR_DEFAULT,
         description: description,
@@ -298,10 +300,10 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
         connectionTime += time;
     }
 
-    nameChangeHistoryName = Utils.orEmpty(client, guildId, nameChangeHistoryName);
-    nameChangeHistoryTime = Utils.orEmpty(client, guildId, nameChangeHistoryTime);
-    connectionString = Utils.orEmpty(client, guildId, connectionString);
-    connectionTime = Utils.orEmpty(client, guildId, connectionTime);
+    nameChangeHistoryName = nameChangeHistoryName || '\u200B';
+    nameChangeHistoryTime = nameChangeHistoryTime || '\u200B';
+    connectionString = connectionString || '\u200B';
+    connectionTime = connectionTime || '\u200B';
 
     const fields = [
         {
@@ -333,15 +335,16 @@ async function displaySpecificUser(client, interaction, battlemetricsId, playerI
 
     embed.setFields(fields);
 
-    await client.interactionEditReply(interaction, { embeds: [embed] });
+    await (client as any).interactionEditReply(interaction, { embeds: [embed] });
     client.log(
         client.intlGet(interaction.guildId, 'infoCap'),
         client.intlGet(interaction.guildId, 'displayingOnlinePlayers'),
+        'info',
     );
 }
 
-async function displaySeveralUsers(client, interaction, battlemetricsId, playerIds, search) {
-    const bmInstance = client.battlemetricsInstances[battlemetricsId];
+async function displaySeveralUsers(client: DiscordBot, interaction: any, battlemetricsId: string, playerIds: string[], search: string | null) {
+    const bmInstance = (client as any).battlemetricsInstances[battlemetricsId];
 
     let totalCharacters = 0;
     let fieldCharacters = 0;
@@ -393,7 +396,7 @@ async function displaySeveralUsers(client, interaction, battlemetricsId, playerI
         fieldCharacters += playerStr.length;
     }
 
-    const embed = DiscordEmbeds.getEmbed({
+    const embed = DiscordEmbedsAny.getEmbed({
         title: title,
         color: Constants.COLOR_DEFAULT,
         footer: footer,
@@ -417,9 +420,10 @@ async function displaySeveralUsers(client, interaction, battlemetricsId, playerI
         fieldCounter += 1;
     }
 
-    await client.interactionEditReply(interaction, { embeds: [embed] });
+    await (client as any).interactionEditReply(interaction, { embeds: [embed] });
     client.log(
         client.intlGet(interaction.guildId, 'infoCap'),
         client.intlGet(interaction.guildId, 'displayingOnlinePlayers'),
+        'info',
     );
 }

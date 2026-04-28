@@ -1,14 +1,14 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+const DiscordEmbedsAny = DiscordEmbeds as any;
+import type { DiscordBot } from '../types/discord.js';
 
 export default {
     name: 'despawn',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('despawn')
             .setDescription(client.intlGet(guildId, 'commandsStackDesc'))
             .addStringOption((option) =>
@@ -19,29 +19,29 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const despawnItemName = interaction.options.getString('name');
         const despawnItemId = interaction.options.getString('id');
 
-        const itemId = await Utils.resolveItemId(client, interaction, guildId, despawnItemName, despawnItemId);
+        const itemId = await (client as any).resolveItemId(interaction, guildId, despawnItemName, despawnItemId);
         if (itemId === null) return;
-        const itemName = client.items.getName(itemId);
+        const itemName = (client as any).items.getName(itemId);
 
-        const despawnDetails = client.rustlabs.getDespawnDetailsById(itemId);
+        const despawnDetails = (client as any).rustlabs.getDespawnDetailsById(itemId);
         if (despawnDetails === null) {
             const str = client.intlGet(guildId, 'couldNotFindDespawnDetails', {
                 name: itemName,
             });
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
 
@@ -53,6 +53,7 @@ export default {
                 id: `${verifyId}`,
                 value: `${despawnItemName} ${despawnItemId}`,
             }),
+            'info',
         );
 
         const str = client.intlGet(guildId, 'despawnTimeOfItem', {
@@ -60,7 +61,7 @@ export default {
             time: despawnTime,
         });
 
-        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
-        client.log(client.intlGet(null, 'infoCap'), str);
+        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+        client.log(client.intlGet(null, 'infoCap'), str, 'info');
     },
 };

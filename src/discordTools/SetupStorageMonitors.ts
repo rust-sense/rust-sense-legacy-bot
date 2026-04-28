@@ -1,15 +1,15 @@
-// @ts-nocheck
-const Constants = require('../util/constants');
-const DiscordMessages = require('./discordMessages');
-const DiscordTools = require('./discordTools');
+import * as Constants from '../util/constants.js';
+import * as DiscordMessages from './discordMessages.js';
+import * as DiscordTools from './discordTools.js';
+import type { DiscordBot } from '../types/discord.js';
 
-module.exports = async (client, rustplus) => {
+export default async function setupStorageMonitors(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
 
     if (rustplus.isNewConnection) {
-        await DiscordTools.clearTextChannel(guildId, instance.channelId.storageMonitors, 100);
+        await DiscordTools.clearTextChannel(guildId, instance.channelId.storageMonitors as string, 100);
     }
 
     for (const entityId in instance.serverList[serverId].storageMonitors) {
@@ -53,4 +53,4 @@ module.exports = async (client, rustplus) => {
 
         await DiscordMessages.sendStorageMonitorMessage(guildId, serverId, entityId);
     }
-};
+}

@@ -1,9 +1,15 @@
-// @ts-nocheck
-const Discord = require('discord.js');
-const DiscordTools = require('../discordTools/discordTools');
-import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { PermissionFlagsBits } from 'discord.js';
+import type { Guild, TextChannel, CategoryChannel } from 'discord.js';
 
-module.exports = async (client, guild, category) => {
+import * as DiscordTools from '../discordTools/discordTools.js';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
+import type { DiscordBot } from '../types/discord.js';
+
+export default async function setupGuildChannels(
+    client: DiscordBot,
+    guild: Guild,
+    category: CategoryChannel | null,
+) {
     if (!category) {
         return;
     }
@@ -26,17 +32,24 @@ module.exports = async (client, guild, category) => {
     );
     await addTextChannel(client.intlGet(guild.id, 'channelNameActivity'), 'activity', client, guild, category);
     await addTextChannel(client.intlGet(guild.id, 'channelNameTrackers'), 'trackers', client, guild, category);
-};
+}
 
-async function addTextChannel(name, idName, client, guild, parent, permissionWrite = false) {
+async function addTextChannel(
+    name: string,
+    idName: string,
+    client: DiscordBot,
+    guild: Guild,
+    parent: CategoryChannel,
+    permissionWrite = false,
+) {
     const instance = client.getInstance(guild.id);
     const perms = PermissionHandler.getPermissionsReset(client, guild, permissionWrite);
 
-    let channel = undefined;
-    if (instance.channelId[idName] !== null) {
-        channel = DiscordTools.getTextChannelById(guild.id, instance.channelId[idName]);
+    let channel: TextChannel | undefined = undefined;
+    if (instance.channelId[idName as keyof typeof instance.channelId] !== null) {
+        channel = DiscordTools.getTextChannelById(guild.id, instance.channelId[idName as keyof typeof instance.channelId] as string);
         if (channel && !botCanUseTextChannel(guild, channel)) {
-            instance.channelId[idName] = null;
+            (instance.channelId as unknown as Record<string, string | null>)[idName] = null;
             client.setInstance(guild.id, instance);
             channel = undefined;
         }
@@ -47,7 +60,7 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
         if (!channel) {
             return;
         }
-        instance.channelId[idName] = channel.id;
+        (instance.channelId as unknown as Record<string, string | null>)[idName] = channel.id;
         client.setInstance(guild.id, instance);
     }
 
@@ -78,16 +91,16 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
     //channel.setName(name);
 }
 
-function botCanUseTextChannel(guild, channel) {
+function botCanUseTextChannel(guild: Guild, channel: TextChannel): boolean {
     const me = guild.members?.me;
     if (!me) return true;
 
     const permissions = channel.permissionsFor(me);
     return (
         permissions?.has([
-            Discord.PermissionFlagsBits.ViewChannel,
-            Discord.PermissionFlagsBits.SendMessages,
-            Discord.PermissionFlagsBits.ManageChannels,
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ManageChannels,
         ]) ?? false
     );
 }

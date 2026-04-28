@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Player from './Player.js';
 
 interface TeamData {
@@ -16,10 +15,12 @@ interface TeamData {
 }
 
 interface RustplusLike {
+    info: { mapSize: number };
     guildId: string;
     serverId: string;
     log: (title: string, message: string, level: string) => void;
     intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
+    promoteToLeaderAsync: (steamId: string) => Promise<unknown>;
 }
 
 export default class Team {

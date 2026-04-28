@@ -1,15 +1,16 @@
-// @ts-nocheck
-const Builder = require('@discordjs/builders');
-const Utils = require('../util/utils');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DiscordEmbeds = require('../discordTools/discordEmbeds');
-const DiscordMessages = require('../discordTools/discordMessages');
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type { DiscordBot } from '../types/discord.js';
+
+const DiscordEmbedsAny = DiscordEmbeds as any;
 
 export default {
     name: 'item',
 
-    getData(client, guildId) {
-        return new Builder.SlashCommandBuilder()
+    getData(client: DiscordBot, guildId: string) {
+        return new SlashCommandBuilder()
             .setName('item')
             .setDescription(client.intlGet(guildId, 'commandsItemDesc'))
             .addStringOption((option) =>
@@ -20,13 +21,13 @@ export default {
             );
     },
 
-    async execute(client, interaction) {
+    async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = Utils.generateVerifyId();
-        client.logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = (client as any).generateVerifyId();
+        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await client.validatePermissions(interaction))) return;
+        if (!(await (client as any).validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const itemItemName = interaction.options.getString('name');
@@ -38,21 +39,21 @@ export default {
         if (itemItemName !== null) {
             let foundName = null;
             if (!foundName) {
-                foundName = client.rustlabs.getClosestOtherNameByName(itemItemName);
+                foundName = (client as any).rustlabs.getClosestOtherNameByName(itemItemName);
                 if (foundName) {
                     type = 'other';
                 }
             }
 
             if (!foundName) {
-                foundName = client.rustlabs.getClosestBuildingBlockNameByName(itemItemName);
+                foundName = (client as any).rustlabs.getClosestBuildingBlockNameByName(itemItemName);
                 if (foundName) {
                     type = 'buildingBlocks';
                 }
             }
 
             if (!foundName) {
-                foundName = client.items.getClosestItemIdByName(itemItemName);
+                foundName = (client as any).items.getClosestItemIdByName(itemItemName);
                 if (foundName) {
                     type = 'items';
                 }
@@ -62,31 +63,31 @@ export default {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
                     name: itemItemName,
                 });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
                 return;
             }
             itemId = foundName;
         } else if (itemItemId !== null) {
-            if (client.items.itemExist(itemItemId)) {
+            if ((client as any).items.itemExist(itemItemId)) {
                 itemId = itemItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
                     id: itemItemId,
                 });
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str);
+                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
                 return;
             }
         } else if (itemItemName === null && itemItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
-            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str);
+            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
             return;
         }
         let itemName = null;
         if (type === 'items') {
-            itemName = client.items.getName(itemId);
+            itemName = (client as any).items.getName(itemId);
         } else {
             itemName = itemId;
         }
@@ -97,9 +98,10 @@ export default {
                 id: `${verifyId}`,
                 value: `${itemItemName} ${itemItemId}`,
             }),
+            'info',
         );
 
         await DiscordMessages.sendItemMessage(interaction, itemName, itemId, type);
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsItemDesc'));
+        client.log(client.intlGet(null, 'infoCap'), client.intlGet(guildId, 'commandsItemDesc'), 'info');
     },
 };

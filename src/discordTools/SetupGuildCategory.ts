@@ -1,13 +1,15 @@
-// @ts-nocheck
-const Discord = require('discord.js');
-const DiscordTools = require('../discordTools/discordTools');
-import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { PermissionFlagsBits } from 'discord.js';
+import type { Guild, CategoryChannel } from 'discord.js';
 
-module.exports = async (client, guild) => {
+import * as DiscordTools from '../discordTools/discordTools.js';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
+import type { DiscordBot } from '../types/discord.js';
+
+export default async function setupGuildCategory(client: DiscordBot, guild: Guild): Promise<CategoryChannel | undefined> {
     const instance = client.getInstance(guild.id);
     const perms = PermissionHandler.getPermissionsReset(client, guild, false);
 
-    let category = undefined;
+    let category: CategoryChannel | undefined = undefined;
     if (instance.channelId.category !== null) {
         category = DiscordTools.getCategoryById(guild.id, instance.channelId.category);
         if (category && !botHasChannelPermissions(guild, category)) {
@@ -34,14 +36,14 @@ module.exports = async (client, guild) => {
     }
 
     return category;
-};
+}
 
-function botHasChannelPermissions(guild, channel) {
+function botHasChannelPermissions(guild: Guild, channel: CategoryChannel): boolean {
     const me = guild.members?.me;
     if (!me) return true;
 
     const permissions = channel.permissionsFor(me);
     return (
-        permissions?.has([Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.ManageChannels]) ?? false
+        permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageChannels]) ?? false
     );
 }

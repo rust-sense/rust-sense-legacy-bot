@@ -1,13 +1,17 @@
-// @ts-nocheck
+import type { Guild } from 'discord.js';
+import type { DiscordBot } from '../types/discord.js';
+import createInstanceFile from '../util/CreateInstanceFile.js';
+import createCredentialsFile from '../util/CreateCredentialsFile.js';
+
 export default {
     name: 'guildCreate',
-    async execute(client, guild) {
-        require('../util/CreateInstanceFile')(client, guild);
-        require('../util/CreateCredentialsFile')(client, guild);
-        client.fcmListenersLite[guild.id] = new Object();
+    async execute(client: DiscordBot, guild: Guild) {
+        createInstanceFile(client, guild);
+        createCredentialsFile(client, guild);
+        client.fcmListenersLite[guild.id] = {};
 
-        client.loadGuildIntl(guild.id);
+        (client as any).loadGuildIntl(guild.id);
 
-        await client.setupGuild(guild);
+        await (client as any).setupGuild(guild);
     },
 };

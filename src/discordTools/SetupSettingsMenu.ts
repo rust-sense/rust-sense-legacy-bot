@@ -1,15 +1,14 @@
-// @ts-nocheck
-const Discord = require('discord.js');
+import * as Discord from 'discord.js';
 
-const Constants = require('../util/constants');
-const DiscordButtons = require('./discordButtons');
-const DiscordEmbeds = require('./discordEmbeds');
-const DiscordSelectMenus = require('./discordSelectMenus');
-const DiscordTools = require('./discordTools');
+import * as Constants from '../util/constants.js';
+import * as DiscordButtons from './discordButtons.js';
+import * as DiscordEmbeds from './discordEmbeds.js';
+import * as DiscordSelectMenus from './discordSelectMenus.js';
+import * as DiscordTools from './discordTools.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 
-module.exports = async (client, guild, forced = false) => {
+export default async (client: any, guild: any, forced: boolean = false) => {
     const instance = client.getInstance(guild.id);
     const channel = DiscordTools.getTextChannelById(guild.id, instance.channelId.settings);
 
@@ -33,7 +32,7 @@ module.exports = async (client, guild, forced = false) => {
     }
 };
 
-async function setupGeneralSettings(client, guildId, channel) {
+async function setupGeneralSettings(client: any, guildId: string, channel: any) {
     const instance = client.getInstance(guildId);
 
     await client.messageSend(channel, {
@@ -307,7 +306,7 @@ async function setupGeneralSettings(client, guildId, channel) {
     });
 }
 
-async function setupNotificationSettings(client, guildId, channel) {
+async function setupNotificationSettings(client: any, guildId: string, channel: any) {
     const instance = client.getInstance(guildId);
 
     await client.messageSend(channel, {

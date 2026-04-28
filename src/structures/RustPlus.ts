@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'node:fs';
 import path from 'node:path';
 import RustPlusLib from '@liamcottle/rustplus.js';
@@ -114,7 +113,7 @@ export default class RustPlus extends RustPlusLib {
 
     loadRustPlusEvents(): void {
         for (const event of rustplusEvents) {
-            this.on(event.name, (...args: any[]) => event.execute(this, getClient(), ...args));
+            this.on(event.name, (...args: any[]) => (event.execute as any)(this, getClient(), ...args));
         }
     }
 
@@ -289,7 +288,7 @@ export default class RustPlus extends RustPlusLib {
                 this.mapMarkers.crateSmallOilRigTimer = new Timer.Timer(
                     this.mapMarkers.notifyCrateSmallOilRigOpen.bind(this.mapMarkers),
                     remainingMs,
-                    safeLocation
+                    [safeLocation]
                 );
                 this.mapMarkers.crateSmallOilRigTimer.start();
             }
@@ -306,7 +305,7 @@ export default class RustPlus extends RustPlusLib {
                 this.mapMarkers.crateLargeOilRigTimer = new Timer.Timer(
                     this.mapMarkers.notifyCrateLargeOilRigOpen.bind(this.mapMarkers),
                     remainingMs,
-                    safeLocation
+                    [safeLocation]
                 );
                 this.mapMarkers.crateLargeOilRigTimer.start();
             }
