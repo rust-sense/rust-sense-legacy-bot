@@ -41,7 +41,8 @@ async function addTextChannel(name, idName, client, guild, parent, permissionWri
         }
     }
     if (channel === undefined) {
-        channel = await DiscordTools.addTextChannel(guild.id, name, parent.id, perms);
+        const normalizedName = name.toLowerCase().replace(/\s+/g, '-');
+        channel = await DiscordTools.addTextChannel(guild.id, normalizedName, parent.id, perms);
         if (!channel) {
             return;
         }

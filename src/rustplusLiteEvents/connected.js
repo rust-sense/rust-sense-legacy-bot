@@ -15,6 +15,8 @@ export default {
         }
         rustplusLite.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
+        rustplusLite._reconnectAttempts = 0;
+
         if (client.rustplusLiteReconnectTimers[rustplusLite.guildId]) {
             clearTimeout(client.rustplusLiteReconnectTimers[rustplusLite.guildId]);
             client.rustplusLiteReconnectTimers[rustplusLite.guildId] = null;

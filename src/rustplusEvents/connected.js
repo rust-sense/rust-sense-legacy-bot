@@ -67,6 +67,7 @@ export default {
 
         if (client.rustplusReconnecting[guildId]) {
             client.rustplusReconnecting[guildId] = false;
+            rustplus._reconnectAttempts = 0;
 
             if (client.rustplusReconnectTimers[guildId]) {
                 clearTimeout(client.rustplusReconnectTimers[guildId]);

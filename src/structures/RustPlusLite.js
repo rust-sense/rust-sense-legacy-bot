@@ -13,6 +13,7 @@ class RustPlusLite extends RustPlusLib {
         this.rustplus = rustplus;
 
         this.isActive = true;
+        this._reconnectAttempts = 0;
 
         this.loadRustPlusLiteEvents();
     }

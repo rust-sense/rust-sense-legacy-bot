@@ -47,7 +47,16 @@ export default {
 
             client.rustplusReconnecting[guildId] = true;
 
-            rustplus.log(client.intlGet(null, 'reconnectingCap'), client.intlGet(null, 'reconnectingToServer'));
+            const attempt = ++rustplus._reconnectAttempts;
+            const delay = Math.min(
+                config.general.reconnectIntervalMs * Math.pow(2, attempt - 1),
+                300000,
+            );
+
+            rustplus.log(
+                client.intlGet(null, 'reconnectingCap'),
+                `${client.intlGet(null, 'reconnectingToServer')} (attempt ${attempt}, delay ${delay / 1000}s)`,
+            );
 
             delete client.rustplusInstances[guildId];
 
@@ -58,7 +67,7 @@ export default {
 
             client.rustplusReconnectTimers[guildId] = setTimeout(
                 client.createRustplusInstance.bind(client),
-                config.general.reconnectIntervalMs,
+                delay,
                 guildId,
                 rustplus.server,
                 rustplus.port,
