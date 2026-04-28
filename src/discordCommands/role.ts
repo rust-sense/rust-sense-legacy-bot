@@ -3,9 +3,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'role',
@@ -57,15 +55,15 @@ export default {
     async execute(client: DiscordBot, interaction: any) {
         const instance = client.getInstance(interaction.guildId);
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
 
-        if (!(client as any).isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
-            (client as any).interactionReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -78,9 +76,9 @@ export default {
             const guild = DiscordTools.getGuild(interaction.guildId);
             if (guild) {
                 const SetupGuildCategory = await import('../discordTools/SetupGuildCategory.js');
-                const category = await (SetupGuildCategory as any).default(client, guild);
+                const category = await SetupGuildCategory.default(client, guild);
                 const SetupGuildChannels = await import('../discordTools/SetupGuildChannels.js');
-                await (SetupGuildChannels as any).default(client, guild, category);
+                await SetupGuildChannels.default(client, guild, category);
                 await PermissionHandler.resetPermissionsAllChannels(client, guild);
             }
         }
@@ -104,7 +102,7 @@ export default {
                     subcommandGroup === 'admin' ? 'commandsRoleAdminSetSuccess' : 'commandsRoleRegularSetSuccess',
                     { name: role.name },
                 );
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
                 client.log(client.intlGet(null, 'infoCap'), str, 'info');
             } else if (subcommand === 'clear') {
                 if (subcommandGroup === 'admin') {
@@ -121,7 +119,7 @@ export default {
                     interaction.guildId,
                     subcommandGroup === 'admin' ? 'commandsRoleAdminClearSuccess' : 'commandsRoleRegularClearSuccess',
                 );
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
                 client.log(client.intlGet(null, 'infoCap'), str, 'info');
             }
         }

@@ -595,7 +595,7 @@ async function alarmAlarm(client: any, guild: any, title: any, message: any, bod
         (!rustplus || rustplus.serverId !== serverId) &&
         instance.generalSettings.fcmAlarmNotificationEnabled
     ) {
-        server.alarms[entityId].lastTrigger = Math.floor(new Date() as any / 1000);
+        server.alarms[entityId].lastTrigger = Math.floor(Date.now() / 1000);
         client.setInstance(guild.id, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
         client.log(client.intlGet(null, 'infoCap'), `${title}: ${message}`);

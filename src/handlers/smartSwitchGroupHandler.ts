@@ -1,9 +1,10 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as Timer from '../util/timer.js';
 
-export async function handler(rustplus: any, client: any) {}
+export async function handler(rustplus: any, client: DiscordBot) {}
 
-export async function updateSwitchGroupIfContainSwitch(client: any, guildId: string, serverId: string, switchId: string) {
+export async function updateSwitchGroupIfContainSwitch(client: DiscordBot, guildId: string, serverId: string, switchId: string) {
     const instance = client.getInstance(guildId);
 
     for (const [groupId, content] of Object.entries(instance.serverList[serverId].switchGroups as Record<string, any>)) {
@@ -13,7 +14,7 @@ export async function updateSwitchGroupIfContainSwitch(client: any, guildId: str
     }
 }
 
-export function getGroupsFromSwitchList(client: any, guildId: string, serverId: string, switches: string[]) {
+export function getGroupsFromSwitchList(client: DiscordBot, guildId: string, serverId: string, switches: string[]) {
     const instance = client.getInstance(guildId);
 
     let groupsId = [];
@@ -28,7 +29,7 @@ export function getGroupsFromSwitchList(client: any, guildId: string, serverId: 
     return groupsId;
 }
 
-export async function TurnOnOffGroup(client: any, rustplus: any, guildId: string, serverId: string, groupId: string, value: boolean) {
+export async function TurnOnOffGroup(client: DiscordBot, rustplus: any, guildId: string, serverId: string, groupId: string, value: boolean) {
     const instance = client.getInstance(guildId);
 
     const switches = instance.serverList[serverId].switchGroups[groupId].switches;
@@ -79,7 +80,7 @@ export async function TurnOnOffGroup(client: any, rustplus: any, guildId: string
     }
 }
 
-export async function smartSwitchGroupCommandHandler(rustplus: any, client: any, command: string) {
+export async function smartSwitchGroupCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const instance = client.getInstance(guildId);

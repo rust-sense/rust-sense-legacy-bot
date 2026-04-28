@@ -3,8 +3,8 @@ import type { Instance, Server } from './instance.js';
 
 export interface DiscordBot extends Client {
     commands: Map<string, unknown>;
-    fcmListeners: Record<string, unknown>;
-    fcmListenersLite: Record<string, unknown>;
+    fcmListeners: Record<string, { destroy: () => void }>;
+    fcmListenersLite: Record<string, Record<string, { destroy: () => void }>>;
     instances: Record<string, Instance>;
     intlInstances: Record<string, unknown>;
     customGuildIntl: Record<string, unknown>;

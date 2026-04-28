@@ -1,9 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'leader',
@@ -22,12 +20,12 @@ export default {
 
     async execute(client: DiscordBot, interaction: any) {
         const instance = client.getInstance(interaction.guildId);
-        const rustplus = (client as any).rustplusInstances[interaction.guildId];
+        const rustplus = client.rustplusInstances[interaction.guildId];
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const member = interaction.options.getString('member');
@@ -43,18 +41,18 @@ export default {
 
         if (!rustplus || (rustplus && !rustplus.isOperational)) {
             const str = client.intlGet(interaction.guildId, 'notConnectedToRustServer');
-            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
 
         if (!rustplus.generalSettings.leaderCommandEnabled) {
             const str = client.intlGet(interaction.guildId, 'leaderCommandIsDisabled');
-            await (client as any).interactionEditReply(
+            await client.interactionEditReply(
                 interaction,
-                DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+                DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
             );
-            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warning');
+            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -68,11 +66,11 @@ export default {
             names = names.slice(0, -2);
 
             const str = client.intlGet(rustplus.guildId, 'leaderCommandOnlyWorks', { name: names });
-            await (client as any).interactionEditReply(
+            await client.interactionEditReply(
                 interaction,
-                DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+                DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
             );
-            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warning');
+            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -82,22 +80,22 @@ export default {
                     const str = client.intlGet(interaction.guildId, 'leaderAlreadyLeader', {
                         name: player.name,
                     });
-                    await (client as any).interactionEditReply(
+                    await client.interactionEditReply(
                         interaction,
-                        DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+                        DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
                     );
-                    rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warning');
+                    rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
                 } else {
                     if (rustplus.generalSettings.leaderCommandOnlyForPaired) {
                         if (!Object.keys(instance.serverListLite[rustplus.serverId]).includes(player.steamId)) {
                             const str = client.intlGet(rustplus.guildId, 'playerNotPairedWithServer', {
                                 name: player.name,
                             });
-                            await (client as any).interactionEditReply(
+                            await client.interactionEditReply(
                                 interaction,
-                                DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+                                DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
                             );
-                            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warning');
+                            rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
                             return;
                         }
                     }
@@ -111,9 +109,9 @@ export default {
                     const str = client.intlGet(interaction.guildId, 'leaderTransferred', {
                         name: player.name,
                     });
-                    await (client as any).interactionEditReply(
+                    await client.interactionEditReply(
                         interaction,
-                        DiscordEmbedsAny.getActionInfoEmbed(0, str, instance.serverList[rustplus.serverId].title),
+                        DiscordEmbeds.getActionInfoEmbed(0, str, instance.serverList[rustplus.serverId].title),
                     );
                     rustplus.log(client.intlGet(interaction.guildId, 'infoCap'), str, 'info');
                 }
@@ -122,10 +120,10 @@ export default {
         }
 
         const str = client.intlGet(interaction.guildId, 'couldNotIdentifyMember', { name: member });
-        await (client as any).interactionEditReply(
+        await client.interactionEditReply(
             interaction,
-            DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+            DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
         );
-        rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warning');
+        rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
     },
 };

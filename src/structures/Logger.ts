@@ -44,21 +44,21 @@ export default class Logger {
     log(title: string, text: string, level: string): void {
         const time = this.getTime();
 
+        const logText = `${title}: ${text}`;
+
         switch (this.type) {
             case 'default': {
-                text = `${title}: ${text}`;
                 this.logger.log({
                     level: level,
-                    message: `${time} | ${text}`,
+                    message: `${time} | ${logText}`,
                 });
                 console.log(Colors.green(`[${time}]`), Colors.magenta(`${title}:`), text);
                 break;
             }
             case 'guild': {
-                text = `${title}: ${text}`;
                 this.logger.log({
                     level: level,
-                    message: `${time} | ${this.guildId} | ${text}`,
+                    message: `${time} | ${this.guildId} | ${logText}`,
                 });
                 console.log(
                     Colors.green(`[${time}]`),
@@ -69,10 +69,9 @@ export default class Logger {
                 break;
             }
             case 'server': {
-                text = `${title}: ${text}`;
                 this.logger.log({
                     level: level,
-                    message: `${time} | ${this.guildId} | ${this.serverName} | ${text}`,
+                    message: `${time} | ${this.guildId} | ${this.serverName} | ${logText}`,
                 });
                 console.log(
                     Colors.green(`[${time}]`),

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 import { client } from '../index.js';
 import * as Constants from '../util/constants.js';
-import * as Languages from '../util/languages.js';
+import { languages as Languages } from '../util/languages.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 

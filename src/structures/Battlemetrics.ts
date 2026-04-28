@@ -46,6 +46,8 @@ interface BattlemetricsData {
 }
 
 export default class Battlemetrics {
+    [key: string]: any;
+
     private _id: string | null;
     private _name: string | null;
     private _data: BattlemetricsData | null = null;
@@ -63,89 +65,9 @@ export default class Battlemetrics {
     private _nameChangedPlayers: Array<{ id: string; from: string; to: string }> = [];
     private _onlinePlayers: string[] = [];
     private _offlinePlayers: string[] = [];
-    private _serverEvaluation: Record<string, unknown> = {};
+    private _serverEvaluation: Record<string, any> = {};
 
-    constructor(id: string | null = null, name: string | null = null) {
-        this._id = id;
-        this._name = name;
-    }
-
-    get id(): string | null {
-        return this._id;
-    }
-    set id(id: string | null) {
-        this._id = id;
-    }
-    get name(): string | null {
-        return this._name;
-    }
-    set name(name: string | null) {
-        this._name = name;
-    }
-    get data(): BattlemetricsData | null {
-        return this._data;
-    }
-    set data(data: BattlemetricsData | null) {
-        this._data = data;
-    }
-    get ready(): boolean {
-        return this._ready;
-    }
-    set ready(ready: boolean) {
-        this._ready = ready;
-    }
-    get updatedAt(): Date | null {
-        return this._updatedAt;
-    }
-    set updatedAt(updatedAt: Date | null) {
-        this._updatedAt = updatedAt;
-    }
-    get lastUpdateSuccessful(): boolean | null {
-        return this._lastUpdateSuccessful;
-    }
-    set lastUpdateSuccessful(lastUpdateSuccessful: boolean | null) {
-        this._lastUpdateSuccessful = lastUpdateSuccessful;
-    }
-    get rustmapsAvailable(): boolean | null {
-        return this._rustmapsAvailable;
-    }
-    set rustmapsAvailable(rustmapsAvailable: boolean | null) {
-        this._rustmapsAvailable = rustmapsAvailable;
-    }
-    get streamerMode(): boolean {
-        return this._streamerMode;
-    }
-    set streamerMode(streamerMode: boolean) {
-        this._streamerMode = streamerMode;
-    }
-    get serverLog(): string[] {
-        return this._serverLog;
-    }
-    get connectionLog(): string[] {
-        return this._connectionLog;
-    }
-    get players(): Record<string, BattlemetricsPlayer> {
-        return this._players;
-    }
-    get newPlayers(): string[] {
-        return this._newPlayers;
-    }
-    get loginPlayers(): string[] {
-        return this._loginPlayers;
-    }
-    get logoutPlayers(): string[] {
-        return this._logoutPlayers;
-    }
-    get nameChangedPlayers(): Array<{ id: string; from: string; to: string }> {
-        return this._nameChangedPlayers;
-    }
-    get onlinePlayers(): string[] {
-        return this._onlinePlayers;
-    }
-    get offlinePlayers(): string[] {
-        return this._offlinePlayers;
-    }
-    get serverEvaluation(): Record<string, unknown> {
+    get serverEvaluation(): Record<string, any> {
         return this._serverEvaluation;
     }
 
@@ -176,10 +98,10 @@ export default class Battlemetrics {
     }
 
     getOnlinePlayers(): BattlemetricsPlayer[] {
-        return Object.values(this.players).filter((player) => player.online);
+        return (Object.values(this.players) as BattlemetricsPlayer[]).filter((player) => player.online);
     }
 
     getOfflinePlayers(): BattlemetricsPlayer[] {
-        return Object.values(this.players).filter((player) => !player.online);
+        return (Object.values(this.players) as BattlemetricsPlayer[]).filter((player) => !player.online);
     }
 }

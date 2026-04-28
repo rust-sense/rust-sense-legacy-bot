@@ -91,7 +91,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         return;
     }
 
-    const CommandHandler = await import('../handlers/inGameCommandHandler.js') as any;
+    const CommandHandler = await import('../handlers/inGameCommandHandler.js');
     const isCommand = await CommandHandler.inGameCommandHandler(rustplus, client, message);
     if (isCommand) return;
 
@@ -148,7 +148,7 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus: any, client: a
     client.setInstance(rustplus.guildId, instance);
 
     DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
-    const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js') as any;
+    const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js');
     SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
 }
 

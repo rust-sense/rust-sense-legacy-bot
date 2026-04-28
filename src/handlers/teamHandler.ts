@@ -1,14 +1,15 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 import { getPlayerName } from '../utils/playerNameUtils.js';
 
-export async function handler(rustplus: any, client: any, teamInfo: any): Promise<void> {
+export async function handler(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
     /* Handle team changes */
     await checkChanges(rustplus, client, teamInfo);
 }
 
-export async function checkChanges(rustplus: any, client: any, teamInfo: any): Promise<void> {
+export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

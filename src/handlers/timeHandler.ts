@@ -1,11 +1,12 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import _ from 'lodash';
 
-export function handler(rustplus: any, client: any, time: any) {
+export function handler(rustplus: any, client: DiscordBot, time: any) {
     /* Check time changes */
     checkChanges(rustplus, client, time);
 }
 
-export function checkChanges(rustplus: any, client: any, time: any) {
+export function checkChanges(rustplus: any, client: DiscordBot, time: any) {
     if (rustplus.time.timeTillActive) return;
 
     const prevTime = rustplus.time.time;

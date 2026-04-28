@@ -4,9 +4,7 @@ import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as InstanceUtils from '../util/instanceUtils.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'credentials',
@@ -72,10 +70,10 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -118,10 +116,10 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     const isHoster = interaction.options.getBoolean('host') || Object.keys(credentials).length === 1;
 
     if (Object.keys(credentials).length !== 1 && isHoster) {
-        if (!(client as any).isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
-            (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
     }
@@ -130,8 +128,8 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
         const str = client.intlGet(guildId, 'credentialsAlreadyRegistered', {
             steamId: steamId,
         });
-        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warn');
         return;
     }
 
@@ -151,14 +149,14 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     /* Start Fcm Listener */
     const FcmListener = await import('../util/FcmListener.js');
     if (isHoster) {
-        await (FcmListener as any).default(client, DiscordTools.getGuild(interaction.guildId));
+        await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId));
         if (prevHoster !== null) {
-            await (FcmListener as any).default(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
+            await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
         }
     } else {
-        await (FcmListener as any).default(client, DiscordTools.getGuild(interaction.guildId), steamId);
+        await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId), steamId);
 
-        const rustplus = (client as any).rustplusInstances[guildId];
+        const rustplus = client.rustplusInstances[guildId];
         if (rustplus && rustplus.team.leaderSteamId === steamId) {
             rustplus.updateLeaderRustPlusLiteInstance();
         }
@@ -181,7 +179,7 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     );
 
     const str = client.intlGet(interaction.guildId, 'credentialsAddedSuccessfully', { steamId: steamId });
-    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str, 'info');
 }
 
@@ -191,10 +189,10 @@ async function removeCredentials(client: DiscordBot, interaction: any, verifyId:
     let steamId = interaction.options.getString('steam_id');
 
     if (steamId && steamId in credentials && credentials[steamId].discord_user_id !== interaction.member.user.id) {
-        if (!(client as any).isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
-            (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
     }
@@ -214,20 +212,20 @@ async function removeCredentials(client: DiscordBot, interaction: any, verifyId:
         const str = client.intlGet(guildId, 'credentialsDoNotExist', {
             steamId: steamId ? steamId : client.intlGet(guildId, 'unknown'),
         });
-        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warn');
         return;
     }
 
     if (steamId === credentials.hoster) {
         if (client.fcmListeners[guildId]) {
-            (client.fcmListeners[guildId] as any).destroy();
+            (client.fcmListeners[guildId] as { destroy: () => void }).destroy();
         }
         delete client.fcmListeners[guildId];
         credentials.hoster = null;
     } else {
         if (client.fcmListenersLite[guildId][steamId]) {
-            (client.fcmListenersLite[guildId][steamId] as any).destroy();
+            (client.fcmListenersLite[guildId][steamId] as { destroy: () => void }).destroy();
         }
         delete client.fcmListenersLite[guildId][steamId];
     }
@@ -247,7 +245,7 @@ async function removeCredentials(client: DiscordBot, interaction: any, verifyId:
     const str = client.intlGet(guildId, 'credentialsRemovedSuccessfully', {
         steamId: steamId,
     });
-    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str, 'info');
 }
 
@@ -269,10 +267,10 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     let steamId = interaction.options.getString('steam_id');
 
-    if (!(client as any).isAdministrator(interaction)) {
+    if (!client.isAdministrator(interaction)) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
-        (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+        client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warn');
         return;
     }
 
@@ -284,8 +282,8 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
         const str = client.intlGet(guildId, 'credentialsDoNotExist', {
             steamId: steamId ? steamId : client.intlGet(guildId, 'unknown'),
         });
-        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-        client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warn');
         return;
     }
 
@@ -294,20 +292,20 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
     InstanceUtils.writeCredentialsFile(guildId, credentials);
 
     const instance = client.getInstance(guildId);
-    const rustplus = (client as any).rustplusInstances[guildId];
+    const rustplus = client.rustplusInstances[guildId];
     if (rustplus) {
         instance.activeServer = null;
         client.setInstance(guildId, instance);
-        (client as any).resetRustplusVariables(guildId);
+        client.resetRustplusVariables(guildId);
         rustplus.disconnect();
-        delete (client as any).rustplusInstances[guildId];
+        delete client.rustplusInstances[guildId];
         await DiscordMessages.sendServerMessage(guildId, rustplus.serverId);
     }
 
     const FcmListener = await import('../util/FcmListener.js');
-    await (FcmListener as any).default(client, DiscordTools.getGuild(interaction.guildId));
+    await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId));
     if (prevHoster !== null) {
-        await (FcmListener as any).default(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
+        await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId), prevHoster);
     }
 
     client.log(
@@ -322,6 +320,6 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
     const str = client.intlGet(guildId, 'credentialsSetHosterSuccessfully', {
         steamId: steamId,
     });
-    await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
     client.log(client.intlGet(null, 'infoCap'), str, 'info');
 }

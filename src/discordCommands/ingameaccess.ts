@@ -2,9 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'ingameaccess',
@@ -31,17 +29,17 @@ export default {
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
-        const rustplus = (client as any).rustplusInstances[guildId];
+        const rustplus = client.rustplusInstances[guildId];
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await (client as any).validatePermissions(interaction)) return;
+        if (!await client.validatePermissions(interaction)) return;
 
-        if (!(client as any).isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(guildId, 'missingPermission');
-            await (client as any).interactionReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            await client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -65,7 +63,7 @@ export default {
                     value: `mode, ${mode}`
                 }), 'info');
 
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
                 client.log(client.intlGet(null, 'infoCap'), str, 'info');
                 return;
             } break;
@@ -75,8 +73,8 @@ export default {
                 const blacklistCount = getListCount(instance, 'blacklist');
                 const whitelistCount = getListCount(instance, 'whitelist');
 
-                await (client as any).interactionEditReply(interaction, {
-                    embeds: [DiscordEmbedsAny.getEmbed({
+                await client.interactionEditReply(interaction, {
+                    embeds: [DiscordEmbeds.getEmbed({
                         color: Constants.COLOR_DEFAULT,
                         title: client.intlGet(guildId, 'inGameCommandAccess'),
                         description: client.intlGet(guildId,

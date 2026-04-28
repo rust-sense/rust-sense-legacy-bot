@@ -2,6 +2,7 @@ import RustPlusLib from '@liamcottle/rustplus.js';
 
 import { resolve } from '../container.js';
 import rustplusLiteEvents from '../rustplusLiteEvents/index.js';
+import type { RustplusEvent } from '../types/discord.js';
 
 function getClient() {
     return resolve<{
@@ -45,8 +46,8 @@ export default class RustPlusLite extends RustPlusLib {
     }
 
     loadRustPlusLiteEvents(): void {
-        for (const event of rustplusLiteEvents) {
-            this.on(event.name, (...args: unknown[]) => (event.execute as any)(this, getClient(), ...args));
+        for (const event of rustplusLiteEvents as RustplusEvent[]) {
+            this.on(event.name, (...args: unknown[]) => event.execute(this, getClient(), ...args));
         }
     }
 
@@ -56,7 +57,7 @@ export default class RustPlusLite extends RustPlusLib {
 
     async getInfoAsync(timeout = 10000): Promise<unknown> {
         try {
-            return await (this as any).sendRequestAsync(
+            return await this.sendRequestAsync(
                 {
                     getInfo: {},
                 },
@@ -71,7 +72,7 @@ export default class RustPlusLite extends RustPlusLib {
 
     async promoteToLeaderAsync(steamId: string, timeout = 10000): Promise<unknown> {
         try {
-            return await (this as any).sendRequestAsync(
+            return await this.sendRequestAsync(
                 {
                     promoteToLeader: {
                         steamId,

@@ -9,7 +9,7 @@ export function generateVerifyId(): number {
     return Math.floor(100000 + Math.random() * 900000);
 }
 
-export function isBlacklisted(client: any, instance: any, interaction: any, verifyId: number): boolean {
+export function isBlacklisted(client: any, instance: any, interaction: any, verifyId: string | number): boolean {
     if (
         instance.blacklist['discordIds'].includes(interaction.user.id) &&
         !interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
@@ -45,7 +45,7 @@ export async function resolveItemId(
     itemName: string | null,
     itemId: string | null,
 ): Promise<string | null> {
-    const DiscordEmbeds = await import('../discordTools/discordEmbeds.js') as any;
+    const DiscordEmbeds = await import('../discordTools/discordEmbeds.js');
     if (itemName !== null) {
         const item = client.items.getClosestItemIdByName(itemName);
         if (item === null) {

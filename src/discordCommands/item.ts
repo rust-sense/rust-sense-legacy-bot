@@ -2,9 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'item',
@@ -24,10 +22,10 @@ export default {
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const itemItemName = interaction.options.getString('name');
@@ -39,21 +37,21 @@ export default {
         if (itemItemName !== null) {
             let foundName = null;
             if (!foundName) {
-                foundName = (client as any).rustlabs.getClosestOtherNameByName(itemItemName);
+                foundName = client.rustlabs.getClosestOtherNameByName(itemItemName);
                 if (foundName) {
                     type = 'other';
                 }
             }
 
             if (!foundName) {
-                foundName = (client as any).rustlabs.getClosestBuildingBlockNameByName(itemItemName);
+                foundName = client.rustlabs.getClosestBuildingBlockNameByName(itemItemName);
                 if (foundName) {
                     type = 'buildingBlocks';
                 }
             }
 
             if (!foundName) {
-                foundName = (client as any).items.getClosestItemIdByName(itemItemName);
+                foundName = client.items.getClosestItemIdByName(itemItemName);
                 if (foundName) {
                     type = 'items';
                 }
@@ -63,31 +61,31 @@ export default {
                 const str = client.intlGet(guildId, 'noItemWithNameFound', {
                     name: itemItemName,
                 });
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warn');
                 return;
             }
             itemId = foundName;
         } else if (itemItemId !== null) {
-            if ((client as any).items.itemExist(itemItemId)) {
+            if (client.items.itemExist(itemItemId)) {
                 itemId = itemItemId;
             } else {
                 const str = client.intlGet(guildId, 'noItemWithIdFound', {
                     id: itemItemId,
                 });
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-                client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                client.log(client.intlGet(guildId, 'warningCap'), str, 'warn');
                 return;
             }
         } else if (itemItemName === null && itemItemId === null) {
             const str = client.intlGet(guildId, 'noNameIdGiven');
-            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warn');
             return;
         }
         let itemName = null;
         if (type === 'items') {
-            itemName = (client as any).items.getName(itemId);
+            itemName = client.items.getName(itemId);
         } else {
             itemName = itemId;
         }

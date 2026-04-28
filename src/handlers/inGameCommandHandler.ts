@@ -1,8 +1,9 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as SmartAlarmHandler from './smartAlarmHandler.js';
 import * as SmartSwitchGroupHandler from './smartSwitchGroupHandler.js';
 import * as SmartSwitchHandler from './smartSwitchHandler.js';
 
-export async function inGameCommandHandler(rustplus: any, client: any, message: any) {
+export async function inGameCommandHandler(rustplus: any, client: DiscordBot, message: any) {
     const guildId = rustplus.guildId;
     const instance = client.getInstance(guildId);
 

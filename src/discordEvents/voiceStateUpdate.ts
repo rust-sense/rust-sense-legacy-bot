@@ -1,7 +1,7 @@
 import { getVoiceConnection } from '@discordjs/voice';
 
 import * as Constants from '../util/constants.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'voiceStateUpdate',
@@ -13,7 +13,7 @@ export default {
 async function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: any) {
     const guildId = oldState.guild.id;
 
-    if (!Object.hasOwn((client as any).voiceLeaveTimeouts, guildId)) (client as any).voiceLeaveTimeouts[guildId] = null;
+    if (!Object.hasOwn(client.voiceLeaveTimeouts, guildId)) client.voiceLeaveTimeouts[guildId] = null;
 
     /* No channel involved. */
     if (oldState.channel === null && newState.channel === null) return;
@@ -25,8 +25,8 @@ async function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: a
     const memberId = oldState.member.id;
 
     /* If user join same channel as bot */
-    if (memberId !== (client as any).user.id && newState.channel !== null && newState.channel.id === botChannelId) {
-        clearTimeout((client as any).voiceLeaveTimeouts[guildId]);
+    if (memberId !== client.user.id && newState.channel !== null && newState.channel.id === botChannelId) {
+        clearTimeout(client.voiceLeaveTimeouts[guildId]);
         return;
     }
 
@@ -35,7 +35,7 @@ async function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: a
 
     /* If user was in same channel as bot, but not anymore */
     if (
-        memberId !== (client as any).user.id &&
+        memberId !== client.user.id &&
         oldState.channel !== null &&
         oldState.channel.id === botChannelId &&
         (newState.channel === null || (newState.channel !== null && newState.channel.id !== botChannelId))
@@ -44,13 +44,13 @@ async function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: a
         channel = oldState.channel;
     }
 
-    if (memberId === (client as any).user.id) {
+    if (memberId === client.user.id) {
         condition = true;
         channel = newState.channel;
     }
 
     if (condition && channel && channel.members.size === 1) {
-        (client as any).voiceLeaveTimeouts[guildId] = setTimeout(
+        client.voiceLeaveTimeouts[guildId] = setTimeout(
             botLeaveVoiceTimeout.bind(null, guildId),
             Constants.BOT_LEAVE_VOICE_CHAT_TIMEOUT_MS,
         );

@@ -1,7 +1,8 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as Timer from '../util/timer.js';
 
-export async function handler(rustplus: any, client: any) {
+export async function handler(rustplus: any, client: DiscordBot) {
     let instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
@@ -42,7 +43,7 @@ export async function handler(rustplus: any, client: any) {
     }
 }
 
-export function smartAlarmCommandHandler(rustplus: any, client: any, command: string) {
+export function smartAlarmCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const instance = client.getInstance(guildId);

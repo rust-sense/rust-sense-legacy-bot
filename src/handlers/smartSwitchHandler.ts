@@ -1,11 +1,12 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as GameMapModule from '../util/GameMap.js';
-const GameMap = GameMapModule as any;
+const GameMap = GameMapModule;
 import * as Timer from '../util/timer.js';
 import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
-const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule as any;
+const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule;
 
-export async function handler(rustplus: any, client: any, time: any) {
+export async function handler(rustplus: any, client: DiscordBot, time: any) {
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
@@ -318,7 +319,7 @@ export async function handler(rustplus: any, client: any, time: any) {
     }
 }
 
-export async function smartSwitchCommandHandler(rustplus: any, client: any, command: string) {
+export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const instance = client.getInstance(guildId);
@@ -457,7 +458,7 @@ export async function smartSwitchCommandHandler(rustplus: any, client: any, comm
     return true;
 }
 
-export async function smartSwitchCommandTurnOnOff(rustplus: any, client: any, entityId: string, active: boolean) {
+export async function smartSwitchCommandTurnOnOff(rustplus: any, client: DiscordBot, entityId: string, active: boolean) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const instance = client.getInstance(guildId);

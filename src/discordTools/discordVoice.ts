@@ -1,4 +1,5 @@
 import { getVoiceConnection, createAudioPlayer, createAudioResource } from '@discordjs/voice';
+import { Readable } from 'node:stream';
 
 import { client } from '../index.js';
 import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
@@ -11,7 +12,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
     const url = `https://cache-a.oddcast.com/tts/genC.php?EID=${voice.EID}&LID=${voice.LID}&VID=${voice.VID}&TXT=${encodeURIComponent(text)}&EXT=mp3`;
 
     if (connection) {
-        const stream = (await (await fetch(url)).blob()).stream() as any;
+        const stream = Readable.fromWeb((await (await fetch(url)).blob()).stream());
         const resource = createAudioResource(stream);
         const player = createAudioPlayer();
         connection.subscribe(player);

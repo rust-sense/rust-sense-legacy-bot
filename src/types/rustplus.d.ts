@@ -31,6 +31,7 @@ declare module '@liamcottle/rustplus.js' {
         connect(): void;
         disconnect(): void;
         sendRequest(request: unknown, callback?: (message: AppMessage) => void): void;
+        sendRequestAsync(request: unknown, timeoutMilliseconds?: number): Promise<AppMessage>;
         sendTeamMessage(message: string): void;
         getEntityInfo(entityId: number, callback?: (message: AppMessage) => void): void;
         getMap(callback?: (message: AppMessage) => void): void;

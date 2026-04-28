@@ -1,6 +1,6 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as PollingHandlerModule from '../handlers/pollingHandler.js';
-const PollingHandler = PollingHandlerModule as any;
+const PollingHandler = PollingHandlerModule;
 
 export default {
     name: 'connected',

@@ -33,8 +33,8 @@ export function getEmbed(options: any = {}) {
 }
 
 export function getSmartSwitchEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].switches[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].switches[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
     return getEmbed({
@@ -55,9 +55,9 @@ export function getSmartSwitchEmbed(guildId, serverId, entityId) {
 }
 
 export async function getServerEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId) as any;
-    const credentials = InstanceUtils.readCredentialsFile(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const server = instance.serverList[serverId];
     let hoster: any = client.intlGet(guildId, 'unknown');
     if (Object.hasOwn(credentials, server.steamId)) {
         hoster = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
@@ -70,7 +70,7 @@ export async function getServerEmbed(guildId, serverId) {
         const bmIdLink = `[${bmId}](${Constants.BATTLEMETRICS_SERVER_URL}${bmId})`;
         description += `__**${client.intlGet(guildId, 'battlemetricsId')}:**__ ${bmIdLink}\n`;
 
-        const bmInstance = client.battlemetricsInstances[bmId] as any;
+        const bmInstance = client.battlemetricsInstances[bmId];
         if (bmInstance) {
             description += `__**${client.intlGet(guildId, 'streamerMode')}:**__ `;
             description += Utils.getActiveStr(client, guildId, bmInstance.streamerMode) + '\n';
@@ -99,10 +99,10 @@ export async function getServerEmbed(guildId, serverId) {
 }
 
 export function getTrackerEmbed(guildId, trackerId) {
-    const instance = client.getInstance(guildId) as any;
-    const tracker = instance.trackers[trackerId] as any;
+    const instance = client.getInstance(guildId);
+    const tracker = instance.trackers[trackerId];
     const battlemetricsId = tracker.battlemetricsId;
-    const bmInstance = client.battlemetricsInstances[battlemetricsId] as any;
+    const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
     const successful = bmInstance && bmInstance.lastUpdateSuccessful ? true : false;
 
@@ -239,8 +239,8 @@ export function getTrackerEmbed(guildId, trackerId) {
 }
 
 export function getSmartAlarmEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].alarms[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].alarms[entityId];
     const grid = Utils.getGridSuffix(entity.location);
     let description = `**ID**: \`${entityId}\`\n`;
     description += `**${client.intlGet(guildId, 'lastTrigger')}:** `;
@@ -275,9 +275,9 @@ export function getSmartAlarmEmbed(guildId, serverId, entityId) {
 }
 
 export function getStorageMonitorEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].storageMonitors[entityId] as any;
-    const rustplus = client.rustplusInstances[guildId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].storageMonitors[entityId];
+    const rustplus = client.rustplusInstances[guildId];
     const grid = Utils.getGridSuffix(entity.location);
 
     let description = `**ID** \`${entityId}\``;
@@ -346,7 +346,7 @@ export function getStorageMonitorEmbed(guildId, serverId, entityId) {
     }
 
     for (const [id, quantity] of Object.entries(storageItems)) {
-        itemName += `\`${(client.items as any).getName(id)}\`\n`;
+        itemName += `\`${(client.items).getName(id)}\`\n`;
         itemQuantity += `\`${quantity}\`\n`;
     }
 
@@ -368,8 +368,8 @@ export function getStorageMonitorEmbed(guildId, serverId, entityId) {
 }
 
 export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
-    const instance = client.getInstance(guildId) as any;
-    const group = instance.serverList[serverId].switchGroups[groupId] as any;
+    const instance = client.getInstance(guildId);
+    const group = instance.serverList[serverId].switchGroups[groupId];
 
     let switchName = '',
         switchId = '',
@@ -419,7 +419,7 @@ export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
 }
 
 export function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
-    const instance = client.getInstance(guildId) as any;
+    const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId][type][entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -435,14 +435,14 @@ export function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
 }
 
 export function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].storageMonitors[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
     let itemName = '',
         itemQuantity = '';
     for (const item of items['recycler']) {
-        itemName += `\`${(client.items as any).getName(item.itemId)}\`\n`;
+        itemName += `\`${(client.items).getName(item.itemId)}\`\n`;
         itemQuantity += `\`${item.quantity}\`\n`;
     }
 
@@ -467,8 +467,8 @@ export function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items
 }
 
 export function getDecayingNotificationEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].storageMonitors[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
     return getEmbed({
@@ -484,8 +484,8 @@ export function getDecayingNotificationEmbed(guildId, serverId, entityId) {
 }
 
 export function getStorageMonitorDisconnectNotificationEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].storageMonitors[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
     return getEmbed({
@@ -501,10 +501,10 @@ export function getStorageMonitorDisconnectNotificationEmbed(guildId, serverId, 
 }
 
 export async function getStorageMonitorNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     const entity = server.storageMonitors[entityId];
-    const credentials = InstanceUtils.readCredentialsFile(guildId) as any;
+    const credentials = InstanceUtils.readCredentialsFile(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -522,10 +522,10 @@ export async function getStorageMonitorNotFoundEmbed(guildId, serverId, entityId
 }
 
 export async function getSmartSwitchNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
-    const entity = instance.serverList[serverId].switches[entityId] as any;
-    const credentials = InstanceUtils.readCredentialsFile(guildId) as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
+    const entity = instance.serverList[serverId].switches[entityId];
+    const credentials = InstanceUtils.readCredentialsFile(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -543,10 +543,10 @@ export async function getSmartSwitchNotFoundEmbed(guildId, serverId, entityId) {
 }
 
 export async function getSmartAlarmNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     const entity = server.alarms[entityId];
-    const credentials = InstanceUtils.readCredentialsFile(guildId) as any;
+    const credentials = InstanceUtils.readCredentialsFile(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -609,8 +609,8 @@ export function getAlarmRaidAlarmEmbed(data, body) {
 }
 
 export function getAlarmEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId) as any;
-    const entity = instance.serverList[serverId].alarms[entityId] as any;
+    const instance = client.getInstance(guildId);
+    const entity = instance.serverList[serverId].alarms[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
     return getEmbed({
@@ -627,8 +627,8 @@ export function getAlarmEmbed(guildId, serverId, entityId) {
 }
 
 export function getEventEmbed(guildId, serverId, text, image, color = Constants.COLOR_DEFAULT) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: color,
         thumbnail: `attachment://${image}`,
@@ -652,8 +652,8 @@ export function getActionInfoEmbed(color, str, footer = null, ephemeral = true) 
 }
 
 export function getServerChangedStateEmbed(guildId, serverId, state) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: state ? Constants.COLOR_INACTIVE : Constants.COLOR_ACTIVE,
         title: state ? client.intlGet(guildId, 'serverJustOffline') : client.intlGet(guildId, 'serverJustOnline'),
@@ -664,8 +664,8 @@ export function getServerChangedStateEmbed(guildId, serverId, state) {
 }
 
 export function getServerWipeDetectedEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
         title: client.intlGet(guildId, 'wipeDetected'),
@@ -676,8 +676,8 @@ export function getServerWipeDetectedEmbed(guildId, serverId) {
 }
 
 export function getServerConnectionInvalidEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_INACTIVE,
         title: client.intlGet(guildId, 'serverInvalid'),
@@ -688,7 +688,7 @@ export function getServerConnectionInvalidEmbed(guildId, serverId) {
 }
 
 export function getActivityNotificationEmbed(guildId, serverId, color, text, steamId, png, title = null) {
-    const instance = client.getInstance(guildId) as any;
+    const instance = client.getInstance(guildId);
     const footerTitle = title !== null ? title : instance.serverList[serverId].title;
     return getEmbed({
         color: color,
@@ -704,7 +704,7 @@ export function getActivityNotificationEmbed(guildId, serverId, color, text, ste
 
 export function getUpdateServerInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId) as any;
+    const instance = client.getInstance(guildId);
 
     const time = rustplus.getCommandTime(true);
     const timeLeftTitle = client.intlGet(rustplus.guildId, 'timeTill', {
@@ -761,7 +761,7 @@ export function getUpdateServerInformationEmbed(rustplus) {
 
 export function getUpdateEventInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId) as any;
+    const instance = client.getInstance(guildId);
 
     const cargoshipFieldName = client.intlGet(guildId, 'cargoship');
     const patrolHelicopterFieldName = client.intlGet(guildId, 'patrolHelicopter');
@@ -800,7 +800,7 @@ export function getUpdateEventInformationEmbed(rustplus) {
 
 export function getUpdateTeamInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId) as any;
+    const instance = client.getInstance(guildId);
 
     const title = client.intlGet(guildId, 'teamMemberInfo');
     const teamMemberFieldName = client.intlGet(guildId, 'teamMember');
@@ -916,7 +916,7 @@ export function getUpdateTeamInformationEmbed(rustplus) {
 }
 
 export function getUpdateBattlemetricsOnlinePlayersInformationEmbed(rustplus, battlemetricsId) {
-    const bmInstance = client.battlemetricsInstances[battlemetricsId] as any;
+    const bmInstance = client.battlemetricsInstances[battlemetricsId];
     const guildId = rustplus.guildId;
 
     const playerIds = bmInstance.getOnlinePlayerIdsOrderedByTime();
@@ -1017,7 +1017,7 @@ export function getDiscordCommandResponseEmbed(rustplus, response) {
 }
 
 export async function getCredentialsShowEmbed(guildId) {
-    const credentials = InstanceUtils.readCredentialsFile(guildId) as any;
+    const credentials = InstanceUtils.readCredentialsFile(guildId);
     let names = '';
     let steamIds = '';
     let hoster = '';
@@ -1047,8 +1047,8 @@ export async function getCredentialsShowEmbed(guildId) {
 }
 
 export function getItemAvailableVendingMachineEmbed(guildId, serverId, str) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
         timestamp: true,
@@ -1060,8 +1060,8 @@ export function getItemAvailableVendingMachineEmbed(guildId, serverId, str) {
 }
 
 export function getUserSendEmbed(guildId, serverId, sender, str) {
-    const instance = client.getInstance(guildId) as any;
-    const server = instance.serverList[serverId] as any;
+    const instance = client.getInstance(guildId);
+    const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
         timestamp: true,
@@ -1137,7 +1137,7 @@ export function getCraftEmbed(guildId, craftDetails, quantity) {
     let items = '',
         quantities = '';
     for (const item of craftDetails[2].ingredients) {
-        const itemName = (client.items as any).getName(item.id);
+        const itemName = (client.items).getName(item.id);
         items += `${itemName}\n`;
         quantities += `${item.quantity * quantity}\n`;
     }
@@ -1162,7 +1162,7 @@ export function getResearchEmbed(guildId, researchDetails) {
         scrapString += `${researchDetails[2].researchTable}\n`;
     }
     if (researchDetails[2].workbench !== null) {
-        typeString += `${(client.items as any).getName(researchDetails[2].workbench.type)}\n`;
+        typeString += `${(client.items).getName(researchDetails[2].workbench.type)}\n`;
         const scrap = researchDetails[2].workbench.scrap;
         const totalScrap = researchDetails[2].workbench.totalScrap;
         scrapString += `${scrap} (${client.intlGet(guildId, 'total')} ${totalScrap})`;
@@ -1183,21 +1183,21 @@ export function getRecycleEmbed(guildId, recycleDetails, quantity, recyclerType)
     let title = quantity === 1 ? `${recycleDetails[1].name}` : `${recycleDetails[1].name} x${quantity}`;
     title += ` (${client.intlGet(guildId, recyclerType)})`;
 
-    const recycleData = (client.rustlabs as any).getRecycleDataFromArray([
+    const recycleData = (client.rustlabs).getRecycleDataFromArray([
         { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
     ]);
 
     let items0 = '',
         quantities0 = '';
     for (const item of recycleDetails[2][recyclerType]['yield']) {
-        items0 += `${(client.items as any).getName(item.id)}\n`;
+        items0 += `${(client.items).getName(item.id)}\n`;
         quantities0 += item.probability !== 1 ? `${Math.floor(item.probability * 100)}%\n` : `${item.quantity}\n`;
     }
 
     let items1 = '',
         quantities1 = '';
     for (const item of recycleData[recyclerType]) {
-        items1 += `${(client.items as any).getName(item.itemId)}\n`;
+        items1 += `${(client.items).getName(item.itemId)}\n`;
         quantities1 += `${item.quantity}\n`;
     }
 
@@ -1216,8 +1216,8 @@ export function getRecycleEmbed(guildId, recycleDetails, quantity, recyclerType)
 }
 
 export function getBattlemetricsEventEmbed(guildId, battlemetricsId, title, description, fields = null) {
-    const instance = client.getInstance(guildId) as any;
-    const bmInstance = client.battlemetricsInstances[battlemetricsId] as any;
+    const instance = client.getInstance(guildId);
+    const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
     const serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;
 
@@ -1256,8 +1256,8 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
 
     const decayDetails =
         type === 'items'
-            ? (client.rustlabs as any).getDecayDetailsById(itemId)
-            : (client.rustlabs as any).getDecayDetailsByName(itemId);
+            ? (client.rustlabs).getDecayDetailsById(itemId)
+            : (client.rustlabs).getDecayDetailsByName(itemId);
     if (decayDetails !== null) {
         const details = decayDetails[3];
         const hp = details.hpString;
@@ -1299,7 +1299,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const despawnDetails = type === 'items' ? (client.rustlabs as any).getDespawnDetailsById(itemId) : null;
+    const despawnDetails = type === 'items' ? (client.rustlabs).getDespawnDetailsById(itemId) : null;
     if (despawnDetails !== null) {
         const details = despawnDetails[2];
         fields.push({
@@ -1309,7 +1309,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         });
     }
 
-    const stackDetails = type === 'items' ? (client.rustlabs as any).getStackDetailsById(itemId) : null;
+    const stackDetails = type === 'items' ? (client.rustlabs).getStackDetailsById(itemId) : null;
     if (stackDetails !== null) {
         const details = stackDetails[2];
         fields.push({
@@ -1321,14 +1321,14 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
 
     const upkeepDetails =
         type === 'items'
-            ? (client.rustlabs as any).getUpkeepDetailsById(itemId)
-            : (client.rustlabs as any).getUpkeepDetailsByName(itemId);
+            ? (client.rustlabs).getUpkeepDetailsById(itemId)
+            : (client.rustlabs).getUpkeepDetailsByName(itemId);
     if (upkeepDetails !== null) {
         const details = upkeepDetails[3];
 
         let upkeepString = '';
         for (const item of details) {
-            const name = (client.items as any).getName(item.id);
+            const name = (client.items).getName(item.id);
             const quantity = item.quantity;
             upkeepString += `${quantity} ${name}\n`;
         }
@@ -1340,12 +1340,12 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         });
     }
 
-    const craftDetails = type === 'items' ? (client.rustlabs as any).getCraftDetailsById(itemId) : null;
+    const craftDetails = type === 'items' ? (client.rustlabs).getCraftDetailsById(itemId) : null;
     if (craftDetails !== null) {
         const details = craftDetails[2];
         let workbenchString = '';
         if (details.workbench !== null) {
-            const workbenchShortname = (client.items as any).getShortName(details.workbench);
+            const workbenchShortname = (client.items).getShortName(details.workbench);
             switch (workbenchShortname) {
                 case 'workbench1':
                     {
@@ -1371,7 +1371,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
 
         for (const ingredient of details.ingredients) {
             const amount = `${ingredient.quantity}x`;
-            const name = (client.items as any).getName(ingredient.id);
+            const name = (client.items).getName(ingredient.id);
             craftString += `${amount} ${name}\n`;
         }
 
@@ -1384,13 +1384,13 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const recycleDetails = type === 'items' ? (client.rustlabs as any).getRecycleDetailsById(itemId) : null;
+    const recycleDetails = type === 'items' ? (client.rustlabs).getRecycleDetailsById(itemId) : null;
     if (recycleDetails !== null) {
         const details = recycleDetails[2]['recycler']['yield'];
 
         let recycleString = '';
         for (const recycleItem of details) {
-            const name = (client.items as any).getName(recycleItem.id);
+            const name = (client.items).getName(recycleItem.id);
             const quantityProbability =
                 recycleItem.probability !== 1
                     ? `${Math.floor(recycleItem.probability * 100)}%`
@@ -1407,12 +1407,12 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const researchDetails = type === 'items' ? (client.rustlabs as any).getResearchDetailsById(itemId) : null;
+    const researchDetails = type === 'items' ? (client.rustlabs).getResearchDetailsById(itemId) : null;
     if (researchDetails !== null) {
         const details = researchDetails[2];
         let workbenchString = '';
         if (details.workbench !== null) {
-            const workbenchShortname = (client.items as any).getShortName(details.workbench.type);
+            const workbenchShortname = (client.items).getShortName(details.workbench.type);
             switch (workbenchShortname) {
                 case 'workbench1':
                     {

@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as Timer from '../util/timer.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'uptime',
@@ -20,12 +20,12 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const rustplus = (client as any).rustplusInstances[interaction.guildId];
+        const rustplus = client.rustplusInstances[interaction.guildId];
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         let string = '';

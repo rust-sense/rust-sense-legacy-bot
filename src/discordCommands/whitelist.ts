@@ -2,10 +2,9 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
-const DiscordEmbedsAny = DiscordEmbeds as any;
-const Scrape = await import('../util/scrape.js') as any;
+const { scrapeSteamProfileName } = await import('../util/scrape.js');
 
 export default {
     name: 'whitelist',
@@ -37,15 +36,15 @@ export default {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await (client as any).validatePermissions(interaction)) return;
+        if (!await client.validatePermissions(interaction)) return;
 
-        if (!(client as any).isAdministrator(interaction)) {
+        if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(guildId, 'missingPermission');
-            await (client as any).interactionReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            await client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -74,7 +73,7 @@ export default {
                     value: `add, ${steamid}`
                 }), 'info');
 
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(successful, str));
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
                 client.log(client.intlGet(null, 'infoCap'), str, 'info');
                 return;
             } break;
@@ -101,7 +100,7 @@ export default {
                     value: `remove, ${steamid}`
                 }), 'info');
 
-                await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(successful, str));
+                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
                 client.log(client.intlGet(null, 'infoCap'), str, 'info');
                 return;
             } break;
@@ -113,8 +112,8 @@ export default {
                     steamIds += `${steamName}\n`;
                 }
 
-                await (client as any).interactionEditReply(interaction, {
-                    embeds: [DiscordEmbedsAny.getEmbed({
+                await client.interactionEditReply(interaction, {
+                    embeds: [DiscordEmbeds.getEmbed({
                         color: Constants.COLOR_DEFAULT,
                         title: client.intlGet(guildId, 'whitelist'),
                         fields: [
@@ -143,7 +142,7 @@ function ensureWhitelist(instance: any) {
 }
 
 async function getSteamName(client: DiscordBot, steamid: string) {
-    const steamName = await Scrape.default.scrapeSteamProfileName(client, steamid);
+    const steamName = await scrapeSteamProfileName(client, steamid);
     if (steamName) return `${steamName} (${steamid})`;
     return `${steamid}`;
 }

@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'voice',
@@ -20,10 +20,10 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {

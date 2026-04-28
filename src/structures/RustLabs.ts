@@ -19,6 +19,8 @@ interface GroupedDatasetView extends DatasetView {
 }
 
 export default class RustLabs {
+    [key: string]: any;
+
     private _staticStorage = getStaticFilesStorage();
     private _craftData: DatasetView;
     private _researchData: DatasetView;

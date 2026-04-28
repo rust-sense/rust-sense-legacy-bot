@@ -1,14 +1,15 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as GameMapModule from '../util/GameMap.js';
 
-const GameMap = GameMapModule as any;
+const GameMap = GameMapModule;
 
-export async function handler(rustplus: any, client: any, mapMarkers: any) {
+export async function handler(rustplus: any, client: DiscordBot, mapMarkers: any) {
     /* Handle Vending Machine changes */
     await checkChanges(rustplus, client, mapMarkers);
 }
 
-export async function checkChanges(rustplus: any, client: any, mapMarkers: any) {
+export async function checkChanges(rustplus: any, client: DiscordBot, mapMarkers: any) {
     const guildId = rustplus.guildId;
     const instance = client.getInstance(guildId);
     const subscriptionList = instance.marketSubscriptionList;

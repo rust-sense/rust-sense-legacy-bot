@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import * as ConstantsModule from '../util/constants.js';
 const Constants: any = ConstantsModule;
@@ -14,7 +15,7 @@ const TrackerInputParser: any = TrackerInputParserModule;
 import * as UtilsModule from '../util/utils.js';
 const Utils: any = UtilsModule;
 
-export default async (client: any, interaction: any) => {
+export default async (client: DiscordBot, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
 
@@ -74,7 +75,8 @@ export default async (client: any, interaction: any) => {
                 server.battlemetricsId = battlemetricsId;
                 server.connect = `connect ${bmInstance.server_ip}:${bmInstance.server_port}`;
             } else {
-                const bmInstance: any = new Battlemetrics(battlemetricsId);
+                const bmInstance: any = new Battlemetrics();
+                bmInstance.id = battlemetricsId;
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
                     client.battlemetricsInstances[battlemetricsId] = bmInstance;
@@ -301,7 +303,8 @@ export default async (client: any, interaction: any) => {
                 tracker.img = Constants.DEFAULT_SERVER_IMG;
                 tracker.title = bmInstance.server_name;
             } else {
-                const bmInstance: any = new Battlemetrics(trackerBattlemetricsId);
+                const bmInstance: any = new Battlemetrics();
+                bmInstance.id = trackerBattlemetricsId;
                 await bmInstance.setup();
                 if (bmInstance.lastUpdateSuccessful) {
                     client.battlemetricsInstances[trackerBattlemetricsId] = bmInstance;

@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'cctv',
@@ -30,14 +30,14 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await (client as any).validatePermissions(interaction)) return;
+        if (!await client.validatePermissions(interaction)) return;
 
         const monument = interaction.options.getString('monument');
-        const cctvCodes = (client as any).cctv.getCodes(monument);
-        const dynamic = (client as any).cctv.isDynamic(monument);
+        const cctvCodes = client.cctv.getCodes(monument);
+        const dynamic = client.cctv.isDynamic(monument);
 
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
             id: `${verifyId}`,

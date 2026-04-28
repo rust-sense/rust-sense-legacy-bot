@@ -23,6 +23,7 @@ import { resolve } from '../container.js';
 import rustplusEvents from '../rustplusEvents/index.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
+import type { RustplusEvent } from '../types/discord.js';
 
 function getClient(): any {
     return resolve('discordBot');
@@ -30,6 +31,46 @@ function getClient(): any {
 
 const TOKENS_LIMIT = 24; /* Per player */
 const TOKENS_REPLENISH = 3; /* Per second */
+
+interface PersistedTimerData {
+    id: number;
+    message: string;
+    endAtMs: number;
+}
+
+interface PersistedCargoShipEgressTimer {
+    id: number;
+    endAtMs: number;
+    x: number | null;
+    y: number | null;
+}
+
+interface PersistedCargoShipState {
+    id: number;
+    x: number;
+    y: number;
+    onItsWayOut: boolean;
+}
+
+interface PersistedRuntimeState {
+    timers?: PersistedTimerData[];
+    timeSinceCargoShipWasOutMs?: number;
+    timeSinceCH47WasOutMs?: number;
+    timeSinceSmallOilRigWasTriggeredMs?: number;
+    timeSinceLargeOilRigWasTriggeredMs?: number;
+    timeSincePatrolHelicopterWasOnMapMs?: number;
+    timeSincePatrolHelicopterWasDestroyedMs?: number;
+    patrolHelicopterDestroyedLocation?: string;
+    timeSinceTravelingVendorWasOnMapMs?: number;
+    timeSinceDeepSeaSpawnedMs?: number;
+    timeSinceDeepSeaWasOnMapMs?: number;
+    crateSmallOilRigLocation?: string;
+    crateSmallOilRigUnlockAtMs?: number;
+    crateLargeOilRigLocation?: string;
+    crateLargeOilRigUnlockAtMs?: number;
+    cargoShipEgressTimers?: PersistedCargoShipEgressTimer[];
+    cargoShipsState?: PersistedCargoShipState[];
+}
 
 export default class RustPlus extends RustPlusLib {
     [key: string]: any;
@@ -112,8 +153,8 @@ export default class RustPlus extends RustPlusLib {
     }
 
     loadRustPlusEvents(): void {
-        for (const event of rustplusEvents) {
-            this.on(event.name, (...args: any[]) => (event.execute as any)(this, getClient(), ...args));
+        for (const event of rustplusEvents as RustplusEvent[]) {
+            this.on(event.name, (...args: unknown[]) => event.execute(this, getClient(), ...args));
         }
     }
 
@@ -121,8 +162,8 @@ export default class RustPlus extends RustPlusLib {
         const client = getClient();
         const instance = client.getInstance(this.guildId);
 
-        for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers)) {
-            this.markers[name] = { x: (location as any).x, y: (location as any).y, location: (location as any).location };
+        for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers) as [string, import('../types/instance.js').Marker][]) {
+            this.markers[name] = { x: location.x, y: location.y, location: location.location };
         }
     }
 
@@ -157,16 +198,16 @@ export default class RustPlus extends RustPlusLib {
     }
 
     persistCustomTimersState(): void {
-        const persistedTimers: any[] = [];
-        for (const [id, content] of Object.entries(this.timers)) {
-            if (!content || !(content as any).timer || typeof ((content as any).message) !== 'string') continue;
+        const persistedTimers: PersistedTimerData[] = [];
+        for (const [id, content] of Object.entries(this.timers) as [string, { timer: Timer.Timer; message: string } | undefined][]) {
+            if (!content || !content.timer || typeof (content.message) !== 'string') continue;
 
-            const endAtMs = this.getTimerEndAtMs((content as any).timer);
+            const endAtMs = this.getTimerEndAtMs(content.timer);
             if (endAtMs === null) continue;
 
             persistedTimers.push({
                 id: parseInt(id),
-                message: (content as any).message,
+                message: content.message,
                 endAtMs: endAtMs
             });
         }
@@ -182,10 +223,11 @@ export default class RustPlus extends RustPlusLib {
 
     restoreCustomTimersState(): void {
         const persisted = this.getRuntimeState('customTimers');
-        if (!persisted || !Array.isArray((persisted as any).timers)) return;
+        const state = persisted as PersistedRuntimeState | null;
+        if (!state || !Array.isArray(state.timers)) return;
 
-        for (const timerData of (persisted as any).timers) {
-            const id = parseInt(timerData.id);
+        for (const timerData of state.timers) {
+            const id = timerData.id;
             if (!Number.isInteger(id) || id < 0) continue;
             if (this.timers.hasOwnProperty(id)) continue;
             if (typeof (timerData.message) !== 'string' || timerData.message === '') continue;
@@ -218,7 +260,7 @@ export default class RustPlus extends RustPlusLib {
     buildMapMarkersRuntimeState(): any {
         if (!this.mapMarkers) return null;
 
-        const cargoShipEgressTimers: any[] = [];
+        const cargoShipEgressTimers: PersistedCargoShipEgressTimer[] = [];
         for (const [id, timer] of Object.entries(this.mapMarkers.cargoShipEgressTimers)) {
             const endAtMs = this.getTimerEndAtMs(timer);
             if (endAtMs === null) continue;
@@ -235,7 +277,7 @@ export default class RustPlus extends RustPlusLib {
             });
         }
 
-        const cargoShipsState = this.mapMarkers.cargoShips.map((cargoShip: any) => ({
+        const cargoShipsState = this.mapMarkers.cargoShips.map((cargoShip: { id: number; x: number; y: number; onItsWayOut?: boolean }) => ({
             id: cargoShip.id,
             x: cargoShip.x,
             y: cargoShip.y,
@@ -316,45 +358,47 @@ export default class RustPlus extends RustPlusLib {
         const persisted = this.getRuntimeState('mapMarkers');
         if (!persisted) return;
 
-        if ((persisted as any).timeSinceCargoShipWasOutMs) {
-            this.mapMarkers.timeSinceCargoShipWasOut = this.timestampToDate((persisted as any).timeSinceCargoShipWasOutMs);
+        const state = persisted as PersistedRuntimeState;
+
+        if (state.timeSinceCargoShipWasOutMs) {
+            this.mapMarkers.timeSinceCargoShipWasOut = this.timestampToDate(state.timeSinceCargoShipWasOutMs);
         }
-        if ((persisted as any).timeSinceCH47WasOutMs) {
-            this.mapMarkers.timeSinceCH47WasOut = this.timestampToDate((persisted as any).timeSinceCH47WasOutMs);
+        if (state.timeSinceCH47WasOutMs) {
+            this.mapMarkers.timeSinceCH47WasOut = this.timestampToDate(state.timeSinceCH47WasOutMs);
         }
-        if ((persisted as any).timeSinceSmallOilRigWasTriggeredMs) {
-            this.mapMarkers.timeSinceSmallOilRigWasTriggered = this.timestampToDate((persisted as any).timeSinceSmallOilRigWasTriggeredMs);
+        if (state.timeSinceSmallOilRigWasTriggeredMs) {
+            this.mapMarkers.timeSinceSmallOilRigWasTriggered = this.timestampToDate(state.timeSinceSmallOilRigWasTriggeredMs);
         }
-        if ((persisted as any).timeSinceLargeOilRigWasTriggeredMs) {
-            this.mapMarkers.timeSinceLargeOilRigWasTriggered = this.timestampToDate((persisted as any).timeSinceLargeOilRigWasTriggeredMs);
+        if (state.timeSinceLargeOilRigWasTriggeredMs) {
+            this.mapMarkers.timeSinceLargeOilRigWasTriggered = this.timestampToDate(state.timeSinceLargeOilRigWasTriggeredMs);
         }
-        if ((persisted as any).timeSincePatrolHelicopterWasOnMapMs) {
-            this.mapMarkers.timeSincePatrolHelicopterWasOnMap = this.timestampToDate((persisted as any).timeSincePatrolHelicopterWasOnMapMs);
+        if (state.timeSincePatrolHelicopterWasOnMapMs) {
+            this.mapMarkers.timeSincePatrolHelicopterWasOnMap = this.timestampToDate(state.timeSincePatrolHelicopterWasOnMapMs);
         }
-        if ((persisted as any).timeSincePatrolHelicopterWasDestroyedMs) {
-            this.mapMarkers.timeSincePatrolHelicopterWasDestroyed = this.timestampToDate((persisted as any).timeSincePatrolHelicopterWasDestroyedMs);
+        if (state.timeSincePatrolHelicopterWasDestroyedMs) {
+            this.mapMarkers.timeSincePatrolHelicopterWasDestroyed = this.timestampToDate(state.timeSincePatrolHelicopterWasDestroyedMs);
         }
-        if ((persisted as any).patrolHelicopterDestroyedLocation) {
-            this.mapMarkers.patrolHelicopterDestroyedLocation = (persisted as any).patrolHelicopterDestroyedLocation;
+        if (state.patrolHelicopterDestroyedLocation) {
+            this.mapMarkers.patrolHelicopterDestroyedLocation = state.patrolHelicopterDestroyedLocation;
         }
-        if ((persisted as any).timeSinceTravelingVendorWasOnMapMs) {
-            this.mapMarkers.timeSinceTravelingVendorWasOnMap = this.timestampToDate((persisted as any).timeSinceTravelingVendorWasOnMapMs);
+        if (state.timeSinceTravelingVendorWasOnMapMs) {
+            this.mapMarkers.timeSinceTravelingVendorWasOnMap = this.timestampToDate(state.timeSinceTravelingVendorWasOnMapMs);
         }
-        if ((persisted as any).timeSinceDeepSeaSpawnedMs) {
-            this.mapMarkers.timeSinceDeepSeaSpawned = this.timestampToDate((persisted as any).timeSinceDeepSeaSpawnedMs);
+        if (state.timeSinceDeepSeaSpawnedMs) {
+            this.mapMarkers.timeSinceDeepSeaSpawned = this.timestampToDate(state.timeSinceDeepSeaSpawnedMs);
         }
-        if ((persisted as any).timeSinceDeepSeaWasOnMapMs) {
-            this.mapMarkers.timeSinceDeepSeaWasOnMap = this.timestampToDate((persisted as any).timeSinceDeepSeaWasOnMapMs);
+        if (state.timeSinceDeepSeaWasOnMapMs) {
+            this.mapMarkers.timeSinceDeepSeaWasOnMap = this.timestampToDate(state.timeSinceDeepSeaWasOnMapMs);
         }
-        if ((persisted as any).crateSmallOilRigLocation || (persisted as any).crateSmallOilRigUnlockAtMs) {
-            this.restoreOilRigCrateTimerFromState('small', (persisted as any).crateSmallOilRigUnlockAtMs, (persisted as any).crateSmallOilRigLocation);
+        if (state.crateSmallOilRigLocation || state.crateSmallOilRigUnlockAtMs) {
+            this.restoreOilRigCrateTimerFromState('small', state.crateSmallOilRigUnlockAtMs, state.crateSmallOilRigLocation);
         }
-        if ((persisted as any).crateLargeOilRigLocation || (persisted as any).crateLargeOilRigUnlockAtMs) {
-            this.restoreOilRigCrateTimerFromState('large', (persisted as any).crateLargeOilRigUnlockAtMs, (persisted as any).crateLargeOilRigLocation);
+        if (state.crateLargeOilRigLocation || state.crateLargeOilRigUnlockAtMs) {
+            this.restoreOilRigCrateTimerFromState('large', state.crateLargeOilRigUnlockAtMs, state.crateLargeOilRigLocation);
         }
 
-        if ((persisted as any).cargoShipEgressTimers) {
-            for (const timerData of (persisted as any).cargoShipEgressTimers) {
+        if (state.cargoShipEgressTimers) {
+            for (const timerData of state.cargoShipEgressTimers) {
                 const id = timerData.id;
                 const endAtMs = timerData.endAtMs;
                 const x = timerData.x;
@@ -375,8 +419,8 @@ export default class RustPlus extends RustPlusLib {
             }
         }
 
-        if ((persisted as any).cargoShipsState) {
-            for (const cargoShip of (persisted as any).cargoShipsState) {
+        if (state.cargoShipsState) {
+            for (const cargoShip of state.cargoShipsState) {
                 const marker = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, cargoShip.id);
                 if (marker) {
                     marker.onItsWayOut = cargoShip.onItsWayOut;

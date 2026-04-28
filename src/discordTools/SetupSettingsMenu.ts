@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
 
 import * as Constants from '../util/constants.js';
@@ -8,7 +9,7 @@ import * as DiscordTools from './discordTools.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 
-export default async (client: any, guild: any, forced: boolean = false) => {
+export default async (client: DiscordBot, guild: any, forced: boolean = false) => {
     const instance = client.getInstance(guild.id);
     const channel = DiscordTools.getTextChannelById(guild.id, instance.channelId.settings);
 
@@ -32,7 +33,7 @@ export default async (client: any, guild: any, forced: boolean = false) => {
     }
 };
 
-async function setupGeneralSettings(client: any, guildId: string, channel: any) {
+async function setupGeneralSettings(client: DiscordBot, guildId: string, channel: any) {
     const instance = client.getInstance(guildId);
 
     await client.messageSend(channel, {
@@ -306,7 +307,7 @@ async function setupGeneralSettings(client: any, guildId: string, channel: any) 
     });
 }
 
-async function setupNotificationSettings(client: any, guildId: string, channel: any) {
+async function setupNotificationSettings(client: DiscordBot, guildId: string, channel: any) {
     const instance = client.getInstance(guildId);
 
     await client.messageSend(channel, {
@@ -332,9 +333,9 @@ async function setupNotificationSettings(client: any, guildId: string, channel: 
                 DiscordButtons.getNotificationButtons(
                     guildId,
                     setting,
-                    instance.notificationSettings[setting].discord,
-                    instance.notificationSettings[setting].inGame,
-                    instance.notificationSettings[setting].voice,
+                    instance.notificationSettings[setting].discord as boolean,
+                    instance.notificationSettings[setting].inGame as boolean,
+                    instance.notificationSettings[setting].voice as boolean,
                 ),
             ],
             files: [

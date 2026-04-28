@@ -1,5 +1,5 @@
 import type { Guild } from 'discord.js';
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import createInstanceFile from '../util/CreateInstanceFile.js';
 import createCredentialsFile from '../util/CreateCredentialsFile.js';
 
@@ -10,8 +10,9 @@ export default {
         createCredentialsFile(client, guild);
         client.fcmListenersLite[guild.id] = {};
 
-        (client as any).loadGuildIntl(guild.id);
+        const instance = client.getInstance(guild.id);
+        client.loadGuildIntl(guild.id, instance);
 
-        await (client as any).setupGuild(guild);
+        await client.setupGuild(guild);
     },
 };

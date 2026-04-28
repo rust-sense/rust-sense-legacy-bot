@@ -1,9 +1,10 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as Scrape from '../util/scrape.js';
 
-export async function handler(client: any, firstTime = false) {
+export async function handler(client: DiscordBot, firstTime = false) {
     const searchSteamProfiles = client.battlemetricsIntervalCounter === 0 ? true : false;
     const calledSteamProfiles = new Object();
 
@@ -191,7 +192,7 @@ export async function handler(client: any, firstTime = false) {
     }
 }
 
-export async function handleBattlemetricsChanges(client: any, guildId: string) {
+export async function handleBattlemetricsChanges(client: DiscordBot, guildId: string) {
     const instance = client.getInstance(guildId);
     const settings = instance.generalSettings;
 
@@ -463,7 +464,7 @@ export async function handleBattlemetricsChanges(client: any, guildId: string) {
 }
 
 export async function trackerNewNameDetected(
-    client: any,
+    client: DiscordBot,
     guildId: string,
     trackerId: string,
     battlemetricsId: string,

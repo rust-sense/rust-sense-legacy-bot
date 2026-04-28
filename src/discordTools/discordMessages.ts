@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
 
 import { client } from '../index.js';
@@ -614,7 +615,7 @@ export async function sendUpdateBattlemetricsOnlinePlayersInformationMessage(
 
 export async function sendDiscordCommandResponseMessage(
     rustplus: any,
-    client: any,
+    client: DiscordBot,
     message: any,
     response: any,
 ) {

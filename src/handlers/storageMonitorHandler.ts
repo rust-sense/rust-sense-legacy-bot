@@ -1,7 +1,8 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 
-export async function handler(rustplus: any, client: any) {
+export async function handler(rustplus: any, client: DiscordBot) {
     let instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

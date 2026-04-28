@@ -9,6 +9,8 @@ interface CctvData {
 const cctvData = loadJsonResourceSync<CctvData>('staticFiles/cctv.json');
 
 export default class Cctv {
+    [key: string]: any;
+
     private cctvs: CctvData;
 
     constructor() {

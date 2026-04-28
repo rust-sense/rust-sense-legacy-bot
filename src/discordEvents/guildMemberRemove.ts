@@ -17,7 +17,7 @@ export default {
 
         if (steamId === credentials.hoster) {
             if (client.fcmListeners[guildId]) {
-                (client.fcmListeners[guildId] as any).destroy();
+                client.fcmListeners[guildId].destroy();
             }
             delete client.fcmListeners[guildId];
             credentials.hoster = null;

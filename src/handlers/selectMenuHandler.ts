@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
 const DiscordMessages: any = DiscordMessagesModule;
 import * as DiscordSelectMenusModule from '../discordTools/discordSelectMenus.js';
@@ -6,12 +7,12 @@ import * as DiscordToolsModule from '../discordTools/discordTools.js';
 const DiscordTools: any = DiscordToolsModule;
 import * as Utils from '../util/utils.js';
 
-export default async (client: any, interaction: any) => {
+export default async (client: DiscordBot, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
-    const verifyId = Utils.generateVerifyId();
+    const verifyId = Utils.generateVerifyId().toString();
     client.logInteraction(interaction, verifyId, 'userSelectMenu');
 
     if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
@@ -32,7 +33,7 @@ export default async (client: any, interaction: any) => {
 
         await interaction.deferUpdate();
 
-        client.loadGuildIntl(guildId);
+        client.loadGuildIntl(guildId, instance);
 
         await client.interactionEditReply(interaction, {
             components: [await DiscordSelectMenus.getLanguageSelectMenu(guildId, interaction.values[0])],

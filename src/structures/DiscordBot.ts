@@ -20,19 +20,20 @@ import * as Constants from '../util/constants.js';
 import discordCommands from '../discordCommands/index.js';
 import discordEvents from '../discordEvents/index.js';
 import { cwdPath, loadJsonResourceSync } from '../utils/filesystemUtils.js';
+import type { DiscordEvent } from '../types/discord.js';
 
 export default class DiscordBot extends Discord.Client {
     logger: Logger;
     commands: Discord.Collection<string, unknown>;
-    fcmListeners: Record<string, unknown> = {};
-    fcmListenersLite: Record<string, unknown> = {};
+    fcmListeners: Record<string, { destroy: () => void }> = {};
+    fcmListenersLite: Record<string, Record<string, { destroy: () => void }>> = {};
     instances: Record<string, import('../types/instance.js').Instance> = {};
-    intlInstances: Record<string, unknown> = {};
+    intlInstances: Record<string, ReturnType<typeof FormatJS.createIntl>> = {};
     customGuildIntl: Record<string, Record<string, IntlMessageFormat>> = {};
-    rustplusInstances: Record<string, unknown> = {};
-    activeRustplusInstances: Record<string, unknown> = {};
-    rustplusReconnectTimers: Record<string, unknown> = {};
-    rustplusLiteReconnectTimers: Record<string, unknown> = {};
+    rustplusInstances: Record<string, RustPlus> = {};
+    activeRustplusInstances: Record<string, boolean> = {};
+    rustplusReconnectTimers: Record<string, ReturnType<typeof setTimeout> | null> = {};
+    rustplusLiteReconnectTimers: Record<string, ReturnType<typeof setTimeout> | null> = {};
     rustplusReconnecting: Record<string, boolean> = {};
     rustplusMaps: Record<string, unknown> = {};
     uptimeBot: Date | null = null;
@@ -40,10 +41,10 @@ export default class DiscordBot extends Discord.Client {
     rustlabs: RustLabs;
     cctv: Cctv;
     pollingIntervalMs: number;
-    battlemetricsInstances: Record<string, unknown> = {};
+    battlemetricsInstances: Record<string, Battlemetrics> = {};
     battlemetricsIntervalId: ReturnType<typeof setInterval> | null = null;
     battlemetricsIntervalCounter = 0;
-    voiceLeaveTimeouts: Record<string, unknown> = {};
+    voiceLeaveTimeouts: Record<string, ReturnType<typeof setTimeout> | null> = {};
     localeCache: ReturnType<typeof FormatJS.createIntlCache>;
 
     constructor(props: Discord.ClientOptions) {
@@ -71,8 +72,8 @@ export default class DiscordBot extends Discord.Client {
     }
 
     loadDiscordEvents(): void {
-        for (const event of discordEvents) {
-            const handler = (...args: unknown[]) => (event.execute as any)(this, ...args);
+        for (const event of discordEvents as DiscordEvent[]) {
+            const handler = (...args: unknown[]) => event.execute(this, ...args);
             if (event.name === 'rateLimited') {
                 this.rest.on(event.name, handler);
             } else if ((event as { once?: boolean }).once) {
@@ -105,7 +106,7 @@ export default class DiscordBot extends Discord.Client {
         return FormatJS.createIntl(intlConfig, this.localeCache);
     }
 
-    checkLocaleIntlLoad(locale: string): unknown {
+    checkLocaleIntlLoad(locale: string): ReturnType<typeof FormatJS.createIntl> {
         if (locale in this.intlInstances) {
             return this.intlInstances[locale];
         }
@@ -146,23 +147,24 @@ export default class DiscordBot extends Discord.Client {
         }
     }
 
-    formatWithIntl(intlInstance: any, id: string, variables: Record<string, unknown> = {}): string {
-        const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE) as any;
-        const defaultMessage = englishIntl.messages[id];
+    formatWithIntl(intlInstance: ReturnType<typeof FormatJS.createIntl>, id: string, variables: Record<string, unknown> = {}): string {
+        const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
+        const messages = englishIntl.messages as Record<string, string>;
+        const defaultMessage = messages[id];
 
-        return intlInstance.formatMessage({ id, defaultMessage }, variables);
+        return intlInstance.formatMessage({ id, defaultMessage }, variables) as string;
     }
 
     intlGet(guildId: string | null, id: string, variables: Record<string, unknown> = {}): string {
         // Bot Intl formatting
         if (guildId === null) {
-            const intlInstance = this.checkLocaleIntlLoad(config.general.language) as any;
+            const intlInstance = this.checkLocaleIntlLoad(config.general.language);
             return this.formatWithIntl(intlInstance, id, variables);
         }
 
         // English Intl formatting
         if (guildId === Constants.DEFAULT_LOCALE) {
-            const intlInstance = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE) as any;
+            const intlInstance = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
             return this.formatWithIntl(intlInstance, id, variables);
         }
 
@@ -174,7 +176,7 @@ export default class DiscordBot extends Discord.Client {
 
         // Guild Intl instance formatting
         const instance = this.getInstance(guildId);
-        const intlInstance = this.checkLocaleIntlLoad(instance.generalSettings.language) as any;
+        const intlInstance = this.checkLocaleIntlLoad(instance.generalSettings.language);
         return this.formatWithIntl(intlInstance, id, variables);
     }
 
@@ -251,7 +253,7 @@ export default class DiscordBot extends Discord.Client {
         const FcmListener = (await import('../util/FcmListener.js')).default;
         FcmListener(this, guild);
 
-        const credentials = InstanceUtils.readCredentialsFile(guild.id) as any;
+        const credentials = InstanceUtils.readCredentialsFile(guild.id);
         for (const steamId of Object.keys(credentials)) {
             if (steamId !== credentials.hoster && steamId !== 'hoster') {
                 FcmListener(this, guild, steamId);
@@ -267,7 +269,7 @@ export default class DiscordBot extends Discord.Client {
     }
 
     async syncCredentialsWithUsers(guild: any): Promise<void> {
-        const credentials = InstanceUtils.readCredentialsFile(guild.id) as any;
+        const credentials = InstanceUtils.readCredentialsFile(guild.id);
 
         const members = await guild.members.fetch();
         const memberIds: string[] = [];
@@ -276,10 +278,11 @@ export default class DiscordBot extends Discord.Client {
         }
 
         const steamIdRemoveCredentials: string[] = [];
-        for (const [steamId, content] of Object.entries(credentials) as [string, any][]) {
+        for (const [steamId, content] of Object.entries(credentials)) {
             if (steamId === 'hoster') continue;
+            if (typeof content !== 'object' || content === null) continue;
 
-            if (!memberIds.includes(content.discord_user_id)) {
+            if (!memberIds.includes((content as { discord_user_id: string }).discord_user_id)) {
                 steamIdRemoveCredentials.push(steamId);
             }
         }
@@ -287,15 +290,17 @@ export default class DiscordBot extends Discord.Client {
         for (const steamId of steamIdRemoveCredentials) {
             if (steamId === credentials.hoster) {
                 if (this.fcmListeners[guild.id]) {
-                    (this.fcmListeners[guild.id] as any).destroy();
+                    this.fcmListeners[guild.id].destroy();
                 }
                 delete this.fcmListeners[guild.id];
                 credentials.hoster = null;
             } else {
-                if ((this.fcmListenersLite[guild.id] as any)?.[steamId]) {
-                    (this.fcmListenersLite[guild.id] as any)[steamId].destroy();
+                if (this.fcmListenersLite[guild.id]?.[steamId]) {
+                    this.fcmListenersLite[guild.id][steamId].destroy();
                 }
-                delete (this.fcmListenersLite[guild.id] as any)?.[steamId];
+                if (this.fcmListenersLite[guild.id]) {
+                    delete this.fcmListenersLite[guild.id][steamId];
+                }
             }
 
             delete credentials[steamId];
@@ -371,11 +376,11 @@ export default class DiscordBot extends Discord.Client {
         delete this.rustplusMaps[guildId];
 
         if (this.rustplusReconnectTimers[guildId]) {
-            clearTimeout(this.rustplusReconnectTimers[guildId] as any);
+            clearTimeout(this.rustplusReconnectTimers[guildId]);
             this.rustplusReconnectTimers[guildId] = null;
         }
         if (this.rustplusLiteReconnectTimers[guildId]) {
-            clearTimeout(this.rustplusLiteReconnectTimers[guildId] as any);
+            clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
             this.rustplusLiteReconnectTimers[guildId] = null;
         }
     }
@@ -425,19 +430,22 @@ export default class DiscordBot extends Discord.Client {
                         activeInstances.push(battlemetricsId);
                         if (Object.hasOwn(this.battlemetricsInstances, battlemetricsId)) {
                             /* Update */
-                            await (this.battlemetricsInstances[battlemetricsId] as any).evaluation();
+                            await this.battlemetricsInstances[battlemetricsId].evaluation();
                         } else {
                             /* Add */
-                            const bmInstance = new Battlemetrics(battlemetricsId);
-                            await (bmInstance as any).setup();
+                            const bmInstance = new Battlemetrics();
+                            bmInstance.id = battlemetricsId;
+                            await bmInstance.setup();
                             this.battlemetricsInstances[battlemetricsId] = bmInstance;
                         }
                     }
                 } else {
                     /* Battlemetrics ID is missing, try with server name. */
                     const name = instance.serverList[activeServer].title;
-                    const bmInstance = new Battlemetrics(null, name);
-                    await (bmInstance as any).setup();
+                    const bmInstance = new Battlemetrics();
+                    bmInstance.id = null;
+                    bmInstance.name = name;
+                    await bmInstance.setup();
                     if (bmInstance.lastUpdateSuccessful) {
                         /* Found an Id, is it a new Id? */
                         instance.serverList[activeServer].battlemetricsId = bmInstance.id;
@@ -446,7 +454,7 @@ export default class DiscordBot extends Discord.Client {
                         if (Object.hasOwn(this.battlemetricsInstances, bmInstance.id as string)) {
                             if (!activeInstances.includes(bmInstance.id as string)) {
                                 activeInstances.push(bmInstance.id as string);
-                                await (this.battlemetricsInstances[bmInstance.id as string] as any).evaluation(
+                                await this.battlemetricsInstances[bmInstance.id as string].evaluation(
                                     bmInstance.data,
                                 );
                             }
@@ -458,16 +466,17 @@ export default class DiscordBot extends Discord.Client {
                 }
             }
 
-            for (const [trackerId, content] of Object.entries(instance.trackers) as [string, any][]) {
+            for (const [trackerId, content] of Object.entries(instance.trackers)) {
                 if (!activeInstances.includes(content.battlemetricsId)) {
                     activeInstances.push(content.battlemetricsId);
                     if (Object.hasOwn(this.battlemetricsInstances, content.battlemetricsId)) {
                         /* Update */
-                        await (this.battlemetricsInstances[content.battlemetricsId] as any).evaluation();
+                        await this.battlemetricsInstances[content.battlemetricsId].evaluation();
                     } else {
                         /* Add */
-                        const bmInstance = new Battlemetrics(content.battlemetricsId);
-                        await (bmInstance as any).setup();
+                        const bmInstance = new Battlemetrics();
+                        bmInstance.id = content.battlemetricsId;
+                        await bmInstance.setup();
                         this.battlemetricsInstances[content.battlemetricsId] = bmInstance;
                     }
                 }
@@ -563,6 +572,42 @@ export default class DiscordBot extends Discord.Client {
         }
 
         return undefined;
+    }
+
+    generateVerifyId(): string {
+        return Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    }
+
+    async resolveItemId(
+        interaction: any,
+        guildId: string,
+        itemName: string | null,
+        itemId: string | null,
+    ): Promise<string | null> {
+        const DiscordEmbeds = await import('../discordTools/discordEmbeds.js');
+        if (itemName !== null) {
+            const item = this.items.getClosestItemIdByName(itemName);
+            if (item === null) {
+                const str = this.intlGet(guildId, 'noItemWithNameFound', { name: itemName });
+                await this.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                this.log(this.intlGet(guildId, 'warningCap'), str);
+                return null;
+            }
+            return item;
+        } else if (itemId !== null) {
+            if (this.items.itemExist(itemId)) {
+                return itemId;
+            }
+            const str = this.intlGet(guildId, 'noItemWithIdFound', { id: itemId });
+            await this.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            this.log(this.intlGet(guildId, 'warningCap'), str);
+            return null;
+        } else {
+            const str = this.intlGet(guildId, 'noNameIdGiven');
+            await this.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            this.log(this.intlGet(guildId, 'warningCap'), str);
+            return null;
+        }
     }
 
     async validatePermissions(interaction: any): Promise<boolean> {

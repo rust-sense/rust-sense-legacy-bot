@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
 
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
@@ -13,7 +14,7 @@ const DiscordModals: any = DiscordModalsModule;
 import * as UtilsModule from '../util/utils.js';
 const Utils: any = UtilsModule;
 
-export default async (client: any, interaction: any) => {
+export default async (client: DiscordBot, interaction: any) => {
     const instance = client.getInstance(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
@@ -614,6 +615,7 @@ export default async (client: any, interaction: any) => {
         const trackerId = client.findAvailableTrackerId(guildId);
 
         instance.trackers[trackerId] = {
+            id: trackerId,
             name: 'Tracker',
             serverId: ids.serverId,
             battlemetricsId: server.battlemetricsId,
@@ -624,6 +626,10 @@ export default async (client: any, interaction: any) => {
             inGame: true,
             players: [],
             messageId: null,
+            status: true,
+            lastScreenshot: null,
+            lastOnline: null,
+            lastWipe: null,
         };
         client.setInstance(guildId, instance);
 
@@ -642,11 +648,14 @@ export default async (client: any, interaction: any) => {
         const groupId = client.findAvailableGroupId(guildId, ids.serverId);
 
         server.switchGroups[groupId] = {
+            id: groupId,
             name: 'Group',
             command: `${groupId}`,
             switches: [],
             image: 'smart_switch.png',
             messageId: null,
+            active: false,
+            serverId: ids.serverId,
         };
         client.setInstance(guildId, instance);
 

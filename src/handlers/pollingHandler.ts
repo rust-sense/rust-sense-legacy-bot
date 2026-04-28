@@ -1,3 +1,4 @@
+import type DiscordBot from '../structures/DiscordBot.js';
 import Info from '../structures/Info.js';
 import * as InformationHandler from '../handlers/informationHandler.js';
 import MapMarkers from '../structures/MapMarkers.js';
@@ -10,7 +11,7 @@ import Time from '../structures/Time.js';
 import * as TimeHandler from '../handlers/timeHandler.js';
 import * as VendingMachines from '../handlers/vendingMachineHandler.js';
 
-export async function pollingHandler(rustplus: any, client: any) {
+export async function pollingHandler(rustplus: any, client: DiscordBot) {
     if (rustplus._pollingInProgress) return;
     rustplus._pollingInProgress = true;
     try {
@@ -39,7 +40,7 @@ export async function pollingHandler(rustplus: any, client: any) {
     }
 }
 
-export async function handlers(rustplus: any, client: any, info: any, mapMarkers: any, teamInfo: any, time: any) {
+export async function handlers(rustplus: any, client: DiscordBot, info: any, mapMarkers: any, teamInfo: any, time: any) {
     await TeamHandler.handler(rustplus, client, teamInfo.teamInfo);
     rustplus.team.updateTeam(teamInfo.teamInfo);
 

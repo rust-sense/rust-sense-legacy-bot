@@ -3,9 +3,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import { getSmartDevice } from '../service/smartDevice.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'switch',
@@ -102,12 +100,12 @@ export default {
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
         const instance = client.getInstance(guildId);
-        const rustplus = (client as any).rustplusInstances[guildId];
+        const rustplus = client.rustplusInstances[guildId];
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         switch (interaction.options.getSubcommand()) {
@@ -134,11 +132,11 @@ export default {
                             const str = client.intlGet(guildId, 'invalidId', {
                                 id: entityId,
                             });
-                            await (client as any).interactionEditReply(
+                            await client.interactionEditReply(
                                 interaction,
-                                DiscordEmbedsAny.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
+                                DiscordEmbeds.getActionInfoEmbed(1, str, instance.serverList[rustplus.serverId].title),
                             );
-                            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+                            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
                             return;
                         }
                     }
@@ -171,7 +169,7 @@ export default {
                         } else {
                             DiscordMessages.sendSmartSwitchMessage(guildId, device.serverId, entityId);
                             const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js');
-                            (SmartSwitchGroupHandler as any).updateSwitchGroupIfContainSwitch(
+                            SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(
                                 client,
                                 guildId,
                                 device.serverId,
@@ -183,9 +181,9 @@ export default {
                     const str = client.intlGet(guildId, 'smartSwitchEditSuccess', {
                         name: entity.name,
                     });
-                    await (client as any).interactionEditReply(
+                    await client.interactionEditReply(
                         interaction,
-                        DiscordEmbedsAny.getActionInfoEmbed(0, str, instance.serverList[device.serverId].title),
+                        DiscordEmbeds.getActionInfoEmbed(0, str, instance.serverList[device.serverId].title),
                     );
                     client.log(client.intlGet(null, 'infoCap'), str, 'info');
                 }

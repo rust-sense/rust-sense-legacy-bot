@@ -1,8 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-const DiscordEmbedsAny = DiscordEmbeds as any;
-import type { DiscordBot } from '../types/discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'stack',
@@ -22,26 +21,26 @@ export default {
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         const stackItemName = interaction.options.getString('name');
         const stackItemId = interaction.options.getString('id');
 
-        const itemId = await (client as any).resolveItemId(interaction, guildId, stackItemName, stackItemId);
+        const itemId = await client.resolveItemId(interaction, guildId, stackItemName, stackItemId);
         if (itemId === null) return;
-        const itemName = (client as any).items.getName(itemId);
+        const itemName = client.items.getName(itemId);
 
-        const stackDetails = (client as any).rustlabs.getStackDetailsById(itemId);
+        const stackDetails = client.rustlabs.getStackDetailsById(itemId);
         if (stackDetails === null) {
             const str = client.intlGet(guildId, 'couldNotFindStackDetails', {
                 name: itemName,
             });
-            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(guildId, 'warningCap'), str, 'warning');
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(guildId, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -61,7 +60,7 @@ export default {
             quantity: quantity,
         });
 
-        await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(0, str));
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
         client.log(client.intlGet(null, 'infoCap'), str, 'info');
     },
 };

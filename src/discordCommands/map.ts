@@ -4,9 +4,7 @@ import { AttachmentBuilder } from 'discord.js';
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
-import type { DiscordBot } from '../types/discord.js';
-
-const DiscordEmbedsAny = DiscordEmbeds as any;
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'map',
@@ -31,18 +29,18 @@ export default {
 
     async execute(client: DiscordBot, interaction: any) {
         const instance = client.getInstance(interaction.guildId);
-        const rustplus = (client as any).rustplusInstances[interaction.guildId];
+        const rustplus = client.rustplusInstances[interaction.guildId];
 
-        const verifyId = (client as any).generateVerifyId();
-        (client as any).logInteraction(interaction, verifyId, 'slashCommand');
+        const verifyId = client.generateVerifyId();
+        client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!(await (client as any).validatePermissions(interaction))) return;
+        if (!(await client.validatePermissions(interaction))) return;
         await interaction.deferReply({ ephemeral: true });
 
         if (!rustplus || (rustplus && !rustplus.isOperational)) {
             const str = client.intlGet(interaction.guildId, 'notConnectedToRustServer');
-            await (client as any).interactionEditReply(interaction, DiscordEmbedsAny.getActionInfoEmbed(1, str));
-            client.log(client.intlGet(null, 'warningCap'), str, 'warning');
+            await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+            client.log(client.intlGet(null, 'warningCap'), str, 'warn');
             return;
         }
 
@@ -94,9 +92,9 @@ export default {
         );
 
         const fileName = interaction.options.getSubcommand() === 'clean' ? 'clean' : 'full';
-        await (client as any).interactionEditReply(interaction, {
+        await client.interactionEditReply(interaction, {
             embeds: [
-                DiscordEmbedsAny.getEmbed({
+                DiscordEmbeds.getEmbed({
                     color: Constants.COLOR_DEFAULT,
                     image: `attachment://${interaction.guildId}_map_${fileName}.png`,
                     footer: {

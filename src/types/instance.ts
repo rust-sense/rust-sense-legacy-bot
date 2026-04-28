@@ -1,3 +1,5 @@
+import type { PlayerNameType } from './Player.js';
+
 export interface ChannelIds {
     category: string | null;
     information: string | null;
@@ -49,10 +51,30 @@ export interface GeneralSettings {
     voiceGender: string;
     commandDelay: string;
     trademark: string;
-    teammateNameType: string;
+    teammateNameType: PlayerNameType;
     pollingIntervalMs: number;
     reconnectIntervalMs: number;
     showCallStackError: boolean;
+    inGameCommandsEnabled?: boolean;
+    muteInGameBotMessages?: boolean;
+    connectionNotify?: boolean;
+    afkNotify?: boolean;
+    deathNotify?: boolean;
+    fcmAlarmNotificationEnabled?: boolean;
+    fcmAlarmNotificationEveryone?: boolean;
+    smartAlarmNotifyInGame?: boolean;
+    smartSwitchNotifyInGameWhenChangedFromDiscord?: boolean;
+    leaderCommandEnabled?: boolean;
+    leaderCommandOnlyForPaired?: boolean;
+    mapWipeNotifyEveryone?: boolean;
+    itemAvailableInVendingMachineNotifyInGame?: boolean;
+    displayInformationBattlemetricsAllOnlinePlayers?: boolean;
+    battlemetricsGlobalLogin?: boolean;
+    battlemetricsGlobalLogout?: boolean;
+    battlemetricsGlobalNameChanges?: boolean;
+    battlemetricsServerNameChanges?: boolean;
+    battlemetricsTrackerNameChanges?: boolean;
+    inGameCommandAccessMode?: string;
     [key: string]: unknown;
 }
 
@@ -104,6 +126,17 @@ export interface Tracker {
     lastWipe: string | null;
     messageId: string | null;
     clanTag: string | null;
+    everyone: boolean;
+    inGame: boolean;
+    img?: string;
+    title?: string;
+    serverId?: string;
+    players: Array<{ name?: string; steamId: string | null; playerId: string | null }>;
+    serverEvaluation?: any;
+    nameChangedPlayers?: any;
+    newPlayers?: any;
+    loginPlayers?: any;
+    logoutPlayers?: any;
 }
 
 export interface Marker {
@@ -124,6 +157,10 @@ export interface SmartSwitch {
     command: string;
     autoDayNightOnOff: number;
     proximity: number;
+    messageId: string | null;
+    serverId?: string;
+    everyone?: boolean;
+    server?: string;
 }
 
 export interface SmartAlarm {
@@ -139,6 +176,9 @@ export interface SmartAlarm {
     command: string;
     lastTrigger: number | null;
     inGame: boolean;
+    messageId: string | null;
+    everyone: boolean;
+    server?: string;
 }
 
 export interface StorageMonitorItem {
@@ -159,6 +199,10 @@ export interface StorageMonitor {
     capacity: number | null;
     decaying: boolean | null;
     inGame: boolean | null;
+    messageId: string | null;
+    everyone: boolean;
+    server?: string;
+    upkeep?: string | null;
 }
 
 export interface SwitchGroup {
@@ -169,6 +213,7 @@ export interface SwitchGroup {
     image: string | null;
     command: string;
     serverId: string;
+    messageId: string | null;
 }
 
 export interface CustomCameraGroup {
@@ -200,6 +245,15 @@ export interface Server {
     timeTillDay: number | null;
     timeTillNight: number | null;
     messageId: string | null;
+    connect?: string;
+    img?: string;
+    url?: string;
+    description?: string;
+    team?: any;
+    leaderRustPlusInstance?: any;
+    generalSettings?: any;
+    log?: any;
+    guildId?: string;
 }
 
 export interface Credentials {
