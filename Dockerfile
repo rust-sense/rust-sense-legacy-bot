@@ -23,7 +23,8 @@ RUN apt-get update \
     && apt-get install -y graphicsmagick gosu \
     && apt-get clean
 
-RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens
+RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
+    && chown -R node:node /app/data
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
