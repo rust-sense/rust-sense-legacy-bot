@@ -2,8 +2,7 @@ import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as GameMapModule from '../util/GameMap.js';
 const GameMap = GameMapModule as any;
 import * as Timer from '../util/timer.js';
-
-const SmartSwitchGroupHandlerModule = await import('./smartSwitchGroupHandler.js');
+import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
 const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule as any;
 
 export async function handler(rustplus: any, client: any, time: any) {
