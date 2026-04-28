@@ -847,7 +847,7 @@
     "commandsRoleAdminDesc": "Zarządzaj rolą, która może usuwać rzeczy, zarządzać poświadczeniami, resetować kanały itp...",
     "commandsRoleAdminSetDesc": "Ustaw rolę, która będzie mogła wykonywać akcje administratora bota.",
     "commandsRoleAdminSetRoleDesc": "Rola, która będzie mogła wykonywać akcje administratora.",
-    "commandsRoleAdminClearDesc": "Usuń rolę administratora. Tylko administratorzy serwera będą mogli wykonywać akcje administratora bota.",
+    "commandsRoleAdminClearDesc": "Usuń rolę administratora. Tylko admini serwera mogą wykonywać akcje administratora bota.",
     "commandsRoleRegularDesc": "Zarządzaj rolą, która może widzieć treść kategorii rustplusplus.",
     "commandsRoleRegularSetDesc": "Ustaw rolę, która może widzieć treść kategorii rustplusplus.",
     "commandsRoleRegularSetRoleDesc": "Rola, która będzie mogła widzieć treść kategorii rustplusplus.",

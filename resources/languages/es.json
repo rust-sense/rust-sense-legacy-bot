@@ -841,7 +841,7 @@
     "commandsRoleAdminDesc": "Gestiona el rol que puede eliminar cosas, gestionar credenciales, reiniciar canales, etc...",
     "commandsRoleAdminSetDesc": "Establece el rol que podrá realizar acciones de administrador del bot.",
     "commandsRoleAdminSetRoleDesc": "Rol al que se le permitirá realizar acciones de administrador.",
-    "commandsRoleAdminClearDesc": "Elimina el rol de administrador. Solo los administradores del servidor podrán realizar acciones de administrador del bot.",
+    "commandsRoleAdminClearDesc": "Elimina el rol de admin. Solo los admins del servidor pueden realizar acciones de admin del bot.",
     "commandsRoleRegularDesc": "Gestiona el rol que puede ver el contenido de la categoría de rustplusplus.",
     "commandsRoleRegularSetDesc": "Establece el rol que puede ver el contenido de la categoría de rustplusplus.",
     "commandsRoleRegularSetRoleDesc": "Rol al que se le permitirá ver el contenido de la categoría de rustplusplus.",
