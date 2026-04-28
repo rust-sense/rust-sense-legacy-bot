@@ -4,7 +4,7 @@ const Utils = require('../util/utils');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordTools = require('../discordTools/discordTools');
-import * as PermissionHandler from '../handlers/permissionHandler';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
 const Scrape = require('../util/scrape');
 
 export default {

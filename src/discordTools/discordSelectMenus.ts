@@ -1,11 +1,11 @@
 const Discord = require('discord.js');
 const fs = require('node:fs');
 
-import { client } from '../index';
+import { client } from '../index.js';
 const Constants = require('../util/constants');
 const Languages = require('../util/languages');
 
-import { cwdPath } from '../utils/filesystemUtils';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 module.exports = {
     getSelectMenu: function (options = {}) {

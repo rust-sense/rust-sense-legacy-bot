@@ -1,5 +1,5 @@
 import FormatJS from '@formatjs/intl';
-import Discord from 'discord.js';
+import * as Discord from 'discord.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { IntlMessageFormat } from 'intl-messageformat';

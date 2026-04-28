@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 
-import { client } from '../index';
+import { client } from '../index.js';
 const TextInput = require('./discordTextInputs');
 
 module.exports = {

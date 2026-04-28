@@ -10,7 +10,7 @@ const InstanceUtils = require('../util/instanceUtils');
 const GameMap = require('./GameMap');
 const Scrape = require('../util/scrape');
 
-import { cwdPath } from '../utils/filesystemUtils';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 /**
  * Start an FCM push listener for a guild member.

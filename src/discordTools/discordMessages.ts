@@ -1,13 +1,13 @@
 const Discord = require('discord.js');
 
 const Constants = require('../util/constants');
-import { client } from '../index';
+import { client } from '../index.js';
 const DiscordButtons = require('./discordButtons');
 const DiscordEmbeds = require('./discordEmbeds');
 const DiscordSelectMenus = require('./discordSelectMenus');
 const DiscordTools = require('./discordTools');
 const Scrape = require('../util/scrape');
-import { cwdPath } from '../utils/filesystemUtils';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 module.exports = {
     sendMessage: async (guildId, content, messageId, channelId, interaction = null) => {

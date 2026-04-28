@@ -1,4 +1,4 @@
-import { client } from '../index';
+import { client } from '../index.js';
 
 const GRID_DIAMETER = 146.28571;
 const MARGIN = 1;

@@ -4,7 +4,7 @@ const Utils = require('../util/utils');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 
-import { getSmartDevice } from '../service/smartDevice';
+import { getSmartDevice } from '../service/smartDevice.js';
 
 export default {
     name: 'storagemonitor',

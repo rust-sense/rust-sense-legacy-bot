@@ -4,7 +4,7 @@ const Utils = require('../util/utils');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const DiscordTools = require('../discordTools/discordTools');
-import * as PermissionHandler from '../handlers/permissionHandler';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
 
 export default {
     name: 'reset',

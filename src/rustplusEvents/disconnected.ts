@@ -1,6 +1,6 @@
 const DiscordMessages = require('../discordTools/discordMessages');
 
-import config from '../config';
+import config from '../config.js';
 
 export default {
     name: 'disconnected',

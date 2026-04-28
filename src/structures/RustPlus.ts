@@ -9,14 +9,14 @@ import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordVoice from '../discordTools/discordVoice.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
-import InGameChatHandler from '../handlers/inGameChatHandler.js';
+import * as InGameChatHandler from '../handlers/inGameChatHandler.js';
 import * as InstanceUtils from '../util/instanceUtils.js';
 import { languages } from '../util/languages.js';
 import Logger from './Logger.js';
-import GameMap from '../util/GameMap.js';
+import * as GameMap from '../util/GameMap.js';
 import getRuntimeDataStorage from '../util/getRuntimeDataStorage.js';
 import RustPlusLite from '../structures/RustPlusLite.js';
-import TeamHandler from '../handlers/teamHandler.js';
+import * as TeamHandler from '../handlers/teamHandler.js';
 import * as Timer from '../util/timer.js';
 
 import { resolve } from '../container.js';

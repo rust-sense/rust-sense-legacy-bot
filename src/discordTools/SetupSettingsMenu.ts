@@ -6,7 +6,7 @@ const DiscordEmbeds = require('./discordEmbeds');
 const DiscordSelectMenus = require('./discordSelectMenus');
 const DiscordTools = require('./discordTools');
 
-import { cwdPath } from '../utils/filesystemUtils';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 module.exports = async (client, guild, forced = false) => {
     const instance = client.getInstance(guild.id);

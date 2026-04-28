@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const DiscordTools = require('../discordTools/discordTools');
-import * as PermissionHandler from '../handlers/permissionHandler';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
 
 module.exports = async (client, guild, category) => {
     if (!category) {

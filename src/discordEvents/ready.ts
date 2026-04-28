@@ -2,8 +2,8 @@ const Discord = require('discord.js');
 const Path = require('node:path');
 
 const BattlemetricsHandler = require('../handlers/battlemetricsHandler');
-import config from '../config';
-import { cwdPath } from '../utils/filesystemUtils';
+import config from '../config.js';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
     name: 'ready',

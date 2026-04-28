@@ -5,7 +5,7 @@ const DiscordEmbeds = require('../discordTools/discordEmbeds');
 const DiscordMessages = require('../discordTools/discordMessages');
 const SmartSwitchGroupHandler = require('../handlers/smartSwitchGroupHandler');
 
-import { getSmartDevice } from '../service/smartDevice';
+import { getSmartDevice } from '../service/smartDevice.js';
 
 export default {
     name: 'switch',

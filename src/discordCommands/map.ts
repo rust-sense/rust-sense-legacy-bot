@@ -5,7 +5,7 @@ const Discord = require('discord.js');
 const Constants = require('../util/constants');
 const DiscordEmbeds = require('../discordTools/discordEmbeds');
 
-import { cwdPath } from '../utils/filesystemUtils';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
     name: 'map',

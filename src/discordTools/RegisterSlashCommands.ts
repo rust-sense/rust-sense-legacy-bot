@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { REST, Routes } = require('discord.js');
 
-import config from '../config';
+import config from '../config.js';
 import discordCommands from '../discordCommands';
 
 module.exports = async (client, guild) => {

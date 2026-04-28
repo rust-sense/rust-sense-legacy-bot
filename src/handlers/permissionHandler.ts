@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 
 const DiscordTools = require('../discordTools/discordTools');
 
-import config from '../config';
+import config from '../config.js';
 
 const writeableChannels = ['commands', 'teamchat'];
 

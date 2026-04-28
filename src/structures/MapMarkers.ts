@@ -50,12 +50,10 @@ export default class MapMarkers {
     private _deepSeas: Marker[] = [];
 
     /* Timers */
-    cargoShipEgressTimers: Record<number, ReturnType<typeof Timer.timer>> = {};
-    crateSmallOilRigTimer: ReturnType<typeof Timer.timer> | null = null;
-    crateSmallOilRigLocation: string | null = null;
-    crateLargeOilRigTimer: ReturnType<typeof Timer.timer> | null = null;
-    crateLargeOilRigLocation: string | null = null;
-    deepSeaTimer: ReturnType<typeof Timer.timer> | null = null;
+    cargoShipEgressTimers: Record<number, Timer.Timer> = {};
+    crateSmallOilRigTimer: Timer.Timer | null = null;
+    crateLargeOilRigTimer: Timer.Timer | null = null;
+    deepSeaTimer: Timer.Timer | null = null;
 
     /* Event dates */
     timeSinceCargoShipWasOut: Date | null = null;
