@@ -10,4 +10,5 @@ services:
       - ./instances:/app/instances
       - ./credentials:/app/credentials
       - ./maps:/app/maps
+      - ./authtokens:/app/authtokens
     restart: unless-stopped
