@@ -145,7 +145,7 @@ async function resetCustomIntl(client, interaction, verifyId) {
     client.log(client.intlGet(null, 'infoCap'), str);
 }
 
-async function showCustomIntl(client, interaction) {
+async function showCustomIntl(client, interaction, verifyId) {
     const guildId = interaction.guildId;
 
     const guildInstance = client.getInstance(guildId);

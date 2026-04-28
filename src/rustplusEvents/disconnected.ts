@@ -34,7 +34,7 @@ export default {
         if (rustplus.mapMarkers) rustplus.mapMarkers.reset();
 
         /* Stop all custom timers */
-        for (const [id, timer] of Object.entries(rustplus.timers)) timer.timer.stop();
+        for (const [id, timer] of Object.entries(rustplus.timers as Record<string, { timer: { stop: () => void } }>)) timer.timer.stop();
 
         if (rustplus.isDeleted) return;
 

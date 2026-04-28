@@ -35,7 +35,7 @@ export default {
                     if (client.uptimeBot === null) {
                         string = client.intlGet(interaction.guildId, 'offline');
                     } else {
-                        const seconds = (new Date() - client.uptimeBot) / 1000;
+                        const seconds = (new Date().getTime() - client.uptimeBot.getTime()) / 1000;
                         string = Timer.secondsToFullScale(seconds);
                     }
                 }
@@ -48,7 +48,7 @@ export default {
                         break;
                     }
 
-                    const seconds = (new Date() - rustplus.uptimeServer) / 1000;
+                    const seconds = (new Date().getTime() - rustplus.uptimeServer.getTime()) / 1000;
                     string = Timer.secondsToFullScale(seconds);
                 }
                 break;

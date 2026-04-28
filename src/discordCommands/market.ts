@@ -417,7 +417,7 @@ export default {
             case 'list':
                 {
                     const names = { all: '', buy: '', sell: '' };
-                    for (const [orderType, itemIds] of Object.entries(instance.marketSubscriptionList)) {
+                    for (const [orderType, itemIds] of Object.entries(instance.marketSubscriptionList as Record<string, string[]>)) {
                         for (const itemId of itemIds) {
                             names[orderType] += `\`${client.items.getName(itemId)} (${itemId})\`\n`;
                         }
