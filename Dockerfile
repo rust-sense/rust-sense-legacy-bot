@@ -22,10 +22,14 @@ RUN apt-get update \
     && apt-get install -y graphicsmagick \
     && apt-get clean
 
+RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
+    && chown -R node:node /app/credentials /app/instances /app/logs /app/maps /app/authtokens
+
 VOLUME [ "/app/credentials" ]
 VOLUME [ "/app/instances" ]
 VOLUME [ "/app/logs" ]
 VOLUME [ "/app/maps" ]
+VOLUME [ "/app/authtokens" ]
 
 USER node
 
