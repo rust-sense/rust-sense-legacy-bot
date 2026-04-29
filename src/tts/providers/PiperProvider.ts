@@ -108,7 +108,10 @@ export class PiperProvider implements TTSProvider {
 
         piper.stdout.pipe(ffmpeg.stdin);
 
+        let intentionallyKilled = false;
+
         piper.on('error', (err) => {
+            if (intentionallyKilled) return;
             client.log('ERROR', `Piper process error: ${err.message}`, 'error');
             ffmpeg.kill();
         });
@@ -118,6 +121,7 @@ export class PiperProvider implements TTSProvider {
         });
 
         piper.on('close', (code) => {
+            if (intentionallyKilled) return;
             if (code !== 0) {
                 client.log('ERROR', `Piper exited with code ${code}`, 'error');
                 ffmpeg.kill();
@@ -125,6 +129,7 @@ export class PiperProvider implements TTSProvider {
         });
 
         ffmpeg.on('error', (err) => {
+            if (intentionallyKilled) return;
             client.log('ERROR', `FFmpeg process error: ${err.message}`, 'error');
             piper.kill();
         });
@@ -132,7 +137,7 @@ export class PiperProvider implements TTSProvider {
         if (ffmpeg.stderr) {
             ffmpeg.stderr.on('data', (data) => {
                 const line = data.toString().trim();
-                if (line.toLowerCase().startsWith('error')) {
+                if (line.toLowerCase().startsWith('error') && !line.includes('broken pipe')) {
                     client.log('ERROR', `FFmpeg: ${line}`, 'error');
                 }
             });
@@ -143,6 +148,7 @@ export class PiperProvider implements TTSProvider {
 
         if (ffmpeg.stdout) {
             ffmpeg.stdout.on('close', () => {
+                intentionallyKilled = true;
                 piper.kill();
                 ffmpeg.kill();
             });
