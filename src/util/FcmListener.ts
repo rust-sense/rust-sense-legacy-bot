@@ -137,7 +137,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
         );
     });
 
-    listener.on('ON_DATA_RECEIVED', (data: any) => {
+    listener.on('ON_DATA_RECEIVED', async (data: any) => {
         const appData = data.appData;
 
         if (!appData) {

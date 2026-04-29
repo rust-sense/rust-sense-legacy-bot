@@ -357,6 +357,11 @@ export function getTTSProviderSelectMenu(guildId: string, provider: string) {
     );
 }
 
+export function getTTSSettingsComponents(guildId: string) {
+    const { ttsProvider } = client.getInstance(guildId).generalSettings;
+    return [getTTSProviderSelectMenu(guildId, ttsProvider ?? 'oddcast'), getTTSVoiceSelectMenu(guildId)];
+}
+
 export function getTTSVoiceSelectMenu(guildId: string) {
     const instance = client.getInstance(guildId);
     const { language, ttsProvider, voiceGender, piperVoice } = instance.generalSettings;
