@@ -7,7 +7,7 @@ import createInstanceFile from '../util/CreateInstanceFile.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
-    name: 'ready',
+    name: 'clientReady',
     once: true,
     async execute(client: DiscordBot) {
         for (const guild of client.guilds.cache) {
