@@ -57,7 +57,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
 
     try {
         const stream = await getTTSProvider(guildId).synthesize(text, language, voice);
-        const resource = createAudioResource(stream as any, { inputType: StreamType.OggOpus });
+        const resource = createAudioResource(stream as any, { inputType: StreamType.Raw });
 
         const player = getOrCreatePlayer(guildId);
         connection.subscribe(player);

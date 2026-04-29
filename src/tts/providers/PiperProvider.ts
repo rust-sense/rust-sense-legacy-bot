@@ -98,12 +98,12 @@ export class PiperProvider implements TTSProvider {
             '1',
             '-i',
             'pipe:0',
-            '-c:a',
-            'libopus',
-            '-application',
-            'voip',
+            '-ar',
+            '48000',
+            '-ac',
+            '2',
             '-f',
-            'ogg',
+            's16le',
             'pipe:1',
         ]);
 
