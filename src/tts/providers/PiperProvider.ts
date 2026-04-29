@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
-import { PassThrough, Readable } from 'node:stream';
+import { Readable } from 'node:stream';
 
 import { client } from '../../index.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
@@ -98,23 +98,20 @@ export class PiperProvider implements TTSProvider {
             '1',
             '-i',
             'pipe:0',
-            '-ar',
-            '48000',
-            '-ac',
-            '2',
+            '-c:a',
+            'libopus',
+            '-application',
+            'voip',
             '-f',
-            's16le',
+            'ogg',
             'pipe:1',
         ]);
 
         piper.stdout.pipe(ffmpeg.stdin);
 
+        const chunks: Buffer[] = [];
         let intentionallyKilled = false;
-        let piperExited = false;
-        let ffmpegExited = false;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
-        let piperStderr = '';
-        let ffmpegStderr = '';
 
         function cleanup() {
             if (timeoutId) {
@@ -124,12 +121,6 @@ export class PiperProvider implements TTSProvider {
             intentionallyKilled = true;
             piper.kill();
             ffmpeg.kill();
-        }
-
-        function maybeCleanup() {
-            if (piperExited && ffmpegExited) {
-                cleanup();
-            }
         }
 
         timeoutId = setTimeout(() => {
@@ -144,20 +135,14 @@ export class PiperProvider implements TTSProvider {
         });
 
         piper.stderr.on('data', (data) => {
-            const line = data.toString().trim();
-            piperStderr += line + '\n';
-            client.log('INFO', `Piper: ${line}`, 'info');
+            client.log('INFO', `Piper: ${data.toString().trim()}`, 'info');
         });
 
         piper.on('close', (code) => {
-            piperExited = true;
             if (intentionallyKilled) return;
             if (code !== 0 && code !== null) {
-                client.log('ERROR', `Piper exited with code ${code}\nStderr: ${piperStderr}`, 'error');
+                client.log('ERROR', `Piper exited with code ${code}`, 'error');
                 cleanup();
-            } else {
-                // Piper finished naturally — ffmpeg will get EOF and finish encoding
-                maybeCleanup();
             }
         });
 
@@ -167,62 +152,48 @@ export class PiperProvider implements TTSProvider {
             cleanup();
         });
 
-        ffmpeg.on('close', (code) => {
-            ffmpegExited = true;
-            if (intentionallyKilled) return;
-            const isBrokenPipe = ffmpegStderr.toLowerCase().includes('broken pipe');
-            if (code !== 0 && code !== null && !isBrokenPipe) {
-                client.log('ERROR', `FFmpeg exited with code ${code}\nStderr: ${ffmpegStderr}`, 'error');
-                cleanup();
-            } else {
-                // FFmpeg finished (naturally or due to expected broken pipe)
-                maybeCleanup();
-            }
-        });
+        if (ffmpeg.stdout) {
+            ffmpeg.stdout.on('data', (chunk: Buffer) => {
+                chunks.push(chunk);
+            });
+        }
 
         if (ffmpeg.stderr) {
             ffmpeg.stderr.on('data', (data) => {
                 const line = data.toString().trim();
-                ffmpegStderr += line + '\n';
+                if (line.toLowerCase().startsWith('error')) {
+                    client.log('ERROR', `FFmpeg: ${line}`, 'error');
+                }
             });
         }
 
         piper.stdin.write(text);
         piper.stdin.end();
 
-        const output = new PassThrough({ highWaterMark: 512 * 1024 });
-        let ffmpegFinished = false;
-
-        if (ffmpeg.stdout) {
-            ffmpeg.stdout.pipe(output, { end: false });
-
-            ffmpeg.stdout.on('error', () => {
-                // Ignore stdout errors — ffmpeg.on('close') will handle cleanup.
-                // Broken pipe on stdout is expected when the consumer stops reading.
-            });
-
-            ffmpeg.stdout.on('end', () => {
-                if (!ffmpegFinished) {
-                    ffmpegFinished = true;
-                    output.end();
+        await new Promise<void>((resolve, reject) => {
+            ffmpeg.on('close', (code) => {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                if (code === 0 || code === null) {
+                    resolve();
+                } else {
+                    reject(new Error(`FFmpeg exited with code ${code}`));
                 }
             });
+
+            ffmpeg.on('error', (err) => {
+                reject(err);
+            });
+        });
+
+        if (intentionallyKilled) {
+            throw new Error('TTS synthesis was killed');
         }
 
-        ffmpeg.on('close', (code) => {
-            if (!ffmpegFinished) {
-                ffmpegFinished = true;
-                // Even if ffmpeg exits with an error (e.g. broken pipe),
-                // all usable audio data has already been written to the PassThrough.
-                output.end();
-            }
-        });
-
-        output.on('close', () => {
-            cleanup();
-        });
-
-        return output;
+        const buffer = Buffer.concat(chunks);
+        return Readable.from(buffer);
     }
 
     private async downloadModel(voiceName: string): Promise<void> {

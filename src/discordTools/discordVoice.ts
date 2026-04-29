@@ -70,7 +70,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
         client.log('INFO', `Synthesizing TTS for guild ${guildId}: "${text.substring(0, 50)}..."`, 'info');
         const stream = await getTTSProvider(guildId).synthesize(text, language, voice);
         client.log('INFO', `TTS synthesis complete for guild ${guildId}`, 'info');
-        const resource = createAudioResource(stream as any, { inputType: StreamType.Raw });
+        const resource = createAudioResource(stream as any, { inputType: StreamType.OggOpus });
 
         const player = getOrCreatePlayer(guildId);
         connection.subscribe(player);
