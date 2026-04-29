@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
-import { Readable } from 'node:stream';
+import { PassThrough, Readable } from 'node:stream';
 
 import { client } from '../../index.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
@@ -170,11 +170,12 @@ export class PiperProvider implements TTSProvider {
         ffmpeg.on('close', (code) => {
             ffmpegExited = true;
             if (intentionallyKilled) return;
-            if (code !== 0 && code !== null) {
+            const isBrokenPipe = ffmpegStderr.toLowerCase().includes('broken pipe');
+            if (code !== 0 && code !== null && !isBrokenPipe) {
                 client.log('ERROR', `FFmpeg exited with code ${code}\nStderr: ${ffmpegStderr}`, 'error');
                 cleanup();
             } else {
-                // FFmpeg finished naturally
+                // FFmpeg finished (naturally or due to expected broken pipe)
                 maybeCleanup();
             }
         });
@@ -189,11 +190,39 @@ export class PiperProvider implements TTSProvider {
         piper.stdin.write(text);
         piper.stdin.end();
 
+        const output = new PassThrough({ highWaterMark: 512 * 1024 });
+        let ffmpegFinished = false;
+
         if (ffmpeg.stdout) {
-            return ffmpeg.stdout;
+            ffmpeg.stdout.pipe(output, { end: false });
+
+            ffmpeg.stdout.on('error', () => {
+                // Ignore stdout errors — ffmpeg.on('close') will handle cleanup.
+                // Broken pipe on stdout is expected when the consumer stops reading.
+            });
+
+            ffmpeg.stdout.on('end', () => {
+                if (!ffmpegFinished) {
+                    ffmpegFinished = true;
+                    output.end();
+                }
+            });
         }
 
-        throw new Error('Failed to create ffmpeg output stream');
+        ffmpeg.on('close', (code) => {
+            if (!ffmpegFinished) {
+                ffmpegFinished = true;
+                // Even if ffmpeg exits with an error (e.g. broken pipe),
+                // all usable audio data has already been written to the PassThrough.
+                output.end();
+            }
+        });
+
+        output.on('close', () => {
+            cleanup();
+        });
+
+        return output;
     }
 
     private async downloadModel(voiceName: string): Promise<void> {
