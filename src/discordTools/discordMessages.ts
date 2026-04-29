@@ -629,7 +629,7 @@ export async function sendDiscordCommandResponseMessage(
 export async function sendCredentialsShowMessage(interaction: any) {
     const content = {
         embeds: [await DiscordEmbeds.getCredentialsShowEmbed(interaction.guildId)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -649,7 +649,7 @@ export async function sendHelpMessage(interaction: any) {
     const content = {
         embeds: [DiscordEmbeds.getHelpEmbed(interaction.guildId)],
         components: DiscordButtons.getHelpButtons(),
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionReply(interaction, content);
@@ -663,7 +663,7 @@ export async function sendCctvMessage(
 ) {
     const content = {
         embeds: [DiscordEmbeds.getCctvEmbed(interaction.guildId, monument, cctvCodes, dynamic)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionReply(interaction, content);
@@ -672,7 +672,7 @@ export async function sendCctvMessage(
 export async function sendUptimeMessage(interaction: any, uptime: any) {
     const content = {
         embeds: [DiscordEmbeds.getUptimeEmbed(interaction.guildId, uptime)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -681,7 +681,7 @@ export async function sendUptimeMessage(interaction: any, uptime: any) {
 export async function sendVoiceMessage(interaction: any, state: any) {
     const content = {
         embeds: [DiscordEmbeds.getVoiceEmbed(interaction.guildId, state)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -694,7 +694,7 @@ export async function sendCraftMessage(
 ) {
     const content = {
         embeds: [DiscordEmbeds.getCraftEmbed(interaction.guildId, craftDetails, quantity)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -703,7 +703,7 @@ export async function sendCraftMessage(
 export async function sendResearchMessage(interaction: any, researchDetails: any) {
     const content = {
         embeds: [DiscordEmbeds.getResearchEmbed(interaction.guildId, researchDetails)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -717,7 +717,7 @@ export async function sendRecycleMessage(
 ) {
     const content = {
         embeds: [DiscordEmbeds.getRecycleEmbed(interaction.guildId, recycleDetails, quantity, recyclerType)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);
@@ -752,7 +752,7 @@ export async function sendItemMessage(
 ) {
     const content = {
         embeds: [DiscordEmbeds.getItemEmbed(interaction.guildId, itemName, itemId, type)],
-        ephemeral: true,
+        flags: Discord.MessageFlags.Ephemeral,
     };
 
     await client.interactionEditReply(interaction, content);

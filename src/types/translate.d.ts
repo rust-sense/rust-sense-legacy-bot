@@ -6,7 +6,7 @@ declare module 'translate' {
         key?: string;
     }
 
-    function translate(text: string, options?: TranslateOptions): Promise<string>;
+    function translate(text: string, options?: TranslateOptions | string): Promise<string>;
     
     export default translate;
 }

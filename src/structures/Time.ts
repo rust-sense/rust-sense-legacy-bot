@@ -8,8 +8,15 @@ interface TimeData {
     time: number;
 }
 
+interface RustplusLike {
+    guildId: string;
+    serverId: string;
+}
+
 interface ClientLike {
-    getInstance: (guildId: string) => { serverList: Record<string, { timeTillDay: number | null; timeTillNight: number | null }> };
+    getInstance: (guildId: string) => {
+        serverList: Record<string, { timeTillDay: Record<string, number> | null; timeTillNight: Record<string, number> | null }>;
+    };
 }
 
 export default class Time {
@@ -18,107 +25,53 @@ export default class Time {
     private _sunrise: number;
     private _sunset: number;
     private _time: number;
-    private _rustplus: unknown;
+    private _rustplus: RustplusLike;
     private _client: ClientLike;
     private _startTime: number;
-    private _timeTillDay: number | null = null;
-    private _timeTillNight: number | null = null;
+    private _timeTillDay: Record<string, number> = {};
+    private _timeTillNight: Record<string, number> = {};
     private _timeTillActive = false;
 
-    constructor(time: TimeData, rustplus: unknown, client: ClientLike) {
+    constructor(time: TimeData, rustplus: RustplusLike, client: ClientLike) {
         this._dayLengthMinutes = time.dayLengthMinutes;
         this._timeScale = time.timeScale;
         this._sunrise = time.sunrise;
         this._sunset = time.sunset;
         this._time = time.time;
-
         this._rustplus = rustplus;
         this._client = client;
-
         this._startTime = time.time;
-
         this.loadTimeTillConfig();
     }
 
-    /* Getters and Setters */
-    get dayLengthMinutes(): number {
-        return this._dayLengthMinutes;
-    }
-    set dayLengthMinutes(dayLengthMinutes: number) {
-        this._dayLengthMinutes = dayLengthMinutes;
-    }
-    get timeScale(): number {
-        return this._timeScale;
-    }
-    set timeScale(timeScale: number) {
-        this._timeScale = timeScale;
-    }
-    get sunrise(): number {
-        return this._sunrise;
-    }
-    set sunrise(sunrise: number) {
-        this._sunrise = sunrise;
-    }
-    get sunset(): number {
-        return this._sunset;
-    }
-    set sunset(sunset: number) {
-        this._sunset = sunset;
-    }
-    get time(): number {
-        return this._time;
-    }
-    set time(time: number) {
-        this._time = time;
-    }
-    get rustplus(): unknown {
-        return this._rustplus;
-    }
-    set rustplus(rustplus: unknown) {
-        this._rustplus = rustplus;
-    }
-    get client(): ClientLike {
-        return this._client;
-    }
-    set client(client: ClientLike) {
-        this._client = client;
-    }
-    get startTime(): number {
-        return this._startTime;
-    }
-    set startTime(startTime: number) {
-        this._startTime = startTime;
-    }
-    get timeTillDay(): number | null {
-        return this._timeTillDay;
-    }
-    set timeTillDay(timeTillDay: number | null) {
-        this._timeTillDay = timeTillDay;
-    }
-    get timeTillNight(): number | null {
-        return this._timeTillNight;
-    }
-    set timeTillNight(timeTillNight: number | null) {
-        this._timeTillNight = timeTillNight;
-    }
-    get timeTillActive(): boolean {
-        return this._timeTillActive;
-    }
-    set timeTillActive(timeTillActive: boolean) {
-        this._timeTillActive = timeTillActive;
-    }
+    get dayLengthMinutes(): number { return this._dayLengthMinutes; }
+    set dayLengthMinutes(v: number) { this._dayLengthMinutes = v; }
+    get timeScale(): number { return this._timeScale; }
+    set timeScale(v: number) { this._timeScale = v; }
+    get sunrise(): number { return this._sunrise; }
+    set sunrise(v: number) { this._sunrise = v; }
+    get sunset(): number { return this._sunset; }
+    set sunset(v: number) { this._sunset = v; }
+    get time(): number { return this._time; }
+    set time(v: number) { this._time = v; }
+    get rustplus(): RustplusLike { return this._rustplus; }
+    set rustplus(v: RustplusLike) { this._rustplus = v; }
+    get client(): ClientLike { return this._client; }
+    set client(v: ClientLike) { this._client = v; }
+    get startTime(): number { return this._startTime; }
+    set startTime(v: number) { this._startTime = v; }
+    get timeTillDay(): Record<string, number> { return this._timeTillDay; }
+    set timeTillDay(v: Record<string, number>) { this._timeTillDay = v; }
+    get timeTillNight(): Record<string, number> { return this._timeTillNight; }
+    set timeTillNight(v: Record<string, number>) { this._timeTillNight = v; }
+    get timeTillActive(): boolean { return this._timeTillActive; }
+    set timeTillActive(v: boolean) { this._timeTillActive = v; }
 
-    loadTimeTillConfig(): void {
-        const instance = this.client.getInstance((this.rustplus as { guildId: string }).guildId);
-
-        if (instance.serverList[(this.rustplus as { serverId: string }).serverId].timeTillDay !== null) {
-            this.timeTillDay = instance.serverList[(this.rustplus as { serverId: string }).serverId].timeTillDay;
-        }
-
-        if (instance.serverList[(this.rustplus as { serverId: string }).serverId].timeTillNight !== null) {
-            this.timeTillNight = instance.serverList[(this.rustplus as { serverId: string }).serverId].timeTillNight;
-        }
-    }
+    isDayLengthMinutesChanged(time: TimeData): boolean { return this.dayLengthMinutes !== time.dayLengthMinutes; }
+    isTimeScaleChanged(time: TimeData): boolean { return this.timeScale !== time.timeScale; }
+    isSunriseChanged(time: TimeData): boolean { return this.sunrise !== time.sunrise; }
+    isSunsetChanged(time: TimeData): boolean { return this.sunset !== time.sunset; }
+    isTimeChanged(time: TimeData): boolean { return this.time !== time.time; }
 
     isDay(): boolean {
         return this.time >= this.sunrise && this.time < this.sunset;
@@ -128,24 +81,23 @@ export default class Time {
         return !this.isDay();
     }
 
-    getTimeTillDayNight(): { day: number | null; night: number | null } {
-        const dayLength = this.dayLengthMinutes * 60;
-        const currentTime = this.time;
-        const sunrise = this.sunrise;
-        const sunset = this.sunset;
+    isTurnedDay(time: TimeData): boolean {
+        return this.isNight() && time.time >= time.sunrise && time.time < time.sunset;
+    }
 
-        let timeTillDay: number | null = null;
-        let timeTillNight: number | null = null;
+    isTurnedNight(time: TimeData): boolean {
+        return this.isDay() && !(time.time >= time.sunrise && time.time < time.sunset);
+    }
 
-        if (currentTime < sunrise) {
-            timeTillDay = ((sunrise - currentTime) / dayLength) * 24 * 60 * 60;
-        } else if (currentTime >= sunrise && currentTime < sunset) {
-            timeTillNight = ((sunset - currentTime) / dayLength) * 24 * 60 * 60;
-        } else {
-            timeTillDay = ((dayLength - currentTime + sunrise) / dayLength) * 24 * 60 * 60;
-        }
+    loadTimeTillConfig(): void {
+        const instance = this.client.getInstance(this.rustplus.guildId);
+        const server = instance.serverList[this.rustplus.serverId];
 
-        return { day: timeTillDay, night: timeTillNight };
+        if (server.timeTillDay !== null) this.timeTillDay = server.timeTillDay;
+        if (server.timeTillNight !== null) this.timeTillNight = server.timeTillNight;
+
+        this.timeTillActive =
+            Object.keys(this.timeTillDay).length !== 0 && Object.keys(this.timeTillNight).length !== 0;
     }
 
     updateTime(time: TimeData): void {
@@ -154,13 +106,19 @@ export default class Time {
         this.sunrise = time.sunrise;
         this.sunset = time.sunset;
         this.time = time.time;
+    }
 
-        if (!this.timeTillActive) {
-            const timeTill = this.getTimeTillDayNight();
-            this.timeTillDay = timeTill.day;
-            this.timeTillNight = timeTill.night;
-            this.timeTillActive = true;
-        }
+    getTimeTillDayOrNight(ignore = ''): string | null {
+        if (!this.timeTillActive) return null;
+
+        const object = this.isDay() ? this.timeTillNight : this.timeTillDay;
+        const time = this.time;
+
+        const closest = Object.keys(object)
+            .map(Number)
+            .reduce((a, b) => (Math.abs(b - time) < Math.abs(a - time) ? b : a));
+
+        return TimeLib.secondsToFullScale(object[closest], ignore);
     }
 
     getTimeString(): string {

@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
@@ -32,7 +33,7 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const craftItemName = interaction.options.getString('name');
         const craftItemId = interaction.options.getString('id');

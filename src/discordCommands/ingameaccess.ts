@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
@@ -43,7 +44,7 @@ export default {
             return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         ensureGeneralSettings(instance);
 
         switch (interaction.options.getSubcommand()) {
@@ -98,7 +99,7 @@ export default {
                                 inline: true
                             }]
                     })],
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
 
                 client.log(client.intlGet(null, 'infoCap'),

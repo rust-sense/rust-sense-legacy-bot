@@ -647,7 +647,7 @@ export function getActionInfoEmbed(color, str, footer = null, ephemeral = true) 
                 footer: footer !== null ? { text: footer } : null,
             }),
         ],
-        ephemeral: ephemeral,
+        flags: ephemeral ? Discord.MessageFlags.Ephemeral : 0,
     };
 }
 
@@ -940,8 +940,8 @@ export function getUpdateBattlemetricsOnlinePlayersInformationEmbed(rustplus, ba
         playerCounter += 1;
 
         const status = bmInstance.players[playerId]['status'];
-        let time = status ? bmInstance.getOnlineTime(playerId) : bmInstance.getOfflineTime(playerId);
-        time = time !== null ? time[1] : '';
+        const timeResult = status ? bmInstance.getOnlineTime(playerId) : bmInstance.getOfflineTime(playerId);
+        const time = timeResult !== null ? timeResult[1] : '';
 
         let playerStr = status ? Constants.ONLINE_EMOJI : Constants.OFFLINE_EMOJI;
         playerStr += ` [${time}] `;

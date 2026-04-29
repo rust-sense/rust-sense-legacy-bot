@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import type DiscordBot from '../structures/DiscordBot.js';
@@ -25,7 +26,7 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const despawnItemName = interaction.options.getString('name');
         const despawnItemId = interaction.options.getString('id');

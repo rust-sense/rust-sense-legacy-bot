@@ -1,4 +1,5 @@
 import Player from './Player.js';
+import { client } from '../index.js';
 
 interface TeamData {
     leaderSteamId: string | number;
@@ -80,29 +81,73 @@ export default class Team {
     }
 
     updateTeam(team: TeamData): void {
-        this.leaderSteamId = team.leaderSteamId.toString();
+        const instance = client.getInstance(this.rustplus.guildId);
 
-        for (const player of team.members) {
-            const existingPlayer = this.getPlayer(player.steamId.toString());
-            if (existingPlayer) {
-                existingPlayer.updatePlayer(player as ConstructorParameters<typeof Player>[0]);
-            } else {
-                this.players.push(new Player(player as ConstructorParameters<typeof Player>[0], this.rustplus));
+        if (this.isLeaderSteamIdChanged(team)) {
+            let player = this.getPlayer(this.leaderSteamId);
+            if (player !== null) player.teamLeader = false;
+
+            player = this.getPlayer(team.leaderSteamId.toString());
+            if (player !== null) {
+                this.rustplus.log(
+                    client.intlGet(null, 'commandCap'),
+                    client.intlGet(null, 'leaderTransferred', { name: `${player.name}:${player.steamId}` }),
+                    'info',
+                );
             }
         }
 
-        /* Remove players that are no longer in the team */
-        this.players = this.players.filter((player) =>
-            team.members.some((member) => member.steamId.toString() === player.steamId),
-        );
+        this.leaderSteamId = team.leaderSteamId.toString();
+
+        let unhandled = this.players.slice();
+        for (const member of team.members) {
+            const steamId = member.steamId.toString();
+            if (this.players.some((p) => p.steamId === steamId)) {
+                this.getPlayer(steamId)!.updatePlayer(member as ConstructorParameters<typeof Player>[0]);
+                unhandled = unhandled.filter((p) => p.steamId !== steamId);
+            } else {
+                this.addPlayer(member);
+            }
+
+            if (!Object.hasOwn(instance.teamChatColors, steamId)) {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * 16)];
+                instance.teamChatColors[steamId] = color;
+            }
+        }
+
+        for (const player of unhandled) {
+            this.removePlayer(player);
+        }
+
+        this.allOnline = true;
+        this.allOffline = true;
+        for (const player of this.players) {
+            this.allOnline = this.allOnline && player.isOnline;
+            this.allOffline = this.allOffline && !player.isOnline;
+        }
 
         this.teamSize = this.players.length;
-        this.allOnline = this.players.every((player) => player.isOnline);
-        this.allOffline = this.players.every((player) => !player.isOnline);
+
+        const leader = this.getPlayer(this.leaderSteamId);
+        if (leader !== null) leader.teamLeader = true;
+
+        client.setInstance(this.rustplus.guildId, instance);
     }
 
-    getPlayer(steamId: string): Player | undefined {
-        return this.players.find((player) => player.steamId === steamId);
+    addPlayer(player: ConstructorParameters<typeof Player>[0]): void {
+        if (!this.players.some((p) => p.steamId === player.steamId.toString())) {
+            this.players.push(new Player(player, this.rustplus));
+        }
+    }
+
+    removePlayer(player: { steamId: string }): void {
+        this.players = this.players.filter((p) => p.steamId !== player.steamId);
+    }
+
+    getPlayer(steamId: string): Player | null {
+        return this.players.find((p) => p.steamId === steamId) ?? null;
     }
 
     getOnlinePlayers(): Player[] {
@@ -119,5 +164,35 @@ export default class Team {
 
     getDeadPlayers(): Player[] {
         return this.players.filter((player) => !player.isAlive);
+    }
+
+    isPlayerInTeam(steamId: string): boolean {
+        return this.getPlayer(steamId) !== null;
+    }
+
+    isLeaderSteamIdChanged(team: TeamData): boolean {
+        return this.leaderSteamId !== team.leaderSteamId.toString();
+    }
+
+    getNewPlayers(team: TeamData): string[] {
+        return team.members
+            .filter((member) => !this.isPlayerInTeam(member.steamId.toString()))
+            .map((member) => member.steamId.toString());
+    }
+
+    getLeftPlayers(team: TeamData): string[] {
+        const newSteamIds = new Set(team.members.map((m) => m.steamId.toString()));
+        return this.players.map((p) => p.steamId).filter((id) => !newSteamIds.has(id));
+    }
+
+    getPlayerLongestAlive(): Player {
+        return this.players.reduce((prev, curr) =>
+            prev.getAliveSeconds() > curr.getAliveSeconds() ? prev : curr,
+        );
+    }
+
+    async changeLeadership(steamId: string): Promise<void> {
+        const player = this.getPlayer(steamId);
+        if (player !== null) await player.assignLeader();
     }
 }

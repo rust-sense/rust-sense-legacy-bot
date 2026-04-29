@@ -1,10 +1,8 @@
 import * as DiscordModule from 'discord.js';
 const Discord: any = DiscordModule;
-import * as PushReceiverClientModule from '@liamcottle/push-receiver/src/client';
-const PushReceiverClient: any = PushReceiverClientModule;
+import PushReceiverClient from '@liamcottle/push-receiver/src/client';
 
-import * as BattlemetricsModule from '../structures/Battlemetrics.js';
-const Battlemetrics: any = BattlemetricsModule;
+import Battlemetrics from '../structures/Battlemetrics.js';
 import * as ConstantsModule from '../util/constants.js';
 const Constants: any = ConstantsModule;
 import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';

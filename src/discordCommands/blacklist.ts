@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
@@ -70,7 +71,7 @@ export default {
             return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const guild = DiscordTools.getGuild(guildId);
 
@@ -265,7 +266,7 @@ export default {
                                 ],
                             }),
                         ],
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
 
                     client.log(client.intlGet(guildId, 'infoCap'), client.intlGet(guildId, 'showingBlacklist'), 'info');

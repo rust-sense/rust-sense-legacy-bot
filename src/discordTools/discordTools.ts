@@ -171,7 +171,7 @@ export async function getMessageById(
             } catch (_e) {
                 client.log(
                     client.intlGet(null, 'errorCap'),
-                    client.intlGet(null, 'couldNotFindMessage', { messageId }),
+                    client.intlGet(null, 'couldNotFindMessage', { message: messageId }),
                     'error',
                 );
             }

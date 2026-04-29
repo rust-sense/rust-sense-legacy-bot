@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { AttachmentBuilder } from 'discord.js';
+import { AttachmentBuilder, MessageFlags } from 'discord.js';
 
 import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
@@ -35,7 +35,7 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         if (!rustplus || (rustplus && !rustplus.isOperational)) {
             const str = client.intlGet(interaction.guildId, 'notConnectedToRustServer');
@@ -103,7 +103,7 @@ export default {
                 }),
             ],
             files: [file],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         rustplus.log(
             client.intlGet(interaction.guildId, 'infoCap'),

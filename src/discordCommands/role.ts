@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
@@ -67,7 +68,7 @@ export default {
             return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const subcommandGroup = interaction.options.getSubcommandGroup(),
             subcommand = interaction.options.getSubcommand();

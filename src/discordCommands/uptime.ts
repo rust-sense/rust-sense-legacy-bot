@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as Timer from '../util/timer.js';
@@ -26,7 +27,7 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         let string = '';
         switch (interaction.options.getSubcommand()) {

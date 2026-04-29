@@ -242,8 +242,8 @@ export interface Server {
     deepSeaMinWipeCooldownMs: number;
     deepSeaMaxWipeCooldownMs: number;
     deepSeaWipeDurationMs: number;
-    timeTillDay: number | null;
-    timeTillNight: number | null;
+    timeTillDay: Record<string, number> | null;
+    timeTillNight: Record<string, number> | null;
     messageId: string | null;
     connect?: string;
     img?: string;

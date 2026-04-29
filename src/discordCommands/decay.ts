@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as Timer from '../util/timer.js';
@@ -29,7 +30,7 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const decayItemName = interaction.options.getString('name');
         const decayItemId = interaction.options.getString('id');
