@@ -1,4 +1,5 @@
 import { getVoiceConnection } from '@discordjs/voice';
+import { destroyGuildTTS } from '../discordTools/discordVoice.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
@@ -61,4 +62,5 @@ function botLeaveVoiceTimeout(guildId: string) {
     if (connection) {
         connection.destroy();
     }
+    destroyGuildTTS(guildId);
 }
