@@ -137,7 +137,8 @@ export class PiperProvider implements TTSProvider {
         if (ffmpeg.stderr) {
             ffmpeg.stderr.on('data', (data) => {
                 const line = data.toString().trim();
-                if (line.toLowerCase().startsWith('error') && !line.includes('broken pipe')) {
+                const lower = line.toLowerCase();
+                if (lower.startsWith('error') && !lower.includes('broken pipe')) {
                     client.log('ERROR', `FFmpeg: ${line}`, 'error');
                 }
             });
