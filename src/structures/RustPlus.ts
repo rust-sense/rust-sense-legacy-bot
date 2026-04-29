@@ -2007,6 +2007,7 @@ export default class RustPlus extends RustPlusLib {
             ? command.slice(`${cmdTTS} `.length).trim()
             : command.slice(`${cmdTTSEn} `.length).trim();
         await DiscordMessages.sendTTSMessage(this.guildId, callerName, text);
+        await DiscordVoice.sendDiscordVoiceMessage(this.guildId, text);
         return client.intlGet(this.guildId, 'sentTextToSpeech');
     }
 

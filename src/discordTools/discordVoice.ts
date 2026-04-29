@@ -11,15 +11,21 @@ const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<
 
 export async function sendDiscordVoiceMessage(guildId: string, text: string) {
     const connection = getVoiceConnection(guildId);
+    if (!connection) return;
+
     const voice = await getVoice(guildId);
+    if (!voice) return;
+
     const url = `https://cache-a.oddcast.com/tts/genC.php?EID=${voice.EID}&LID=${voice.LID}&VID=${voice.VID}&TXT=${encodeURIComponent(text)}&EXT=mp3`;
 
-    if (connection) {
+    try {
         const stream = Readable.fromWeb((await (await fetch(url)).blob()).stream());
         const resource = createAudioResource(stream);
         const player = createAudioPlayer();
         connection.subscribe(player);
         player.play(resource);
+    } catch (e) {
+        client.log('ERROR', `Failed to play TTS in voice channel for guild ${guildId}: ${e}`, 'error');
     }
 }
 
