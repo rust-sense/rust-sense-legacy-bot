@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import FormatJS from '@formatjs/intl';
+import { createIntl, createIntlCache } from '@formatjs/intl';
 import * as Discord from 'discord.js';
 import { IntlMessageFormat } from 'intl-messageformat';
 import config from '../config.js';
@@ -26,7 +26,7 @@ export default class DiscordBot extends Discord.Client {
     fcmListeners: Record<string, { destroy: () => void }> = {};
     fcmListenersLite: Record<string, Record<string, { destroy: () => void }>> = {};
     instances: Record<string, import('../types/instance.js').Instance> = {};
-    intlInstances: Record<string, ReturnType<typeof FormatJS.createIntl>> = {};
+    intlInstances: Record<string, ReturnType<typeof createIntl>> = {};
     customGuildIntl: Record<string, Record<string, IntlMessageFormat>> = {};
     rustplusInstances: Record<string, RustPlus> = {};
     activeRustplusInstances: Record<string, boolean> = {};
@@ -43,7 +43,7 @@ export default class DiscordBot extends Discord.Client {
     battlemetricsIntervalId: ReturnType<typeof setInterval> | null = null;
     battlemetricsIntervalCounter = 0;
     voiceLeaveTimeouts: Record<string, ReturnType<typeof setTimeout> | null> = {};
-    localeCache: ReturnType<typeof FormatJS.createIntlCache>;
+    localeCache: ReturnType<typeof createIntlCache>;
 
     constructor(props: Discord.ClientOptions) {
         super(props);
@@ -83,7 +83,7 @@ export default class DiscordBot extends Discord.Client {
     }
 
     setupIntl(): void {
-        this.localeCache = FormatJS.createIntlCache();
+        this.localeCache = createIntlCache();
 
         // Load english intl
         this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
@@ -92,7 +92,7 @@ export default class DiscordBot extends Discord.Client {
         this.checkLocaleIntlLoad(config.general.language);
     }
 
-    createIntlForLocale(locale: string): ReturnType<typeof FormatJS.createIntl> {
+    createIntlForLocale(locale: string): ReturnType<typeof createIntl> {
         const messages = loadJsonResourceSync<Record<string, string>>(`languages/${locale}.json`);
 
         const intlConfig = {
@@ -101,10 +101,10 @@ export default class DiscordBot extends Discord.Client {
             defaultLocale: Constants.DEFAULT_LOCALE,
         };
 
-        return FormatJS.createIntl(intlConfig, this.localeCache);
+        return createIntl(intlConfig, this.localeCache);
     }
 
-    checkLocaleIntlLoad(locale: string): ReturnType<typeof FormatJS.createIntl> {
+    checkLocaleIntlLoad(locale: string): ReturnType<typeof createIntl> {
         if (locale in this.intlInstances) {
             return this.intlInstances[locale];
         }
@@ -146,7 +146,7 @@ export default class DiscordBot extends Discord.Client {
     }
 
     formatWithIntl(
-        intlInstance: ReturnType<typeof FormatJS.createIntl>,
+        intlInstance: ReturnType<typeof createIntl>,
         id: string,
         variables: Record<string, unknown> = {},
     ): string {
@@ -154,7 +154,10 @@ export default class DiscordBot extends Discord.Client {
         const messages = englishIntl.messages as Record<string, string>;
         const defaultMessage = messages[id];
 
-        return intlInstance.formatMessage({ id, defaultMessage }, variables) as string;
+        return intlInstance.formatMessage(
+            { id, defaultMessage },
+            variables as Record<string, string | number | Date | boolean>,
+        ) as string;
     }
 
     intlGet(guildId: string | null, id: string, variables: Record<string, unknown> = {}): string {
