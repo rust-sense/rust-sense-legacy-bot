@@ -1,11 +1,11 @@
-import errorEventHandler from './error';
-import guildCreateEventHandler from './guildCreate';
-import guildMemberRemoveEventHandler from './guildMemberRemove';
-import interactionCreateEventHandler from './interactionCreate';
-import messageCreateEventHandler from './messageCreate';
-import rateLimitedEventHandler from './rateLimited';
-import readyEventHandler from './ready';
-import voiceStateUpdateEventHandler from './voiceStateUpdate';
+import errorEventHandler from './error.js';
+import guildCreateEventHandler from './guildCreate.js';
+import guildMemberRemoveEventHandler from './guildMemberRemove.js';
+import interactionCreateEventHandler from './interactionCreate.js';
+import messageCreateEventHandler from './messageCreate.js';
+import rateLimitedEventHandler from './rateLimited.js';
+import readyEventHandler from './ready.js';
+import voiceStateUpdateEventHandler from './voiceStateUpdate.js';
 
 export default [
     errorEventHandler,

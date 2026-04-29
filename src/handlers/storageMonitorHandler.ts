@@ -1,0 +1,87 @@
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
+
+export async function handler(rustplus: any, client: DiscordBot) {
+    let instance = client.getInstance(rustplus.guildId);
+    const guildId = rustplus.guildId;
+    const serverId = rustplus.serverId;
+
+    if (!Object.hasOwn(instance.serverList, serverId)) {
+        return;
+    }
+
+    if (rustplus.storageMonitorIntervalCounter === 29) {
+        rustplus.storageMonitorIntervalCounter = 0;
+    } else {
+        rustplus.storageMonitorIntervalCounter += 1;
+    }
+
+    if (rustplus.storageMonitorIntervalCounter === 0) {
+        let instance = client.getInstance(guildId);
+        for (const entityId in instance.serverList[serverId].storageMonitors) {
+            instance = client.getInstance(guildId);
+
+            const info = await rustplus.getEntityInfoAsync(entityId);
+            if (!rustplus.isResponseValid(info)) {
+                if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
+                    await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, serverId, entityId);
+                }
+                instance.serverList[serverId].storageMonitors[entityId].reachable = false;
+            } else {
+                instance.serverList[serverId].storageMonitors[entityId].reachable = true;
+            }
+            client.setInstance(guildId, instance);
+
+            if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
+                if (
+                    Object.hasOwn(rustplus.storageMonitors, entityId) &&
+                    rustplus.storageMonitors[entityId].capacity !== 0 &&
+                    info.entityInfo.payload.capacity === 0
+                ) {
+                    await DiscordMessages.sendStorageMonitorDisconnectNotificationMessage(guildId, serverId, entityId);
+                }
+
+                rustplus.storageMonitors[entityId] = {
+                    items: info.entityInfo.payload.items,
+                    expiry: info.entityInfo.payload.protectionExpiry,
+                    capacity: info.entityInfo.payload.capacity,
+                    hasProtection: info.entityInfo.payload.hasProtection,
+                };
+
+                if (info.entityInfo.payload.capacity !== 0) {
+                    if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_TOOL_CUPBOARD_CAPACITY) {
+                        instance.serverList[serverId].storageMonitors[entityId].type = 'toolCupboard';
+                        if (
+                            info.entityInfo.payload.protectionExpiry === 0 &&
+                            instance.serverList[serverId].storageMonitors[entityId].decaying === false
+                        ) {
+                            instance.serverList[serverId].storageMonitors[entityId].decaying = true;
+
+                            await DiscordMessages.sendDecayingNotificationMessage(guildId, serverId, entityId);
+
+                            if (instance.serverList[serverId].storageMonitors[entityId].inGame) {
+                                rustplus.sendInGameMessage(
+                                    client.intlGet(rustplus.guildId, 'isDecaying', {
+                                        device: instance.serverList[serverId].storageMonitors[entityId].name,
+                                    }),
+                                );
+                            }
+                        } else if (info.entityInfo.payload.protectionExpiry !== 0) {
+                            instance.serverList[serverId].storageMonitors[entityId].decaying = false;
+                        }
+                    } else if (
+                        info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY
+                    ) {
+                        instance.serverList[serverId].storageMonitors[entityId].type = 'vendingMachine';
+                    } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
+                        instance.serverList[serverId].storageMonitors[entityId].type = 'largeWoodBox';
+                    }
+                    client.setInstance(guildId, instance);
+                }
+            }
+
+            await DiscordMessages.sendStorageMonitorMessage(guildId, serverId, entityId);
+        }
+    }
+}

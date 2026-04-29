@@ -1,0 +1,40 @@
+declare module 'colors' {
+    interface String {
+        black: string;
+        red: string;
+        green: string;
+        yellow: string;
+        blue: string;
+        magenta: string;
+        cyan: string;
+        white: string;
+        gray: string;
+        grey: string;
+        bgBlack: string;
+        bgRed: string;
+        bgGreen: string;
+        bgYellow: string;
+        bgBlue: string;
+        bgMagenta: string;
+        bgCyan: string;
+        bgWhite: string;
+        bold: string;
+        dim: string;
+        italic: string;
+        underline: string;
+        inverse: string;
+        hidden: string;
+        strikethrough: string;
+        rainbow: string;
+        zebra: string;
+        america: string;
+        trap: string;
+        random: string;
+    }
+
+    function enable(): void;
+    function disable(): void;
+    function setTheme(theme: Record<string, string | string[]>): void;
+
+    export = colors;
+}

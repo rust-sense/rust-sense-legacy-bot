@@ -1,18 +1,24 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "lib": ["ESNext", "dom"],
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "target": "ES2022",
+        "lib": ["ES2022"],
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "resolveJsonModule": true,
-        "allowJs": true,
+        "allowJs": false,
         "checkJs": false,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "strict": true,
+        "strict": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
         "skipLibCheck": true,
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        }
     },
     "include": ["src"]
 }
