@@ -1,6 +1,8 @@
 {
     "language": "en",
     "voiceGender": "male",
+    "ttsProvider": "oddcast",
+    "piperVoice": "en_US-lessac-medium",
     "prefix": "!",
     "muteInGameBotMessages": false,
     "trademark": "rustplusplus",

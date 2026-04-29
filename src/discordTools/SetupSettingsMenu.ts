@@ -78,6 +78,30 @@ async function setupGeneralSettings(client: DiscordBot, guildId: string, channel
         embeds: [
             DiscordEmbeds.getEmbed({
                 color: Constants.COLOR_SETTINGS,
+                title: 'TTS Provider',
+                thumbnail: `attachment://settings_logo.png`,
+            }),
+        ],
+        components: [DiscordSelectMenus.getTTSProviderSelectMenu(guildId, instance.generalSettings.ttsProvider ?? 'oddcast')],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
+    });
+
+    await client.messageSend(channel, {
+        embeds: [
+            DiscordEmbeds.getEmbed({
+                color: Constants.COLOR_SETTINGS,
+                title: 'TTS Voice',
+                thumbnail: `attachment://settings_logo.png`,
+            }),
+        ],
+        components: [DiscordSelectMenus.getTTSVoiceSelectMenu(guildId)],
+        files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
+    });
+
+    await client.messageSend(channel, {
+        embeds: [
+            DiscordEmbeds.getEmbed({
+                color: Constants.COLOR_SETTINGS,
                 title: client.intlGet(guildId, 'selectInGamePrefixSetting'),
                 thumbnail: `attachment://settings_logo.png`,
             }),

@@ -49,6 +49,8 @@ export interface GeneralSettings {
     prefix: string;
     language: string;
     voiceGender: string;
+    ttsProvider: string;
+    piperVoice: string;
     commandDelay: string;
     trademark: string;
     teammateNameType: PlayerNameType;

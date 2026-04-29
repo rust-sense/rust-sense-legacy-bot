@@ -119,6 +119,45 @@ export default async (client: DiscordBot, interaction: any) => {
         await client.interactionUpdate(interaction, {
             components: [DiscordSelectMenus.getVoiceGenderSelectMenu(guildId, interaction.values[0])],
         });
+    } else if (interaction.customId === 'TTSProvider') {
+        instance.generalSettings.ttsProvider = interaction.values[0];
+        client.setInstance(guildId, instance);
+
+        if (rustplus) rustplus.generalSettings.ttsProvider = interaction.values[0];
+
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'selectMenuValueChange', {
+                id: `${verifyId}`,
+                value: `${instance.generalSettings.ttsProvider}`,
+            }),
+        );
+
+        await client.interactionUpdate(interaction, {
+            components: [DiscordSelectMenus.getTTSVoiceSelectMenu(guildId)],
+        });
+    } else if (interaction.customId === 'TTSVoice') {
+        const provider = instance.generalSettings.ttsProvider ?? 'oddcast';
+        if (provider === 'piper') {
+            instance.generalSettings.piperVoice = interaction.values[0];
+            if (rustplus) rustplus.generalSettings.piperVoice = interaction.values[0];
+        } else {
+            instance.generalSettings.voiceGender = interaction.values[0];
+            if (rustplus) rustplus.generalSettings.voiceGender = interaction.values[0];
+        }
+        client.setInstance(guildId, instance);
+
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'selectMenuValueChange', {
+                id: `${verifyId}`,
+                value: `${interaction.values[0]}`,
+            }),
+        );
+
+        await client.interactionUpdate(interaction, {
+            components: [DiscordSelectMenus.getTTSVoiceSelectMenu(guildId)],
+        });
     } else if (interaction.customId.startsWith('AutoDayNightOnOff')) {
         const ids = JSON.parse(interaction.customId.replace('AutoDayNightOnOff', ''));
         const server = instance.serverList[ids.serverId];

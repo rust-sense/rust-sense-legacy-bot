@@ -4,6 +4,7 @@ import * as Discord from 'discord.js';
 import { client } from '../index.js';
 import * as Constants from '../util/constants.js';
 import { languages as Languages } from '../util/languages.js';
+import { getTTSProvider } from '../tts/getTTSProvider.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 
@@ -331,6 +332,54 @@ export function getInGameTeammateNameMenu(guildId: string, teammateNameType: str
                     value: 'combinedName',
                 },
             ],
+        }),
+    );
+}
+
+export function getTTSProviderSelectMenu(guildId: string, provider: string) {
+    return new Discord.ActionRowBuilder().addComponents(
+        getSelectMenu({
+            customId: 'TTSProvider',
+            placeholder: provider === 'piper' ? 'Piper' : 'Oddcast',
+            options: [
+                {
+                    label: 'Oddcast',
+                    description: 'Cloud TTS via Oddcast (no setup required)',
+                    value: 'oddcast',
+                },
+                {
+                    label: 'Piper',
+                    description: 'Local TTS via Piper (models auto-download on first use)',
+                    value: 'piper',
+                },
+            ],
+        }),
+    );
+}
+
+export function getTTSVoiceSelectMenu(guildId: string) {
+    const instance = client.getInstance(guildId);
+    const { language, ttsProvider, voiceGender, piperVoice } = instance.generalSettings;
+    const provider = getTTSProvider(guildId);
+    const voices = provider.getVoices(language);
+    const currentVoice = ttsProvider === 'piper' ? piperVoice : voiceGender;
+
+    if (voices.length === 0) {
+        return new Discord.ActionRowBuilder().addComponents(
+            getSelectMenu({
+                customId: 'TTSVoice',
+                placeholder: 'No voices available for this language',
+                options: [{ label: 'None', description: 'No voices available', value: 'none' }],
+                disabled: true,
+            }),
+        );
+    }
+
+    return new Discord.ActionRowBuilder().addComponents(
+        getSelectMenu({
+            customId: 'TTSVoice',
+            placeholder: voices.find((v) => v.value === currentVoice)?.label ?? voices[0].label,
+            options: voices.map((v) => ({ label: v.label, description: v.value, value: v.value })),
         }),
     );
 }

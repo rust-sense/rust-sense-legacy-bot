@@ -20,8 +20,10 @@ COPY --from=build /app/dist /app/dist
 COPY --from=build /app/data/staticData.sqlite /app/data/staticData.sqlite
 
 RUN apt-get update \
-    && apt-get install -y graphicsmagick gosu ffmpeg \
+    && apt-get install -y graphicsmagick gosu ffmpeg python3 python3-pip \
     && apt-get clean
+
+RUN pip install piper-tts --break-system-packages
 
 RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
     && chown -R node:node /app/data
@@ -29,6 +31,7 @@ RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+VOLUME [ "/app/models" ]
 VOLUME [ "/app/credentials" ]
 VOLUME [ "/app/instances" ]
 VOLUME [ "/app/logs" ]
