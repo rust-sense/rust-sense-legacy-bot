@@ -176,9 +176,9 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
                             {
                                 client.log(
                                     logPrefix,
-                                    `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: server`,
+                                    `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: server ${body.ip}:${body.port} (${title})`,
                                 );
-                                pairingServer(client, guild, title, message, body, isLite, activeSteamId);
+                                await pairingServer(client, guild, title, message, body, isLite, activeSteamId);
                             }
                             break;
 
@@ -191,7 +191,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
                                                 logPrefix,
                                                 `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: entity: Switch`,
                                             );
-                                            pairingEntitySwitch(client, guild, body, body.playerId);
+                                            await pairingEntitySwitch(client, guild, body, body.playerId);
                                         }
                                         break;
 
@@ -201,7 +201,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
                                                 logPrefix,
                                                 `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: entity: Smart Alarm`,
                                             );
-                                            pairingEntitySmartAlarm(client, guild, body, body.playerId);
+                                            await pairingEntitySmartAlarm(client, guild, body, body.playerId);
                                         }
                                         break;
 
@@ -211,7 +211,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
                                                 logPrefix,
                                                 `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: entity: Storage Monitor`,
                                             );
-                                            pairingEntityStorageMonitor(client, guild, body, body.playerId);
+                                            await pairingEntityStorageMonitor(client, guild, body, body.playerId);
                                         }
                                         break;
 
