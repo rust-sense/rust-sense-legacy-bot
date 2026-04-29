@@ -357,16 +357,16 @@ export function getTTSProviderSelectMenu(guildId: string, provider: string) {
     );
 }
 
-export function getTTSSettingsComponents(guildId: string) {
+export async function getTTSSettingsComponents(guildId: string) {
     const { ttsProvider } = client.getInstance(guildId).generalSettings;
-    return [getTTSProviderSelectMenu(guildId, ttsProvider ?? 'oddcast'), getTTSVoiceSelectMenu(guildId)];
+    return [getTTSProviderSelectMenu(guildId, ttsProvider ?? 'oddcast'), await getTTSVoiceSelectMenu(guildId)];
 }
 
-export function getTTSVoiceSelectMenu(guildId: string) {
+export async function getTTSVoiceSelectMenu(guildId: string) {
     const instance = client.getInstance(guildId);
     const { language, ttsProvider, voiceGender, piperVoice } = instance.generalSettings;
     const provider = getTTSProvider(guildId);
-    const voices = provider.getVoices(language);
+    const voices = await provider.getVoices(language);
     const currentVoice = ttsProvider === 'piper' ? piperVoice : voiceGender;
 
     if (voices.length === 0) {

@@ -134,7 +134,7 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordSelectMenus.getTTSSettingsComponents(guildId),
+            components: await DiscordSelectMenus.getTTSSettingsComponents(guildId),
         });
     } else if (interaction.customId === 'TTSVoice') {
         const provider = instance.generalSettings.ttsProvider ?? 'oddcast';
@@ -156,7 +156,7 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordSelectMenus.getTTSSettingsComponents(guildId),
+            components: await DiscordSelectMenus.getTTSSettingsComponents(guildId),
         });
     } else if (interaction.customId.startsWith('AutoDayNightOnOff')) {
         const ids = JSON.parse(interaction.customId.replace('AutoDayNightOnOff', ''));

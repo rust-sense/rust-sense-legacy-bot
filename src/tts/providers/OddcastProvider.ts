@@ -1,23 +1,34 @@
 import { Readable } from 'node:stream';
 import getStaticFilesStorage from '../../util/getStaticFilesStorage.js';
-import { loadJsonResourceSync } from '../../utils/filesystemUtils.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
 type ActorParams = { EID: string; LID: string; VID: string };
 
 const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<string, Record<string, ActorParams | null>>;
 
-const ActorNames = loadJsonResourceSync<Record<string, Record<string, string | null>>>('staticFiles/actors.json');
+const ACTOR_NAMES: Record<string, Record<string, string | null>> = {
+    cs: { male: null, female: 'Aleksandra' },
+    de: { male: 'Albert', female: 'Nina' },
+    en: { male: 'Brian', female: 'Joanna' },
+    es: { male: 'Miguel', female: 'Mia' },
+    fr: { male: 'Mathieu', female: 'Emilie' },
+    it: { male: 'Luca', female: 'Stella' },
+    ko: { male: null, female: 'Seoyeon' },
+    pl: { male: 'Jacek', female: 'Maja' },
+    ru: { male: 'Maxim', female: 'Tatyana' },
+    sv: { male: null, female: 'Astrid' },
+    tr: { male: 'Mehmet', female: 'Miray' },
+};
 
 export class OddcastProvider implements TTSProvider {
-    getVoices(language: string): VoiceOption[] {
+    async getVoices(language: string): Promise<VoiceOption[]> {
         const langActors = Actors[language];
         if (!langActors) return [];
 
         return Object.entries(langActors)
             .filter(([, params]) => params !== null)
             .map(([gender]) => {
-                const name = ActorNames[language]?.[gender];
+                const name = ACTOR_NAMES[language]?.[gender];
                 const genderLabel = gender.charAt(0).toUpperCase() + gender.slice(1);
                 return {
                     label: name ? `${name} (${genderLabel})` : genderLabel,

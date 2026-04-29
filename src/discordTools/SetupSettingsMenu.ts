@@ -70,7 +70,7 @@ async function setupGeneralSettings(client: DiscordBot, guildId: string, channel
                 thumbnail: `attachment://settings_logo.png`,
             }),
         ],
-        components: DiscordSelectMenus.getTTSSettingsComponents(guildId),
+        components: await DiscordSelectMenus.getTTSSettingsComponents(guildId),
         files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 

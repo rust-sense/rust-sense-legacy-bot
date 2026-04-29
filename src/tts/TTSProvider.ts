@@ -7,5 +7,5 @@ export interface VoiceOption {
 
 export interface TTSProvider {
     synthesize(text: string, language: string, voice: string): Promise<Readable>;
-    getVoices(language: string): VoiceOption[];
+    getVoices(language: string): Promise<VoiceOption[]>;
 }

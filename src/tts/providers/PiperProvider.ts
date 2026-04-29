@@ -10,42 +10,67 @@ import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
 const MODELS_DIR = '/app/models';
 
-const VOICES_BY_LANG: Record<string, VoiceOption[]> = {
-    en: [
-        { label: 'Lessac', value: 'en_US-lessac-medium' },
-        { label: 'Joe', value: 'en_US-joe-medium' },
-        { label: 'John', value: 'en_US-john-medium' },
-    ],
-    es: [
-        { label: 'Sharvard', value: 'es_ES-sharvard-medium' },
-        { label: 'Davefx', value: 'es_ES-davefx-medium' },
-    ],
-    fr: [
-        { label: 'Siwis', value: 'fr_FR-siwis-medium' },
-        { label: 'Tom', value: 'fr_FR-tom-medium' },
-    ],
-    de: [
-        { label: 'Thorsten', value: 'de_DE-thorsten-medium' },
-        { label: 'MLS', value: 'de_DE-mls-medium' },
-    ],
-    it: [
-        { label: 'Paola', value: 'it_IT-paola-medium' },
-        { label: 'Riccardo', value: 'it_IT-riccardo-medium' },
-    ],
-    ru: [
-        { label: 'Irina', value: 'ru_RU-irina-medium' },
-        { label: 'Denis', value: 'ru_RU-denis-medium' },
-    ],
-};
+// Cached for the process lifetime; reset on error so the next call retries.
+let _voiceKeysCachePromise: Promise<string[]> | null = null;
+
+function fetchAllVoiceKeys(): Promise<string[]> {
+    if (!_voiceKeysCachePromise) {
+        _voiceKeysCachePromise = new Promise<string[]>((resolve, reject) => {
+            const child = spawn('python3', ['-m', 'piper.download_voices']);
+            let stdout = '';
+            child.stdout.on('data', (d: Buffer) => {
+                stdout += d.toString();
+            });
+            child.on('error', reject);
+            child.on('close', (code) => {
+                if (code !== 0 && !stdout.trim()) {
+                    reject(new Error(`piper.download_voices exited with code ${code}`));
+                    return;
+                }
+                const keys = stdout
+                    .trim()
+                    .split('\n')
+                    .map((l) => l.trim())
+                    .filter(Boolean);
+                resolve(keys);
+            });
+        }).catch((e) => {
+            _voiceKeysCachePromise = null;
+            throw e;
+        });
+    }
+    return _voiceKeysCachePromise;
+}
 
 export class PiperProvider implements TTSProvider {
-    getVoices(language: string): VoiceOption[] {
-        return VOICES_BY_LANG[language] ?? [];
+    async getVoices(language: string): Promise<VoiceOption[]> {
+        let keys: string[];
+        try {
+            keys = await fetchAllVoiceKeys();
+        } catch (e) {
+            client.log('ERROR', `Failed to fetch Piper voice list: ${e}`, 'error');
+            return [];
+        }
+
+        const voices: VoiceOption[] = [];
+        for (const key of keys) {
+            // key format: en_US-lessac-medium
+            const match = key.match(/^([a-z]{2})_[A-Z]+-(.+)-(\w+)$/);
+            if (!match || match[1] !== language) continue;
+            const name = match[2];
+            const quality = match[3];
+            voices.push({
+                label: `${name.charAt(0).toUpperCase()}${name.slice(1)} (${quality})`,
+                value: key,
+            });
+        }
+
+        return voices.sort((a, b) => a.label.localeCompare(b.label)).slice(0, 25);
     }
 
     async synthesize(text: string, language: string, voice: string): Promise<Readable> {
-        const voices = VOICES_BY_LANG[language];
-        if (!voices || voices.length === 0) {
+        const voices = await this.getVoices(language);
+        if (voices.length === 0) {
             throw new Error(`Piper TTS does not support language: ${language}`);
         }
 
