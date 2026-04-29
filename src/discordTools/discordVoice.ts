@@ -23,12 +23,16 @@ function cleanupGuildTTS(guildId: string) {
 
 function playNext(guildId: string) {
     const queue = ttsQueues.get(guildId);
-    if (!queue || queue.length === 0) return;
+    if (!queue || queue.length === 0) {
+        client.log('INFO', `TTS queue empty for guild ${guildId}`, 'info');
+        return;
+    }
 
     const resource = queue.shift()!;
     const player = ttsPlayers.get(guildId);
     if (!player) return;
 
+    client.log('INFO', `Playing next TTS for guild ${guildId} (${queue.length} remaining in queue)`, 'info');
     player.play(resource);
 }
 
@@ -37,7 +41,14 @@ function getOrCreatePlayer(guildId: string) {
     if (!player) {
         player = createAudioPlayer();
         player.on(AudioPlayerStatus.Idle, () => {
+            client.log('INFO', `AudioPlayer Idle for guild ${guildId}`, 'info');
             playNext(guildId);
+        });
+        player.on(AudioPlayerStatus.Playing, () => {
+            client.log('INFO', `AudioPlayer Playing for guild ${guildId}`, 'info');
+        });
+        player.on(AudioPlayerStatus.Buffering, () => {
+            client.log('INFO', `AudioPlayer Buffering for guild ${guildId}`, 'info');
         });
         player.on('error', (err) => {
             client.log('ERROR', `Audio player error for guild ${guildId}: ${err.message}`, 'error');
@@ -56,7 +67,9 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
     const voice = ttsProvider === 'piper' ? piperVoice : voiceGender;
 
     try {
+        client.log('INFO', `Synthesizing TTS for guild ${guildId}: "${text.substring(0, 50)}..."`, 'info');
         const stream = await getTTSProvider(guildId).synthesize(text, language, voice);
+        client.log('INFO', `TTS synthesis complete for guild ${guildId}`, 'info');
         const resource = createAudioResource(stream as any, { inputType: StreamType.Raw });
 
         const player = getOrCreatePlayer(guildId);
@@ -68,6 +81,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
             ttsQueues.set(guildId, queue);
         }
         queue.push(resource);
+        client.log('INFO', `TTS queued for guild ${guildId} (queue length: ${queue.length}, player status: ${player.state.status})`, 'info');
 
         if (player.state.status === AudioPlayerStatus.Idle) {
             playNext(guildId);
