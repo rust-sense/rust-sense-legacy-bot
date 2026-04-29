@@ -20,14 +20,14 @@ declare module '@liamcottle/rustplus.js' {
 
     export class RustPlus extends EventEmitter {
         constructor(server: string, port: number, playerId: string, playerToken: string);
-        
+
         server: string;
         port: number;
         playerId: string;
         playerToken: string;
         seq: number;
         connected: boolean;
-        
+
         connect(): void;
         disconnect(): void;
         sendRequest(request: unknown, callback?: (message: AppMessage) => void): void;
@@ -48,7 +48,7 @@ declare module '@liamcottle/rustplus.js' {
         promoteToLeader(steamId: string, callback?: (message: AppMessage) => void): void;
         getTeamChat(callback?: (message: AppMessage) => void): void;
         sendCameraInput(cameraId: string, buttons: number): void;
-        
+
         on(event: 'connected', listener: () => void): this;
         on(event: 'disconnected', listener: () => void): this;
         on(event: 'error', listener: (error: Error) => void): this;

@@ -1,17 +1,27 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
-
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+
 const DiscordMessages: any = DiscordMessagesModule;
+
 import * as DiscordToolsModule from '../discordTools/discordTools.js';
+
 const DiscordTools: any = DiscordToolsModule;
+
 import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
+
 const SmartSwitchGroupHandler: any = SmartSwitchGroupHandlerModule;
+
 import * as DiscordButtonsModule from '../discordTools/discordButtons.js';
+
 const DiscordButtons: any = DiscordButtonsModule;
+
 import * as DiscordModalsModule from '../discordTools/discordModals.js';
+
 const DiscordModals: any = DiscordModalsModule;
+
 import * as UtilsModule from '../util/utils.js';
+
 const Utils: any = UtilsModule;
 
 export default async (client: DiscordBot, interaction: any) => {

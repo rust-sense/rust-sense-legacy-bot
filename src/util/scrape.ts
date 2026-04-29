@@ -11,7 +11,10 @@ export async function scrape(url: string): Promise<{ status?: number; data?: str
 }
 
 export async function scrapeSteamProfilePicture(
-    client: { log: (title: string, message: string, level: string) => void; intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string },
+    client: {
+        log: (title: string, message: string, level: string) => void;
+        intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
+    },
     steamId: string,
 ): Promise<string | null> {
     const response = await scrape(`${Constants.STEAM_PROFILES_URL}${steamId}`);
@@ -36,7 +39,10 @@ export async function scrapeSteamProfilePicture(
 }
 
 export async function scrapeSteamProfileName(
-    client: { log: (title: string, message: string, level: string) => void; intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string },
+    client: {
+        log: (title: string, message: string, level: string) => void;
+        intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
+    },
     steamId: string,
 ): Promise<string | null> {
     const response = await scrape(`${Constants.STEAM_PROFILES_URL}${steamId}`);

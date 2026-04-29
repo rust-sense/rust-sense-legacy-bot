@@ -12,7 +12,11 @@ export const StoneWallDecayTimeSeconds = 5 * 60 * 60;
 export const MetalWallDecayTimeSeconds = 8 * 60 * 60;
 export const ArmoredWallDecayTimeSeconds = 12 * 60 * 60;
 
-export function getTimeLeftSeconds(client: { intlGet: (locale: string, key: string) => string }, type: string, hp: number): number | null | undefined {
+export function getTimeLeftSeconds(
+    client: { intlGet: (locale: string, key: string) => string },
+    type: string,
+    hp: number,
+): number | null | undefined {
     if (Number.isNaN(hp)) return null;
 
     switch (type.toLowerCase()) {

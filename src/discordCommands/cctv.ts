@@ -10,8 +10,9 @@ export default {
         return new SlashCommandBuilder()
             .setName('cctv')
             .setDescription(client.intlGet(guildId, 'commandsCctvDesc'))
-            .addStringOption(option =>
-                option.setName('monument')
+            .addStringOption((option) =>
+                option
+                    .setName('monument')
                     .setDescription(client.intlGet(guildId, 'rustMonument'))
                     .setRequired(true)
                     .addChoices(
@@ -25,24 +26,28 @@ export default {
                         { name: client.intlGet(guildId, 'underwaterLab'), value: 'Underwater Labs' },
                         { name: client.intlGet(guildId, 'cargoship'), value: 'Cargo Ship' },
                         { name: client.intlGet(guildId, 'ferryTerminal'), value: 'Ferry Terminal' },
-                    ));
-
+                    ),
+            );
     },
 
     async execute(client: DiscordBot, interaction: any) {
         const verifyId = client.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await client.validatePermissions(interaction)) return;
+        if (!(await client.validatePermissions(interaction))) return;
 
         const monument = interaction.options.getString('monument');
         const cctvCodes = client.cctv.getCodes(monument);
         const dynamic = client.cctv.isDynamic(monument);
 
-        client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
-            id: `${verifyId}`,
-            value: `${monument}`
-        }), 'info');
+        client.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'slashCommandValueChange', {
+                id: `${verifyId}`,
+                value: `${monument}`,
+            }),
+            'info',
+        );
 
         await DiscordMessages.sendCctvMessage(interaction, monument, cctvCodes, dynamic);
         client.log(client.intlGet(null, 'infoCap'), client.intlGet(interaction.guildId, 'commandsCctvDesc'), 'info');

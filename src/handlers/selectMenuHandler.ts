@@ -1,10 +1,16 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+
 const DiscordMessages: any = DiscordMessagesModule;
+
 import * as DiscordSelectMenusModule from '../discordTools/discordSelectMenus.js';
+
 const DiscordSelectMenus: any = DiscordSelectMenusModule;
+
 import * as DiscordToolsModule from '../discordTools/discordTools.js';
+
 const DiscordTools: any = DiscordToolsModule;
+
 import * as Utils from '../util/utils.js';
 
 export default async (client: DiscordBot, interaction: any) => {

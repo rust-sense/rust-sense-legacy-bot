@@ -1,9 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
-
-import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
 
 const { scrapeSteamProfileName } = await import('../util/scrape.js');
 
@@ -14,23 +13,31 @@ export default {
         return new SlashCommandBuilder()
             .setName('whitelist')
             .setDescription(client.intlGet(guildId, 'commandsWhitelistDesc'))
-            .addSubcommand(subcommand => subcommand
-                .setName('add')
-                .setDescription(client.intlGet(guildId, 'commandsWhitelistAddDesc'))
-                .addStringOption(option => option
-                    .setName('steamid')
-                    .setDescription(client.intlGet(guildId, 'commandsWhitelistSteamidDesc'))
-                    .setRequired(true)))
-            .addSubcommand(subcommand => subcommand
-                .setName('remove')
-                .setDescription(client.intlGet(guildId, 'commandsWhitelistRemoveDesc'))
-                .addStringOption(option => option
-                    .setName('steamid')
-                    .setDescription(client.intlGet(guildId, 'commandsWhitelistSteamidDesc'))
-                    .setRequired(true)))
-            .addSubcommand(subcommand => subcommand
-                .setName('show')
-                .setDescription(client.intlGet(guildId, 'commandsWhitelistShowDesc')));
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('add')
+                    .setDescription(client.intlGet(guildId, 'commandsWhitelistAddDesc'))
+                    .addStringOption((option) =>
+                        option
+                            .setName('steamid')
+                            .setDescription(client.intlGet(guildId, 'commandsWhitelistSteamidDesc'))
+                            .setRequired(true),
+                    ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand
+                    .setName('remove')
+                    .setDescription(client.intlGet(guildId, 'commandsWhitelistRemoveDesc'))
+                    .addStringOption((option) =>
+                        option
+                            .setName('steamid')
+                            .setDescription(client.intlGet(guildId, 'commandsWhitelistSteamidDesc'))
+                            .setRequired(true),
+                    ),
+            )
+            .addSubcommand((subcommand) =>
+                subcommand.setName('show').setDescription(client.intlGet(guildId, 'commandsWhitelistShowDesc')),
+            );
     },
 
     async execute(client: DiscordBot, interaction: any) {
@@ -40,7 +47,7 @@ export default {
         const verifyId = client.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
-        if (!await client.validatePermissions(interaction)) return;
+        if (!(await client.validatePermissions(interaction))) return;
 
         if (!client.isAdministrator(interaction)) {
             const str = client.intlGet(guildId, 'missingPermission');
@@ -53,86 +60,104 @@ export default {
         ensureWhitelist(instance);
 
         switch (interaction.options.getSubcommand()) {
-            case 'add': {
-                const steamid = interaction.options.getString('steamid').trim();
-                const steamName = await getSteamName(client, steamid);
+            case 'add':
+                {
+                    const steamid = interaction.options.getString('steamid').trim();
+                    const steamName = await getSteamName(client, steamid);
 
-                let successful = 0;
-                let str = '';
-                if (instance.whitelist['steamIds'].includes(steamid)) {
-                    str = client.intlGet(guildId, 'userAlreadyInWhitelist', { user: steamName });
-                    successful = 1;
+                    let successful = 0;
+                    let str = '';
+                    if (instance.whitelist['steamIds'].includes(steamid)) {
+                        str = client.intlGet(guildId, 'userAlreadyInWhitelist', { user: steamName });
+                        successful = 1;
+                    } else {
+                        instance.whitelist['steamIds'].push(steamid);
+                        client.setInstance(guildId, instance);
+                        str = client.intlGet(guildId, 'userAddedToWhitelist', { user: steamName });
+                    }
+
+                    client.log(
+                        client.intlGet(null, 'infoCap'),
+                        client.intlGet(null, 'slashCommandValueChange', {
+                            id: `${verifyId}`,
+                            value: `add, ${steamid}`,
+                        }),
+                        'info',
+                    );
+
+                    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
+                    client.log(client.intlGet(null, 'infoCap'), str, 'info');
+                    return;
                 }
-                else {
-                    instance.whitelist['steamIds'].push(steamid);
-                    client.setInstance(guildId, instance);
-                    str = client.intlGet(guildId, 'userAddedToWhitelist', { user: steamName });
+                break;
+
+            case 'remove':
+                {
+                    const steamid = interaction.options.getString('steamid').trim();
+                    const steamName = await getSteamName(client, steamid);
+
+                    let successful = 0;
+                    let str = '';
+                    if (!instance.whitelist['steamIds'].includes(steamid)) {
+                        str = client.intlGet(guildId, 'userNotInWhitelist', { user: steamName });
+                        successful = 1;
+                    } else {
+                        instance.whitelist['steamIds'] = instance.whitelist['steamIds'].filter(
+                            (e: string) => e !== steamid,
+                        );
+                        client.setInstance(guildId, instance);
+                        str = client.intlGet(guildId, 'userRemovedFromWhitelist', { user: steamName });
+                    }
+
+                    client.log(
+                        client.intlGet(null, 'infoCap'),
+                        client.intlGet(null, 'slashCommandValueChange', {
+                            id: `${verifyId}`,
+                            value: `remove, ${steamid}`,
+                        }),
+                        'info',
+                    );
+
+                    await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
+                    client.log(client.intlGet(null, 'infoCap'), str, 'info');
+                    return;
                 }
+                break;
 
-                client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
-                    id: `${verifyId}`,
-                    value: `add, ${steamid}`
-                }), 'info');
+            case 'show':
+                {
+                    let steamIds = '';
+                    for (const steamId of instance.whitelist['steamIds']) {
+                        const steamName = await getSteamName(client, steamId);
+                        steamIds += `${steamName}\n`;
+                    }
 
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
-                client.log(client.intlGet(null, 'infoCap'), str, 'info');
-                return;
-            } break;
+                    await client.interactionEditReply(interaction, {
+                        embeds: [
+                            DiscordEmbeds.getEmbed({
+                                color: Constants.COLOR_DEFAULT,
+                                title: client.intlGet(guildId, 'whitelist'),
+                                fields: [
+                                    {
+                                        name: 'SteamId',
+                                        value: steamIds === '' ? '\u200B' : steamIds,
+                                        inline: true,
+                                    },
+                                ],
+                            }),
+                        ],
+                        flags: MessageFlags.Ephemeral,
+                    });
 
-            case 'remove': {
-                const steamid = interaction.options.getString('steamid').trim();
-                const steamName = await getSteamName(client, steamid);
-
-                let successful = 0;
-                let str = '';
-                if (!instance.whitelist['steamIds'].includes(steamid)) {
-                    str = client.intlGet(guildId, 'userNotInWhitelist', { user: steamName });
-                    successful = 1;
+                    client.log(client.intlGet(guildId, 'infoCap'), client.intlGet(guildId, 'showingWhitelist'), 'info');
+                    return;
                 }
-                else {
-                    instance.whitelist['steamIds'] =
-                        instance.whitelist['steamIds'].filter((e: string) => e !== steamid);
-                    client.setInstance(guildId, instance);
-                    str = client.intlGet(guildId, 'userRemovedFromWhitelist', { user: steamName });
+                break;
+
+            default:
+                {
                 }
-
-                client.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'slashCommandValueChange', {
-                    id: `${verifyId}`,
-                    value: `remove, ${steamid}`
-                }), 'info');
-
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(successful, str));
-                client.log(client.intlGet(null, 'infoCap'), str, 'info');
-                return;
-            } break;
-
-            case 'show': {
-                let steamIds = '';
-                for (const steamId of instance.whitelist['steamIds']) {
-                    const steamName = await getSteamName(client, steamId);
-                    steamIds += `${steamName}\n`;
-                }
-
-                await client.interactionEditReply(interaction, {
-                    embeds: [DiscordEmbeds.getEmbed({
-                        color: Constants.COLOR_DEFAULT,
-                        title: client.intlGet(guildId, 'whitelist'),
-                        fields: [
-                            {
-                                name: 'SteamId',
-                                value: steamIds === '' ? '\u200B' : steamIds,
-                                inline: true
-                            }]
-                    })],
-                    flags: MessageFlags.Ephemeral
-                });
-
-                client.log(client.intlGet(guildId, 'infoCap'), client.intlGet(guildId, 'showingWhitelist'), 'info');
-                return;
-            } break;
-
-            default: {
-            } break;
+                break;
         }
     },
 };

@@ -7,10 +7,7 @@ export default {
 
         if (rustplusLite.isActive && client.activeRustplusInstances[rustplusLite.guildId]) {
             const attempt = ++rustplusLite._reconnectAttempts;
-            const delay = Math.min(
-                config.general.reconnectIntervalMs * Math.pow(2, attempt - 1),
-                120000,
-            );
+            const delay = Math.min(config.general.reconnectIntervalMs * Math.pow(2, attempt - 1), 120000);
 
             rustplusLite.log(
                 client.intlGet(null, 'reconnectingCap'),

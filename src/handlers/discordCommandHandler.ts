@@ -1,6 +1,6 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export async function discordCommandHandler(rustplus: any, client: DiscordBot, message: any) {
     const guildId = rustplus.guildId;

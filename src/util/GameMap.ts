@@ -12,7 +12,13 @@ export const gridDiameter = GRID_DIAMETER;
 
 export function getPos(x: number, y: number, mapSize: number, rustplus: any) {
     const correctedMapSize = getCorrectedMapSize(mapSize);
-    const pos = { location: null as string | null, monument: null as string | null, string: null as string | null, x, y };
+    const pos = {
+        location: null as string | null,
+        monument: null as string | null,
+        string: null as string | null,
+        x,
+        y,
+    };
 
     if (isOutsideGridSystem(x, y, correctedMapSize)) {
         if (isOutsideRowOrColumn(x, y, correctedMapSize)) {
@@ -51,10 +57,7 @@ export function getPos(x: number, y: number, mapSize: number, rustplus: any) {
             if (monument.token === 'DungeonBase') continue;
             if (!Object.prototype.hasOwnProperty.call(rustplus.map.monumentInfo, monument.token)) continue;
 
-            if (
-                getDistance(x, y, monument.x, monument.y) <=
-                rustplus.map.monumentInfo[monument.token].radius
-            ) {
+            if (getDistance(x, y, monument.x, monument.y) <= rustplus.map.monumentInfo[monument.token].radius) {
                 pos.monument = rustplus.map.monumentInfo[monument.token].clean;
                 break;
             }
@@ -80,12 +83,12 @@ export function getGridPosLettersX(x: number, mapSize: number) {
 
     let grid;
     for (grid = 0; grid < numberOfGrids; grid++) {
-        if (grid === (numberOfGrids - 1) || x > mapSize) break;
+        if (grid === numberOfGrids - 1 || x > mapSize) break;
 
         const left = grid * gridDiameter;
         const right = left + gridDiameter;
 
-        if ((x + MARGIN) < right) break;
+        if (x + MARGIN < right) break;
     }
     return numberToLetters(grid + 1);
 }
@@ -96,12 +99,12 @@ export function getGridPosNumberY(y: number, mapSize: number) {
 
     let grid;
     for (grid = 0; grid < numberOfGrids; grid++) {
-        if (grid === (numberOfGrids - 1) || y > mapSize) break;
+        if (grid === numberOfGrids - 1 || y > mapSize) break;
 
-        const upper = mapSize - (grid * gridDiameter);
+        const upper = mapSize - grid * gridDiameter;
         const lower = upper - gridDiameter;
 
-        if ((y - MARGIN) > lower) break;
+        if (y - MARGIN > lower) break;
     }
     return grid;
 }
@@ -143,10 +146,5 @@ export function isOutsideGridSystem(x: number, y: number, mapSize: number, offse
 }
 
 export function isOutsideRowOrColumn(x: number, y: number, mapSize: number) {
-    return (
-        (x < 0 && y > mapSize) ||
-        (x < 0 && y < 0) ||
-        (x > mapSize && y > mapSize) ||
-        (x > mapSize && y < 0)
-    );
+    return (x < 0 && y > mapSize) || (x < 0 && y < 0) || (x > mapSize && y > mapSize) || (x > mapSize && y < 0);
 }

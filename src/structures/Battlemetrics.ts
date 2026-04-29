@@ -1,8 +1,8 @@
 import Axios from 'axios';
 
 import { client } from '../index.js';
-import * as Utils from '../util/utils.js';
 import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
+import * as Utils from '../util/utils.js';
 
 const randomUsernamesData = getStaticFilesStorage().getDatasetObject('RandomUsernames') as {
     RandomUsernames?: string[];
@@ -90,42 +90,114 @@ export default class Battlemetrics {
         this.map_updatedAt = null;
     }
 
-    get id(): string | null { return this._id; }
-    set id(id: string | null) { this._id = id; }
-    get name(): string | null { return this._name; }
-    set name(name: string | null) { this._name = name; }
-    get data(): Record<string, any> | null { return this._data; }
-    set data(data: Record<string, any> | null) { this._data = data; }
-    get ready(): boolean { return this._ready; }
-    set ready(ready: boolean) { this._ready = ready; }
-    get updatedAt(): string | null { return this._updatedAt; }
-    set updatedAt(updatedAt: string | null) { this._updatedAt = updatedAt; }
-    get lastUpdateSuccessful(): boolean | null { return this._lastUpdateSuccessful; }
-    set lastUpdateSuccessful(v: boolean | null) { this._lastUpdateSuccessful = v; }
-    get rustmapsAvailable(): boolean | null { return this._rustmapsAvailable; }
-    set rustmapsAvailable(v: boolean | null) { this._rustmapsAvailable = v; }
-    get streamerMode(): boolean { return this._streamerMode; }
-    set streamerMode(v: boolean) { this._streamerMode = v; }
-    get serverLog(): any[] { return this._serverLog; }
-    set serverLog(v: any[]) { this._serverLog = v; }
-    get connectionLog(): any[] { return this._connectionLog; }
-    set connectionLog(v: any[]) { this._connectionLog = v; }
-    get players(): Record<string, any> { return this._players; }
-    set players(v: Record<string, any>) { this._players = v; }
-    get newPlayers(): string[] { return this._newPlayers; }
-    set newPlayers(v: string[]) { this._newPlayers = v; }
-    get loginPlayers(): string[] { return this._loginPlayers; }
-    set loginPlayers(v: string[]) { this._loginPlayers = v; }
-    get logoutPlayers(): string[] { return this._logoutPlayers; }
-    set logoutPlayers(v: string[]) { this._logoutPlayers = v; }
-    get nameChangedPlayers(): Array<{ id: string; from: string; to: string }> { return this._nameChangedPlayers; }
-    set nameChangedPlayers(v: Array<{ id: string; from: string; to: string }>) { this._nameChangedPlayers = v; }
-    get onlinePlayers(): string[] { return this._onlinePlayers; }
-    set onlinePlayers(v: string[]) { this._onlinePlayers = v; }
-    get offlinePlayers(): string[] { return this._offlinePlayers; }
-    set offlinePlayers(v: string[]) { this._offlinePlayers = v; }
-    get serverEvaluation(): Record<string, any> { return this._serverEvaluation; }
-    set serverEvaluation(v: Record<string, any>) { this._serverEvaluation = v; }
+    get id(): string | null {
+        return this._id;
+    }
+    set id(id: string | null) {
+        this._id = id;
+    }
+    get name(): string | null {
+        return this._name;
+    }
+    set name(name: string | null) {
+        this._name = name;
+    }
+    get data(): Record<string, any> | null {
+        return this._data;
+    }
+    set data(data: Record<string, any> | null) {
+        this._data = data;
+    }
+    get ready(): boolean {
+        return this._ready;
+    }
+    set ready(ready: boolean) {
+        this._ready = ready;
+    }
+    get updatedAt(): string | null {
+        return this._updatedAt;
+    }
+    set updatedAt(updatedAt: string | null) {
+        this._updatedAt = updatedAt;
+    }
+    get lastUpdateSuccessful(): boolean | null {
+        return this._lastUpdateSuccessful;
+    }
+    set lastUpdateSuccessful(v: boolean | null) {
+        this._lastUpdateSuccessful = v;
+    }
+    get rustmapsAvailable(): boolean | null {
+        return this._rustmapsAvailable;
+    }
+    set rustmapsAvailable(v: boolean | null) {
+        this._rustmapsAvailable = v;
+    }
+    get streamerMode(): boolean {
+        return this._streamerMode;
+    }
+    set streamerMode(v: boolean) {
+        this._streamerMode = v;
+    }
+    get serverLog(): any[] {
+        return this._serverLog;
+    }
+    set serverLog(v: any[]) {
+        this._serverLog = v;
+    }
+    get connectionLog(): any[] {
+        return this._connectionLog;
+    }
+    set connectionLog(v: any[]) {
+        this._connectionLog = v;
+    }
+    get players(): Record<string, any> {
+        return this._players;
+    }
+    set players(v: Record<string, any>) {
+        this._players = v;
+    }
+    get newPlayers(): string[] {
+        return this._newPlayers;
+    }
+    set newPlayers(v: string[]) {
+        this._newPlayers = v;
+    }
+    get loginPlayers(): string[] {
+        return this._loginPlayers;
+    }
+    set loginPlayers(v: string[]) {
+        this._loginPlayers = v;
+    }
+    get logoutPlayers(): string[] {
+        return this._logoutPlayers;
+    }
+    set logoutPlayers(v: string[]) {
+        this._logoutPlayers = v;
+    }
+    get nameChangedPlayers(): Array<{ id: string; from: string; to: string }> {
+        return this._nameChangedPlayers;
+    }
+    set nameChangedPlayers(v: Array<{ id: string; from: string; to: string }>) {
+        this._nameChangedPlayers = v;
+    }
+    get onlinePlayers(): string[] {
+        return this._onlinePlayers;
+    }
+    set onlinePlayers(v: string[]) {
+        this._onlinePlayers = v;
+    }
+    get offlinePlayers(): string[] {
+        return this._offlinePlayers;
+    }
+    set offlinePlayers(v: string[]) {
+        this._offlinePlayers = v;
+    }
+    get serverEvaluation(): Record<string, any> {
+        return this._serverEvaluation;
+    }
+    set serverEvaluation(v: Record<string, any>) {
+        this._serverEvaluation = v;
+    }
 
     SEARCH_SERVER_NAME_API_CALL(name: string): string {
         return `https://api.battlemetrics.com/servers?filter[search]=${name}&filter[game]=rust`;
@@ -248,8 +320,11 @@ export default class Battlemetrics {
         if (this.id === null) return null;
         const response = await this.#request(apiCall);
         if (response.status !== 200) {
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: apiCall }), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: apiCall }),
+                'error',
+            );
             return null;
         }
         return response.data;
@@ -257,8 +332,11 @@ export default class Battlemetrics {
 
     async setup(): Promise<void> {
         if (this.id === null && this.name === null) {
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'battlemetricsIdAndNameMissing'), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'battlemetricsIdAndNameMissing'),
+                'error',
+            );
             return;
         }
 
@@ -288,8 +366,11 @@ export default class Battlemetrics {
         const search = this.SEARCH_SERVER_NAME_API_CALL(name);
         const response = await this.#request(search);
         if (response.status !== 200) {
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: search }), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'battlemetricsApiRequestFailed', { api_call: search }),
+                'error',
+            );
             return null;
         }
         for (const server of response.data.data) {
@@ -313,8 +394,11 @@ export default class Battlemetrics {
 
         if (!data) {
             this.lastUpdateSuccessful = false;
-            client.log(client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'battlemetricsFailedToUpdate', { server: this.id }), 'error');
+            client.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'battlemetricsFailedToUpdate', { server: this.id }),
+                'error',
+            );
             return false;
         }
 
@@ -346,40 +430,84 @@ export default class Battlemetrics {
         this.#evaluateServerParameter('server_map', this.server_map, details.map, firstTime);
         this.#evaluateServerParameter('server_environment', this.server_environment, details.environment, firstTime);
         this.#evaluateServerParameter('server_rust_build', this.server_rust_build, details.rust_build, firstTime);
-        this.#evaluateServerParameter('server_rust_ent_cnt_i', this.server_rust_ent_cnt_i,
-            details.rust_ent_cnt_i, firstTime);
+        this.#evaluateServerParameter(
+            'server_rust_ent_cnt_i',
+            this.server_rust_ent_cnt_i,
+            details.rust_ent_cnt_i,
+            firstTime,
+        );
         this.#evaluateServerParameter('server_rust_fps', this.server_rust_fps, details.rust_fps, firstTime);
         this.#evaluateServerParameter('server_rust_fps_avg', this.server_rust_fps_avg, details.rust_fps_avg, firstTime);
         this.#evaluateServerParameter('server_rust_gc_cl', this.server_rust_gc_cl, details.rust_gc_cl, firstTime);
         this.#evaluateServerParameter('server_rust_gc_mb', this.server_rust_gc_mb, details.rust_gc_mb, firstTime);
         this.#evaluateServerParameter('server_rust_hash', this.server_rust_hash, details.rust_hash, firstTime);
-        this.#evaluateServerParameter('server_rust_headerimage', this.server_rust_headerimage,
-            details.rust_headerimage, firstTime);
+        this.#evaluateServerParameter(
+            'server_rust_headerimage',
+            this.server_rust_headerimage,
+            details.rust_headerimage,
+            firstTime,
+        );
         this.#evaluateServerParameter('server_rust_mem_pv', this.server_rust_mem_pv, details.rust_mem_pv, firstTime);
         this.#evaluateServerParameter('server_rust_mem_ws', this.server_rust_mem_ws, details.rust_mem_ws, firstTime);
         this.#evaluateServerParameter('server_pve', this.server_pve, details.pve, firstTime);
         this.#evaluateServerParameter('server_rust_uptime', this.server_rust_uptime, details.rust_uptime, firstTime);
         this.#evaluateServerParameter('server_rust_url', this.server_rust_url, details.rust_url, firstTime);
-        this.#evaluateServerParameter('server_rust_world_seed', this.server_rust_world_seed,
-            details.rust_world_seed, firstTime);
-        this.#evaluateServerParameter('server_rust_world_size', this.server_rust_world_size,
-            details.rust_world_size, firstTime);
-        this.#evaluateServerParameter('server_rust_description', this.server_rust_description,
-            details.rust_description, firstTime);
+        this.#evaluateServerParameter(
+            'server_rust_world_seed',
+            this.server_rust_world_seed,
+            details.rust_world_seed,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_rust_world_size',
+            this.server_rust_world_size,
+            details.rust_world_size,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_rust_description',
+            this.server_rust_description,
+            details.rust_description,
+            firstTime,
+        );
         this.#evaluateServerParameter('server_rust_modded', this.server_rust_modded, details.rust_modded, firstTime);
-        this.#evaluateServerParameter('server_rust_queued_players', this.server_rust_queued_players,
-            details.rust_queued_players, firstTime);
-        this.#evaluateServerParameter('server_rust_gamemode', this.server_rust_gamemode,
-            details.rust_gamemode, firstTime);
+        this.#evaluateServerParameter(
+            'server_rust_queued_players',
+            this.server_rust_queued_players,
+            details.rust_queued_players,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_rust_gamemode',
+            this.server_rust_gamemode,
+            details.rust_gamemode,
+            firstTime,
+        );
         this.#evaluateServerParameter('server_rust_born', this.server_rust_born, details.rust_born, firstTime);
-        this.#evaluateServerParameter('server_rust_last_seed_change', this.server_rust_last_seed_change,
-            details.rust_last_seed_change, firstTime);
-        this.#evaluateServerParameter('server_rust_last_wipe', this.server_rust_last_wipe,
-            details.rust_last_wipe, firstTime);
-        this.#evaluateServerParameter('server_rust_last_wipe_ent', this.server_rust_last_wipe_ent,
-            details.rust_last_wipe_ent, firstTime);
-        this.#evaluateServerParameter('server_serverSteamId', this.server_serverSteamId,
-            details.serverSteamId, firstTime);
+        this.#evaluateServerParameter(
+            'server_rust_last_seed_change',
+            this.server_rust_last_seed_change,
+            details.rust_last_seed_change,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_rust_last_wipe',
+            this.server_rust_last_wipe,
+            details.rust_last_wipe,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_rust_last_wipe_ent',
+            this.server_rust_last_wipe_ent,
+            details.rust_last_wipe_ent,
+            firstTime,
+        );
+        this.#evaluateServerParameter(
+            'server_serverSteamId',
+            this.server_serverSteamId,
+            details.serverSteamId,
+            firstTime,
+        );
 
         const rustMaps = details.rust_maps;
         if (rustMaps) {
@@ -547,16 +675,22 @@ export default class Battlemetrics {
     }
 
     getOnlineTime(playerId: string): [number, string] | null {
-        if (!this.lastUpdateSuccessful || !Object.hasOwn(this.players, playerId) ||
-            !this.players[playerId]['updatedAt']) {
+        if (
+            !this.lastUpdateSuccessful ||
+            !Object.hasOwn(this.players, playerId) ||
+            !this.players[playerId]['updatedAt']
+        ) {
             return null;
         }
         return this.#formatTime(this.players[playerId]['updatedAt']);
     }
 
     getOfflineTime(playerId: string): [number, string] | null {
-        if (!this.lastUpdateSuccessful || !Object.hasOwn(this.players, playerId) ||
-            !this.players[playerId]['logoutDate']) {
+        if (
+            !this.lastUpdateSuccessful ||
+            !Object.hasOwn(this.players, playerId) ||
+            !this.players[playerId]['logoutDate']
+        ) {
             return null;
         }
         return this.#formatTime(this.players[playerId]['logoutDate']);

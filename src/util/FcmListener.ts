@@ -1,21 +1,36 @@
 import * as DiscordModule from 'discord.js';
+
 const Discord: any = DiscordModule;
+
 import PushReceiverClient from '@liamcottle/push-receiver/src/client';
 
 import Battlemetrics from '../structures/Battlemetrics.js';
 import * as ConstantsModule from '../util/constants.js';
+
 const Constants: any = ConstantsModule;
+
 import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
+
 const DiscordEmbeds: any = DiscordEmbedsModule;
+
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+
 const DiscordMessages: any = DiscordMessagesModule;
+
 import * as DiscordToolsModule from '../discordTools/discordTools.js';
+
 const DiscordTools: any = DiscordToolsModule;
+
 import * as InstanceUtilsModule from '../util/instanceUtils.js';
+
 const InstanceUtils: any = InstanceUtilsModule;
+
 import * as GameMapModule from './GameMap.js';
+
 const GameMap: any = GameMapModule;
+
 import * as ScrapeModule from '../util/scrape.js';
+
 const Scrape: any = ScrapeModule;
 
 import { cwdPath } from '../utils/filesystemUtils.js';
@@ -141,7 +156,10 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
                     switch (body.type) {
                         case 'server':
                             {
-                                client.log(logPrefix, `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: server`);
+                                client.log(
+                                    logPrefix,
+                                    `GuildID: ${guild.id}, SteamID: ${activeSteamId}, pairing: server`,
+                                );
                                 pairingServer(client, guild, title, message, body, isLite, activeSteamId);
                             }
                             break;
@@ -302,7 +320,10 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
             default:
                 {
                     if (!isLite) {
-                        client.log(logPrefix, `GuildID: ${guild.id}, SteamID: ${activeSteamId}, other\n${JSON.stringify(data)}`);
+                        client.log(
+                            logPrefix,
+                            `GuildID: ${guild.id}, SteamID: ${activeSteamId}, other\n${JSON.stringify(data)}`,
+                        );
                     }
                 }
                 break;
@@ -316,7 +337,15 @@ function isValidUrl(url: string): boolean {
     return url.startsWith('https') || url.startsWith('http');
 }
 
-async function pairingServer(client: any, guild: any, title: any, message: any, body: any, isLite: boolean, activeSteamId: any) {
+async function pairingServer(
+    client: any,
+    guild: any,
+    title: any,
+    message: any,
+    body: any,
+    isLite: boolean,
+    activeSteamId: any,
+) {
     const instance = client.getInstance(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
@@ -341,7 +370,8 @@ async function pairingServer(client: any, guild: any, title: any, message: any, 
         const server = instance.serverList[serverId];
 
         let messageObj = undefined;
-        if (server) messageObj = await DiscordTools.getMessageById(guild.id, instance.channelId.servers, server.messageId);
+        if (server)
+            messageObj = await DiscordTools.getMessageById(guild.id, instance.channelId.servers, server.messageId);
 
         let battlemetricsId = null;
         const bmInstance = new Battlemetrics(null, title);
@@ -370,7 +400,9 @@ async function pairingServer(client: any, guild: any, title: any, message: any, 
             switchGroups: server ? server.switchGroups : {},
             messageId: messageObj !== undefined ? messageObj.id : null,
             battlemetricsId: battlemetricsId,
-            connect: !bmInstance.lastUpdateSuccessful ? null : `connect ${bmInstance.server_ip}:${bmInstance.server_port}`,
+            connect: !bmInstance.lastUpdateSuccessful
+                ? null
+                : `connect ${bmInstance.server_ip}:${bmInstance.server_port}`,
             cargoShipEgressTimeMs: server ? server.cargoShipEgressTimeMs : Constants.DEFAULT_CARGO_SHIP_EGRESS_TIME_MS,
             oilRigLockedCrateUnlockTimeMs: server
                 ? server.oilRigLockedCrateUnlockTimeMs
@@ -381,9 +413,7 @@ async function pairingServer(client: any, guild: any, title: any, message: any, 
             deepSeaMaxWipeCooldownMs: server
                 ? server.deepSeaMaxWipeCooldownMs
                 : Constants.DEFAULT_DEEP_SEA_MAX_WIPE_COOLDOWN_MS,
-            deepSeaWipeDurationMs: server
-                ? server.deepSeaWipeDurationMs
-                : Constants.DEFAULT_DEEP_SEA_WIPE_DURATION_MS,
+            deepSeaWipeDurationMs: server ? server.deepSeaWipeDurationMs : Constants.DEFAULT_DEEP_SEA_WIPE_DURATION_MS,
             timeTillDay: server ? server.timeTillDay : null,
             timeTillNight: server ? server.timeTillNight : null,
         };
@@ -589,10 +619,7 @@ async function alarmAlarm(client: any, guild: any, title: any, message: any, bod
 
     if (!server || !server.alarms[entityId]) return;
 
-    if (
-        (!rustplus || rustplus.serverId !== serverId) &&
-        instance.generalSettings.fcmAlarmNotificationEnabled
-    ) {
+    if ((!rustplus || rustplus.serverId !== serverId) && instance.generalSettings.fcmAlarmNotificationEnabled) {
         server.alarms[entityId].lastTrigger = Math.floor(Date.now() / 1000);
         client.setInstance(guild.id, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
@@ -645,15 +672,20 @@ async function teamLogin(client: any, guild: any, title: any, message: any, body
     const serverId = `${body.ip}-${body.port}`;
 
     if (!rustplus || rustplus.serverId !== serverId) {
-        await DiscordMessages.sendMessage(guild.id, {
-            embeds: [
-                DiscordEmbeds.getTeamLoginEmbed(
-                    guild.id,
-                    body,
-                    await Scrape.scrapeSteamProfilePicture(client, body.targetId),
-                ),
-            ],
-        }, null, instance.channelId.activity);
+        await DiscordMessages.sendMessage(
+            guild.id,
+            {
+                embeds: [
+                    DiscordEmbeds.getTeamLoginEmbed(
+                        guild.id,
+                        body,
+                        await Scrape.scrapeSteamProfilePicture(client, body.targetId),
+                    ),
+                ],
+            },
+            null,
+            instance.channelId.activity,
+        );
         client.log(
             client.intlGet(null, 'infoCap'),
             client.intlGet(null, 'playerJustConnectedTo', {

@@ -1,26 +1,24 @@
-import FormatJS from '@formatjs/intl';
-import * as Discord from 'discord.js';
 import fs from 'node:fs';
 import path from 'node:path';
+import FormatJS from '@formatjs/intl';
+import * as Discord from 'discord.js';
 import { IntlMessageFormat } from 'intl-messageformat';
-
-import Battlemetrics from '../structures/Battlemetrics.js';
-import Cctv from './Cctv.js';
 import config from '../config.js';
-import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import * as DiscordTools from '../discordTools/discordTools.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
-import Items from './Items.js';
-import Logger from './Logger.js';
-import * as PermissionHandler from '../handlers/permissionHandler.js';
-import RustLabs from '../structures/RustLabs.js';
-import RustPlus from '../structures/RustPlus.js';
-import * as Constants from '../util/constants.js';
-
 import discordCommands from '../discordCommands/index.js';
 import discordEvents from '../discordEvents/index.js';
-import { cwdPath, loadJsonResourceSync } from '../utils/filesystemUtils.js';
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
+import * as PermissionHandler from '../handlers/permissionHandler.js';
+import Battlemetrics from '../structures/Battlemetrics.js';
+import RustLabs from '../structures/RustLabs.js';
+import RustPlus from '../structures/RustPlus.js';
 import type { DiscordEvent } from '../types/discord.js';
+import * as Constants from '../util/constants.js';
+import * as InstanceUtils from '../util/instanceUtils.js';
+import { cwdPath, loadJsonResourceSync } from '../utils/filesystemUtils.js';
+import Cctv from './Cctv.js';
+import Items from './Items.js';
+import Logger from './Logger.js';
 
 export default class DiscordBot extends Discord.Client {
     logger: Logger;
@@ -147,7 +145,11 @@ export default class DiscordBot extends Discord.Client {
         }
     }
 
-    formatWithIntl(intlInstance: ReturnType<typeof FormatJS.createIntl>, id: string, variables: Record<string, unknown> = {}): string {
+    formatWithIntl(
+        intlInstance: ReturnType<typeof FormatJS.createIntl>,
+        id: string,
+        variables: Record<string, unknown> = {},
+    ): string {
         const englishIntl = this.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
         const messages = englishIntl.messages as Record<string, string>;
         const defaultMessage = messages[id];
@@ -183,27 +185,30 @@ export default class DiscordBot extends Discord.Client {
     build(): void {
         this.login(config.discord.token).catch((error: any) => {
             switch (error.code) {
-                case 502: {
-                    this.log(
-                        this.intlGet(null, 'errorCap'),
-                        this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }),
-                        'error',
-                    );
-                }
+                case 502:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'badGateway', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
                     break;
 
-                case 503: {
-                    this.log(
-                        this.intlGet(null, 'errorCap'),
-                        this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }),
-                        'error',
-                    );
-                }
+                case 503:
+                    {
+                        this.log(
+                            this.intlGet(null, 'errorCap'),
+                            this.intlGet(null, 'serviceUnavailable', { error: JSON.stringify(error) }),
+                            'error',
+                        );
+                    }
                     break;
 
-                default: {
-                    this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
-                }
+                default:
+                    {
+                        this.log(this.intlGet(null, 'errorCap'), `${JSON.stringify(error)}`, 'error');
+                    }
                     break;
             }
         });
@@ -454,9 +459,7 @@ export default class DiscordBot extends Discord.Client {
                         if (Object.hasOwn(this.battlemetricsInstances, bmInstance.id as string)) {
                             if (!activeInstances.includes(bmInstance.id as string)) {
                                 activeInstances.push(bmInstance.id as string);
-                                await this.battlemetricsInstances[bmInstance.id as string].evaluation(
-                                    bmInstance.data,
-                                );
+                                await this.battlemetricsInstances[bmInstance.id as string].evaluation(bmInstance.data);
                             }
                         } else {
                             activeInstances.push(bmInstance.id as string);
@@ -536,11 +539,7 @@ export default class DiscordBot extends Discord.Client {
         try {
             return await message.edit(content);
         } catch (e: any) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageEditFailed', { error: e }),
-                'error',
-            );
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageEditFailed', { error: e }), 'error');
         }
 
         return undefined;
@@ -550,11 +549,7 @@ export default class DiscordBot extends Discord.Client {
         try {
             return await channel.send(content);
         } catch (e: any) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageSendFailed', { error: e }),
-                'error',
-            );
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageSendFailed', { error: e }), 'error');
         }
 
         return undefined;
@@ -564,18 +559,16 @@ export default class DiscordBot extends Discord.Client {
         try {
             return await message.reply(content);
         } catch (e: any) {
-            this.log(
-                this.intlGet(null, 'errorCap'),
-                this.intlGet(null, 'messageReplyFailed', { error: e }),
-                'error',
-            );
+            this.log(this.intlGet(null, 'errorCap'), this.intlGet(null, 'messageReplyFailed', { error: e }), 'error');
         }
 
         return undefined;
     }
 
     generateVerifyId(): string {
-        return Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        return Math.floor(Math.random() * 1000000)
+            .toString()
+            .padStart(6, '0');
     }
 
     async resolveItemId(

@@ -50,7 +50,14 @@ interface RustplusLike {
     cargoShipTracers: Record<string | number, Array<{ x: number; y: number }>>;
     patrolHelicopterTracers: Record<string | number, Array<{ x: number; y: number }>>;
     log: (title: string, message: string, level?: string) => void;
-    sendEvent: (setting: unknown, msg: string, type?: string | null, color?: string, isFirstPoll?: boolean, image?: string) => void;
+    sendEvent: (
+        setting: unknown,
+        msg: string,
+        type?: string | null,
+        color?: string,
+        isFirstPoll?: boolean,
+        image?: string,
+    ) => void;
     persistMapMarkersRuntimeState?: () => void;
 }
 
@@ -129,41 +136,95 @@ export default class MapMarkers {
         this.updateMapMarkers(mapMarkers);
     }
 
-    get markers(): Marker[] { return this._markers; }
-    set markers(v: Marker[]) { this._markers = v; }
-    get rustplus(): RustplusLike { return this._rustplus; }
-    set rustplus(v: RustplusLike) { this._rustplus = v; }
-    get client(): ClientLike { return this._client; }
-    set client(v: ClientLike) { this._client = v; }
-    get types(): typeof this._types { return this._types; }
-    get players(): Marker[] { return this._players; }
-    set players(v: Marker[]) { this._players = v; }
-    get vendingMachines(): Marker[] { return this._vendingMachines; }
-    set vendingMachines(v: Marker[]) { this._vendingMachines = v; }
-    get ch47s(): Marker[] { return this._ch47s; }
-    set ch47s(v: Marker[]) { this._ch47s = v; }
-    get cargoShips(): Marker[] { return this._cargoShips; }
-    set cargoShips(v: Marker[]) { this._cargoShips = v; }
-    get genericRadiuses(): Marker[] { return this._genericRadiuses; }
-    set genericRadiuses(v: Marker[]) { this._genericRadiuses = v; }
-    get patrolHelicopters(): Marker[] { return this._patrolHelicopters; }
-    set patrolHelicopters(v: Marker[]) { this._patrolHelicopters = v; }
-    get travelingVendors(): Marker[] { return this._travelingVendors; }
-    set travelingVendors(v: Marker[]) { this._travelingVendors = v; }
-    get deepSeas(): Marker[] { return this._deepSeas; }
-    set deepSeas(v: Marker[]) { this._deepSeas = v; }
+    get markers(): Marker[] {
+        return this._markers;
+    }
+    set markers(v: Marker[]) {
+        this._markers = v;
+    }
+    get rustplus(): RustplusLike {
+        return this._rustplus;
+    }
+    set rustplus(v: RustplusLike) {
+        this._rustplus = v;
+    }
+    get client(): ClientLike {
+        return this._client;
+    }
+    set client(v: ClientLike) {
+        this._client = v;
+    }
+    get types(): typeof this._types {
+        return this._types;
+    }
+    get players(): Marker[] {
+        return this._players;
+    }
+    set players(v: Marker[]) {
+        this._players = v;
+    }
+    get vendingMachines(): Marker[] {
+        return this._vendingMachines;
+    }
+    set vendingMachines(v: Marker[]) {
+        this._vendingMachines = v;
+    }
+    get ch47s(): Marker[] {
+        return this._ch47s;
+    }
+    set ch47s(v: Marker[]) {
+        this._ch47s = v;
+    }
+    get cargoShips(): Marker[] {
+        return this._cargoShips;
+    }
+    set cargoShips(v: Marker[]) {
+        this._cargoShips = v;
+    }
+    get genericRadiuses(): Marker[] {
+        return this._genericRadiuses;
+    }
+    set genericRadiuses(v: Marker[]) {
+        this._genericRadiuses = v;
+    }
+    get patrolHelicopters(): Marker[] {
+        return this._patrolHelicopters;
+    }
+    set patrolHelicopters(v: Marker[]) {
+        this._patrolHelicopters = v;
+    }
+    get travelingVendors(): Marker[] {
+        return this._travelingVendors;
+    }
+    set travelingVendors(v: Marker[]) {
+        this._travelingVendors = v;
+    }
+    get deepSeas(): Marker[] {
+        return this._deepSeas;
+    }
+    set deepSeas(v: Marker[]) {
+        this._deepSeas = v;
+    }
 
     getType(type: number): Marker[] | null {
         if (!Object.values(this.types).includes(type)) return null;
         switch (type) {
-            case this.types.Player: return this.players;
-            case this.types.VendingMachine: return this.vendingMachines;
-            case this.types.CH47: return this.ch47s;
-            case this.types.CargoShip: return this.cargoShips;
-            case this.types.GenericRadius: return this.genericRadiuses;
-            case this.types.PatrolHelicopter: return this.patrolHelicopters;
-            case this.types.TravelingVendor: return this.travelingVendors;
-            default: return null;
+            case this.types.Player:
+                return this.players;
+            case this.types.VendingMachine:
+                return this.vendingMachines;
+            case this.types.CH47:
+                return this.ch47s;
+            case this.types.CargoShip:
+                return this.cargoShips;
+            case this.types.GenericRadius:
+                return this.genericRadiuses;
+            case this.types.PatrolHelicopter:
+                return this.patrolHelicopters;
+            case this.types.TravelingVendor:
+                return this.travelingVendors;
+            default:
+                return null;
         }
     }
 
@@ -241,7 +302,10 @@ export default class MapMarkers {
         this.updateGenericRadiuses(mapMarkers);
         this.updateTravelingVendors(mapMarkers);
 
-        if (this.rustplus?.persistentRuntimeStateRestored && typeof this.rustplus.persistMapMarkersRuntimeState === 'function') {
+        if (
+            this.rustplus?.persistentRuntimeStateRestored &&
+            typeof this.rustplus.persistMapMarkersRuntimeState === 'function'
+        ) {
             this.rustplus.persistMapMarkersRuntimeState();
         }
     }
@@ -358,14 +422,19 @@ export default class MapMarkers {
             let found = false;
             if (!this.rustplus.isFirstPoll) {
                 for (const oilRig of smallOilRig) {
-                    if (GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <= Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
+                    if (
+                        GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
+                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
+                    ) {
                         found = true;
                         const oilRigLocation = GameMap.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
                         marker.ch47Type = 'smallOilRig';
 
                         this.rustplus.sendEvent(
                             this.rustplus.notificationSettings.heavyScientistCalledSetting,
-                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledSmall', { location: oilRigLocation.location }),
+                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledSmall', {
+                                location: oilRigLocation.location,
+                            }),
                             'small',
                             Constants.COLOR_HEAVY_SCIENTISTS_CALLED_SMALL,
                             this.rustplus.isFirstPoll,
@@ -391,14 +460,19 @@ export default class MapMarkers {
 
             if (!found && !this.rustplus.isFirstPoll) {
                 for (const oilRig of largeOilRig) {
-                    if (GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <= Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE) {
+                    if (
+                        GameMap.getDistance(marker.x, marker.y, oilRig.x, oilRig.y) <=
+                        Constants.OIL_RIG_CHINOOK_47_MAX_SPAWN_DISTANCE
+                    ) {
                         found = true;
                         const oilRigLocation = GameMap.getPos(oilRig.x, oilRig.y, mapSize, this.rustplus);
                         marker.ch47Type = 'largeOilRig';
 
                         this.rustplus.sendEvent(
                             this.rustplus.notificationSettings.heavyScientistCalledSetting,
-                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledLarge', { location: oilRigLocation.location }),
+                            this.client.intlGet(this.rustplus.guildId, 'heavyScientistsCalledLarge', {
+                                location: oilRigLocation.location,
+                            }),
                             'large',
                             Constants.COLOR_HEAVY_SCIENTISTS_CALLED_LARGE,
                             this.rustplus.isFirstPoll,
@@ -542,7 +616,9 @@ export default class MapMarkers {
                             cargoShip.isDocked = true;
                             this.rustplus.sendEvent(
                                 this.rustplus.notificationSettings.cargoShipDockingAtHarborSetting,
-                                this.client.intlGet(this.rustplus.guildId, 'cargoShipDockingAtHarbor', { location: harborLocation.location }),
+                                this.client.intlGet(this.rustplus.guildId, 'cargoShipDockingAtHarbor', {
+                                    location: harborLocation.location,
+                                }),
                                 'cargo',
                                 Constants.COLOR_CARGO_SHIP_DOCKED,
                             );
@@ -557,7 +633,9 @@ export default class MapMarkers {
                             cargoShip.isDocked = false;
                             this.rustplus.sendEvent(
                                 this.rustplus.notificationSettings.cargoShipDockingAtHarborSetting,
-                                this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftHarbor', { location: harborLocation.location }),
+                                this.client.intlGet(this.rustplus.guildId, 'cargoShipLeftHarbor', {
+                                    location: harborLocation.location,
+                                }),
                                 'cargo',
                                 Constants.COLOR_CARGO_SHIP_DOCKED,
                             );
@@ -625,7 +703,9 @@ export default class MapMarkers {
             if (GameMap.isOutsideGridSystem(marker.x, marker.y, mapSize)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterLeftSetting,
-                    this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterLeftMap', { location: marker.location?.string }),
+                    this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterLeftMap', {
+                        location: marker.location?.string,
+                    }),
                     'heli',
                     Constants.COLOR_PATROL_HELICOPTER_LEFT_MAP,
                 );
@@ -633,7 +713,9 @@ export default class MapMarkers {
             } else {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.patrolHelicopterDestroyedSetting,
-                    this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterTakenDown', { location: marker.location?.string }),
+                    this.client.intlGet(this.rustplus.guildId, 'patrolHelicopterTakenDown', {
+                        location: marker.location?.string,
+                    }),
                     'heli',
                     Constants.COLOR_PATROL_HELICOPTER_TAKEN_DOWN,
                 );
@@ -678,7 +760,9 @@ export default class MapMarkers {
         for (const marker of leftMarkers) {
             this.rustplus.sendEvent(
                 this.rustplus.notificationSettings.travelingVendorLeftSetting,
-                this.client.intlGet(this.rustplus.guildId, 'travelingVendorLeftMap', { location: marker.location?.string }),
+                this.client.intlGet(this.rustplus.guildId, 'travelingVendorLeftMap', {
+                    location: marker.location?.string,
+                }),
                 'travelingVendor',
                 Constants.COLOR_TRAVELING_VENDOR_LEFT_MAP,
             );
@@ -705,7 +789,9 @@ export default class MapMarkers {
                     tv.isHalted = false;
                     this.rustplus.sendEvent(
                         this.rustplus.notificationSettings.travelingVendorHaltedSetting,
-                        this.client.intlGet(this.rustplus.guildId, 'travelingVendorResumedAt', { location: pos.string }),
+                        this.client.intlGet(this.rustplus.guildId, 'travelingVendorResumedAt', {
+                            location: pos.string,
+                        }),
                         'travelingVendor',
                         Constants.COLOR_TRAVELING_VENDOR_MOVING,
                     );
@@ -725,7 +811,9 @@ export default class MapMarkers {
 
         this.rustplus.sendEvent(
             this.rustplus.notificationSettings.cargoShipEgressSetting,
-            this.client.intlGet(this.rustplus.guildId, 'cargoShipEntersEgressStage', { location: marker.location?.string }),
+            this.client.intlGet(this.rustplus.guildId, 'cargoShipEntersEgressStage', {
+                location: marker.location?.string,
+            }),
             'cargo',
             Constants.COLOR_CARGO_SHIP_ENTERS_EGRESS_STAGE,
         );

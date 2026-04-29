@@ -1,5 +1,5 @@
-import { loadJsonResourceSync } from '../utils/filesystemUtils.js';
 import { findClosestString } from '../util/utils.js';
+import { loadJsonResourceSync } from '../utils/filesystemUtils.js';
 
 interface ItemData {
     name: string;

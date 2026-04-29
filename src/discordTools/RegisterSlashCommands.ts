@@ -1,5 +1,5 @@
-import { REST, Routes } from 'discord.js';
 import type { Guild } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 
 import config from '../config.js';
 import discordCommands from '../discordCommands/index.js';

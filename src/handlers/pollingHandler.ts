@@ -1,15 +1,15 @@
-import type DiscordBot from '../structures/DiscordBot.js';
-import Info from '../structures/Info.js';
 import * as InformationHandler from '../handlers/informationHandler.js';
-import MapMarkers from '../structures/MapMarkers.js';
 import * as SmartAlarmHandler from '../handlers/smartAlarmHandler.js';
 import * as SmartSwitchHandler from '../handlers/smartSwitchHandler.js';
 import * as StorageMonitorHandler from '../handlers/storageMonitorHandler.js';
-import Team from '../structures/Team.js';
 import * as TeamHandler from '../handlers/teamHandler.js';
-import Time from '../structures/Time.js';
 import * as TimeHandler from '../handlers/timeHandler.js';
 import * as VendingMachines from '../handlers/vendingMachineHandler.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+import Info from '../structures/Info.js';
+import MapMarkers from '../structures/MapMarkers.js';
+import Team from '../structures/Team.js';
+import Time from '../structures/Time.js';
 
 export async function pollingHandler(rustplus: any, client: DiscordBot) {
     if (rustplus._pollingInProgress) return;
@@ -40,7 +40,14 @@ export async function pollingHandler(rustplus: any, client: DiscordBot) {
     }
 }
 
-export async function handlers(rustplus: any, client: DiscordBot, info: any, mapMarkers: any, teamInfo: any, time: any) {
+export async function handlers(
+    rustplus: any,
+    client: DiscordBot,
+    info: any,
+    mapMarkers: any,
+    teamInfo: any,
+    time: any,
+) {
     await TeamHandler.handler(rustplus, client, teamInfo.teamInfo);
     rustplus.team.updateTeam(teamInfo.teamInfo);
 

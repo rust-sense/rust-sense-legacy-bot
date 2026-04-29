@@ -1,6 +1,5 @@
-import * as DiscordMessages from '../discordTools/discordMessages.js';
-
 import config from '../config.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 export default {
     name: 'disconnected',
@@ -34,7 +33,8 @@ export default {
         if (rustplus.mapMarkers) rustplus.mapMarkers.reset();
 
         /* Stop all custom timers */
-        for (const [id, timer] of Object.entries(rustplus.timers as Record<string, { timer: { stop: () => void } }>)) timer.timer.stop();
+        for (const [id, timer] of Object.entries(rustplus.timers as Record<string, { timer: { stop: () => void } }>))
+            timer.timer.stop();
 
         if (rustplus.isDeleted) return;
 
@@ -48,10 +48,7 @@ export default {
             client.rustplusReconnecting[guildId] = true;
 
             const attempt = ++rustplus._reconnectAttempts;
-            const delay = Math.min(
-                config.general.reconnectIntervalMs * Math.pow(2, attempt - 1),
-                300000,
-            );
+            const delay = Math.min(config.general.reconnectIntervalMs * Math.pow(2, attempt - 1), 300000);
 
             rustplus.log(
                 client.intlGet(null, 'reconnectingCap'),

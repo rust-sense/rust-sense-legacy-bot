@@ -1,5 +1,5 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import _ from 'lodash';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 export function handler(rustplus: any, client: DiscordBot, time: any) {
     /* Check time changes */

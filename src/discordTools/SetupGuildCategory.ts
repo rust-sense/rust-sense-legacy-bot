@@ -1,11 +1,14 @@
+import type { CategoryChannel, Guild } from 'discord.js';
 import { PermissionFlagsBits } from 'discord.js';
-import type { Guild, CategoryChannel } from 'discord.js';
 
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
 import type { DiscordBot } from '../types/discord.js';
 
-export default async function setupGuildCategory(client: DiscordBot, guild: Guild): Promise<CategoryChannel | undefined> {
+export default async function setupGuildCategory(
+    client: DiscordBot,
+    guild: Guild,
+): Promise<CategoryChannel | undefined> {
     const instance = client.getInstance(guild.id);
     const perms = PermissionHandler.getPermissionsReset(client, guild, false);
 
@@ -43,7 +46,5 @@ function botHasChannelPermissions(guild: Guild, channel: CategoryChannel): boole
     if (!me) return true;
 
     const permissions = channel.permissionsFor(me);
-    return (
-        permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageChannels]) ?? false
-    );
+    return permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageChannels]) ?? false;
 }

@@ -1,6 +1,6 @@
 import type { Guild } from 'discord.js';
-import type { DiscordBot } from '../types/discord.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import type { DiscordBot } from '../types/discord.js';
 
 export default async function removeGuildChannels(client: DiscordBot, guild: Guild) {
     const instance = client.getInstance(guild.id);

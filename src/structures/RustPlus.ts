@@ -2,27 +2,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import RustPlusLib from '@liamcottle/rustplus.js';
 import Translate from 'translate';
-
-import * as Constants from '../util/constants.js';
-import * as Decay from '../util/decay.js';
+import { resolve } from '../container.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import * as DiscordVoice from '../discordTools/discordVoice.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import * as DiscordVoice from '../discordTools/discordVoice.js';
 import * as InGameChatHandler from '../handlers/inGameChatHandler.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
-import { languages } from '../util/languages.js';
-import Logger from './Logger.js';
+import * as TeamHandler from '../handlers/teamHandler.js';
+import rustplusEvents from '../rustplusEvents/index.js';
+import RustPlusLite from '../structures/RustPlusLite.js';
+import type { RustplusEvent } from '../types/discord.js';
+import * as Constants from '../util/constants.js';
+import * as Decay from '../util/decay.js';
 import * as GameMap from '../util/GameMap.js';
 import getRuntimeDataStorage from '../util/getRuntimeDataStorage.js';
-import RustPlusLite from '../structures/RustPlusLite.js';
-import * as TeamHandler from '../handlers/teamHandler.js';
+import * as InstanceUtils from '../util/instanceUtils.js';
+import { languages } from '../util/languages.js';
 import * as Timer from '../util/timer.js';
-
-import { resolve } from '../container.js';
-import rustplusEvents from '../rustplusEvents/index.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
-import type { RustplusEvent } from '../types/discord.js';
+import Logger from './Logger.js';
 
 function getClient(): any {
     return resolve('discordBot');
@@ -164,7 +162,10 @@ export default class RustPlus extends RustPlusLib {
         const client = getClient();
         const instance = client.getInstance(this.guildId);
 
-        for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers) as [string, import('../types/instance.js').Marker][]) {
+        for (const [name, location] of Object.entries(instance.serverList[this.serverId].markers) as [
+            string,
+            import('../types/instance.js').Marker,
+        ][]) {
             this.markers[name] = { x: location.x, y: location.y, location: location.location };
         }
     }
@@ -182,11 +183,11 @@ export default class RustPlus extends RustPlusLib {
     }
 
     dateToTimestamp(date: Date): number | null {
-        return (date instanceof Date) ? date.getTime() : null;
+        return date instanceof Date ? date.getTime() : null;
     }
 
     timestampToDate(timestamp: number): Date | null {
-        if (typeof (timestamp) !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) {
+        if (typeof timestamp !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) {
             return null;
         }
         return new Date(timestamp);
@@ -195,14 +196,17 @@ export default class RustPlus extends RustPlusLib {
     getTimerEndAtMs(timer: any): number | null {
         if (!timer || !timer.getStateRunning()) return null;
         const remainingMs = timer.getTimeLeft();
-        if (typeof (remainingMs) !== 'number' || remainingMs <= 0) return null;
+        if (typeof remainingMs !== 'number' || remainingMs <= 0) return null;
         return Date.now() + remainingMs;
     }
 
     persistCustomTimersState(): void {
         const persistedTimers: PersistedTimerData[] = [];
-        for (const [id, content] of Object.entries(this.timers) as [string, { timer: Timer.Timer; message: string } | undefined][]) {
-            if (!content || !content.timer || typeof (content.message) !== 'string') continue;
+        for (const [id, content] of Object.entries(this.timers) as [
+            string,
+            { timer: Timer.Timer; message: string } | undefined,
+        ][]) {
+            if (!content || !content.timer || typeof content.message !== 'string') continue;
 
             const endAtMs = this.getTimerEndAtMs(content.timer);
             if (endAtMs === null) continue;
@@ -210,7 +214,7 @@ export default class RustPlus extends RustPlusLib {
             persistedTimers.push({
                 id: parseInt(id),
                 message: content.message,
-                endAtMs: endAtMs
+                endAtMs: endAtMs,
             });
         }
 
@@ -232,7 +236,7 @@ export default class RustPlus extends RustPlusLib {
             const id = timerData.id;
             if (!Number.isInteger(id) || id < 0) continue;
             if (this.timers.hasOwnProperty(id)) continue;
-            if (typeof (timerData.message) !== 'string' || timerData.message === '') continue;
+            if (typeof timerData.message !== 'string' || timerData.message === '') continue;
 
             const endAtMs = Number(timerData.endAtMs);
             if (!Number.isFinite(endAtMs)) continue;
@@ -240,18 +244,17 @@ export default class RustPlus extends RustPlusLib {
             if (remainingMs <= 0) continue;
 
             this.timers[id] = {
-                timer: new Timer.Timer(
-                    () => {
-                        const client = getClient();
-                        this.sendInGameMessage(client.intlGet(this.guildId, 'timer', {
-                            message: timerData.message
-                        }));
-                        delete this.timers[id];
-                        this.persistCustomTimersState();
-                    },
-                    remainingMs
-                ),
-                message: timerData.message
+                timer: new Timer.Timer(() => {
+                    const client = getClient();
+                    this.sendInGameMessage(
+                        client.intlGet(this.guildId, 'timer', {
+                            message: timerData.message,
+                        }),
+                    );
+                    delete this.timers[id];
+                    this.persistCustomTimersState();
+                }, remainingMs),
+                message: timerData.message,
             };
             this.timers[id].timer.start();
         }
@@ -275,25 +278,30 @@ export default class RustPlus extends RustPlusLib {
                 id: parsedId,
                 endAtMs: endAtMs,
                 x: cargoShip ? cargoShip.x : null,
-                y: cargoShip ? cargoShip.y : null
+                y: cargoShip ? cargoShip.y : null,
             });
         }
 
-        const cargoShipsState = this.mapMarkers.cargoShips.map((cargoShip: { id: number; x: number; y: number; onItsWayOut?: boolean }) => ({
-            id: cargoShip.id,
-            x: cargoShip.x,
-            y: cargoShip.y,
-            onItsWayOut: cargoShip.onItsWayOut === true
-        }));
+        const cargoShipsState = this.mapMarkers.cargoShips.map(
+            (cargoShip: { id: number; x: number; y: number; onItsWayOut?: boolean }) => ({
+                id: cargoShip.id,
+                x: cargoShip.x,
+                y: cargoShip.y,
+                onItsWayOut: cargoShip.onItsWayOut === true,
+            }),
+        );
 
         return {
             timeSinceCargoShipWasOutMs: this.dateToTimestamp(this.mapMarkers.timeSinceCargoShipWasOut),
             timeSinceCH47WasOutMs: this.dateToTimestamp(this.mapMarkers.timeSinceCH47WasOut),
             timeSinceSmallOilRigWasTriggeredMs: this.dateToTimestamp(this.mapMarkers.timeSinceSmallOilRigWasTriggered),
             timeSinceLargeOilRigWasTriggeredMs: this.dateToTimestamp(this.mapMarkers.timeSinceLargeOilRigWasTriggered),
-            timeSincePatrolHelicopterWasOnMapMs: this.dateToTimestamp(this.mapMarkers.timeSincePatrolHelicopterWasOnMap),
-            timeSincePatrolHelicopterWasDestroyedMs:
-                this.dateToTimestamp(this.mapMarkers.timeSincePatrolHelicopterWasDestroyed),
+            timeSincePatrolHelicopterWasOnMapMs: this.dateToTimestamp(
+                this.mapMarkers.timeSincePatrolHelicopterWasOnMap,
+            ),
+            timeSincePatrolHelicopterWasDestroyedMs: this.dateToTimestamp(
+                this.mapMarkers.timeSincePatrolHelicopterWasDestroyed,
+            ),
             patrolHelicopterDestroyedLocation: this.mapMarkers.patrolHelicopterDestroyedLocation,
             timeSinceTravelingVendorWasOnMapMs: this.dateToTimestamp(this.mapMarkers.timeSinceTravelingVendorWasOnMap),
             timeSinceDeepSeaSpawnedMs: this.dateToTimestamp(this.mapMarkers.timeSinceDeepSeaSpawned),
@@ -303,7 +311,7 @@ export default class RustPlus extends RustPlusLib {
             crateSmallOilRigUnlockAtMs: this.getTimerEndAtMs(this.mapMarkers.crateSmallOilRigTimer),
             crateLargeOilRigUnlockAtMs: this.getTimerEndAtMs(this.mapMarkers.crateLargeOilRigTimer),
             cargoShipEgressTimers: cargoShipEgressTimers,
-            cargoShipsState: cargoShipsState
+            cargoShipsState: cargoShipsState,
         };
     }
 
@@ -316,7 +324,7 @@ export default class RustPlus extends RustPlusLib {
     restoreOilRigCrateTimerFromState(type: string, unlockAtMs: number, location: string): void {
         if (!this.mapMarkers) return;
 
-        const safeLocation = (typeof (location) === 'string' && location !== '') ? location : null;
+        const safeLocation = typeof location === 'string' && location !== '' ? location : null;
         const safeUnlockAtMs = Number(unlockAtMs);
         const remainingMs = Number.isFinite(safeUnlockAtMs) ? Math.floor(safeUnlockAtMs - Date.now()) : null;
 
@@ -332,12 +340,11 @@ export default class RustPlus extends RustPlusLib {
                 this.mapMarkers.crateSmallOilRigTimer = new Timer.Timer(
                     this.mapMarkers.notifyCrateSmallOilRigOpen.bind(this.mapMarkers),
                     remainingMs,
-                    [safeLocation]
+                    [safeLocation],
                 );
                 this.mapMarkers.crateSmallOilRigTimer.start();
             }
-        }
-        else if (type === 'large') {
+        } else if (type === 'large') {
             if (this.mapMarkers.crateLargeOilRigTimer) {
                 this.mapMarkers.crateLargeOilRigTimer.stop();
                 this.mapMarkers.crateLargeOilRigTimer = null;
@@ -349,7 +356,7 @@ export default class RustPlus extends RustPlusLib {
                 this.mapMarkers.crateLargeOilRigTimer = new Timer.Timer(
                     this.mapMarkers.notifyCrateLargeOilRigOpen.bind(this.mapMarkers),
                     remainingMs,
-                    [safeLocation]
+                    [safeLocation],
                 );
                 this.mapMarkers.crateLargeOilRigTimer.start();
             }
@@ -376,22 +383,32 @@ export default class RustPlus extends RustPlusLib {
             this.mapMarkers.timeSinceCH47WasOut = this.timestampToDate(state.timeSinceCH47WasOutMs);
         }
         if (state.timeSinceSmallOilRigWasTriggeredMs) {
-            this.mapMarkers.timeSinceSmallOilRigWasTriggered = this.timestampToDate(state.timeSinceSmallOilRigWasTriggeredMs);
+            this.mapMarkers.timeSinceSmallOilRigWasTriggered = this.timestampToDate(
+                state.timeSinceSmallOilRigWasTriggeredMs,
+            );
         }
         if (state.timeSinceLargeOilRigWasTriggeredMs) {
-            this.mapMarkers.timeSinceLargeOilRigWasTriggered = this.timestampToDate(state.timeSinceLargeOilRigWasTriggeredMs);
+            this.mapMarkers.timeSinceLargeOilRigWasTriggered = this.timestampToDate(
+                state.timeSinceLargeOilRigWasTriggeredMs,
+            );
         }
         if (state.timeSincePatrolHelicopterWasOnMapMs) {
-            this.mapMarkers.timeSincePatrolHelicopterWasOnMap = this.timestampToDate(state.timeSincePatrolHelicopterWasOnMapMs);
+            this.mapMarkers.timeSincePatrolHelicopterWasOnMap = this.timestampToDate(
+                state.timeSincePatrolHelicopterWasOnMapMs,
+            );
         }
         if (state.timeSincePatrolHelicopterWasDestroyedMs) {
-            this.mapMarkers.timeSincePatrolHelicopterWasDestroyed = this.timestampToDate(state.timeSincePatrolHelicopterWasDestroyedMs);
+            this.mapMarkers.timeSincePatrolHelicopterWasDestroyed = this.timestampToDate(
+                state.timeSincePatrolHelicopterWasDestroyedMs,
+            );
         }
         if (state.patrolHelicopterDestroyedLocation) {
             this.mapMarkers.patrolHelicopterDestroyedLocation = state.patrolHelicopterDestroyedLocation;
         }
         if (state.timeSinceTravelingVendorWasOnMapMs) {
-            this.mapMarkers.timeSinceTravelingVendorWasOnMap = this.timestampToDate(state.timeSinceTravelingVendorWasOnMapMs);
+            this.mapMarkers.timeSinceTravelingVendorWasOnMap = this.timestampToDate(
+                state.timeSinceTravelingVendorWasOnMapMs,
+            );
         }
         if (state.timeSinceDeepSeaSpawnedMs) {
             this.mapMarkers.timeSinceDeepSeaSpawned = this.timestampToDate(state.timeSinceDeepSeaSpawnedMs);
@@ -400,10 +417,18 @@ export default class RustPlus extends RustPlusLib {
             this.mapMarkers.timeSinceDeepSeaWasOnMap = this.timestampToDate(state.timeSinceDeepSeaWasOnMapMs);
         }
         if (state.crateSmallOilRigLocation || state.crateSmallOilRigUnlockAtMs) {
-            this.restoreOilRigCrateTimerFromState('small', state.crateSmallOilRigUnlockAtMs, state.crateSmallOilRigLocation);
+            this.restoreOilRigCrateTimerFromState(
+                'small',
+                state.crateSmallOilRigUnlockAtMs,
+                state.crateSmallOilRigLocation,
+            );
         }
         if (state.crateLargeOilRigLocation || state.crateLargeOilRigUnlockAtMs) {
-            this.restoreOilRigCrateTimerFromState('large', state.crateLargeOilRigUnlockAtMs, state.crateLargeOilRigLocation);
+            this.restoreOilRigCrateTimerFromState(
+                'large',
+                state.crateLargeOilRigUnlockAtMs,
+                state.crateLargeOilRigLocation,
+            );
         }
 
         if (state.cargoShipEgressTimers) {
@@ -416,14 +441,11 @@ export default class RustPlus extends RustPlusLib {
                 const remainingMs = Math.floor(endAtMs - Date.now());
                 if (remainingMs <= 0) continue;
 
-                this.mapMarkers.cargoShipEgressTimers[id] = new Timer.Timer(
-                    () => {
-                        this.mapMarkers.timeSinceCargoShipWasOut = new Date();
-                        delete this.mapMarkers.cargoShipEgressTimers[id];
-                        this.persistMapMarkersRuntimeState();
-                    },
-                    remainingMs
-                );
+                this.mapMarkers.cargoShipEgressTimers[id] = new Timer.Timer(() => {
+                    this.mapMarkers.timeSinceCargoShipWasOut = new Date();
+                    delete this.mapMarkers.cargoShipEgressTimers[id];
+                    this.persistMapMarkersRuntimeState();
+                }, remainingMs);
                 this.mapMarkers.cargoShipEgressTimers[id].start();
             }
         }
@@ -471,9 +493,13 @@ export default class RustPlus extends RustPlusLib {
         const serverLite = instance.serverListLite[this.serverId][leader];
 
         this.leaderRustPlusInstance = new RustPlusLite(
-            this.guildId, this.logger, this,
-            serverLite.serverIp, serverLite.appPort,
-            serverLite.steamId, serverLite.playerToken,
+            this.guildId,
+            this.logger,
+            this,
+            serverLite.serverIp,
+            serverLite.appPort,
+            serverLite.steamId,
+            serverLite.playerToken,
         );
         this.leaderRustPlusInstance.connect();
     }
@@ -509,7 +535,8 @@ export default class RustPlus extends RustPlusLib {
     updateEvents(event: string, message: string): void {
         const client = getClient();
         const validEvents = ['cargo', 'heli', 'small', 'large', 'chinook'].map((k) =>
-            client.intlGet('en', `commandSyntax${k.charAt(0).toUpperCase() + k.slice(1)}`));
+            client.intlGet('en', `commandSyntax${k.charAt(0).toUpperCase() + k.slice(1)}`),
+        );
         if (!validEvents.includes(event)) return;
 
         const str = `${Timer.getCurrentDateTime()} - ${message}`;
@@ -528,8 +555,10 @@ export default class RustPlus extends RustPlusLib {
         this.isDeleted = true;
         this.disconnect();
         const client = getClient();
-        if (Object.hasOwn(client.rustplusInstances, this.guildId) &&
-            client.rustplusInstances[this.guildId].serverId === this.serverId) {
+        if (
+            Object.hasOwn(client.rustplusInstances, this.guildId) &&
+            client.rustplusInstances[this.guildId].serverId === this.serverId
+        ) {
             delete client.rustplusInstances[this.guildId];
             return true;
         }
@@ -542,22 +571,33 @@ export default class RustPlus extends RustPlusLib {
 
     logInGameCommand(type = 'Default', message: any): void {
         const client = getClient();
-        this.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'logInGameCommand', {
-            type,
-            command: message.broadcast.teamMessage.message.message,
-            user: `${message.broadcast.teamMessage.message.name} (${message.broadcast.teamMessage.message.steamId.toString()})`,
-        }));
+        this.log(
+            client.intlGet(null, 'infoCap'),
+            client.intlGet(null, 'logInGameCommand', {
+                type,
+                command: message.broadcast.teamMessage.message.message,
+                user: `${message.broadcast.teamMessage.message.name} (${message.broadcast.teamMessage.message.steamId.toString()})`,
+            }),
+        );
     }
 
     sendInGameMessage(message: any): void {
         InGameChatHandler.inGameChatHandler(this, getClient(), message);
     }
 
-    async sendEvent(setting: any, text: string, event: string, embedColor: string, firstPoll = false, image: string | null = null): Promise<void> {
+    async sendEvent(
+        setting: any,
+        text: string,
+        event: string,
+        embedColor: string,
+        firstPoll = false,
+        image: string | null = null,
+    ): Promise<void> {
         const client = getClient();
         const img = image ?? setting.image;
         this.updateEvents(event, text);
-        if (!firstPoll && setting.discord) await DiscordMessages.sendDiscordEventMessage(this.guildId, this.serverId, text, img, embedColor);
+        if (!firstPoll && setting.discord)
+            await DiscordMessages.sendDiscordEventMessage(this.guildId, this.serverId, text, img, embedColor);
         if (!firstPoll && setting.inGame) await this.sendInGameMessage(`${text}`);
         if (!firstPoll && setting.voice) await DiscordVoice.sendDiscordVoiceMessage(this.guildId, text);
         this.log(client.intlGet(null, 'eventCap'), text);
@@ -583,123 +623,187 @@ export default class RustPlus extends RustPlusLib {
     }
 
     async turnSmartSwitchOnAsync(id: number, timeout = 10000): Promise<any> {
-        try { return await this.setEntityValueAsync(id, true, timeout); } catch (e) { return e; }
+        try {
+            return await this.setEntityValueAsync(id, true, timeout);
+        } catch (e) {
+            return e;
+        }
     }
 
     async turnSmartSwitchOffAsync(id: number, timeout = 10000): Promise<any> {
-        try { return await this.setEntityValueAsync(id, false, timeout); } catch (e) { return e; }
+        try {
+            return await this.setEntityValueAsync(id, false, timeout);
+        } catch (e) {
+            return e;
+        }
     }
 
     async setEntityValueAsync(id: number, value: boolean, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
-            return await this.sendRequestAsync({ entityId: id, setEntityValue: { value } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            return await this.sendRequestAsync({ entityId: id, setEntityValue: { value } }, timeout).catch(
+                (e: any) => e,
+            );
+        } catch (e) {
+            return e;
+        }
     }
 
     async sendTeamMessageAsync(message: string, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(2)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(2)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ sendTeamMessage: { message } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getEntityInfoAsync(id: number, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ entityId: id, getEntityInfo: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getMapAsync(timeout = 30000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(5)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(5)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getMap: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getTimeAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getTime: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getMapMarkersAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getMapMarkers: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getInfoAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getInfo: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getTeamInfoAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getTeamInfo: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async subscribeToCameraAsync(identifier: string, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
-            return await this.sendRequestAsync({ cameraSubscribe: { cameraId: identifier } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            return await this.sendRequestAsync({ cameraSubscribe: { cameraId: identifier } }, timeout).catch(
+                (e: any) => e,
+            );
+        } catch (e) {
+            return e;
+        }
     }
 
     async unsubscribeFromCameraAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ cameraUnsubscribe: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async sendCameraInputAsync(buttons: any, x: number, y: number, timeout = 1000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(0.01)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
-            return await this.sendRequestAsync({ cameraInput: { buttons, mouseDelta: { x, y } } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+            if (!(await this.waitForAvailableTokens(0.01)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            return await this.sendRequestAsync({ cameraInput: { buttons, mouseDelta: { x, y } } }, timeout).catch(
+                (e: any) => e,
+            );
+        } catch (e) {
+            return e;
+        }
     }
 
     async promoteToLeaderAsync(steamId: string, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ promoteToLeader: { steamId } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async getTeamChatAsync(timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getTeamChat: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async checkSubscriptionAsync(id: number, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ entityId: id, checkSubscription: {} }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async setSubscriptionAsync(id: number, value: boolean, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(1)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
-            return await this.sendRequestAsync({ entityId: id, setSubscription: { value } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+            if (!(await this.waitForAvailableTokens(1)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            return await this.sendRequestAsync({ entityId: id, setSubscription: { value } }, timeout).catch(
+                (e: any) => e,
+            );
+        } catch (e) {
+            return e;
+        }
     }
 
     async getCameraFrameAsync(identifier: string, frame: number, timeout = 10000): Promise<any> {
         try {
-            if (!await this.waitForAvailableTokens(2)) return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
+            if (!(await this.waitForAvailableTokens(2)))
+                return { error: getClient().intlGet(null, 'tokensDidNotReplenish') };
             return await this.sendRequestAsync({ getCameraFrame: { identifier, frame } }, timeout).catch((e: any) => e);
-        } catch (e) { return e; }
+        } catch (e) {
+            return e;
+        }
     }
 
     async isResponseValid(response: any): Promise<boolean> {
@@ -711,7 +815,11 @@ export default class RustPlus extends RustPlusLib {
             this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseTimeout'), 'error');
             return false;
         } else if (Object.hasOwn(response, 'error')) {
-            this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseContainError', { error: JSON.stringify(response) }), 'error');
+            this.log(
+                client.intlGet(null, 'errorCap'),
+                client.intlGet(null, 'responseContainError', { error: JSON.stringify(response) }),
+                'error',
+            );
             return false;
         } else if (Object.keys(response).length === 0) {
             this.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'responseIsEmpty'), 'error');
@@ -743,7 +851,10 @@ export default class RustPlus extends RustPlusLib {
 
         if (lc === cmdAlive || lc === cmdAliveEn) {
             const player = this.team.getPlayerLongestAlive();
-            return client.intlGet(this.guildId, 'hasBeenAliveLongest', { name: player.name, time: player.getAliveTime() });
+            return client.intlGet(this.guildId, 'hasBeenAliveLongest', {
+                name: player.name,
+                time: player.getAliveTime(),
+            });
         }
 
         let name: string | null = null;
@@ -753,7 +864,10 @@ export default class RustPlus extends RustPlusLib {
 
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                return client.intlGet(this.guildId, 'playerHasBeenAliveFor', { name: player.name, time: player.getAliveTime() });
+                return client.intlGet(this.guildId, 'playerHasBeenAliveFor', {
+                    name: player.name,
+                    time: player.getAliveTime(),
+                });
             }
         }
         return client.intlGet(this.guildId, 'couldNotFindTeammate', { name });
@@ -768,22 +882,39 @@ export default class RustPlus extends RustPlusLib {
             const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, parseInt(id));
             const time = Timer.getTimeLeftOfTimer(timer as any);
             if (time) {
-                if (isInfoChannel) return client.intlGet(this.guildId, 'egressInTime', { time: Timer.getTimeLeftOfTimer(timer as any, 's'), location: cargoShip.location.string });
-                strings.push(client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', { time, location: cargoShip.location.string }));
+                if (isInfoChannel)
+                    return client.intlGet(this.guildId, 'egressInTime', {
+                        time: Timer.getTimeLeftOfTimer(timer as any, 's'),
+                        location: cargoShip.location.string,
+                    });
+                strings.push(
+                    client.intlGet(this.guildId, 'timeBeforeCargoEntersEgress', {
+                        time,
+                        location: cargoShip.location.string,
+                    }),
+                );
             }
             unhandled = unhandled.filter((e: any) => e !== parseInt(id));
         }
 
         for (const id of unhandled) {
             const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, id);
-            const key = cargoShip.onItsWayOut ? (isInfoChannel ? 'leavingMapAt' : 'cargoLeavingMapAt') : (isInfoChannel ? 'cargoAt' : 'cargoLocatedAt');
+            const key = cargoShip.onItsWayOut
+                ? isInfoChannel
+                    ? 'leavingMapAt'
+                    : 'cargoLeavingMapAt'
+                : isInfoChannel
+                  ? 'cargoAt'
+                  : 'cargoLocatedAt';
             if (isInfoChannel) return client.intlGet(this.guildId, key, { location: cargoShip.location.string });
             strings.push(client.intlGet(this.guildId, key, { location: cargoShip.location.string }));
         }
 
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceCargoShipWasOut === null) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'notActive') : client.intlGet(this.guildId, 'cargoNotCurrentlyOnMap');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'cargoNotCurrentlyOnMap');
             }
             const secondsSince = (Date.now() - this.mapMarkers.timeSinceCargoShipWasOut.getTime()) / 1000;
             const time = Timer.secondsToFullScale(secondsSince, isInfoChannel ? 's' : '');
@@ -799,14 +930,17 @@ export default class RustPlus extends RustPlusLib {
         const strings: string[] = [];
         for (const ch47 of this.mapMarkers.ch47s) {
             if (ch47.ch47Type === 'crate') {
-                if (isInfoChannel) return client.intlGet(this.guildId, 'atLocation', { location: ch47.location.string });
+                if (isInfoChannel)
+                    return client.intlGet(this.guildId, 'atLocation', { location: ch47.location.string });
                 strings.push(client.intlGet(this.guildId, 'chinook47Located', { location: ch47.location.string }));
             }
         }
 
         if (strings.length === 0) {
             if (this.mapMarkers.timeSinceCH47WasOut === null) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'notActive') : client.intlGet(this.guildId, 'chinook47NotOnMap');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'chinook47NotOnMap');
             }
             const secondsSince = (Date.now() - this.mapMarkers.timeSinceCH47WasOut.getTime()) / 1000;
             const time = Timer.secondsToFullScale(secondsSince, isInfoChannel ? 's' : '');
@@ -826,7 +960,9 @@ export default class RustPlus extends RustPlusLib {
         const lc = command.toLowerCase();
 
         if (lc.startsWith(cmdConns) || lc.startsWith(cmdConnsEn)) {
-            const rest = lc.startsWith(cmdConns) ? command.slice(cmdConns.length).trim() : command.slice(cmdConnsEn.length).trim();
+            const rest = lc.startsWith(cmdConns)
+                ? command.slice(cmdConns.length).trim()
+                : command.slice(cmdConnsEn.length).trim();
             const number = parseInt(rest);
             if (this.allConnections.length === 0) return client.intlGet(this.guildId, 'noRegisteredConnectionEvents');
             const strings: string[] = [];
@@ -841,13 +977,17 @@ export default class RustPlus extends RustPlusLib {
         }
 
         if (lc.startsWith(`${cmdConn} `) || lc.startsWith(`${cmdConnEn} `)) {
-            const rest = lc.startsWith(`${cmdConn} `) ? command.slice(`${cmdConn} `.length).trim() : command.slice(`${cmdConnEn} `.length).trim();
+            const rest = lc.startsWith(`${cmdConn} `)
+                ? command.slice(`${cmdConn} `.length).trim()
+                : command.slice(`${cmdConnEn} `.length).trim();
             const name = rest.replace(/ .*/, '');
             const number = parseInt(rest.slice(name.length + 1));
             for (const player of this.team.players) {
                 if (player.name.includes(name)) {
-                    if (!Object.hasOwn(this.playerConnections, player.steamId)) this.playerConnections[player.steamId] = [];
-                    if (this.playerConnections[player.steamId].length === 0) return client.intlGet(this.guildId, 'noRegisteredConnectionEventsUser', { user: player.name });
+                    if (!Object.hasOwn(this.playerConnections, player.steamId))
+                        this.playerConnections[player.steamId] = [];
+                    if (this.playerConnections[player.steamId].length === 0)
+                        return client.intlGet(this.guildId, 'noRegisteredConnectionEventsUser', { user: player.name });
                     const strings: string[] = [];
                     let counter = 1;
                     for (const event of this.playerConnections[player.steamId]) {
@@ -876,7 +1016,7 @@ export default class RustPlus extends RustPlusLib {
         const words = rest.split(' ');
         const lastWord = words[words.length - 1];
         const isNum = !isNaN(lastWord as any);
-        const itemName = isNum ? rest.slice(0, -(lastWord.length)).trim() : rest;
+        const itemName = isNum ? rest.slice(0, -lastWord.length).trim() : rest;
         const quantity = isNum ? parseInt(lastWord) : 1;
 
         const itemId = client.items.getClosestItemIdByName(itemName);
@@ -905,7 +1045,7 @@ export default class RustPlus extends RustPlusLib {
         const lc = command.toLowerCase();
 
         const teamInfo = await this.getTeamInfoAsync();
-        if (!await this.isResponseValid(teamInfo)) return null;
+        if (!(await this.isResponseValid(teamInfo))) return null;
         TeamHandler.handler(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
@@ -914,11 +1054,17 @@ export default class RustPlus extends RustPlusLib {
             if (!event.location) return client.intlGet(this.guildId, 'unknown');
             const dist = Math.floor(GameMap.getDistance(caller.x, caller.y, event.location.x, event.location.y));
             const dir = GameMap.getAngleBetweenPoints(caller.x, caller.y, event.location.x, event.location.y);
-            return client.intlGet(this.guildId, 'distanceDirectionGrid', { distance: dist, direction: dir, grid: event.location.location });
+            return client.intlGet(this.guildId, 'distanceDirectionGrid', {
+                distance: dist,
+                direction: dir,
+                grid: event.location.location,
+            });
         };
 
         if (lc.startsWith(cmdDeaths) || lc.startsWith(cmdDeathsEn)) {
-            const rest = lc.startsWith(cmdDeaths) ? command.slice(cmdDeaths.length).trim() : command.slice(cmdDeathsEn.length).trim();
+            const rest = lc.startsWith(cmdDeaths)
+                ? command.slice(cmdDeaths.length).trim()
+                : command.slice(cmdDeathsEn.length).trim();
             const number = parseInt(rest);
             if (this.allDeaths.length === 0) return client.intlGet(this.guildId, 'noRegisteredDeathEvents');
             const strings: string[] = [];
@@ -933,13 +1079,16 @@ export default class RustPlus extends RustPlusLib {
             return strings;
         }
 
-        const rest = lc.startsWith(`${cmdDeath} `) ? command.slice(`${cmdDeath} `.length).trim() : command.slice(`${cmdDeathEn} `.length).trim();
+        const rest = lc.startsWith(`${cmdDeath} `)
+            ? command.slice(`${cmdDeath} `.length).trim()
+            : command.slice(`${cmdDeathEn} `.length).trim();
         const name = rest.replace(/ .*/, '');
         const number = parseInt(rest.slice(name.length + 1));
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
                 if (!Object.hasOwn(this.playerDeaths, player.steamId)) this.playerDeaths[player.steamId] = [];
-                if (this.playerDeaths[player.steamId].length === 0) return client.intlGet(this.guildId, 'noRegisteredDeathEventsUser', { user: player.name });
+                if (this.playerDeaths[player.steamId].length === 0)
+                    return client.intlGet(this.guildId, 'noRegisteredDeathEventsUser', { user: player.name });
                 const strings: string[] = [];
                 let counter = 1;
                 for (const event of this.playerDeaths[player.steamId]) {
@@ -967,27 +1116,32 @@ export default class RustPlus extends RustPlusLib {
         const words = rest.split(' ');
         const lastWord = words[words.length - 1];
         const isNum = !isNaN(lastWord as any) && lastWord !== '';
-        const itemInput = isNum ? rest.slice(0, -(lastWord.length)).trim() : rest;
+        const itemInput = isNum ? rest.slice(0, -lastWord.length).trim() : rest;
         const itemHp = isNum ? parseInt(lastWord) : null;
 
         let type = 'items';
         let foundId: string | null = null;
 
         foundId = client.rustlabs.getClosestOtherNameByName(itemInput);
-        if (foundId && client.rustlabs.decayData['other'][foundId]) { type = 'other'; }
-        else {
+        if (foundId && client.rustlabs.decayData.hasEntry(foundId, 'other')) {
+            type = 'other';
+        } else {
             foundId = client.rustlabs.getClosestBuildingBlockNameByName(itemInput);
-            if (foundId && client.rustlabs.decayData['buildingBlocks'][foundId]) { type = 'buildingBlocks'; }
-            else {
+            if (foundId && client.rustlabs.decayData.hasEntry(foundId, 'buildingBlocks')) {
+                type = 'buildingBlocks';
+            } else {
                 foundId = client.items.getClosestItemIdByName(itemInput);
-                if (foundId && !client.rustlabs.decayData['items'][foundId]) foundId = null;
+                if (foundId && !client.rustlabs.decayData.hasEntry(foundId, 'items')) foundId = null;
             }
         }
 
         if (!foundId) return client.intlGet(this.guildId, 'noItemWithNameFound', { name: itemInput });
 
         const itemName = type === 'items' ? client.items.getName(foundId) : foundId;
-        const decayDetails = type === 'items' ? client.rustlabs.getDecayDetailsById(foundId) : client.rustlabs.getDecayDetailsByName(foundId);
+        const decayDetails =
+            type === 'items'
+                ? client.rustlabs.getDecayDetailsById(foundId)
+                : client.rustlabs.getDecayDetailsByName(foundId);
         if (!decayDetails) return client.intlGet(this.guildId, 'couldNotFindDecayDetails', { name: itemName });
 
         const d = decayDetails[3];
@@ -1054,7 +1208,10 @@ export default class RustPlus extends RustPlusLib {
         let event = eventKeyMap[token] ?? 'all';
         let count = parseInt(rest.slice(token.length).trim());
         if (isNaN(count)) {
-            if (!eventKeyMap[token] && token !== '') { event = 'all'; count = parseInt(token); }
+            if (!eventKeyMap[token] && token !== '') {
+                event = 'all';
+                count = parseInt(token);
+            }
             if (isNaN(count)) count = 5;
         }
 
@@ -1075,16 +1232,26 @@ export default class RustPlus extends RustPlusLib {
             const wasDestroyed = this.mapMarkers.timeSincePatrolHelicopterWasDestroyed;
 
             if (!wasOnMap && !wasDestroyed) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'notActive') : client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'patrolHelicopterNotCurrentlyOnMap');
             } else if (wasOnMap && !wasDestroyed) {
-                const time = Timer.secondsToFullScale((Date.now() - wasOnMap.getTime()) / 1000, isInfoChannel ? 's' : '');
+                const time = Timer.secondsToFullScale(
+                    (Date.now() - wasOnMap.getTime()) / 1000,
+                    isInfoChannel ? 's' : '',
+                );
                 return isInfoChannel
                     ? client.intlGet(this.guildId, 'timeSinceLast', { time })
                     : client.intlGet(this.guildId, 'timeSincePatrolHelicopterWasOnMap', { time });
             } else if (wasOnMap && wasDestroyed) {
                 const t1 = Timer.secondsToFullScale((Date.now() - wasOnMap.getTime()) / 1000, isInfoChannel ? 's' : '');
-                const t2 = Timer.secondsToFullScale((Date.now() - wasDestroyed.getTime()) / 1000, isInfoChannel ? 's' : '');
-                const loc = this.mapMarkers.patrolHelicopterDestroyedLocation ? ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]` : '';
+                const t2 = Timer.secondsToFullScale(
+                    (Date.now() - wasDestroyed.getTime()) / 1000,
+                    isInfoChannel ? 's' : '',
+                );
+                const loc = this.mapMarkers.patrolHelicopterDestroyedLocation
+                    ? ` [${this.mapMarkers.patrolHelicopterDestroyedLocation}]`
+                    : '';
                 const key = isInfoChannel ? 'timeSinceLastSinceDestroyedShort' : 'timeSinceLastSinceDestroyedLong';
                 return client.intlGet(this.guildId, key, { time1: t1, time2: t2, location: loc });
             }
@@ -1098,16 +1265,32 @@ export default class RustPlus extends RustPlusLib {
         if (this.mapMarkers.crateLargeOilRigTimer) {
             const time = Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer);
             if (time) {
-                if (isInfoChannel) return client.intlGet(this.guildId, 'timeUntilUnlocksAt', { time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer, 's'), location: this.mapMarkers.crateLargeOilRigLocation });
-                strings.push(client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', { time, location: this.mapMarkers.crateLargeOilRigLocation }));
+                if (isInfoChannel)
+                    return client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
+                        time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateLargeOilRigTimer, 's'),
+                        location: this.mapMarkers.crateLargeOilRigLocation,
+                    });
+                strings.push(
+                    client.intlGet(this.guildId, 'timeBeforeCrateAtLargeOilRigUnlocks', {
+                        time,
+                        location: this.mapMarkers.crateLargeOilRigLocation,
+                    }),
+                );
             }
         }
         if (strings.length === 0) {
             if (!this.mapMarkers.timeSinceLargeOilRigWasTriggered) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'noData') : client.intlGet(this.guildId, 'noDataOnLargeOilRig');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'noData')
+                    : client.intlGet(this.guildId, 'noDataOnLargeOilRig');
             }
-            const time = Timer.secondsToFullScale((Date.now() - this.mapMarkers.timeSinceLargeOilRigWasTriggered.getTime()) / 1000, isInfoChannel ? 's' : '');
-            return isInfoChannel ? client.intlGet(this.guildId, 'timeSinceLastEvent', { time }) : client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnLarge', { time });
+            const time = Timer.secondsToFullScale(
+                (Date.now() - this.mapMarkers.timeSinceLargeOilRigWasTriggered.getTime()) / 1000,
+                isInfoChannel ? 's' : '',
+            );
+            return isInfoChannel
+                ? client.intlGet(this.guildId, 'timeSinceLastEvent', { time })
+                : client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnLarge', { time });
         }
         return strings;
     }
@@ -1125,7 +1308,8 @@ export default class RustPlus extends RustPlusLib {
         if (!Object.keys(instance.serverListLite[this.serverId]).includes(this.team.leaderSteamId)) {
             const names = this.team.players
                 .filter((p: any) => Object.keys(instance.serverListLite[this.serverId]).includes(p.steamId))
-                .map((p: any) => p.name).join(', ');
+                .map((p: any) => p.name)
+                .join(', ');
             return client.intlGet(this.guildId, 'leaderCommandOnlyWorks', { name: names });
         }
 
@@ -1140,18 +1324,27 @@ export default class RustPlus extends RustPlusLib {
         if (lc === cmdLeader || lc === cmdLeaderEn) {
             if (!callerSteamId) return null;
             if (this.team.leaderSteamId === callerSteamId) return client.intlGet(this.guildId, 'youAreAlreadyLeader');
-            if (this.generalSettings.leaderCommandOnlyForPaired && !Object.keys(instance.serverListLite[this.serverId]).includes(callerSteamId)) {
+            if (
+                this.generalSettings.leaderCommandOnlyForPaired &&
+                !Object.keys(instance.serverListLite[this.serverId]).includes(callerSteamId)
+            ) {
                 return client.intlGet(this.guildId, 'youAreNotPairedWithServer');
             }
             await transferLeader(callerSteamId);
             return client.intlGet(this.guildId, 'leaderTransferred', { name: this.team.getPlayer(callerSteamId).name });
         }
 
-        const name = lc.startsWith(`${cmdLeader} `) ? command.slice(`${cmdLeader} `.length).trim() : command.slice(`${cmdLeaderEn} `.length).trim();
+        const name = lc.startsWith(`${cmdLeader} `)
+            ? command.slice(`${cmdLeader} `.length).trim()
+            : command.slice(`${cmdLeaderEn} `.length).trim();
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                if (this.team.leaderSteamId === player.steamId) return client.intlGet(this.guildId, 'leaderAlreadyLeader', { name: player.name });
-                if (this.generalSettings.leaderCommandOnlyForPaired && !Object.keys(instance.serverListLite[this.serverId]).includes(player.steamId)) {
+                if (this.team.leaderSteamId === player.steamId)
+                    return client.intlGet(this.guildId, 'leaderAlreadyLeader', { name: player.name });
+                if (
+                    this.generalSettings.leaderCommandOnlyForPaired &&
+                    !Object.keys(instance.serverListLite[this.serverId]).includes(player.steamId)
+                ) {
                     return client.intlGet(this.guildId, 'playerNotPairedWithServer', { name: player.name });
                 }
                 await transferLeader(player.steamId);
@@ -1179,25 +1372,34 @@ export default class RustPlus extends RustPlusLib {
             return parts.length > 0 ? parts.join(', ') : client.intlGet(this.guildId, 'noRegisteredMarkers');
         }
 
-        const rest = lc.startsWith(`${cmdMarker} `) ? command.slice(`${cmdMarker} `.length).trim() : command.slice(`${cmdMarkerEn} `.length).trim();
+        const rest = lc.startsWith(`${cmdMarker} `)
+            ? command.slice(`${cmdMarker} `.length).trim()
+            : command.slice(`${cmdMarkerEn} `.length).trim();
         const subcommand = rest.replace(/ .*/, '');
         const name = rest.slice(subcommand.length + 1);
 
         if (subcommand.toLowerCase() === cmdAdd.toLowerCase() || subcommand.toLowerCase() === cmdAddEn.toLowerCase()) {
             if (!name) return null;
             const teamInfo = await this.getTeamInfoAsync();
-            if (!await this.isResponseValid(teamInfo)) return null;
+            if (!(await this.isResponseValid(teamInfo))) return null;
             for (const player of teamInfo.teamInfo.members) {
                 if (player.steamId.toString() === callerSteamId) {
                     const instance = client.getInstance(this.guildId);
                     const location = GameMap.getPos(player.x, player.y, this.info.correctedMapSize, this);
-                    instance.serverList[this.serverId].markers[name] = { x: player.x, y: player.y, location: location.location };
+                    instance.serverList[this.serverId].markers[name] = {
+                        x: player.x,
+                        y: player.y,
+                        location: location.location,
+                    };
                     client.setInstance(this.guildId, instance);
                     this.markers[name] = { x: player.x, y: player.y, location: location.location };
                     return client.intlGet(this.guildId, 'markerAdded', { name, location: location.location });
                 }
             }
-        } else if (subcommand.toLowerCase() === cmdRemove.toLowerCase() || subcommand.toLowerCase() === cmdRemoveEn.toLowerCase()) {
+        } else if (
+            subcommand.toLowerCase() === cmdRemove.toLowerCase() ||
+            subcommand.toLowerCase() === cmdRemoveEn.toLowerCase()
+        ) {
             if (!(name in this.markers)) return client.intlGet(this.guildId, 'markerDoesNotExist', { name });
             const location = this.markers[name].location;
             const instance = client.getInstance(this.guildId);
@@ -1208,13 +1410,19 @@ export default class RustPlus extends RustPlusLib {
         } else {
             if (!(rest in this.markers)) return client.intlGet(this.guildId, 'markerDoesNotExist', { name: rest });
             const teamInfo = await this.getTeamInfoAsync();
-            if (!await this.isResponseValid(teamInfo)) return null;
+            if (!(await this.isResponseValid(teamInfo))) return null;
             for (const player of teamInfo.teamInfo.members) {
                 if (player.steamId.toString() === callerSteamId) {
                     const m = this.markers[rest];
                     const dir = GameMap.getAngleBetweenPoints(player.x, player.y, m.x, m.y);
                     const dist = Math.floor(GameMap.getDistance(player.x, player.y, m.x, m.y));
-                    return client.intlGet(this.guildId, 'markerLocation', { name: rest, location: m.location, distance: dist, player: player.name, direction: dir });
+                    return client.intlGet(this.guildId, 'markerLocation', {
+                        name: rest,
+                        location: m.location,
+                        distance: dist,
+                        player: player.name,
+                        direction: dir,
+                    });
                 }
             }
         }
@@ -1253,7 +1461,8 @@ export default class RustPlus extends RustPlusLib {
 
         const sub = subcommand.toLowerCase();
         if (sub === cmdSearch.toLowerCase() || sub === cmdSearchEn.toLowerCase()) {
-            if (!validOrders.includes(orderType)) return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
+            if (!validOrders.includes(orderType))
+                return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
             const locations: string[] = [];
@@ -1263,7 +1472,8 @@ export default class RustPlus extends RustPlusLib {
                     if (order.amountInStock === 0) continue;
                     const oi = Object.hasOwn(client.items.items, order.itemId.toString()) ? order.itemId : null;
                     const ci = Object.hasOwn(client.items.items, order.currencyId.toString()) ? order.currencyId : null;
-                    const match = (orderType === 'all' && (oi === parseInt(r.itemId) || ci === parseInt(r.itemId))) ||
+                    const match =
+                        (orderType === 'all' && (oi === parseInt(r.itemId) || ci === parseInt(r.itemId))) ||
                         (orderType === 'buy' && ci === parseInt(r.itemId)) ||
                         (orderType === 'sell' && oi === parseInt(r.itemId));
                     if (match && !locations.includes(vm.location.location)) locations.push(vm.location.location);
@@ -1271,27 +1481,35 @@ export default class RustPlus extends RustPlusLib {
             }
             return locations.length > 0 ? locations.join(', ') : client.intlGet(this.guildId, 'noItemFound');
         } else if (sub === cmdSub.toLowerCase() || sub === cmdSubEn.toLowerCase()) {
-            if (!validOrders.includes(orderType)) return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
+            if (!validOrders.includes(orderType))
+                return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
-            if (instance.marketSubscriptionList[orderType].includes(r.itemId)) return client.intlGet(this.guildId, 'alreadySubscribedToItem', { name: r.itemName });
+            if (instance.marketSubscriptionList[orderType].includes(r.itemId))
+                return client.intlGet(this.guildId, 'alreadySubscribedToItem', { name: r.itemName });
             instance.marketSubscriptionList[orderType].push(r.itemId);
             this.firstPollItems[orderType].push(r.itemId);
             client.setInstance(this.guildId, instance);
             return client.intlGet(this.guildId, 'justSubscribedToItem', { name: r.itemName });
         } else if (sub === cmdUnsub.toLowerCase() || sub === cmdUnsubEn.toLowerCase()) {
-            if (!validOrders.includes(orderType)) return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
+            if (!validOrders.includes(orderType))
+                return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
-            if (!instance.marketSubscriptionList[orderType].includes(r.itemId)) return client.intlGet(this.guildId, 'notExistInSubscription', { name: r.itemName });
-            instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter((e: any) => e !== r.itemId);
+            if (!instance.marketSubscriptionList[orderType].includes(r.itemId))
+                return client.intlGet(this.guildId, 'notExistInSubscription', { name: r.itemName });
+            instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
+                (e: any) => e !== r.itemId,
+            );
             client.setInstance(this.guildId, instance);
             return client.intlGet(this.guildId, 'removedSubscribeItem', { name: r.itemName });
         } else if (sub === cmdList.toLowerCase() || sub === cmdListEn.toLowerCase()) {
             const parts: string[] = [];
             for (const [ot, ids] of Object.entries(instance.marketSubscriptionList) as [string, any[]][]) {
                 if (ids.length === 0) continue;
-                parts.push(`${client.intlGet(this.guildId, ot)}: ${ids.map((id: any) => `${client.items.getName(id)} (${id})`).join(', ')}`);
+                parts.push(
+                    `${client.intlGet(this.guildId, ot)}: ${ids.map((id: any) => `${client.items.getName(id)} (${id})`).join(', ')}`,
+                );
             }
             return parts.length > 0 ? parts.join(' ') : client.intlGet(this.guildId, 'subscriptionListEmpty');
         }
@@ -1327,7 +1545,9 @@ export default class RustPlus extends RustPlusLib {
             return Object.entries(notes).map(([id, note]) => `${id}: ${note}`);
         }
 
-        const rest = lc.startsWith(`${cmdNote} `) ? command.slice(`${cmdNote} `.length).trim() : command.slice(`${cmdNoteEn} `.length).trim();
+        const rest = lc.startsWith(`${cmdNote} `)
+            ? command.slice(`${cmdNote} `.length).trim()
+            : command.slice(`${cmdNoteEn} `.length).trim();
         const subcommand = rest.replace(/ .*/, '');
         const value = rest.slice(subcommand.length + 1);
 
@@ -1337,10 +1557,14 @@ export default class RustPlus extends RustPlusLib {
             instance.serverList[this.serverId].notes[index] = value;
             client.setInstance(this.guildId, instance);
             return client.intlGet(this.guildId, 'noteSaved');
-        } else if (subcommand.toLowerCase() === cmdRemove.toLowerCase() || subcommand.toLowerCase() === cmdRemoveEn.toLowerCase()) {
+        } else if (
+            subcommand.toLowerCase() === cmdRemove.toLowerCase() ||
+            subcommand.toLowerCase() === cmdRemoveEn.toLowerCase()
+        ) {
             const id = parseInt(value.trim());
             if (isNaN(id)) return client.intlGet(this.guildId, 'noteIdInvalid');
-            if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id)) return client.intlGet(this.guildId, 'noteIdDoesNotExist', { id });
+            if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id))
+                return client.intlGet(this.guildId, 'noteIdDoesNotExist', { id });
             delete instance.serverList[this.serverId].notes[id];
             client.setInstance(this.guildId, instance);
             return client.intlGet(this.guildId, 'noteIdWasRemoved', { id });
@@ -1376,15 +1600,20 @@ export default class RustPlus extends RustPlusLib {
         const lc = command.toLowerCase();
 
         const bmInstance = client.battlemetricsInstances[battlemetricsId];
-        if (!bmInstance?.lastUpdateSuccessful) return client.intlGet(this.guildId, 'battlemetricsInstanceCouldNotBeFound', { id: battlemetricsId });
+        if (!bmInstance?.lastUpdateSuccessful)
+            return client.intlGet(this.guildId, 'battlemetricsInstanceCouldNotBeFound', { id: battlemetricsId });
 
         let foundPlayers: string[] = [];
         if (lc === cmdPlayers || lc === cmdPlayersEn) {
             foundPlayers = bmInstance.getOnlinePlayerIdsOrderedByTime();
             if (foundPlayers.length === 0) return client.intlGet(this.guildId, 'couldNotFindAnyPlayers');
         } else if (lc.startsWith(`${cmdPlayer} `) || lc.startsWith(`${cmdPlayerEn} `)) {
-            const name = lc.startsWith(`${cmdPlayer} `) ? command.slice(`${cmdPlayer} `.length).trim() : command.slice(`${cmdPlayerEn} `.length).trim();
-            foundPlayers = bmInstance.getOnlinePlayerIdsOrderedByTime().filter((id: string) => bmInstance.players[id]['name'].includes(name));
+            const name = lc.startsWith(`${cmdPlayer} `)
+                ? command.slice(`${cmdPlayer} `.length).trim()
+                : command.slice(`${cmdPlayerEn} `.length).trim();
+            foundPlayers = bmInstance
+                .getOnlinePlayerIdsOrderedByTime()
+                .filter((id: string) => bmInstance.players[id]['name'].includes(name));
             if (foundPlayers.length === 0) return client.intlGet(this.guildId, 'couldNotFindPlayer', { name });
         } else {
             return null;
@@ -1419,8 +1648,13 @@ export default class RustPlus extends RustPlusLib {
         if (isInfoChannel) {
             return `${this.info.players}${this.info.isQueue() ? `(${this.info.queuedPlayers})` : ''}/${this.info.maxPlayers}`;
         }
-        const str = client.intlGet(this.guildId, 'populationPlayers', { current: this.info.players, max: this.info.maxPlayers });
-        const queue = this.info.isQueue() ? ` ${client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}` : '';
+        const str = client.intlGet(this.guildId, 'populationPlayers', {
+            current: this.info.players,
+            max: this.info.maxPlayers,
+        });
+        const queue = this.info.isQueue()
+            ? ` ${client.intlGet(this.guildId, 'populationQueue', { number: this.info.queuedPlayers })}`
+            : '';
         return `${str}${queue}`;
     }
 
@@ -1432,7 +1666,7 @@ export default class RustPlus extends RustPlusLib {
         const lc = command.toLowerCase();
 
         const teamInfo = await this.getTeamInfoAsync();
-        if (!await this.isResponseValid(teamInfo)) return null;
+        if (!(await this.isResponseValid(teamInfo))) return null;
         TeamHandler.handler(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
@@ -1441,13 +1675,22 @@ export default class RustPlus extends RustPlusLib {
             const alive = this.team.players.filter((p: any) => p.steamId !== callerSteamId && p.isAlive);
             if (alive.length === 0) return client.intlGet(this.guildId, 'onlyOneInTeam');
             const closest = alive
-                .sort((a: any, b: any) => GameMap.getDistance(a.x, a.y, caller.x, caller.y) - GameMap.getDistance(b.x, b.y, caller.x, caller.y))
+                .sort(
+                    (a: any, b: any) =>
+                        GameMap.getDistance(a.x, a.y, caller.x, caller.y) -
+                        GameMap.getDistance(b.x, b.y, caller.x, caller.y),
+                )
                 .slice(0, 3);
-            const parts = closest.map((p: any) => `${p.name} (${Math.floor(GameMap.getDistance(p.x, p.y, caller.x, caller.y))}m [${p.pos.location}])`);
+            const parts = closest.map(
+                (p: any) =>
+                    `${p.name} (${Math.floor(GameMap.getDistance(p.x, p.y, caller.x, caller.y))}m [${p.pos.location}])`,
+            );
             return parts.length > 0 ? `${parts.join(', ')}.` : client.intlGet(this.guildId, 'allTeammatesAreDead');
         }
 
-        const memberName = lc.startsWith(`${cmdProx} `) ? command.slice(`${cmdProx} `.length).trim() : command.slice(`${cmdProxEn} `.length).trim();
+        const memberName = lc.startsWith(`${cmdProx} `)
+            ? command.slice(`${cmdProx} `.length).trim()
+            : command.slice(`${cmdProxEn} `.length).trim();
         for (const player of this.team.players) {
             if (player.name.includes(memberName)) {
                 return client.intlGet(this.guildId, 'proxLocation', {
@@ -1474,7 +1717,7 @@ export default class RustPlus extends RustPlusLib {
         const words = rest.split(' ');
         const lastWord = words[words.length - 1];
         const isNum = !isNaN(lastWord as any) && lastWord !== '';
-        const itemName = isNum ? rest.slice(0, -(lastWord.length)).trim() : rest;
+        const itemName = isNum ? rest.slice(0, -lastWord.length).trim() : rest;
         const quantity = isNum ? parseInt(lastWord) : 1;
 
         const itemId = client.items.getClosestItemIdByName(itemName);
@@ -1483,7 +1726,9 @@ export default class RustPlus extends RustPlusLib {
         const recycleDetails = client.rustlabs.getRecycleDetailsById(itemId);
         if (!recycleDetails) return client.intlGet(this.guildId, 'couldNotFindRecycleDetails', { name });
 
-        const recycleData = client.rustlabs.getRecycleDataFromArray([{ itemId: recycleDetails[0], quantity, itemIsBlueprint: false }]);
+        const recycleData = client.rustlabs.getRecycleDataFromArray([
+            { itemId: recycleDetails[0], quantity, itemIsBlueprint: false },
+        ]);
         let str = `${name}: `;
         for (const item of recycleData) str += `${client.items.getName(item.itemId)} x${item.quantity}, `;
         return str.slice(0, -2);
@@ -1505,7 +1750,8 @@ export default class RustPlus extends RustPlusLib {
         if (!details) return client.intlGet(this.guildId, 'couldNotFindResearchDetails', { name: itemName });
 
         let str = `${itemName}: `;
-        if (details[2].researchTable !== null) str += `${client.intlGet(this.guildId, 'researchTable')} (${details[2].researchTable})`;
+        if (details[2].researchTable !== null)
+            str += `${client.intlGet(this.guildId, 'researchTable')} (${details[2].researchTable})`;
         if (details[2].workbench !== null) {
             const wb = details[2].workbench;
             str += `, ${client.items.getName(wb.type)} (${wb.scrap} (${wb.totalScrap}))`;
@@ -1529,11 +1775,14 @@ export default class RustPlus extends RustPlusLib {
         const credentials = InstanceUtils.readCredentialsFile(this.guildId);
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
-                if (!(player.steamId in credentials)) return client.intlGet(this.guildId, 'userNotRegistered', { user: player.name });
+                if (!(player.steamId in credentials))
+                    return client.intlGet(this.guildId, 'userNotRegistered', { user: player.name });
                 const discordUserId = credentials[player.steamId].discordUserId;
                 const user = await DiscordTools.getUserById(this.guildId, discordUserId);
                 if (!user) return client.intlGet(this.guildId, 'couldNotFindUser', { userId: discordUserId });
-                await client.messageSend(user, { embeds: [DiscordEmbeds.getUserSendEmbed(this.guildId, this.serverId, callerName, message)] });
+                await client.messageSend(user, {
+                    embeds: [DiscordEmbeds.getUserSendEmbed(this.guildId, this.serverId, callerName, message)],
+                });
                 return client.intlGet(this.guildId, 'messageWasSent');
             }
         }
@@ -1546,16 +1795,32 @@ export default class RustPlus extends RustPlusLib {
         if (this.mapMarkers.crateSmallOilRigTimer) {
             const time = Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer);
             if (time) {
-                if (isInfoChannel) return client.intlGet(this.guildId, 'timeUntilUnlocksAt', { time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer, 's'), location: this.mapMarkers.crateSmallOilRigLocation });
-                strings.push(client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', { time, location: this.mapMarkers.crateSmallOilRigLocation }));
+                if (isInfoChannel)
+                    return client.intlGet(this.guildId, 'timeUntilUnlocksAt', {
+                        time: Timer.getTimeLeftOfTimer(this.mapMarkers.crateSmallOilRigTimer, 's'),
+                        location: this.mapMarkers.crateSmallOilRigLocation,
+                    });
+                strings.push(
+                    client.intlGet(this.guildId, 'timeBeforeCrateAtSmallOilRigUnlocks', {
+                        time,
+                        location: this.mapMarkers.crateSmallOilRigLocation,
+                    }),
+                );
             }
         }
         if (strings.length === 0) {
             if (!this.mapMarkers.timeSinceSmallOilRigWasTriggered) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'noData') : client.intlGet(this.guildId, 'noDataOnSmallOilRig');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'noData')
+                    : client.intlGet(this.guildId, 'noDataOnSmallOilRig');
             }
-            const time = Timer.secondsToFullScale((Date.now() - this.mapMarkers.timeSinceSmallOilRigWasTriggered.getTime()) / 1000, isInfoChannel ? 's' : '');
-            return isInfoChannel ? client.intlGet(this.guildId, 'timeSinceLastEvent', { time }) : client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnSmall', { time });
+            const time = Timer.secondsToFullScale(
+                (Date.now() - this.mapMarkers.timeSinceSmallOilRigWasTriggered.getTime()) / 1000,
+                isInfoChannel ? 's' : '',
+            );
+            return isInfoChannel
+                ? client.intlGet(this.guildId, 'timeSinceLastEvent', { time })
+                : client.intlGet(this.guildId, 'timeSinceHeavyScientistsOnSmall', { time });
         }
         return strings;
     }
@@ -1588,7 +1853,9 @@ export default class RustPlus extends RustPlusLib {
             return callerSteamId && callerName ? `${callerName}: ${callerSteamId}` : null;
         }
 
-        const name = lc.startsWith(`${cmdSteamId} `) ? command.slice(`${cmdSteamId} `.length).trim() : command.slice(`${cmdSteamIdEn} `.length).trim();
+        const name = lc.startsWith(`${cmdSteamId} `)
+            ? command.slice(`${cmdSteamId} `.length).trim()
+            : command.slice(`${cmdSteamIdEn} `.length).trim();
         for (const player of this.team.players) {
             if (player.name.includes(name)) return `${player.name}: ${player.steamId}`;
         }
@@ -1628,10 +1895,17 @@ export default class RustPlus extends RustPlusLib {
         if (lc === cmdTimers || lc === cmdTimersEn) {
             if (Object.keys(this.timers).length === 0) return client.intlGet(this.guildId, 'noActiveTimers');
             return Object.entries(this.timers).map(([id, content]: any) =>
-                client.intlGet(this.guildId, 'timeLeftTimer', { id: parseInt(id), time: Timer.getTimeLeftOfTimer(content.timer), message: content.message }));
+                client.intlGet(this.guildId, 'timeLeftTimer', {
+                    id: parseInt(id),
+                    time: Timer.getTimeLeftOfTimer(content.timer),
+                    message: content.message,
+                }),
+            );
         }
 
-        const rest = lc.startsWith(`${cmdTimer} `) ? command.slice(`${cmdTimer} `.length).trim() : command.slice(`${cmdTimerEn} `.length).trim();
+        const rest = lc.startsWith(`${cmdTimer} `)
+            ? command.slice(`${cmdTimer} `.length).trim()
+            : command.slice(`${cmdTimerEn} `.length).trim();
         const subcommand = rest.replace(/ .*/, '');
         const value = rest.slice(subcommand.length + 1);
         const sub = subcommand.toLowerCase();
@@ -1658,7 +1932,8 @@ export default class RustPlus extends RustPlusLib {
         } else if (sub === cmdRemove.toLowerCase() || sub === cmdRemoveEn.toLowerCase()) {
             const id = parseInt(value.replace(/ .*/, ''));
             if (isNaN(id)) return client.intlGet(this.guildId, 'timerIdInvalid');
-            if (!Object.keys(this.timers).map(Number).includes(id)) return client.intlGet(this.guildId, 'timerIdDoesNotExist', { id });
+            if (!Object.keys(this.timers).map(Number).includes(id))
+                return client.intlGet(this.guildId, 'timerIdDoesNotExist', { id });
             this.timers[id].timer.stop();
             delete this.timers[id];
             return client.intlGet(this.guildId, 'timerRemoved', { id });
@@ -1684,7 +1959,9 @@ export default class RustPlus extends RustPlusLib {
                 : client.intlGet(this.guildId, 'couldNotFindLanguage', { language: lang });
         }
 
-        const rest = lc.startsWith(`${cmdTr} `) ? command.slice(`${cmdTr} `.length).trim() : command.slice(`${cmdTrEn} `.length).trim();
+        const rest = lc.startsWith(`${cmdTr} `)
+            ? command.slice(`${cmdTr} `.length).trim()
+            : command.slice(`${cmdTrEn} `.length).trim();
         const lang = rest.replace(/ .*/, '');
         const text = rest.slice(lang.length).trim();
         if (!lang || !text) return client.intlGet(this.guildId, 'missingArguments');
@@ -1747,7 +2024,10 @@ export default class RustPlus extends RustPlusLib {
         const instance = client.getInstance(this.guildId);
         const strings: string[] = [];
         const upkeepStr = client.intlGet(this.guildId, 'upkeep').toLowerCase();
-        for (const [key, value] of Object.entries(instance.serverList[this.serverId].storageMonitors) as [string, any][]) {
+        for (const [key, value] of Object.entries(instance.serverList[this.serverId].storageMonitors) as [
+            string,
+            any,
+        ][]) {
             if (value.type !== 'toolCupboard' || !value.upkeep) continue;
             strings.push(`${value.name} [${key}] ${upkeepStr}: ${value.upkeep}`);
         }
@@ -1756,7 +2036,8 @@ export default class RustPlus extends RustPlusLib {
 
     getCommandUptime(): string {
         const client = getClient();
-        const fmt = (d: Date | null) => d ? Timer.secondsToFullScale((Date.now() - d.getTime()) / 1000) : client.intlGet(this.guildId, 'offline');
+        const fmt = (d: Date | null) =>
+            d ? Timer.secondsToFullScale((Date.now() - d.getTime()) / 1000) : client.intlGet(this.guildId, 'offline');
         const bot = fmt(client.uptimeBot);
         const server = fmt(this.uptimeServer);
         const str = `${client.intlGet(this.guildId, 'bot')}: ${bot} ${client.intlGet(this.guildId, 'server')}: ${server}.`;
@@ -1765,7 +2046,10 @@ export default class RustPlus extends RustPlusLib {
 
     getCommandWipe(isInfoChannel = false): string {
         const client = getClient();
-        if (isInfoChannel) return client.intlGet(this.guildId, 'dayOfWipe', { day: Math.ceil(this.info.getSecondsSinceWipe() / (60 * 60 * 24)) });
+        if (isInfoChannel)
+            return client.intlGet(this.guildId, 'dayOfWipe', {
+                day: Math.ceil(this.info.getSecondsSinceWipe() / (60 * 60 * 24)),
+            });
         return client.intlGet(this.guildId, 'timeSinceWipe', { time: this.info.getTimeSinceWipe() });
     }
 
@@ -1774,14 +2058,21 @@ export default class RustPlus extends RustPlusLib {
         const strings: string[] = [];
         for (const vendor of this.mapMarkers.travelingVendors) {
             if (isInfoChannel) return client.intlGet(this.guildId, 'atLocation', { location: vendor.location.string });
-            strings.push(client.intlGet(this.guildId, 'travelingVendorLocatedAt', { location: vendor.location.string }));
+            strings.push(
+                client.intlGet(this.guildId, 'travelingVendorLocatedAt', { location: vendor.location.string }),
+            );
         }
 
         if (strings.length === 0) {
             if (!this.mapMarkers.timeSinceTravelingVendorWasOnMap) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'notActive') : client.intlGet(this.guildId, 'travelingVendorNotOnMap');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'travelingVendorNotOnMap');
             }
-            const time = Timer.secondsToFullScale((Date.now() - this.mapMarkers.timeSinceTravelingVendorWasOnMap.getTime()) / 1000, isInfoChannel ? 's' : '');
+            const time = Timer.secondsToFullScale(
+                (Date.now() - this.mapMarkers.timeSinceTravelingVendorWasOnMap.getTime()) / 1000,
+                isInfoChannel ? 's' : '',
+            );
             return isInfoChannel
                 ? client.intlGet(this.guildId, 'timeSinceLast', { time })
                 : client.intlGet(this.guildId, 'timeSinceTravelingVendorWasOnMap', { time });
@@ -1799,9 +2090,14 @@ export default class RustPlus extends RustPlusLib {
 
         if (strings.length === 0) {
             if (!this.mapMarkers.timeSinceDeepSeaWasOnMap) {
-                return isInfoChannel ? client.intlGet(this.guildId, 'notActive') : client.intlGet(this.guildId, 'deepSeaNotOnMap');
+                return isInfoChannel
+                    ? client.intlGet(this.guildId, 'notActive')
+                    : client.intlGet(this.guildId, 'deepSeaNotOnMap');
             }
-            const time = Timer.secondsToFullScale((Date.now() - this.mapMarkers.timeSinceDeepSeaWasOnMap.getTime()) / 1000, isInfoChannel ? 's' : '');
+            const time = Timer.secondsToFullScale(
+                (Date.now() - this.mapMarkers.timeSinceDeepSeaWasOnMap.getTime()) / 1000,
+                isInfoChannel ? 's' : '',
+            );
             return isInfoChannel
                 ? client.intlGet(this.guildId, 'timeSinceLast', { time })
                 : client.intlGet(this.guildId, 'timeSinceDeepSeaWasOnMap', { time });

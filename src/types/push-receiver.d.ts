@@ -18,10 +18,10 @@ declare module '@liamcottle/push-receiver' {
 
     export class PushReceiver extends EventEmitter {
         constructor(config: PushReceiverConfig);
-        
+
         connect(): void;
         disconnect(): void;
-        
+
         on(event: 'notification', listener: (notification: PushNotification) => void): this;
         on(event: 'connected', listener: () => void): this;
         on(event: 'disconnected', listener: () => void): this;

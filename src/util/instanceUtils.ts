@@ -1,5 +1,5 @@
-import { loadJsonSync, writeJsonSync, cwdPath } from '../utils/filesystemUtils.js';
-import type { Instance, Credentials } from '../types/instance.js';
+import type { Credentials, Instance } from '../types/instance.js';
+import { cwdPath, loadJsonSync, writeJsonSync } from '../utils/filesystemUtils.js';
 
 export function readInstanceFile(guildId: string): Instance {
     return loadJsonSync(cwdPath('instances', `${guildId}.json`)) as Instance;

@@ -1,5 +1,5 @@
-import * as DiscordMessages from './discordMessages.js';
 import type { DiscordBot } from '../types/discord.js';
+import * as DiscordMessages from './discordMessages.js';
 
 export default async function setupAlarms(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);

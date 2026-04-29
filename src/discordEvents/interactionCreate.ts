@@ -8,11 +8,7 @@ function safeDeferUpdate(client: DiscordBot, interaction: any) {
         try {
             interaction.deferUpdate();
         } catch (e) {
-            client.log(
-                client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'couldNotDeferInteraction'),
-                'error',
-            );
+            client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'couldNotDeferInteraction'), 'error');
         }
     }
 }
@@ -29,10 +25,14 @@ export default {
         }
 
         if (interaction.isButton()) {
-            const ButtonHandler = await import('../handlers/buttonHandler.js') as { default: (client: DiscordBot, interaction: any) => Promise<void> };
+            const ButtonHandler = (await import('../handlers/buttonHandler.js')) as {
+                default: (client: DiscordBot, interaction: any) => Promise<void>;
+            };
             await ButtonHandler.default(client, interaction);
         } else if (interaction.isStringSelectMenu()) {
-            const SelectMenuHandler = await import('../handlers/selectMenuHandler.js') as { default: (client: DiscordBot, interaction: any) => Promise<void> };
+            const SelectMenuHandler = (await import('../handlers/selectMenuHandler.js')) as {
+                default: (client: DiscordBot, interaction: any) => Promise<void>;
+            };
             await SelectMenuHandler.default(client, interaction);
         } else if (interaction.type === InteractionType.ApplicationCommand) {
             const command = interaction.client.commands.get(interaction.commandName);

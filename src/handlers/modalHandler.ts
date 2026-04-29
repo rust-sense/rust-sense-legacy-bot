@@ -1,18 +1,31 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as ConstantsModule from '../util/constants.js';
+
 const Constants: any = ConstantsModule;
+
 import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
+
 const DiscordEmbeds: any = DiscordEmbedsModule;
+
 import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+
 const DiscordMessages: any = DiscordMessagesModule;
+
 import * as KeywordsModule from '../util/keywords.js';
+
 const Keywords: any = KeywordsModule;
+
 import * as ScrapeModule from '../util/scrape.js';
+
 const Scrape: any = ScrapeModule;
+
 import * as TrackerInputParserModule from '../util/trackerInputParser.js';
+
 const TrackerInputParser: any = TrackerInputParserModule;
+
 import * as UtilsModule from '../util/utils.js';
+
 const Utils: any = UtilsModule;
 
 export default async (client: DiscordBot, interaction: any) => {
@@ -44,13 +57,13 @@ export default async (client: DiscordBot, interaction: any) => {
         if (oilRigCrateUnlockTime && oilRigCrateUnlockTime * 1000 !== server.oilRigLockedCrateUnlockTimeMs) {
             server.oilRigLockedCrateUnlockTimeMs = oilRigCrateUnlockTime * 1000;
         }
-        if (deepSeaMinWipeCooldown && ((deepSeaMinWipeCooldown * 1000) !== server.deepSeaMinWipeCooldownMs)) {
+        if (deepSeaMinWipeCooldown && deepSeaMinWipeCooldown * 1000 !== server.deepSeaMinWipeCooldownMs) {
             server.deepSeaMinWipeCooldownMs = deepSeaMinWipeCooldown * 1000;
         }
-        if (deepSeaMaxWipeCooldown && ((deepSeaMaxWipeCooldown * 1000) !== server.deepSeaMaxWipeCooldownMs)) {
+        if (deepSeaMaxWipeCooldown && deepSeaMaxWipeCooldown * 1000 !== server.deepSeaMaxWipeCooldownMs) {
             server.deepSeaMaxWipeCooldownMs = deepSeaMaxWipeCooldown * 1000;
         }
-        if (deepSeaWipeDuration && ((deepSeaWipeDuration * 1000) !== server.deepSeaWipeDurationMs)) {
+        if (deepSeaWipeDuration && deepSeaWipeDuration * 1000 !== server.deepSeaWipeDurationMs) {
             server.deepSeaWipeDurationMs = deepSeaWipeDuration * 1000;
         }
         client.setInstance(guildId, instance);

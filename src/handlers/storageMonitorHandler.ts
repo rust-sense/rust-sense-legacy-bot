@@ -1,6 +1,6 @@
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
-import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 export async function handler(rustplus: any, client: DiscordBot) {
     let instance = client.getInstance(rustplus.guildId);
@@ -39,11 +39,7 @@ export async function handler(rustplus: any, client: DiscordBot) {
                     rustplus.storageMonitors[entityId].capacity !== 0 &&
                     info.entityInfo.payload.capacity === 0
                 ) {
-                    await DiscordMessages.sendStorageMonitorDisconnectNotificationMessage(
-                        guildId,
-                        serverId,
-                        entityId,
-                    );
+                    await DiscordMessages.sendStorageMonitorDisconnectNotificationMessage(guildId, serverId, entityId);
                 }
 
                 rustplus.storageMonitors[entityId] = {
@@ -78,9 +74,7 @@ export async function handler(rustplus: any, client: DiscordBot) {
                         info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_VENDING_MACHINE_CAPACITY
                     ) {
                         instance.serverList[serverId].storageMonitors[entityId].type = 'vendingMachine';
-                    } else if (
-                        info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY
-                    ) {
+                    } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                         instance.serverList[serverId].storageMonitors[entityId].type = 'largeWoodBox';
                     }
                     client.setInstance(guildId, instance);

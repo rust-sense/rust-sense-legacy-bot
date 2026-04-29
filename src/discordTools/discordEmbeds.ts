@@ -2,10 +2,10 @@ import * as Discord from 'discord.js';
 
 import { client } from '../index.js';
 import * as Constants from '../util/constants.js';
-import * as DiscordTools from './discordTools.js';
 import * as InstanceUtils from '../util/instanceUtils.js';
 import { secondsToFullScale } from '../util/timer.js';
 import * as Utils from '../util/utils.js';
+import * as DiscordTools from './discordTools.js';
 
 function isValidUrl(url: string): boolean {
     if (url.startsWith('https') || url.startsWith('http')) {
@@ -247,7 +247,7 @@ export function getSmartAlarmEmbed(guildId, serverId, entityId) {
 
     if (entity.lastTrigger !== null) {
         const lastTriggerDate = new Date(entity.lastTrigger * 1000);
-        const timeSinceTriggerSeconds = Math.floor(((new Date().getTime() - lastTriggerDate.getTime()) / 1000));
+        const timeSinceTriggerSeconds = Math.floor((new Date().getTime() - lastTriggerDate.getTime()) / 1000);
         const time = secondsToFullScale(timeSinceTriggerSeconds);
         description += `${time}`;
     }
@@ -318,7 +318,7 @@ export function getStorageMonitorEmbed(guildId, serverId, entityId) {
     if (entity.type === 'toolCupboard') {
         let seconds = 0;
         if (expiry !== 0) {
-            seconds = ((new Date(expiry * 1000).getTime() - new Date().getTime()) / 1000);
+            seconds = (new Date(expiry * 1000).getTime() - new Date().getTime()) / 1000;
         }
 
         let upkeep = null;
@@ -386,9 +386,9 @@ export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
                 switchActive += `${Constants.NOT_FOUND_EMOJI}\n`;
             }
         } else {
-            instance.serverList[serverId].switchGroups[groupId].switches = instance.serverList[
-                serverId
-            ].switchGroups[groupId].switches.filter((e) => e !== groupSwitchId);
+            instance.serverList[serverId].switchGroups[groupId].switches = instance.serverList[serverId].switchGroups[
+                groupId
+            ].switches.filter((e) => e !== groupSwitchId);
         }
     }
     client.setInstance(guildId, instance);
@@ -427,8 +427,7 @@ export function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
         title: `${entity.name}${grid}`,
         color: Constants.COLOR_INACTIVE,
         description:
-            `**ID**: \`${entityId}\`\n` +
-            `${client.intlGet(guildId, 'statusNotFound')} ${Constants.NOT_FOUND_EMOJI}`,
+            `**ID**: \`${entityId}\`\n` + `${client.intlGet(guildId, 'statusNotFound')} ${Constants.NOT_FOUND_EMOJI}`,
         thumbnail: `attachment://${entity.image}`,
         footer: { text: `${entity.server}` },
     });
@@ -451,8 +450,7 @@ export function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items
         color: Constants.COLOR_DEFAULT,
         thumbnail: 'attachment://recycler.png',
         footer: { text: `${entity.server} | ${client.intlGet(guildId, 'messageDeletedIn30')}` },
-        description:
-            `**${client.intlGet(guildId, 'name')}** ` + `\`${entity.name}${grid}\`\n**ID** \`${entityId}\``,
+        description: `**${client.intlGet(guildId, 'name')}** ` + `\`${entity.name}${grid}\`\n**ID** \`${entityId}\``,
     });
 
     itemName = Utils.orEmpty(client, guildId, itemName);
@@ -809,11 +807,7 @@ export function getUpdateTeamInformationEmbed(rustplus) {
     const footer = instance.serverList[rustplus.serverId].title;
 
     let totalCharacters =
-        title.length +
-        teamMemberFieldName.length +
-        statusFieldName.length +
-        locationFieldName.length +
-        footer.length;
+        title.length + teamMemberFieldName.length + statusFieldName.length + locationFieldName.length + footer.length;
     let fieldIndex = 0;
     let teammateName = [''],
         teammateStatus = [''],
@@ -852,10 +846,7 @@ export function getUpdateTeamInformationEmbed(rustplus) {
             status += '\n';
         }
 
-        if (
-            totalCharacters + (name.length + status.length + location.length) >=
-            Constants.EMBED_MAX_TOTAL_CHARACTERS
-        ) {
+        if (totalCharacters + (name.length + status.length + location.length) >= Constants.EMBED_MAX_TOTAL_CHARACTERS) {
             break;
         }
 
@@ -1137,7 +1128,7 @@ export function getCraftEmbed(guildId, craftDetails, quantity) {
     let items = '',
         quantities = '';
     for (const item of craftDetails[2].ingredients) {
-        const itemName = (client.items).getName(item.id);
+        const itemName = client.items.getName(item.id);
         items += `${itemName}\n`;
         quantities += `${item.quantity * quantity}\n`;
     }
@@ -1183,7 +1174,7 @@ export function getRecycleEmbed(guildId, recycleDetails, quantity, recyclerType)
     let title = quantity === 1 ? `${recycleDetails[1].name}` : `${recycleDetails[1].name} x${quantity}`;
     title += ` (${client.intlGet(guildId, recyclerType)})`;
 
-    const recycleData = (client.rustlabs).getRecycleDataFromArray([
+    const recycleData = client.rustlabs.getRecycleDataFromArray([
         { itemId: recycleDetails[0], quantity: quantity, itemIsBlueprint: false },
     ]);
 
@@ -1255,9 +1246,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
     });
 
     const decayDetails =
-        type === 'items'
-            ? (client.rustlabs).getDecayDetailsById(itemId)
-            : (client.rustlabs).getDecayDetailsByName(itemId);
+        type === 'items' ? client.rustlabs.getDecayDetailsById(itemId) : client.rustlabs.getDecayDetailsByName(itemId);
     if (decayDetails !== null) {
         const details = decayDetails[3];
         const hp = details.hpString;
@@ -1299,7 +1288,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const despawnDetails = type === 'items' ? (client.rustlabs).getDespawnDetailsById(itemId) : null;
+    const despawnDetails = type === 'items' ? client.rustlabs.getDespawnDetailsById(itemId) : null;
     if (despawnDetails !== null) {
         const details = despawnDetails[2];
         fields.push({
@@ -1309,7 +1298,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         });
     }
 
-    const stackDetails = type === 'items' ? (client.rustlabs).getStackDetailsById(itemId) : null;
+    const stackDetails = type === 'items' ? client.rustlabs.getStackDetailsById(itemId) : null;
     if (stackDetails !== null) {
         const details = stackDetails[2];
         fields.push({
@@ -1321,14 +1310,14 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
 
     const upkeepDetails =
         type === 'items'
-            ? (client.rustlabs).getUpkeepDetailsById(itemId)
-            : (client.rustlabs).getUpkeepDetailsByName(itemId);
+            ? client.rustlabs.getUpkeepDetailsById(itemId)
+            : client.rustlabs.getUpkeepDetailsByName(itemId);
     if (upkeepDetails !== null) {
         const details = upkeepDetails[3];
 
         let upkeepString = '';
         for (const item of details) {
-            const name = (client.items).getName(item.id);
+            const name = client.items.getName(item.id);
             const quantity = item.quantity;
             upkeepString += `${quantity} ${name}\n`;
         }
@@ -1340,12 +1329,12 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         });
     }
 
-    const craftDetails = type === 'items' ? (client.rustlabs).getCraftDetailsById(itemId) : null;
+    const craftDetails = type === 'items' ? client.rustlabs.getCraftDetailsById(itemId) : null;
     if (craftDetails !== null) {
         const details = craftDetails[2];
         let workbenchString = '';
         if (details.workbench !== null) {
-            const workbenchShortname = (client.items).getShortName(details.workbench);
+            const workbenchShortname = client.items.getShortName(details.workbench);
             switch (workbenchShortname) {
                 case 'workbench1':
                     {
@@ -1371,7 +1360,7 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
 
         for (const ingredient of details.ingredients) {
             const amount = `${ingredient.quantity}x`;
-            const name = (client.items).getName(ingredient.id);
+            const name = client.items.getName(ingredient.id);
             craftString += `${amount} ${name}\n`;
         }
 
@@ -1384,13 +1373,13 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const recycleDetails = type === 'items' ? (client.rustlabs).getRecycleDetailsById(itemId) : null;
+    const recycleDetails = type === 'items' ? client.rustlabs.getRecycleDetailsById(itemId) : null;
     if (recycleDetails !== null) {
         const details = recycleDetails[2]['recycler']['yield'];
 
         let recycleString = '';
         for (const recycleItem of details) {
-            const name = (client.items).getName(recycleItem.id);
+            const name = client.items.getName(recycleItem.id);
             const quantityProbability =
                 recycleItem.probability !== 1
                     ? `${Math.floor(recycleItem.probability * 100)}%`
@@ -1407,12 +1396,12 @@ export function getItemEmbed(guildId, itemName, itemId, type) {
         }
     }
 
-    const researchDetails = type === 'items' ? (client.rustlabs).getResearchDetailsById(itemId) : null;
+    const researchDetails = type === 'items' ? client.rustlabs.getResearchDetailsById(itemId) : null;
     if (researchDetails !== null) {
         const details = researchDetails[2];
         let workbenchString = '';
         if (details.workbench !== null) {
-            const workbenchShortname = (client.items).getShortName(details.workbench.type);
+            const workbenchShortname = client.items.getShortName(details.workbench.type);
             switch (workbenchShortname) {
                 case 'workbench1':
                     {

@@ -4,8 +4,8 @@ import Jimp from 'jimp';
 
 type JimpFont = Awaited<ReturnType<typeof Jimp.loadFont>>;
 
-import * as Constants from '../util/constants.js';
 import { client } from '../index.js';
+import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 interface Monument {
@@ -324,32 +324,76 @@ export default class GameMap {
         this.resetImageAndMeta();
     }
 
-    get width(): number { return this._width; }
-    set width(v: number) { this._width = v; }
-    get height(): number { return this._height; }
-    set height(v: number) { this._height = v; }
-    get oceanMargin(): number { return this._oceanMargin; }
-    set oceanMargin(v: number) { this._oceanMargin = v; }
-    get monuments(): Monument[] { return this._monuments; }
-    set monuments(v: Monument[]) { this._monuments = v; }
-    get background(): string { return this._background; }
-    set background(v: string) { this._background = v; }
-    get rustplus(): RustplusLike { return this._rustplus; }
-    set rustplus(v: RustplusLike) { this._rustplus = v; }
-    get font(): JimpFont | null { return this._font; }
-    set font(v: JimpFont | null) { this._font = v; }
-    get mapMarkerImageMeta(): Record<string, MapMarkerImageMeta> { return this._mapMarkerImageMeta; }
-    set mapMarkerImageMeta(v: Record<string, MapMarkerImageMeta>) { this._mapMarkerImageMeta = v; }
-    get monumentInfo(): Record<string, MonumentInfo> { return this._monumentInfo; }
-    set monumentInfo(v: Record<string, MonumentInfo>) { this._monumentInfo = v; }
+    get width(): number {
+        return this._width;
+    }
+    set width(v: number) {
+        this._width = v;
+    }
+    get height(): number {
+        return this._height;
+    }
+    set height(v: number) {
+        this._height = v;
+    }
+    get oceanMargin(): number {
+        return this._oceanMargin;
+    }
+    set oceanMargin(v: number) {
+        this._oceanMargin = v;
+    }
+    get monuments(): Monument[] {
+        return this._monuments;
+    }
+    set monuments(v: Monument[]) {
+        this._monuments = v;
+    }
+    get background(): string {
+        return this._background;
+    }
+    set background(v: string) {
+        this._background = v;
+    }
+    get rustplus(): RustplusLike {
+        return this._rustplus;
+    }
+    set rustplus(v: RustplusLike) {
+        this._rustplus = v;
+    }
+    get font(): JimpFont | null {
+        return this._font;
+    }
+    set font(v: JimpFont | null) {
+        this._font = v;
+    }
+    get mapMarkerImageMeta(): Record<string, MapMarkerImageMeta> {
+        return this._mapMarkerImageMeta;
+    }
+    set mapMarkerImageMeta(v: Record<string, MapMarkerImageMeta>) {
+        this._mapMarkerImageMeta = v;
+    }
+    get monumentInfo(): Record<string, MonumentInfo> {
+        return this._monumentInfo;
+    }
+    set monumentInfo(v: Record<string, MonumentInfo>) {
+        this._monumentInfo = v;
+    }
 
-    isWidthChanged(map: MapData): boolean { return this.width !== map.width; }
-    isHeightChanged(map: MapData): boolean { return this.height !== map.height; }
-    isOceanMarginChanged(map: MapData): boolean { return this.oceanMargin !== map.oceanMargin; }
+    isWidthChanged(map: MapData): boolean {
+        return this.width !== map.width;
+    }
+    isHeightChanged(map: MapData): boolean {
+        return this.height !== map.height;
+    }
+    isOceanMarginChanged(map: MapData): boolean {
+        return this.oceanMargin !== map.oceanMargin;
+    }
     isMonumentsChanged(map: MapData): boolean {
         return JSON.stringify(this.monuments) !== JSON.stringify(map.monuments);
     }
-    isBackgroundChanged(map: MapData): boolean { return this.background !== map.background; }
+    isBackgroundChanged(map: MapData): boolean {
+        return this.background !== map.background;
+    }
 
     updateMap(map: MapData): void {
         this.width = map.width;
@@ -421,7 +465,7 @@ export default class GameMap {
                     const name =
                         monument.token && Object.hasOwn(this.monumentInfo, monument.token)
                             ? this.monumentInfo[monument.token].map
-                            : monument.token ?? '';
+                            : (monument.token ?? '');
                     const comp = name.length * 5;
                     this.mapMarkerImageMeta.map.jimp!.print(this.font!, x - comp, y - 10, name);
                 }
@@ -441,8 +485,7 @@ export default class GameMap {
         if (!this.rustplus.isResponseValid(mapMarkers)) return;
 
         for (const marker of mapMarkers.mapMarkers.markers) {
-            let x =
-                marker.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
+            let x = marker.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
             const n = this.height - 2 * this.oceanMargin;
             let y = this.height - (marker.y * (n / this.rustplus.info.mapSize) + this.oceanMargin);
 
@@ -492,7 +535,10 @@ export default class GameMap {
             for (const coords of Object.values(this.rustplus.cargoShipTracers)) {
                 let prev: { x: number; y: number } | null = null;
                 for (const point of coords) {
-                    if (prev === null) { prev = point; continue; }
+                    if (prev === null) {
+                        prev = point;
+                        continue;
+                    }
                     const p1 = this.calculateImageXY(prev);
                     const p2 = this.calculateImageXY(point);
                     image.drawLine(p1.x, p1.y, p2.x, p2.y);
@@ -504,7 +550,10 @@ export default class GameMap {
             for (const coords of Object.values(this.rustplus.patrolHelicopterTracers)) {
                 let prev: { x: number; y: number } | null = null;
                 for (const point of coords) {
-                    if (prev === null) { prev = point; continue; }
+                    if (prev === null) {
+                        prev = point;
+                        continue;
+                    }
                     const p1 = this.calculateImageXY(prev);
                     const p2 = this.calculateImageXY(point);
                     image.drawLine(p1.x, p1.y, p2.x, p2.y);
@@ -530,8 +579,7 @@ export default class GameMap {
     }
 
     calculateImageXY(coords: { x: number; y: number }): { x: number; y: number } {
-        const x =
-            coords.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info!.mapSize) + this.oceanMargin;
+        const x = coords.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info!.mapSize) + this.oceanMargin;
         const n = this.height - 2 * this.oceanMargin;
         const y = this.height - (coords.y * (n / this.rustplus.info!.mapSize) + this.oceanMargin);
         return { x, y };

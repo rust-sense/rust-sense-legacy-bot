@@ -1,7 +1,7 @@
 import type { Guild } from 'discord.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import createInstanceFile from '../util/CreateInstanceFile.js';
 import createCredentialsFile from '../util/CreateCredentialsFile.js';
+import createInstanceFile from '../util/CreateInstanceFile.js';
 
 export default {
     name: 'guildCreate',

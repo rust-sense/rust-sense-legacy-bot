@@ -1,10 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
-
-import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
 
 export default {
     name: 'players',
@@ -342,7 +341,13 @@ async function displaySpecificUser(client: DiscordBot, interaction: any, battlem
     );
 }
 
-async function displaySeveralUsers(client: DiscordBot, interaction: any, battlemetricsId: string, playerIds: string[], search: string | null) {
+async function displaySeveralUsers(
+    client: DiscordBot,
+    interaction: any,
+    battlemetricsId: string,
+    playerIds: string[],
+    search: string | null,
+) {
     const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
     let totalCharacters = 0;

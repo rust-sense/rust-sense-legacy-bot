@@ -39,7 +39,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestOtherNameByName(upkeepItemName);
                 if (foundName) {
-                    if (client.rustlabs.upkeepData['other'].hasOwnProperty(foundName)) {
+                    if (client.rustlabs.upkeepData.hasEntry(foundName, 'other')) {
                         type = 'other';
                     } else {
                         foundName = null;
@@ -50,7 +50,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestBuildingBlockNameByName(upkeepItemName);
                 if (foundName) {
-                    if (client.rustlabs.upkeepData['buildingBlocks'].hasOwnProperty(foundName)) {
+                    if (client.rustlabs.upkeepData.hasEntry(foundName, 'buildingBlocks')) {
                         type = 'buildingBlocks';
                     } else {
                         foundName = null;
@@ -61,7 +61,7 @@ export default {
             if (!foundName) {
                 foundName = client.items.getClosestItemIdByName(upkeepItemName);
                 if (foundName) {
-                    if (!client.rustlabs.upkeepData['items'].hasOwnProperty(foundName)) {
+                    if (!client.rustlabs.upkeepData.hasEntry(foundName, 'items')) {
                         foundName = null;
                     }
                 }

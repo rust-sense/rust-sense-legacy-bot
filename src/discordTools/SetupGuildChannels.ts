@@ -1,15 +1,11 @@
+import type { CategoryChannel, Guild, TextChannel } from 'discord.js';
 import { PermissionFlagsBits } from 'discord.js';
-import type { Guild, TextChannel, CategoryChannel } from 'discord.js';
 
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
 import type { DiscordBot } from '../types/discord.js';
 
-export default async function setupGuildChannels(
-    client: DiscordBot,
-    guild: Guild,
-    category: CategoryChannel | null,
-) {
+export default async function setupGuildChannels(client: DiscordBot, guild: Guild, category: CategoryChannel | null) {
     if (!category) {
         return;
     }
@@ -47,7 +43,10 @@ async function addTextChannel(
 
     let channel: TextChannel | undefined = undefined;
     if (instance.channelId[idName as keyof typeof instance.channelId] !== null) {
-        channel = DiscordTools.getTextChannelById(guild.id, instance.channelId[idName as keyof typeof instance.channelId] as string);
+        channel = DiscordTools.getTextChannelById(
+            guild.id,
+            instance.channelId[idName as keyof typeof instance.channelId] as string,
+        );
         if (channel && !botCanUseTextChannel(guild, channel)) {
             (instance.channelId as unknown as Record<string, string | null>)[idName] = null;
             client.setInstance(guild.id, instance);

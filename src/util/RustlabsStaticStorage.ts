@@ -95,15 +95,11 @@ export default class RustlabsStaticStorage {
         this.sqlitePath = options.sqlitePath ?? RustlabsStaticStorage.getDefaultSqlitePath(this.dataPath);
 
         if (DatabaseSync === null) {
-            throw new Error(
-                'node:sqlite is unavailable. Use Node.js 22+ or install a SQLite driver for this project.'
-            );
+            throw new Error('node:sqlite is unavailable. Use Node.js 22+ or install a SQLite driver for this project.');
         }
 
         if (!Fs.existsSync(this.sqlitePath)) {
-            throw new Error(
-                `Static SQLite database missing at "${this.sqlitePath}". Run "npm run build:static-db".`
-            );
+            throw new Error(`Static SQLite database missing at "${this.sqlitePath}". Run "npm run build:static-db".`);
         }
 
         this.db = new DatabaseSync(this.sqlitePath);
@@ -265,7 +261,7 @@ export default class RustlabsStaticStorage {
         const normalizedGroup = this.normalizeGroup(config, group);
 
         return (this.statements?.getKeys.all(dataset, normalizedGroup) as { data_key: string }[]).map(
-            (row) => row.data_key
+            (row) => row.data_key,
         );
     }
 
@@ -275,8 +271,9 @@ export default class RustlabsStaticStorage {
         const normalizedKey = this.normalizeKey(key);
 
         return (
-            (this.statements?.hasEntry.get(dataset, normalizedGroup, normalizedKey) as { found: number } | undefined) !==
-            undefined
+            (this.statements?.hasEntry.get(dataset, normalizedGroup, normalizedKey) as
+                | { found: number }
+                | undefined) !== undefined
         );
     }
 
@@ -334,7 +331,7 @@ export default class RustlabsStaticStorage {
         if (!metaTable || !dataTable) {
             throw new Error(
                 `Static SQLite database at "${this.sqlitePath}" is missing required tables. ` +
-                    'Run "npm run build:static-db".'
+                    'Run "npm run build:static-db".',
             );
         }
 
@@ -349,7 +346,7 @@ export default class RustlabsStaticStorage {
         if (!schemaVersionRow || schemaVersionRow.value !== SQLITE_SCHEMA_VERSION) {
             throw new Error(
                 `Static SQLite database schema mismatch (expected ${SQLITE_SCHEMA_VERSION}, got ` +
-                    `${schemaVersionRow ? schemaVersionRow.value : 'missing'}). Run "npm run build:static-db".`
+                    `${schemaVersionRow ? schemaVersionRow.value : 'missing'}). Run "npm run build:static-db".`,
             );
         }
     }

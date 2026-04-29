@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { MessageFlags } from 'discord.js';
-import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';

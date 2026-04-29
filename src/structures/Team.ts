@@ -1,5 +1,5 @@
-import Player from './Player.js';
 import { client } from '../index.js';
+import Player from './Player.js';
 
 interface TeamData {
     leaderSteamId: string | number;
@@ -186,9 +186,7 @@ export default class Team {
     }
 
     getPlayerLongestAlive(): Player {
-        return this.players.reduce((prev, curr) =>
-            prev.getAliveSeconds() > curr.getAliveSeconds() ? prev : curr,
-        );
+        return this.players.reduce((prev, curr) => (prev.getAliveSeconds() > curr.getAliveSeconds() ? prev : curr));
     }
 
     async changeLeadership(steamId: string): Promise<void> {

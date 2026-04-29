@@ -1,9 +1,12 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as GameMapModule from '../util/GameMap.js';
+
 const GameMap = GameMapModule;
+
 import * as Timer from '../util/timer.js';
 import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
+
 const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule;
 
 export async function handler(rustplus: any, client: DiscordBot, time: any) {
@@ -47,7 +50,9 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 
     /* Go through all Smart Switches and see if the auto day/night setting is on and if it just became day/night */
     if (rustplus.time.isTurnedDay(time)) {
-        for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches as Record<string, any>)) {
+        for (const [entityId, content] of Object.entries(
+            instance.serverList[serverId].switches as Record<string, any>,
+        )) {
             if (content.autoDayNightOnOff === 1) {
                 instance.serverList[serverId].switches[entityId].active = true;
                 client.setInstance(guildId, instance);
@@ -93,7 +98,9 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             }
         }
     } else if (rustplus.time.isTurnedNight(time)) {
-        for (const [entityId, content] of Object.entries(instance.serverList[serverId].switches as Record<string, any>)) {
+        for (const [entityId, content] of Object.entries(
+            instance.serverList[serverId].switches as Record<string, any>,
+        )) {
             if (content.autoDayNightOnOff === 1) {
                 instance.serverList[serverId].switches[entityId].active = false;
                 client.setInstance(guildId, instance);
@@ -337,8 +344,7 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
     const statusLang = client.intlGet(guildId, 'commandSyntaxStatus');
 
     const entityId = Object.keys(switches).find(
-        (e) =>
-            command === `${prefix}${switches[e].command}` || command.startsWith(`${prefix}${switches[e].command} `),
+        (e) => command === `${prefix}${switches[e].command}` || command.startsWith(`${prefix}${switches[e].command} `),
     );
 
     if (!entityId) return false;
@@ -362,10 +368,7 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
             rustplus.sendInGameMessage(str);
             return true;
         }
-    } else if (
-        command.startsWith(`${entityCommand} ${offEn}`) ||
-        command.startsWith(`${entityCommand} ${offLang}`)
-    ) {
+    } else if (command.startsWith(`${entityCommand} ${offEn}`) || command.startsWith(`${entityCommand} ${offLang}`)) {
         if (switches[entityId].active) {
             active = false;
         } else {
@@ -458,7 +461,12 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
     return true;
 }
 
-export async function smartSwitchCommandTurnOnOff(rustplus: any, client: DiscordBot, entityId: string, active: boolean) {
+export async function smartSwitchCommandTurnOnOff(
+    rustplus: any,
+    client: DiscordBot,
+    entityId: string,
+    active: boolean,
+) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const instance = client.getInstance(guildId);

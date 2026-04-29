@@ -1,6 +1,6 @@
-import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as TeamHandler from '../handlers/teamHandler.js';
+import * as Constants from '../util/constants.js';
 
 export default {
     name: 'message',
@@ -265,15 +265,11 @@ function getInGameCommandAccessMode(rustplus: any) {
 function shouldIgnoreInGameCommand(instance: any, steamId: string, inGameCommandAccessMode: string) {
     const steamIdStr = `${steamId}`;
     const blacklistSteamIds =
-        instance.blacklist && Array.isArray(instance.blacklist['steamIds'])
-            ? instance.blacklist['steamIds']
-            : [];
+        instance.blacklist && Array.isArray(instance.blacklist['steamIds']) ? instance.blacklist['steamIds'] : [];
 
     if (inGameCommandAccessMode === 'whitelist') {
         const whitelistSteamIds =
-            instance.whitelist && Array.isArray(instance.whitelist['steamIds'])
-                ? instance.whitelist['steamIds']
-                : [];
+            instance.whitelist && Array.isArray(instance.whitelist['steamIds']) ? instance.whitelist['steamIds'] : [];
         return !whitelistSteamIds.includes(steamIdStr);
     }
 

@@ -7,9 +7,7 @@ export default {
     name: 'help',
 
     getData(client: DiscordBot, guildId: string) {
-        return new SlashCommandBuilder()
-            .setName('help')
-            .setDescription(client.intlGet(guildId, 'commandsHelpDesc'));
+        return new SlashCommandBuilder().setName('help').setDescription(client.intlGet(guildId, 'commandsHelpDesc'));
     },
 
     async execute(client: DiscordBot, interaction: any) {

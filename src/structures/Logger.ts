@@ -1,6 +1,5 @@
-import path from 'path';
-
 import Colors from 'colors';
+import path from 'path';
 import Winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 

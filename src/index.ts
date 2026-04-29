@@ -1,8 +1,7 @@
 import * as Discord from 'discord.js';
-
-import { ensureAppStateDirs } from './utils/filesystemUtils.js';
-import DiscordBot from './structures/DiscordBot.js';
 import { registerSingleton } from './container.js';
+import DiscordBot from './structures/DiscordBot.js';
+import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 
 export const client = new DiscordBot({
     intents: [

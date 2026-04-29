@@ -1,6 +1,6 @@
+import type { DiscordBot } from '../types/discord.js';
 import * as DiscordMessages from './discordMessages.js';
 import * as DiscordTools from './discordTools.js';
-import type { DiscordBot } from '../types/discord.js';
 
 export default async function setupSwitchGroups(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);

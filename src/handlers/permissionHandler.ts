@@ -1,8 +1,6 @@
 import * as Discord from 'discord.js';
-
-import * as DiscordTools from '../discordTools/discordTools.js';
-
 import config from '../config.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 
 const writeableChannels = ['commands', 'teamchat'];
 
@@ -121,7 +119,11 @@ export async function resetPermissionsAllChannels(client, guild) {
         if (channel) {
             const perms = getPermissionsReset(client, guild, permissionWrite);
             await channel.permissionOverwrites.set(perms).catch((e) => {
-                client.log(client.intlGet(null, 'warningCap'), `Failed to set channel permissions: ${e.message}`, 'warn');
+                client.log(
+                    client.intlGet(null, 'warningCap'),
+                    `Failed to set channel permissions: ${e.message}`,
+                    'warn',
+                );
             });
         }
     }

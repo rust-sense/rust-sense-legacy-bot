@@ -1,7 +1,6 @@
 import * as Discord from 'discord.js';
-
-import * as Constants from '../util/constants.js';
 import { client } from '../index.js';
+import * as Constants from '../util/constants.js';
 
 const SUCCESS = Discord.ButtonStyle.Success;
 const DANGER = Discord.ButtonStyle.Danger;
@@ -482,7 +481,7 @@ export function getHelpButtons() {
             getButton({
                 style: Discord.ButtonStyle.Link,
                 label: 'FORK DEVELOPER',
-                url: 'https://github.com/faithix'
+                url: 'https://github.com/faithix',
             }),
             getButton({
                 style: Discord.ButtonStyle.Link,

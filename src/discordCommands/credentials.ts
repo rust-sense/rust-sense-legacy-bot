@@ -4,8 +4,8 @@ import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as InstanceUtils from '../util/instanceUtils.js';
 
 export default {
     name: 'credentials',

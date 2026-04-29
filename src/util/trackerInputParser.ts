@@ -43,10 +43,10 @@ function parseBattlemetricsPlayerUrl(pathname: string): string | null {
     const parts = pathname.split('/').filter(Boolean);
     const playersIndex = parts.findIndex((part) => part.toLowerCase() === 'players');
     if (playersIndex === -1) return null;
-    
+
     const playerId = parts[playersIndex + 1];
     if (!playerId) return null;
-    
+
     return isBattlemetricsPlayerId(playerId) ? playerId : null;
 }
 

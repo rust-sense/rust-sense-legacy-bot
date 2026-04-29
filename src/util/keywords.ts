@@ -1,4 +1,7 @@
-export function getListOfCommandKeywords(client: { intlGet: (guildId: string | null, key: string) => string }, guildId: string): string[] {
+export function getListOfCommandKeywords(
+    client: { intlGet: (guildId: string | null, key: string) => string },
+    guildId: string,
+): string[] {
     return [
         client.intlGet(guildId, 'commandSyntaxAfk'),
         client.intlGet(guildId, 'commandSyntaxAlive'),
@@ -92,7 +95,19 @@ export function getListOfCommandKeywords(client: { intlGet: (guildId: string | n
 }
 
 export function getListOfUsedKeywords(
-    client: { intlGet: (guildId: string | null, key: string) => string; getInstance: (guildId: string) => { serverList: Record<string, { alarms: Record<number, unknown>; switches: Record<number, unknown>; switchGroups: Record<number, unknown> } > } },
+    client: {
+        intlGet: (guildId: string | null, key: string) => string;
+        getInstance: (guildId: string) => {
+            serverList: Record<
+                string,
+                {
+                    alarms: Record<number, unknown>;
+                    switches: Record<number, unknown>;
+                    switchGroups: Record<number, unknown>;
+                }
+            >;
+        };
+    },
     guildId: string,
     serverId: string,
 ): string[] {

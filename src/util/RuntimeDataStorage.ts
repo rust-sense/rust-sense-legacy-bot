@@ -35,9 +35,7 @@ export default class RuntimeDataStorage {
         this.databasePath = options.databasePath ?? Path.join(this.dataPath, DATABASE_FILE_NAME);
 
         if (DatabaseSync === null) {
-            throw new Error(
-                'node:sqlite is unavailable. Runtime data persistence requires Node.js 22+ in this build.'
-            );
+            throw new Error('node:sqlite is unavailable. Runtime data persistence requires Node.js 22+ in this build.');
         }
 
         if (!Fs.existsSync(this.dataPath)) {
@@ -61,7 +59,7 @@ export default class RuntimeDataStorage {
         const row = this.statements.getServerState.get(
             this.normalize(guildId),
             this.normalize(serverId),
-            this.normalize(stateKey)
+            this.normalize(stateKey),
         ) as { value_json: string } | undefined;
         if (row === undefined) return null;
 
@@ -79,7 +77,7 @@ export default class RuntimeDataStorage {
             this.normalize(serverId),
             this.normalize(stateKey),
             JSON.stringify(value),
-            Date.now()
+            Date.now(),
         );
     }
 
@@ -88,7 +86,7 @@ export default class RuntimeDataStorage {
         this.statements.deleteServerState.run(
             this.normalize(guildId),
             this.normalize(serverId),
-            this.normalize(stateKey)
+            this.normalize(stateKey),
         );
     }
 

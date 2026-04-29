@@ -15,7 +15,10 @@ interface RustplusLike {
 
 interface ClientLike {
     getInstance: (guildId: string) => {
-        serverList: Record<string, { timeTillDay: Record<string, number> | null; timeTillNight: Record<string, number> | null }>;
+        serverList: Record<
+            string,
+            { timeTillDay: Record<string, number> | null; timeTillNight: Record<string, number> | null }
+        >;
     };
 }
 
@@ -44,34 +47,88 @@ export default class Time {
         this.loadTimeTillConfig();
     }
 
-    get dayLengthMinutes(): number { return this._dayLengthMinutes; }
-    set dayLengthMinutes(v: number) { this._dayLengthMinutes = v; }
-    get timeScale(): number { return this._timeScale; }
-    set timeScale(v: number) { this._timeScale = v; }
-    get sunrise(): number { return this._sunrise; }
-    set sunrise(v: number) { this._sunrise = v; }
-    get sunset(): number { return this._sunset; }
-    set sunset(v: number) { this._sunset = v; }
-    get time(): number { return this._time; }
-    set time(v: number) { this._time = v; }
-    get rustplus(): RustplusLike { return this._rustplus; }
-    set rustplus(v: RustplusLike) { this._rustplus = v; }
-    get client(): ClientLike { return this._client; }
-    set client(v: ClientLike) { this._client = v; }
-    get startTime(): number { return this._startTime; }
-    set startTime(v: number) { this._startTime = v; }
-    get timeTillDay(): Record<string, number> { return this._timeTillDay; }
-    set timeTillDay(v: Record<string, number>) { this._timeTillDay = v; }
-    get timeTillNight(): Record<string, number> { return this._timeTillNight; }
-    set timeTillNight(v: Record<string, number>) { this._timeTillNight = v; }
-    get timeTillActive(): boolean { return this._timeTillActive; }
-    set timeTillActive(v: boolean) { this._timeTillActive = v; }
+    get dayLengthMinutes(): number {
+        return this._dayLengthMinutes;
+    }
+    set dayLengthMinutes(v: number) {
+        this._dayLengthMinutes = v;
+    }
+    get timeScale(): number {
+        return this._timeScale;
+    }
+    set timeScale(v: number) {
+        this._timeScale = v;
+    }
+    get sunrise(): number {
+        return this._sunrise;
+    }
+    set sunrise(v: number) {
+        this._sunrise = v;
+    }
+    get sunset(): number {
+        return this._sunset;
+    }
+    set sunset(v: number) {
+        this._sunset = v;
+    }
+    get time(): number {
+        return this._time;
+    }
+    set time(v: number) {
+        this._time = v;
+    }
+    get rustplus(): RustplusLike {
+        return this._rustplus;
+    }
+    set rustplus(v: RustplusLike) {
+        this._rustplus = v;
+    }
+    get client(): ClientLike {
+        return this._client;
+    }
+    set client(v: ClientLike) {
+        this._client = v;
+    }
+    get startTime(): number {
+        return this._startTime;
+    }
+    set startTime(v: number) {
+        this._startTime = v;
+    }
+    get timeTillDay(): Record<string, number> {
+        return this._timeTillDay;
+    }
+    set timeTillDay(v: Record<string, number>) {
+        this._timeTillDay = v;
+    }
+    get timeTillNight(): Record<string, number> {
+        return this._timeTillNight;
+    }
+    set timeTillNight(v: Record<string, number>) {
+        this._timeTillNight = v;
+    }
+    get timeTillActive(): boolean {
+        return this._timeTillActive;
+    }
+    set timeTillActive(v: boolean) {
+        this._timeTillActive = v;
+    }
 
-    isDayLengthMinutesChanged(time: TimeData): boolean { return this.dayLengthMinutes !== time.dayLengthMinutes; }
-    isTimeScaleChanged(time: TimeData): boolean { return this.timeScale !== time.timeScale; }
-    isSunriseChanged(time: TimeData): boolean { return this.sunrise !== time.sunrise; }
-    isSunsetChanged(time: TimeData): boolean { return this.sunset !== time.sunset; }
-    isTimeChanged(time: TimeData): boolean { return this.time !== time.time; }
+    isDayLengthMinutesChanged(time: TimeData): boolean {
+        return this.dayLengthMinutes !== time.dayLengthMinutes;
+    }
+    isTimeScaleChanged(time: TimeData): boolean {
+        return this.timeScale !== time.timeScale;
+    }
+    isSunriseChanged(time: TimeData): boolean {
+        return this.sunrise !== time.sunrise;
+    }
+    isSunsetChanged(time: TimeData): boolean {
+        return this.sunset !== time.sunset;
+    }
+    isTimeChanged(time: TimeData): boolean {
+        return this.time !== time.time;
+    }
 
     isDay(): boolean {
         return this.time >= this.sunrise && this.time < this.sunset;

@@ -1,6 +1,6 @@
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
-import * as DiscordMessages from '../discordTools/discordMessages.js';
 
 import { getPlayerName } from '../utils/playerNameUtils.js';
 
@@ -27,13 +27,7 @@ export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: 
             name: getPlayerName(instance.generalSettings.teammateNameType, player),
         });
 
-        await DiscordMessages.sendActivityNotificationMessage(
-            guildId,
-            serverId,
-            Constants.COLOR_GREY,
-            str,
-            steamId,
-        );
+        await DiscordMessages.sendActivityNotificationMessage(guildId, serverId, Constants.COLOR_GREY, str, steamId);
 
         if (instance.generalSettings.connectionNotify) {
             await rustplus.sendInGameMessage(str);
@@ -87,7 +81,11 @@ export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: 
                 });
 
                 await DiscordMessages.sendActivityNotificationMessage(
-                    guildId, serverId, Constants.COLOR_INACTIVE, str, player.steamId,
+                    guildId,
+                    serverId,
+                    Constants.COLOR_INACTIVE,
+                    str,
+                    player.steamId,
                 );
 
                 if (instance.generalSettings.deathNotify) rustplus.sendInGameMessage(str);
@@ -123,15 +121,22 @@ export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: 
                 });
 
                 await DiscordMessages.sendActivityNotificationMessage(
-                    guildId, serverId, Constants.COLOR_ACTIVE, str, player.steamId,
+                    guildId,
+                    serverId,
+                    Constants.COLOR_ACTIVE,
+                    str,
+                    player.steamId,
                 );
 
                 if (instance.generalSettings.connectionNotify) await rustplus.sendInGameMessage(str);
 
-                rustplus.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'playerJustConnectedTo', {
-                    name: player.name,
-                    server: server.title,
-                }));
+                rustplus.log(
+                    client.intlGet(null, 'infoCap'),
+                    client.intlGet(null, 'playerJustConnectedTo', {
+                        name: player.name,
+                        server: server.title,
+                    }),
+                );
 
                 rustplus.updateConnections(player.steamId, str);
             }
@@ -142,15 +147,22 @@ export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: 
                 });
 
                 await DiscordMessages.sendActivityNotificationMessage(
-                    guildId, serverId, Constants.COLOR_INACTIVE, str, player.steamId,
+                    guildId,
+                    serverId,
+                    Constants.COLOR_INACTIVE,
+                    str,
+                    player.steamId,
                 );
 
                 if (instance.generalSettings.connectionNotify) await rustplus.sendInGameMessage(str);
 
-                rustplus.log(client.intlGet(null, 'infoCap'), client.intlGet(null, 'playerJustDisconnectedFrom', {
-                    name: player.name,
-                    server: server.title,
-                }));
+                rustplus.log(
+                    client.intlGet(null, 'infoCap'),
+                    client.intlGet(null, 'playerJustDisconnectedFrom', {
+                        name: player.name,
+                        server: server.title,
+                    }),
+                );
 
                 rustplus.updateConnections(player.steamId, str);
             }

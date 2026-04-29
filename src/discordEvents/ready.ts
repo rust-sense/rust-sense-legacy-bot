@@ -1,11 +1,10 @@
 import { ActivityType } from 'discord.js';
-
-import * as BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
 import config from '../config.js';
-import { cwdPath } from '../utils/filesystemUtils.js';
-import createInstanceFile from '../util/CreateInstanceFile.js';
-import createCredentialsFile from '../util/CreateCredentialsFile.js';
+import * as BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import createCredentialsFile from '../util/CreateCredentialsFile.js';
+import createInstanceFile from '../util/CreateInstanceFile.js';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
     name: 'ready',

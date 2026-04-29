@@ -1,20 +1,29 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
-
 import { client } from '../index.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+import * as ConstantsModule from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
-import * as ConstantsModule from '../util/constants.js';
 const Constants: any = ConstantsModule;
+
 import * as DiscordButtonsModule from './discordButtons.js';
+
 const DiscordButtons: any = DiscordButtonsModule;
+
 import * as DiscordEmbedsModule from './discordEmbeds.js';
+
 const DiscordEmbeds: any = DiscordEmbedsModule;
+
 import * as DiscordSelectMenusModule from './discordSelectMenus.js';
+
 const DiscordSelectMenus: any = DiscordSelectMenusModule;
+
 import * as DiscordToolsModule from './discordTools.js';
+
 const DiscordTools: any = DiscordToolsModule;
+
 import * as ScrapeModule from '../util/scrape.js';
+
 const Scrape: any = ScrapeModule;
 
 export async function sendMessage(
@@ -29,8 +38,7 @@ export async function sendMessage(
         return;
     }
 
-    const message =
-        messageId !== null ? await DiscordTools.getMessageById(guildId, channelId, messageId) : undefined;
+    const message = messageId !== null ? await DiscordTools.getMessageById(guildId, channelId, messageId) : undefined;
 
     if (message !== undefined) {
         return await client.messageEdit(message, content);
@@ -50,12 +58,7 @@ export async function sendMessage(
     return await client.messageSend(channel, content);
 }
 
-export async function sendServerMessage(
-    guildId: string,
-    serverId: string,
-    state: any = null,
-    interaction: any = null,
-) {
+export async function sendServerMessage(guildId: string, serverId: string, state: any = null, interaction: any = null) {
     const instance = client.getInstance(guildId);
     const server = instance.serverList[serverId];
 
@@ -64,13 +67,7 @@ export async function sendServerMessage(
         components: DiscordButtons.getServerButtons(guildId, serverId, state),
     };
 
-    const message = await sendMessage(
-        guildId,
-        content,
-        server.messageId,
-        instance.channelId.servers,
-        interaction,
-    );
+    const message = await sendMessage(guildId, content, server.messageId, instance.channelId.servers, interaction);
 
     if (!interaction) {
         instance.serverList[serverId].messageId = message.id;
@@ -78,11 +75,7 @@ export async function sendServerMessage(
     }
 }
 
-export async function sendTrackerMessage(
-    guildId: string,
-    trackerId: string,
-    interaction: any = null,
-) {
+export async function sendTrackerMessage(guildId: string, trackerId: string, interaction: any = null) {
     const instance = client.getInstance(guildId);
     const tracker = instance.trackers[trackerId];
 
@@ -91,13 +84,7 @@ export async function sendTrackerMessage(
         components: DiscordButtons.getTrackerButtons(guildId, trackerId),
     };
 
-    const message = await sendMessage(
-        guildId,
-        content,
-        tracker.messageId,
-        instance.channelId.trackers,
-        interaction,
-    );
+    const message = await sendMessage(guildId, content, tracker.messageId, instance.channelId.trackers, interaction);
 
     if (!interaction) {
         instance.trackers[trackerId].messageId = message.id;
@@ -127,13 +114,7 @@ export async function sendSmartSwitchMessage(
         files: [new Discord.AttachmentBuilder(cwdPath(`resources/images/electrics/${entity.image}`))],
     };
 
-    const message = await sendMessage(
-        guildId,
-        content,
-        entity.messageId,
-        instance.channelId.switches,
-        interaction,
-    );
+    const message = await sendMessage(guildId, content, entity.messageId, instance.channelId.switches, interaction);
 
     if (!interaction) {
         instance.serverList[serverId].switches[entityId].messageId = message.id;
@@ -160,13 +141,7 @@ export async function sendSmartAlarmMessage(
         files: [new Discord.AttachmentBuilder(cwdPath(`resources/images/electrics/${entity.image}`))],
     };
 
-    const message = await sendMessage(
-        guildId,
-        content,
-        entity.messageId,
-        instance.channelId.alarms,
-        interaction,
-    );
+    const message = await sendMessage(guildId, content, entity.messageId, instance.channelId.alarms, interaction);
 
     if (!interaction) {
         instance.serverList[serverId].alarms[entityId].messageId = message.id;
@@ -228,13 +203,7 @@ export async function sendSmartSwitchGroupMessage(
         files: [new Discord.AttachmentBuilder(cwdPath(`resources/images/electrics/${group.image}`))],
     };
 
-    const message = await sendMessage(
-        guildId,
-        content,
-        group.messageId,
-        instance.channelId.switchGroups,
-        interaction,
-    );
+    const message = await sendMessage(guildId, content, group.messageId, instance.channelId.switchGroups, interaction);
 
     if (!interaction) {
         instance.serverList[serverId].switchGroups[groupId].messageId = message.id;
@@ -259,11 +228,7 @@ export async function sendStorageMonitorRecycleMessage(
     return await sendMessage(guildId, content, null, instance.channelId.storageMonitors);
 }
 
-export async function sendDecayingNotificationMessage(
-    guildId: string,
-    serverId: string,
-    entityId: string,
-) {
+export async function sendDecayingNotificationMessage(guildId: string, serverId: string, entityId: string) {
     const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
 
@@ -293,11 +258,7 @@ export async function sendStorageMonitorDisconnectNotificationMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendStorageMonitorNotFoundMessage(
-    guildId: string,
-    serverId: string,
-    entityId: string,
-) {
+export async function sendStorageMonitorNotFoundMessage(guildId: string, serverId: string, entityId: string) {
     const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
 
@@ -310,11 +271,7 @@ export async function sendStorageMonitorNotFoundMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendSmartSwitchNotFoundMessage(
-    guildId: string,
-    serverId: string,
-    entityId: string,
-) {
+export async function sendSmartSwitchNotFoundMessage(guildId: string, serverId: string, entityId: string) {
     const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId].switches[entityId];
 
@@ -326,11 +283,7 @@ export async function sendSmartSwitchNotFoundMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendSmartAlarmNotFoundMessage(
-    guildId: string,
-    serverId: string,
-    entityId: string,
-) {
+export async function sendSmartAlarmNotFoundMessage(guildId: string, serverId: string, entityId: string) {
     const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId].alarms[entityId];
 
@@ -343,11 +296,7 @@ export async function sendSmartAlarmNotFoundMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendSmartAlarmTriggerMessage(
-    guildId: string,
-    serverId: string,
-    entityId: string,
-) {
+export async function sendSmartAlarmTriggerMessage(guildId: string, serverId: string, entityId: string) {
     const instance = client.getInstance(guildId);
     const entity = instance.serverList[serverId].alarms[entityId];
 
@@ -360,11 +309,7 @@ export async function sendSmartAlarmTriggerMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendServerChangeStateMessage(
-    guildId: string,
-    serverId: string,
-    state: any,
-) {
+export async function sendServerChangeStateMessage(guildId: string, serverId: string, state: any) {
     const instance = client.getInstance(guildId);
 
     const content = {
@@ -374,10 +319,7 @@ export async function sendServerChangeStateMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendServerWipeDetectedMessage(
-    guildId: string,
-    serverId: string,
-) {
+export async function sendServerWipeDetectedMessage(guildId: string, serverId: string) {
     const instance = client.getInstance(guildId);
 
     const content: any = {
@@ -389,10 +331,7 @@ export async function sendServerWipeDetectedMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendServerConnectionInvalidMessage(
-    guildId: string,
-    serverId: string,
-) {
+export async function sendServerConnectionInvalidMessage(guildId: string, serverId: string) {
     const instance = client.getInstance(guildId);
 
     const content = {
@@ -465,10 +404,7 @@ export async function sendActivityNotificationMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendTeamChatMessage(
-    guildId: string,
-    message: any,
-) {
+export async function sendTeamChatMessage(guildId: string, message: any) {
     const instance = client.getInstance(guildId);
 
     let color = Constants.COLOR_TEAMCHAT_DEFAULT;
@@ -492,11 +428,7 @@ export async function sendTeamChatMessage(
     await sendMessage(guildId, content, null, instance.channelId.teamchat);
 }
 
-export async function sendTTSMessage(
-    guildId: string,
-    name: string,
-    text: string,
-) {
+export async function sendTTSMessage(guildId: string, name: string, text: string) {
     const instance = client.getInstance(guildId);
 
     const content: any = {
@@ -590,10 +522,7 @@ export async function sendUpdateTeamInformationMessage(rustplus: any) {
     }
 }
 
-export async function sendUpdateBattlemetricsOnlinePlayersInformationMessage(
-    rustplus: any,
-    battlemetricsId: string,
-) {
+export async function sendUpdateBattlemetricsOnlinePlayersInformationMessage(rustplus: any, battlemetricsId: string) {
     const instance = client.getInstance(rustplus.guildId);
 
     const content = {
@@ -655,12 +584,7 @@ export async function sendHelpMessage(interaction: any) {
     await client.interactionReply(interaction, content);
 }
 
-export async function sendCctvMessage(
-    interaction: any,
-    monument: string,
-    cctvCodes: any,
-    dynamic: boolean,
-) {
+export async function sendCctvMessage(interaction: any, monument: string, cctvCodes: any, dynamic: boolean) {
     const content = {
         embeds: [DiscordEmbeds.getCctvEmbed(interaction.guildId, monument, cctvCodes, dynamic)],
         flags: Discord.MessageFlags.Ephemeral,
@@ -687,11 +611,7 @@ export async function sendVoiceMessage(interaction: any, state: any) {
     await client.interactionEditReply(interaction, content);
 }
 
-export async function sendCraftMessage(
-    interaction: any,
-    craftDetails: any,
-    quantity: number,
-) {
+export async function sendCraftMessage(interaction: any, craftDetails: any, quantity: number) {
     const content = {
         embeds: [DiscordEmbeds.getCraftEmbed(interaction.guildId, craftDetails, quantity)],
         flags: Discord.MessageFlags.Ephemeral,
@@ -744,12 +664,7 @@ export async function sendBattlemetricsEventMessage(
     await sendMessage(guildId, content, null, instance.channelId.activity);
 }
 
-export async function sendItemMessage(
-    interaction: any,
-    itemName: string,
-    itemId: string,
-    type: string,
-) {
+export async function sendItemMessage(interaction: any, itemName: string, itemId: string, type: string) {
     const content = {
         embeds: [DiscordEmbeds.getItemEmbed(interaction.guildId, itemName, itemId, type)],
         flags: Discord.MessageFlags.Ephemeral,

@@ -3,8 +3,8 @@ import * as Discord from 'discord.js';
 import { resolve } from '../container.js';
 
 function getClient() {
-    return resolve<{ 
-        guilds: Discord.GuildManager; 
+    return resolve<{
+        guilds: Discord.GuildManager;
         log: (title: string, message: string, level: string) => void;
         intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
     }>('discordBot');
@@ -15,11 +15,7 @@ export function getGuild(guildId: string): Discord.Guild | undefined {
     try {
         return client.guilds.cache.get(guildId);
     } catch (_e) {
-        client.log(
-            client.intlGet(null, 'errorCap'),
-            client.intlGet(null, 'couldNotFindGuild', { guildId }),
-            'error',
-        );
+        client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'couldNotFindGuild', { guildId }), 'error');
     }
     return undefined;
 }
@@ -32,11 +28,7 @@ export function getRole(guildId: string, roleId: string): Discord.Role | undefin
         try {
             return guild.roles.cache.get(roleId);
         } catch (_e) {
-            client.log(
-                client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'couldNotFindRole', { roleId }),
-                'error',
-            );
+            client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'couldNotFindRole', { roleId }), 'error');
         }
     }
     return undefined;
@@ -52,11 +44,7 @@ export async function getUserById(guildId: string, userId: string): Promise<Disc
             if (user instanceof Map) return user.get(userId);
             return user;
         } catch (_e) {
-            client.log(
-                client.intlGet(null, 'errorCap'),
-                client.intlGet(null, 'couldNotFindUser', { userId }),
-                'error',
-            );
+            client.log(client.intlGet(null, 'errorCap'), client.intlGet(null, 'couldNotFindUser', { userId }), 'error');
         }
     }
     return undefined;
@@ -180,11 +168,7 @@ export async function getMessageById(
     return undefined;
 }
 
-export async function deleteMessageById(
-    guildId: string,
-    channelId: string,
-    messageId: string,
-): Promise<void> {
+export async function deleteMessageById(guildId: string, channelId: string, messageId: string): Promise<void> {
     const message = await getMessageById(guildId, channelId, messageId);
     if (message) {
         try {
@@ -195,11 +179,7 @@ export async function deleteMessageById(
     }
 }
 
-export async function clearTextChannel(
-    guildId: string,
-    channelId: string,
-    limit = 100,
-): Promise<void> {
+export async function clearTextChannel(guildId: string, channelId: string, limit = 100): Promise<void> {
     const channel = getTextChannelById(guildId, channelId);
     if (channel) {
         try {

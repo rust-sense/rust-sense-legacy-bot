@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
     "formatter": {
         "enabled": true,
         "formatWithErrors": false,
@@ -9,9 +9,7 @@
         "lineWidth": 120,
         "attributePosition": "auto"
     },
-    "organizeImports": {
-        "enabled": true
-    },
+    "assist": { "actions": { "source": { "organizeImports": "on" } } },
     "linter": {
         "enabled": false,
         "rules": {
@@ -32,14 +30,14 @@
         }
     },
     "files": {
-        "include": [
-            "src/**/*.{ts,js}",
-            "examples/**/*.{ts,js}",
-            ".github/workflows/**/*.{ts,js,yml,yaml}",
-            "biome.json",
-            "package.json",
-            "tsconfig.json",
-            "renovate.json",
+        "includes": [
+            "**/src/**/*.{ts,js}",
+            "**/examples/**/*.{ts,js}",
+            "**/.github/workflows/**/*.{ts,js,yml,yaml}",
+            "**/biome.json",
+            "**/package.json",
+            "**/tsconfig.json",
+            "**/renovate.json",
             "**/*.md"
         ]
     },

@@ -1,5 +1,5 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Timer from '../util/timer.js';
 
 export async function handler(rustplus: any, client: DiscordBot) {

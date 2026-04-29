@@ -1,10 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { AttachmentBuilder, MessageFlags } from 'discord.js';
-
-import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import { cwdPath } from '../utils/filesystemUtils.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
+import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
     name: 'map',

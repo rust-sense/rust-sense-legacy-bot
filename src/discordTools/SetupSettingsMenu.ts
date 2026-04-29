@@ -1,13 +1,12 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as Discord from 'discord.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 
 import * as Constants from '../util/constants.js';
+import { cwdPath } from '../utils/filesystemUtils.js';
 import * as DiscordButtons from './discordButtons.js';
 import * as DiscordEmbeds from './discordEmbeds.js';
 import * as DiscordSelectMenus from './discordSelectMenus.js';
 import * as DiscordTools from './discordTools.js';
-
-import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default async (client: DiscordBot, guild: any, forced: boolean = false) => {
     const instance = client.getInstance(guild.id);

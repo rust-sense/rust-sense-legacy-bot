@@ -1,5 +1,5 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as GameMapModule from '../util/GameMap.js';
 
 const GameMap = GameMapModule;
@@ -41,9 +41,12 @@ export async function checkChanges(rustplus: any, client: DiscordBot, mapMarkers
                         amountInStock === 0);
                 const buyCond =
                     orderType === 'buy' &&
-                    (!subscriptionList[orderType as keyof typeof subscriptionList].includes(currencyId) || amountInStock === 0);
+                    (!subscriptionList[orderType as keyof typeof subscriptionList].includes(currencyId) ||
+                        amountInStock === 0);
                 const sellCond =
-                    orderType === 'sell' && (!subscriptionList[orderType as keyof typeof subscriptionList].includes(itemId) || amountInStock === 0);
+                    orderType === 'sell' &&
+                    (!subscriptionList[orderType as keyof typeof subscriptionList].includes(itemId) ||
+                        amountInStock === 0);
 
                 if (allCond || buyCond || sellCond) {
                     rustplus.foundSubscriptionItems[orderType] = rustplus.foundSubscriptionItems[orderType].filter(
@@ -74,7 +77,8 @@ export async function checkChanges(rustplus: any, client: DiscordBot, mapMarkers
 
                 const items = [];
                 if (subscriptionList[orderType as keyof typeof subscriptionList].includes(itemId)) items.push(itemName);
-                if (subscriptionList[orderType as keyof typeof subscriptionList].includes(currencyId)) items.push(currencyName);
+                if (subscriptionList[orderType as keyof typeof subscriptionList].includes(currencyId))
+                    items.push(currencyName);
 
                 const str = client.intlGet(guildId, 'itemAvailableInVendingMachine', {
                     items: items.join(', '),

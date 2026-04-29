@@ -1,5 +1,5 @@
-import * as InstanceUtils from '../util/instanceUtils.js';
 import type { DiscordBot } from '../types/discord.js';
+import * as InstanceUtils from '../util/instanceUtils.js';
 
 export default {
     name: 'guildMemberRemove',

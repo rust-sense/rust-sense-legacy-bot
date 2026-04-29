@@ -2,8 +2,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
-import * as Timer from '../util/timer.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Timer from '../util/timer.js';
 
 export default {
     name: 'decay',
@@ -44,7 +44,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestOtherNameByName(decayItemName);
                 if (foundName) {
-                    if (Object.hasOwn(client.rustlabs.decayData['other'], foundName)) {
+                    if (client.rustlabs.decayData.hasEntry(foundName, 'other')) {
                         type = 'other';
                     } else {
                         foundName = null;
@@ -55,7 +55,7 @@ export default {
             if (!foundName) {
                 foundName = client.rustlabs.getClosestBuildingBlockNameByName(decayItemName);
                 if (foundName) {
-                    if (Object.hasOwn(client.rustlabs.decayData['buildingBlocks'], foundName)) {
+                    if (client.rustlabs.decayData.hasEntry(foundName, 'buildingBlocks')) {
                         type = 'buildingBlocks';
                     } else {
                         foundName = null;
@@ -66,7 +66,7 @@ export default {
             if (!foundName) {
                 foundName = client.items.getClosestItemIdByName(decayItemName);
                 if (foundName) {
-                    if (!Object.hasOwn(client.rustlabs.decayData['items'], foundName)) {
+                    if (!client.rustlabs.decayData.hasEntry(foundName, 'items')) {
                         foundName = null;
                     }
                 }

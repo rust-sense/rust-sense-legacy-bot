@@ -1,7 +1,6 @@
 import { getVoiceConnection } from '@discordjs/voice';
-
-import * as Constants from '../util/constants.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
 
 export default {
     name: 'voiceStateUpdate',

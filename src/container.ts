@@ -1,5 +1,5 @@
-import { createContainer, asClass, asValue } from 'awilix';
 import type { AwilixContainer } from 'awilix';
+import { asClass, asValue, createContainer } from 'awilix';
 
 export const container: AwilixContainer = createContainer({
     injectionMode: 'PROXY',

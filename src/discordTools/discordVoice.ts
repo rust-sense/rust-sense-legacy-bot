@@ -1,10 +1,13 @@
-import { getVoiceConnection, createAudioPlayer, createAudioResource } from '@discordjs/voice';
 import { Readable } from 'node:stream';
+import { createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice';
 
 import { client } from '../index.js';
 import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
 
-const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<string, Record<string, { EID: string; LID: string; VID: string } | null>>;
+const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<
+    string,
+    Record<string, { EID: string; LID: string; VID: string } | null>
+>;
 
 export async function sendDiscordVoiceMessage(guildId: string, text: string) {
     const connection = getVoiceConnection(guildId);

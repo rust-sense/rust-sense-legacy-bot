@@ -76,7 +76,11 @@ export default {
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     await DiscordTools.clearTextChannel(guild!.id, instance.channelId.information as string, 100);
@@ -147,9 +151,16 @@ export default {
                 {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    const category = await DiscordTools.getCategoryById(
+                        guild!.id,
+                        instance.channelId.category as string,
+                    );
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     const SetupServerList = await import('../discordTools/SetupServerList.js');
@@ -172,9 +183,16 @@ export default {
                 {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    const category = await DiscordTools.getCategoryById(
+                        guild!.id,
+                        instance.channelId.category as string,
+                    );
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     const SetupSettingsMenu = await import('../discordTools/SetupSettingsMenu.js');
@@ -200,9 +218,16 @@ export default {
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    const category = await DiscordTools.getCategoryById(
+                        guild!.id,
+                        instance.channelId.category as string,
+                    );
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     const rustplus = client.rustplusInstances[guild!.id];
@@ -251,9 +276,16 @@ export default {
 
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    const category = await DiscordTools.getCategoryById(
+                        guild!.id,
+                        instance.channelId.category as string,
+                    );
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     const rustplus = client.rustplusInstances[guild!.id];
@@ -279,9 +311,16 @@ export default {
                 {
                     const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
 
-                    const category = await DiscordTools.getCategoryById(guild!.id, instance.channelId.category as string);
+                    const category = await DiscordTools.getCategoryById(
+                        guild!.id,
+                        instance.channelId.category as string,
+                    );
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
-                        client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
+                        client.log(
+                            client.intlGet(null, 'warningCap'),
+                            `Failed to set category permissions: ${e.message}`,
+                            'warn',
+                        );
                     });
 
                     const SetupTrackers = await import('../discordTools/SetupTrackers.js');

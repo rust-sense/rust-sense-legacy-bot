@@ -29,7 +29,13 @@ export default class Player {
     private _isAlive: boolean;
     private _deathTime: number;
     private _rustplus: RustplusLike;
-    private _pos: { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null = null;
+    private _pos: {
+        location: string | null;
+        monument: string | null;
+        string: string | null;
+        x: number;
+        y: number;
+    } | null = null;
     private _lastMovement = new Date();
     private _teamLeader = false;
     private _afkSeconds = 0;
@@ -105,10 +111,22 @@ export default class Player {
     set rustplus(rustplus: RustplusLike) {
         this._rustplus = rustplus;
     }
-    get pos(): { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null {
+    get pos(): {
+        location: string | null;
+        monument: string | null;
+        string: string | null;
+        x: number;
+        y: number;
+    } | null {
         return this._pos;
     }
-    set pos(pos: { location: string | null; monument: string | null; string: string | null; x: number; y: number } | null) {
+    set pos(pos: {
+        location: string | null;
+        monument: string | null;
+        string: string | null;
+        x: number;
+        y: number;
+    } | null) {
         this._pos = pos;
     }
     get lastMovement(): Date {

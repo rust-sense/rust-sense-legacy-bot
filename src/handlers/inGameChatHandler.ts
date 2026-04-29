@@ -1,7 +1,11 @@
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
-export async function inGameChatHandler(rustplus: any, client: DiscordBot, message: string | string[] | null = null): Promise<void> {
+export async function inGameChatHandler(
+    rustplus: any,
+    client: DiscordBot,
+    message: string | string[] | null = null,
+): Promise<void> {
     const guildId = rustplus.guildId;
     const generalSettings = rustplus.generalSettings;
     const commandDelayMs = parseInt(generalSettings.commandDelay) * 1000;

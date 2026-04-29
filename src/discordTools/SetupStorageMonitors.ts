@@ -1,7 +1,7 @@
+import type { DiscordBot } from '../types/discord.js';
 import * as Constants from '../util/constants.js';
 import * as DiscordMessages from './discordMessages.js';
 import * as DiscordTools from './discordTools.js';
-import type { DiscordBot } from '../types/discord.js';
 
 export default async function setupStorageMonitors(client: DiscordBot, rustplus: any) {
     const instance = client.getInstance(rustplus.guildId);

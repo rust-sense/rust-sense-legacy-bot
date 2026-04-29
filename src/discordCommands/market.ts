@@ -1,9 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
-
-import * as Constants from '../util/constants.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
 
 export default {
     name: 'market',
@@ -422,9 +421,12 @@ export default {
             case 'list':
                 {
                     const names = { all: '', buy: '', sell: '' };
-                    for (const [orderType, itemIds] of Object.entries(instance.marketSubscriptionList as unknown as Record<string, string[]>)) {
+                    for (const [orderType, itemIds] of Object.entries(
+                        instance.marketSubscriptionList as unknown as Record<string, string[]>,
+                    )) {
                         for (const itemId of itemIds) {
-                            names[orderType as keyof typeof names] += `\`${client.items.getName(itemId)} (${itemId})\`\n`;
+                            names[orderType as keyof typeof names] +=
+                                `\`${client.items.getName(itemId)} (${itemId})\`\n`;
                         }
                     }
 

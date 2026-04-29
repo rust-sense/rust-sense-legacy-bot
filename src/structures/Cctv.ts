@@ -1,9 +1,12 @@
 import { loadJsonResourceSync } from '../utils/filesystemUtils.js';
 
+interface CctvEntry {
+    codes: string[];
+    dynamic: boolean;
+}
+
 interface CctvData {
-    [key: string]: {
-        [key: string]: string[];
-    };
+    [monument: string]: CctvEntry;
 }
 
 const cctvData = loadJsonResourceSync<CctvData>('staticFiles/cctv.json');
@@ -21,19 +24,21 @@ export default class Cctv {
         return Object.keys(this.cctvs);
     }
 
-    getCctv(identifier: string): { [key: string]: string[] } | undefined {
+    getCctv(identifier: string): CctvEntry | undefined {
         return this.cctvs[identifier];
     }
 
-    searchCctv(searchTerm: string): string[] {
-        const results: string[] = [];
-        for (const [identifier, cctv] of Object.entries(this.cctvs)) {
-            for (const [camera, _codes] of Object.entries(cctv)) {
-                if (camera.toLowerCase().includes(searchTerm.toLowerCase())) {
-                    results.push(`${identifier} - ${camera}`);
-                }
-            }
-        }
-        return results;
+    cctvExist(monument: string): boolean {
+        return monument in this.cctvs;
+    }
+
+    getCodes(monument: string): string[] | undefined {
+        if (!this.cctvExist(monument)) return undefined;
+        return this.cctvs[monument].codes;
+    }
+
+    isDynamic(monument: string): boolean | undefined {
+        if (!this.cctvExist(monument)) return undefined;
+        return this.cctvs[monument].dynamic;
     }
 }

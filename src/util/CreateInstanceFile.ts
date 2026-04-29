@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
-import * as InstanceUtils from './instanceUtils.js';
-import * as Constants from './constants.js';
 import type { Instance } from '../types/instance.js';
+import * as Constants from './constants.js';
+import * as InstanceUtils from './instanceUtils.js';
 
 interface ClientLike {
     readGeneralSettingsTemplate: () => Record<string, unknown>;
@@ -14,7 +13,7 @@ interface ClientLike {
 export default function createInstanceFile(client: ClientLike, guild: { id: string }): void {
     let instance: Instance | null = null;
     const instancePath = path.join(process.cwd(), 'instances', `${guild.id}.json`);
-    
+
     if (!fs.existsSync(instancePath)) {
         instance = {
             firstTime: true,
@@ -93,7 +92,8 @@ export default function createInstanceFile(client: ClientLike, guild: { id: stri
         }
 
         if (!Object.hasOwn(instance, 'notificationSettings')) {
-            instance.notificationSettings = client.readNotificationSettingsTemplate() as Instance['notificationSettings'];
+            instance.notificationSettings =
+                client.readNotificationSettingsTemplate() as Instance['notificationSettings'];
         } else {
             const notificationSettings = client.readNotificationSettingsTemplate();
 

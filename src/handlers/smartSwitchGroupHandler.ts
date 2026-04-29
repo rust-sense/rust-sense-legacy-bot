@@ -1,13 +1,20 @@
-import type DiscordBot from '../structures/DiscordBot.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import type DiscordBot from '../structures/DiscordBot.js';
 import * as Timer from '../util/timer.js';
 
 export async function handler(rustplus: any, client: DiscordBot) {}
 
-export async function updateSwitchGroupIfContainSwitch(client: DiscordBot, guildId: string, serverId: string, switchId: string) {
+export async function updateSwitchGroupIfContainSwitch(
+    client: DiscordBot,
+    guildId: string,
+    serverId: string,
+    switchId: string,
+) {
     const instance = client.getInstance(guildId);
 
-    for (const [groupId, content] of Object.entries(instance.serverList[serverId].switchGroups as Record<string, any>)) {
+    for (const [groupId, content] of Object.entries(
+        instance.serverList[serverId].switchGroups as Record<string, any>,
+    )) {
         if (content.switches.includes(`${switchId}`)) {
             await DiscordMessages.sendSmartSwitchGroupMessage(guildId, serverId, groupId);
         }
@@ -19,7 +26,9 @@ export function getGroupsFromSwitchList(client: DiscordBot, guildId: string, ser
 
     let groupsId = [];
     for (let entity of switches) {
-        for (const [groupId, content] of Object.entries(instance.serverList[serverId].switchGroups as Record<string, any>)) {
+        for (const [groupId, content] of Object.entries(
+            instance.serverList[serverId].switchGroups as Record<string, any>,
+        )) {
             if (content.switches.includes(entity) && !groupsId.includes(groupId)) {
                 groupsId.push(groupId);
             }
@@ -29,7 +38,14 @@ export function getGroupsFromSwitchList(client: DiscordBot, guildId: string, ser
     return groupsId;
 }
 
-export async function TurnOnOffGroup(client: DiscordBot, rustplus: any, guildId: string, serverId: string, groupId: string, value: boolean) {
+export async function TurnOnOffGroup(
+    client: DiscordBot,
+    rustplus: any,
+    guildId: string,
+    serverId: string,
+    groupId: string,
+    value: boolean,
+) {
     const instance = client.getInstance(guildId);
 
     const switches = instance.serverList[serverId].switchGroups[groupId].switches;
@@ -124,7 +140,9 @@ export async function smartSwitchGroupCommandHandler(rustplus: any, client: Disc
             return { active, name, reachable };
         });
         const statusMessage = switchStatus
-            .map((status: any) => `${status.name}: ${status.reachable ? (status.active ? onCap : offCap) : notFoundCap}`)
+            .map(
+                (status: any) => `${status.name}: ${status.reachable ? (status.active ? onCap : offCap) : notFoundCap}`,
+            )
             .join(', ');
         rustplus.sendInGameMessage(`${client.intlGet(guildId, 'status')}: ${statusMessage}`);
         return true;

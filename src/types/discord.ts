@@ -1,4 +1,4 @@
-import type { Client, Guild, TextChannel, VoiceChannel, Role } from 'discord.js';
+import type { Client, Guild, Role, TextChannel, VoiceChannel } from 'discord.js';
 import type { Instance, Server } from './instance.js';
 
 export interface DiscordBot extends Client {
@@ -19,7 +19,7 @@ export interface DiscordBot extends Client {
     rustlabs: unknown;
     cctv: unknown;
     logger: unknown;
-    
+
     getInstance(guildId: string): Instance;
     setInstance(guildId: string, instance: Instance): void;
     readGeneralSettingsTemplate(): Record<string, unknown>;

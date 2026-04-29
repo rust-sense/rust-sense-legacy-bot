@@ -1,7 +1,7 @@
-import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import type DiscordBot from '../structures/DiscordBot.js';
+import * as Constants from '../util/constants.js';
 import * as Scrape from '../util/scrape.js';
 
 export async function handler(client: DiscordBot, firstTime = false) {
@@ -18,8 +18,7 @@ export async function handler(client: DiscordBot, firstTime = false) {
         if (!firstTime) await handleBattlemetricsChanges(client, guildId);
 
         /* Update information channel battlemetrics players */
-        const bmId =
-            instance.activeServer !== null ? instance.serverList[instance.activeServer].battlemetricsId : null;
+        const bmId = instance.activeServer !== null ? instance.serverList[instance.activeServer].battlemetricsId : null;
         let condition = instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers;
         condition = condition && instance.activeServer !== null;
         condition = condition && bmId !== null;
@@ -63,14 +62,7 @@ export async function handler(client: DiscordBot, firstTime = false) {
                     name = (content.clanTag !== '' ? `${content.clanTag} ` : '') + `${name}`;
 
                     if (player.name !== name) {
-                        await trackerNewNameDetected(
-                            client,
-                            guildId,
-                            trackerId,
-                            battlemetricsId,
-                            player.name,
-                            name,
-                        );
+                        await trackerNewNameDetected(client, guildId, trackerId, battlemetricsId, player.name, name);
 
                         const newPlayerId = Object.keys(bmInstance.players).find(
                             (e) => bmInstance.players[e]['name'] === name,
@@ -95,14 +87,7 @@ export async function handler(client: DiscordBot, firstTime = false) {
                 for (const playerT of content.players) {
                     if (playerT.playerId !== player.id) continue;
 
-                    await trackerNewNameDetected(
-                        client,
-                        guildId,
-                        trackerId,
-                        battlemetricsId,
-                        player.from,
-                        player.to,
-                    );
+                    await trackerNewNameDetected(client, guildId, trackerId, battlemetricsId, player.from, player.to);
                 }
             }
 
@@ -269,10 +254,7 @@ export async function handleBattlemetricsChanges(client: DiscordBot, guildId: st
                 newN = newN.length <= fieldRowMaxLength ? newN : newN.substring(0, fieldRowMaxLength - 2) + '..';
                 newN += '\n';
 
-                if (
-                    totalCharacters + (oldN.length + id.length + newN.length) >=
-                    Constants.EMBED_MAX_TOTAL_CHARACTERS
-                ) {
+                if (totalCharacters + (oldN.length + id.length + newN.length) >= Constants.EMBED_MAX_TOTAL_CHARACTERS) {
                     isEmbedFull = true;
                     break;
                 }
@@ -330,13 +312,7 @@ export async function handleBattlemetricsChanges(client: DiscordBot, guildId: st
                 });
             }
 
-            await DiscordMessages.sendBattlemetricsEventMessage(
-                guildId,
-                battlemetricsId,
-                title,
-                description,
-                fields,
-            );
+            await DiscordMessages.sendBattlemetricsEventMessage(guildId, battlemetricsId, title, description, fields);
         }
 
         /* Players that just logged in */
