@@ -25,8 +25,8 @@ RUN apt-get update \
 
 RUN pip install piper-tts --break-system-packages
 
-RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
-    && chown -R node:node /app/data
+RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens /app/models \
+    && chown -R node:node /app/data /app/models
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
