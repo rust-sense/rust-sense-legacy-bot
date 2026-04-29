@@ -30,7 +30,7 @@ export default class Logger {
             );
         }
 
-        this.logger = Winston.createLogger({ transports });
+        this.logger = Winston.createLogger({ transports, silent: transports.length === 0 });
         this.type = type;
     }
 
@@ -51,6 +51,16 @@ export default class Logger {
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     }
 
+    private consolePrint(level: string, ...args: unknown[]): void {
+        if (level === 'error') {
+            console.error(...args);
+        } else if (level === 'warn') {
+            console.warn(...args);
+        } else {
+            console.log(...args);
+        }
+    }
+
     log(title: string, text: string, level: string): void {
         const time = this.getTime();
 
@@ -62,7 +72,7 @@ export default class Logger {
                     level: level,
                     message: `${time} | ${logText}`,
                 });
-                console.log(Colors.green(`[${time}]`), Colors.magenta(`${title}:`), text);
+                this.consolePrint(level, Colors.green(`[${time}]`), Colors.magenta(`${title}:`), text);
                 break;
             }
             case 'guild': {
@@ -70,7 +80,8 @@ export default class Logger {
                     level: level,
                     message: `${time} | ${this.guildId} | ${logText}`,
                 });
-                console.log(
+                this.consolePrint(
+                    level,
                     Colors.green(`[${time}]`),
                     Colors.yellow(`[${this.guildId}]`),
                     Colors.magenta(`${title}:`),
@@ -83,7 +94,8 @@ export default class Logger {
                     level: level,
                     message: `${time} | ${this.guildId} | ${this.serverName} | ${logText}`,
                 });
-                console.log(
+                this.consolePrint(
+                    level,
                     Colors.green(`[${time}]`),
                     Colors.yellow(`[${this.guildId}]`),
                     Colors.cyan(`[${this.serverName}]`),
