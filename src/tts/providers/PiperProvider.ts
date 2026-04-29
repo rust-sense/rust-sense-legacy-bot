@@ -7,6 +7,7 @@ import { client } from '../../index.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
 const MODELS_DIR = '/app/models';
+const PROCESS_TIMEOUT_MS = 30000;
 
 // Cached for the process lifetime; reset on error so the next call retries.
 let _voiceKeysCachePromise: Promise<string[]> | null = null;
@@ -109,11 +110,35 @@ export class PiperProvider implements TTSProvider {
         piper.stdout.pipe(ffmpeg.stdin);
 
         let intentionallyKilled = false;
+        let piperExited = false;
+        let ffmpegExited = false;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+        function cleanup() {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            intentionallyKilled = true;
+            piper.kill();
+            ffmpeg.kill();
+        }
+
+        function maybeCleanup() {
+            if (piperExited && ffmpegExited) {
+                cleanup();
+            }
+        }
+
+        timeoutId = setTimeout(() => {
+            client.log('ERROR', 'Piper/FFmpeg TTS synthesis timed out', 'error');
+            cleanup();
+        }, PROCESS_TIMEOUT_MS);
 
         piper.on('error', (err) => {
             if (intentionallyKilled) return;
             client.log('ERROR', `Piper process error: ${err.message}`, 'error');
-            ffmpeg.kill();
+            cleanup();
         });
 
         piper.stderr.on('data', (data) => {
@@ -121,24 +146,45 @@ export class PiperProvider implements TTSProvider {
         });
 
         piper.on('close', (code) => {
+            piperExited = true;
             if (intentionallyKilled) return;
-            if (code !== 0) {
+            if (code !== 0 && code !== null) {
                 client.log('ERROR', `Piper exited with code ${code}`, 'error');
-                ffmpeg.kill();
+                cleanup();
+            } else {
+                // Piper finished naturally — ffmpeg will get EOF and finish encoding
+                maybeCleanup();
             }
         });
 
         ffmpeg.on('error', (err) => {
             if (intentionallyKilled) return;
             client.log('ERROR', `FFmpeg process error: ${err.message}`, 'error');
-            piper.kill();
+            cleanup();
+        });
+
+        ffmpeg.on('close', (code) => {
+            ffmpegExited = true;
+            if (intentionallyKilled) return;
+            if (code !== 0 && code !== null) {
+                client.log('ERROR', `FFmpeg exited with code ${code}`, 'error');
+                cleanup();
+            } else {
+                // FFmpeg finished naturally
+                maybeCleanup();
+            }
         });
 
         if (ffmpeg.stderr) {
             ffmpeg.stderr.on('data', (data) => {
                 const line = data.toString().trim();
                 const lower = line.toLowerCase();
-                if (lower.startsWith('error') && !lower.includes('broken pipe')) {
+                // Suppress expected broken pipe errors when the consumer stops reading
+                if (
+                    lower.startsWith('error') &&
+                    !lower.includes('broken pipe') &&
+                    !lower.includes('error closing file')
+                ) {
                     client.log('ERROR', `FFmpeg: ${line}`, 'error');
                 }
             });
@@ -148,12 +194,6 @@ export class PiperProvider implements TTSProvider {
         piper.stdin.end();
 
         if (ffmpeg.stdout) {
-            ffmpeg.stdout.on('close', () => {
-                intentionallyKilled = true;
-                piper.kill();
-                ffmpeg.kill();
-            });
-
             return ffmpeg.stdout;
         }
 
