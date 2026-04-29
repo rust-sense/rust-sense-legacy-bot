@@ -50,7 +50,7 @@ export default class DiscordBot extends Discord.Client {
     constructor(props: Discord.ClientOptions) {
         super(props);
 
-        this.logger = new Logger('discordBot.log', 'default');
+        this.logger = new Logger('discordBot.log');
 
         this.commands = new Discord.Collection();
 

@@ -442,7 +442,7 @@ export default class RustPlus extends RustPlusLib {
         const client = getClient();
         const instance = client.getInstance(this.guildId);
 
-        this.logger = new Logger(`${this.guildId}.log`, 'guild');
+        this.logger = new Logger(`${this.guildId}.log`);
         this.logger.setGuildId(this.guildId);
         this.logger.serverName = instance.serverList[this.serverId].title;
 

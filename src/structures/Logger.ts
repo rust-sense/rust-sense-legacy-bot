@@ -6,17 +6,31 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 import config from '../config.js';
 
+const consoleFormat = Winston.format.printf((info) => {
+    const parts: string[] = [Colors.green(`[${info['timestamp']}]`)];
+    if (info['guildId']) parts.push(Colors.yellow(`[${info['guildId']}]`));
+    if (info['serverName']) parts.push(Colors.cyan(`[${info['serverName']}]`));
+    parts.push(Colors.magenta(`${info['title']}:`));
+    parts.push(String(info['text']));
+    return parts.join(' ');
+});
+
+const fileFormat = Winston.format.printf((info) => String(info.message));
+
 export default class Logger {
     private logger: Winston.Logger;
-    private type: string;
     private guildId: string | null = null;
-    private serverName: string | null = null;
+    serverName: string | null = null;
 
-    constructor(logBasename: string, type: string) {
-        const transports: Winston.transport[] = [];
+    constructor(logBasename: string) {
+        const transports: Winston.transport[] = [
+            new Winston.transports.Console({
+                stderrLevels: ['error', 'warn'],
+                format: consoleFormat,
+            }),
+        ];
 
         if (config.general.logFileDir) {
-            // Strip extension so we can insert %DATE% before it: "discordBot.log" → "discordBot-%DATE%.log"
             const ext = path.extname(logBasename);
             const stem = path.basename(logBasename, ext);
             transports.push(
@@ -26,12 +40,12 @@ export default class Logger {
                     datePattern: 'YYYY-MM-DD',
                     maxSize: '10m',
                     maxFiles: '14d',
+                    format: fileFormat,
                 }),
             );
         }
 
-        this.logger = Winston.createLogger({ transports, silent: transports.length === 0 });
-        this.type = type;
+        this.logger = Winston.createLogger({ transports });
     }
 
     setGuildId(guildId: string | null): void {
@@ -51,60 +65,20 @@ export default class Logger {
         return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
     }
 
-    private consolePrint(level: string, ...args: unknown[]): void {
-        if (level === 'error') {
-            console.error(...args);
-        } else if (level === 'warn') {
-            console.warn(...args);
-        } else {
-            console.log(...args);
-        }
-    }
-
     log(title: string, text: string, level: string): void {
         const time = this.getTime();
 
-        const logText = `${title}: ${text}`;
+        const fileParts = [time, this.guildId, this.serverName, `${title}: ${text}`].filter(Boolean);
 
-        switch (this.type) {
-            case 'default': {
-                this.logger.log({
-                    level: level,
-                    message: `${time} | ${logText}`,
-                });
-                this.consolePrint(level, Colors.green(`[${time}]`), Colors.magenta(`${title}:`), text);
-                break;
-            }
-            case 'guild': {
-                this.logger.log({
-                    level: level,
-                    message: `${time} | ${this.guildId} | ${logText}`,
-                });
-                this.consolePrint(
-                    level,
-                    Colors.green(`[${time}]`),
-                    Colors.yellow(`[${this.guildId}]`),
-                    Colors.magenta(`${title}:`),
-                    text,
-                );
-                break;
-            }
-            case 'server': {
-                this.logger.log({
-                    level: level,
-                    message: `${time} | ${this.guildId} | ${this.serverName} | ${logText}`,
-                });
-                this.consolePrint(
-                    level,
-                    Colors.green(`[${time}]`),
-                    Colors.yellow(`[${this.guildId}]`),
-                    Colors.cyan(`[${this.serverName}]`),
-                    Colors.magenta(`${title}:`),
-                    text,
-                );
-                break;
-            }
-        }
+        this.logger.log({
+            level,
+            message: fileParts.join(' | '),
+            timestamp: time,
+            title,
+            text,
+            guildId: this.guildId,
+            serverName: this.serverName,
+        });
     }
 
     setServerName(serverName: string | null): void {
