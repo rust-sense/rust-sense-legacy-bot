@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import Gm from 'gm';
-import Jimp from 'jimp';
+import { Jimp, loadFont } from 'jimp';
 
-type JimpFont = Awaited<ReturnType<typeof Jimp.loadFont>>;
+type JimpImage = Awaited<ReturnType<typeof Jimp.read>>;
+type JimpFont = Awaited<ReturnType<typeof loadFont>>;
 
 import { client } from '../index.js';
 import * as Constants from '../util/constants.js';
@@ -51,7 +52,7 @@ interface MapMarkerImageMeta {
     image: string;
     size: number | null;
     type: number | null;
-    jimp: Jimp | null;
+    jimp: JimpImage | null;
 }
 
 interface MonumentInfo {
@@ -417,9 +418,9 @@ export default class GameMap {
 
     async setupJimpFont(): Promise<void> {
         if (this.rustplus.generalSettings.language === 'en') {
-            this.font = await Jimp.loadFont(cwdPath('resources/fonts/PermanentMarker.fnt'));
+            this.font = await loadFont(cwdPath('resources/fonts/PermanentMarker.fnt'));
         } else {
-            this.font = await Jimp.loadFont(cwdPath('resources/fonts/YuGothic.fnt'));
+            this.font = await loadFont(cwdPath('resources/fonts/YuGothic.fnt'));
         }
     }
 
@@ -427,7 +428,7 @@ export default class GameMap {
         for (const [marker, content] of Object.entries(this.mapMarkerImageMeta)) {
             content.jimp = await Jimp.read(content.image);
             if (marker !== 'map' && content.size !== null) {
-                content.jimp.resize(content.size, content.size);
+                content.jimp.resize({ w: content.size, h: content.size });
             }
         }
     }
@@ -467,7 +468,12 @@ export default class GameMap {
                             ? this.monumentInfo[monument.token].map
                             : (monument.token ?? '');
                     const comp = name.length * 5;
-                    this.mapMarkerImageMeta.map.jimp!.print(this.font!, x - comp, y - 10, name);
+                    this.mapMarkerImageMeta.map.jimp!.print({
+                        font: this.font!,
+                        x: x - comp,
+                        y: y - 10,
+                        text: name,
+                    });
                 }
             } catch (_e) {
                 /* Ignore */
@@ -517,8 +523,8 @@ export default class GameMap {
         if (markers) await this.mapAppendMarkers();
         if (monuments) await this.mapAppendMonuments();
 
-        await this.mapMarkerImageMeta.map.jimp!.writeAsync(
-            this.mapMarkerImageMeta.map.image.replace('clean.png', 'full.png'),
+        await this.mapMarkerImageMeta.map.jimp!.write(
+            this.mapMarkerImageMeta.map.image.replace('clean.png', 'full.png') as `${string}.${string}`,
         );
 
         try {
