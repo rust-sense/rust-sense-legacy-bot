@@ -21,7 +21,6 @@ import * as Timer from '../util/timer.js';
 
 import { resolve } from '../container.js';
 import rustplusEvents from '../rustplusEvents/index.js';
-import { cwdPath } from '../utils/filesystemUtils.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
 import type { RustplusEvent } from '../types/discord.js';
 
@@ -443,7 +442,7 @@ export default class RustPlus extends RustPlusLib {
         const client = getClient();
         const instance = client.getInstance(this.guildId);
 
-        this.logger = new Logger(cwdPath(`logs/${this.guildId}.log`), 'guild');
+        this.logger = new Logger(`${this.guildId}.log`, 'guild');
         this.logger.setGuildId(this.guildId);
         this.logger.serverName = instance.serverList[this.serverId].title;
 

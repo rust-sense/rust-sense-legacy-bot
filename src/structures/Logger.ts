@@ -1,5 +1,8 @@
+import path from 'path';
+
 import Colors from 'colors';
 import Winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 import config from '../config.js';
 
@@ -9,18 +12,25 @@ export default class Logger {
     private guildId: string | null = null;
     private serverName: string | null = null;
 
-    constructor(logFilePath: string, type: string) {
-        this.logger = Winston.createLogger({
-            transports: [
-                new Winston.transports.File({
-                    filename: logFilePath,
-                    maxsize: 10000000,
-                    maxFiles: 2,
-                    tailable: true,
-                }),
-            ],
-        });
+    constructor(logBasename: string, type: string) {
+        const transports: Winston.transport[] = [];
 
+        if (config.general.logFileDir) {
+            // Strip extension so we can insert %DATE% before it: "discordBot.log" → "discordBot-%DATE%.log"
+            const ext = path.extname(logBasename);
+            const stem = path.basename(logBasename, ext);
+            transports.push(
+                new DailyRotateFile({
+                    dirname: config.general.logFileDir,
+                    filename: `${stem}-%DATE%${ext}`,
+                    datePattern: 'YYYY-MM-DD',
+                    maxSize: '10m',
+                    maxFiles: '14d',
+                }),
+            );
+        }
+
+        this.logger = Winston.createLogger({ transports });
         this.type = type;
     }
 

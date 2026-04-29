@@ -40,7 +40,8 @@
         "lodash": "^4.17.21",
         "sodium-native": "^4.0.4",
         "translate": "^1.4.1",
-        "winston": "^3.10.0"
+        "winston": "^3.10.0",
+        "winston-daily-rotate-file": "^5.0.0"
     },
     "resolutions": {
         "jpeg-js": "0.4.4",
