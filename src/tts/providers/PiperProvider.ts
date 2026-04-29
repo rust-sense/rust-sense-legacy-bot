@@ -113,6 +113,8 @@ export class PiperProvider implements TTSProvider {
         let piperExited = false;
         let ffmpegExited = false;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        let piperStderr = '';
+        let ffmpegStderr = '';
 
         function cleanup() {
             if (timeoutId) {
@@ -142,14 +144,16 @@ export class PiperProvider implements TTSProvider {
         });
 
         piper.stderr.on('data', (data) => {
-            client.log('INFO', `Piper: ${data.toString().trim()}`, 'info');
+            const line = data.toString().trim();
+            piperStderr += line + '\n';
+            client.log('INFO', `Piper: ${line}`, 'info');
         });
 
         piper.on('close', (code) => {
             piperExited = true;
             if (intentionallyKilled) return;
             if (code !== 0 && code !== null) {
-                client.log('ERROR', `Piper exited with code ${code}`, 'error');
+                client.log('ERROR', `Piper exited with code ${code}\nStderr: ${piperStderr}`, 'error');
                 cleanup();
             } else {
                 // Piper finished naturally — ffmpeg will get EOF and finish encoding
@@ -167,7 +171,7 @@ export class PiperProvider implements TTSProvider {
             ffmpegExited = true;
             if (intentionallyKilled) return;
             if (code !== 0 && code !== null) {
-                client.log('ERROR', `FFmpeg exited with code ${code}`, 'error');
+                client.log('ERROR', `FFmpeg exited with code ${code}\nStderr: ${ffmpegStderr}`, 'error');
                 cleanup();
             } else {
                 // FFmpeg finished naturally
@@ -178,15 +182,7 @@ export class PiperProvider implements TTSProvider {
         if (ffmpeg.stderr) {
             ffmpeg.stderr.on('data', (data) => {
                 const line = data.toString().trim();
-                const lower = line.toLowerCase();
-                // Suppress expected broken pipe errors when the consumer stops reading
-                if (
-                    lower.startsWith('error') &&
-                    !lower.includes('broken pipe') &&
-                    !lower.includes('error closing file')
-                ) {
-                    client.log('ERROR', `FFmpeg: ${line}`, 'error');
-                }
+                ffmpegStderr += line + '\n';
             });
         }
 
