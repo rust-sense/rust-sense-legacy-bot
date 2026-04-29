@@ -31,7 +31,7 @@ declare module '@liamcottle/push-receiver' {
     export default PushReceiver;
 }
 
-declare module '@liamcottle/push-receiver/src/client' {
+declare module '@liamcottle/push-receiver/src/client.js' {
     import { EventEmitter } from 'events';
 
     export default class Client extends EventEmitter {
