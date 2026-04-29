@@ -24,16 +24,17 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
         everyoneDeny.push(Discord.PermissionFlagsBits.SendMessages);
         roleAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
-        perms.push({ id: guild.roles.everyone.id, deny: everyoneDeny });
-        perms.push({ id: instance.role, allow: roleAllow, deny: roleDeny });
+        perms.push({ id: guild.roles.everyone.id, type: Discord.OverwriteType.Role, deny: everyoneDeny });
+        perms.push({ id: instance.role, type: Discord.OverwriteType.Role, allow: roleAllow, deny: roleDeny });
 
         if (instance.adminRole !== null) {
-            perms.push({ id: instance.adminRole, allow: roleAllow, deny: roleDeny });
+            perms.push({ id: instance.adminRole, type: Discord.OverwriteType.Role, allow: roleAllow, deny: roleDeny });
         }
 
         if (config.discord.ownerUserId !== null) {
             perms.push({
                 id: config.discord.ownerUserId,
+                type: Discord.OverwriteType.Member,
                 allow: roleAllow,
                 deny: roleDeny,
             });
@@ -47,12 +48,13 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
 
         everyoneAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
-        perms.push({ id: guild.roles.everyone.id, allow: everyoneAllow, deny: everyoneDeny });
+        perms.push({ id: guild.roles.everyone.id, type: Discord.OverwriteType.Role, allow: everyoneAllow, deny: everyoneDeny });
 
         const botId = client.user?.id;
         if (botId) {
             perms.push({
                 id: botId,
+                type: Discord.OverwriteType.Member,
                 allow: [
                     Discord.PermissionFlagsBits.ViewChannel,
                     Discord.PermissionFlagsBits.SendMessages,
@@ -65,6 +67,7 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
     for (const discordId of instance.blacklist['discordIds']) {
         perms.push({
             id: discordId,
+            type: Discord.OverwriteType.Member,
             deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
         });
     }
@@ -80,6 +83,7 @@ export function getPermissionsRemoved(client, guild) {
     if (instance.role !== null) {
         perms.push({
             id: instance.role,
+            type: Discord.OverwriteType.Role,
             deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
         });
     }
@@ -87,12 +91,14 @@ export function getPermissionsRemoved(client, guild) {
     if (instance.adminRole !== null) {
         perms.push({
             id: instance.adminRole,
+            type: Discord.OverwriteType.Role,
             deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
         });
     }
 
     perms.push({
         id: guild.roles.everyone.id,
+        type: Discord.OverwriteType.Role,
         deny: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages],
     });
 

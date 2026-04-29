@@ -111,7 +111,17 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
     const androidId = credentials[activeSteamId].gcm.android_id;
     const securityToken = credentials[activeSteamId].gcm.security_token;
 
-    const listener = new PushReceiverClient(androidId, securityToken, []);
+    let listener: any;
+    try {
+        listener = new PushReceiverClient(androidId, securityToken, []);
+    } catch (e: any) {
+        client.log(
+            client.intlGet(null, 'errorCap'),
+            `Failed to create FCM listener for GuildID: ${guild.id}, SteamID: ${activeSteamId}: ${e.message}`,
+            'error',
+        );
+        return;
+    }
 
     if (isLite) {
         client.fcmListenersLite[guild.id][steamId] = listener;
