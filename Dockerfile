@@ -20,7 +20,7 @@ COPY --from=build /app/dist /app/dist
 COPY --from=build /app/data/staticData.sqlite /app/data/staticData.sqlite
 
 RUN apt-get update \
-    && apt-get install -y graphicsmagick gosu \
+    && apt-get install -y graphicsmagick gosu ffmpeg \
     && apt-get clean
 
 RUN mkdir -p /app/credentials /app/instances /app/logs /app/maps /app/authtokens \
