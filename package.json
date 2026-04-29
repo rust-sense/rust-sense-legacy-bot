@@ -23,7 +23,7 @@
     "homepage": "https://github.com/rust-sense/bot",
     "dependencies": {
         "@discordjs/builders": "^1.11.2",
-        "@discordjs/opus": "^0.9.0",
+        "@discordjs/opus": "^0.10.0",
         "@discordjs/rest": "^2.5.1",
         "@discordjs/voice": "^0.18.0",
         "@formatjs/intl": "^2.10.4",
