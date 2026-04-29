@@ -48,7 +48,12 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
 
         everyoneAllow.push(Discord.PermissionFlagsBits.ViewChannel);
 
-        perms.push({ id: guild.roles.everyone.id, type: Discord.OverwriteType.Role, allow: everyoneAllow, deny: everyoneDeny });
+        perms.push({
+            id: guild.roles.everyone.id,
+            type: Discord.OverwriteType.Role,
+            allow: everyoneAllow,
+            deny: everyoneDeny,
+        });
 
         const botId = client.user?.id;
         if (botId) {
