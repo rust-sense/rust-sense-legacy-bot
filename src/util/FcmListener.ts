@@ -129,6 +129,14 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
         client.fcmListeners[guild.id] = listener;
     }
 
+    listener.on('error', (error: any) => {
+        client.log(
+            client.intlGet(null, 'errorCap'),
+            `FCM listener error for GuildID: ${guild.id}, SteamID: ${activeSteamId}: ${error.message || error}`,
+            'error',
+        );
+    });
+
     listener.on('ON_DATA_RECEIVED', (data: any) => {
         const appData = data.appData;
 
@@ -340,7 +348,13 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
         }
     });
 
-    listener.connect();
+    listener.connect().catch((e: any) => {
+        client.log(
+            client.intlGet(null, 'errorCap'),
+            `Failed to connect FCM listener for GuildID: ${guild.id}, SteamID: ${activeSteamId}: ${e.message || e}`,
+            'error',
+        );
+    });
 };
 
 function isValidUrl(url: string): boolean {
