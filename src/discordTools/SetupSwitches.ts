@@ -15,7 +15,7 @@ export default async function setupSwitches(client: DiscordBot, rustplus: any) {
         const entity = instance.serverList[serverId].switches[entityId];
         const info = await rustplus.getEntityInfoAsync(entityId);
 
-        if (!rustplus.isResponseValid(info)) {
+        if (!(await rustplus.isResponseValid(info))) {
             if (entity.reachable === true) {
                 await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, serverId, entityId);
             }

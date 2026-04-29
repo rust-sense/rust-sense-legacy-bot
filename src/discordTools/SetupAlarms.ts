@@ -10,7 +10,7 @@ export default async function setupAlarms(client: DiscordBot, rustplus: any) {
         const entity = instance.serverList[serverId].alarms[entityId];
         const info = await rustplus.getEntityInfoAsync(entityId);
 
-        if (!rustplus.isResponseValid(info)) {
+        if (!(await rustplus.isResponseValid(info))) {
             if (entity.reachable === true) {
                 await DiscordMessages.sendSmartAlarmNotFoundMessage(guildId, serverId, entityId);
             }

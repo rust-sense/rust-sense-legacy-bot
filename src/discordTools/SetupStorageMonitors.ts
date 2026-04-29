@@ -16,7 +16,7 @@ export default async function setupStorageMonitors(client: DiscordBot, rustplus:
         const entity = instance.serverList[serverId].storageMonitors[entityId];
         const info = await rustplus.getEntityInfoAsync(entityId);
 
-        if (!rustplus.isResponseValid(info)) {
+        if (!(await rustplus.isResponseValid(info))) {
             if (entity.reachable === true) {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, serverId, entityId);
             }
