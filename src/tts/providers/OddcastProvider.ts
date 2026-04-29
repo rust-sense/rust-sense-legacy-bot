@@ -1,19 +1,13 @@
 import { Readable } from 'node:stream';
-
-import { loadJsonResourceSync } from '../../utils/filesystemUtils.js';
 import getStaticFilesStorage from '../../util/getStaticFilesStorage.js';
+import { loadJsonResourceSync } from '../../utils/filesystemUtils.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
 type ActorParams = { EID: string; LID: string; VID: string };
 
-const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<
-    string,
-    Record<string, ActorParams | null>
->;
+const Actors = getStaticFilesStorage().getDatasetObject('actors') as Record<string, Record<string, ActorParams | null>>;
 
-const ActorNames = loadJsonResourceSync<Record<string, Record<string, string | null>>>(
-    'staticFiles/actors.json',
-);
+const ActorNames = loadJsonResourceSync<Record<string, Record<string, string | null>>>('staticFiles/actors.json');
 
 export class OddcastProvider implements TTSProvider {
     getVoices(language: string): VoiceOption[] {

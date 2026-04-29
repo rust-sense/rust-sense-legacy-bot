@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { access, mkdir, unlink } from 'node:fs/promises';
-import { randomUUID } from 'node:crypto';
-import { Readable } from 'node:stream';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 
 import { client } from '../../index.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
@@ -61,11 +61,7 @@ export class PiperProvider implements TTSProvider {
         const wavPath = path.join('/tmp/tts', `${randomUUID()}.wav`);
 
         await new Promise<void>((resolve, reject) => {
-            const child = spawn('piper', [
-                '--model', modelPath,
-                '--data-dir', MODELS_DIR,
-                '--output_file', wavPath,
-            ]);
+            const child = spawn('piper', ['--model', modelPath, '--data-dir', MODELS_DIR, '--output_file', wavPath]);
 
             child.stdin.write(text);
             child.stdin.end();
@@ -92,11 +88,7 @@ export class PiperProvider implements TTSProvider {
         client.log('INFO', `Downloading Piper model: ${voiceName}`, 'info');
 
         await new Promise<void>((resolve, reject) => {
-            const child = spawn('python3', [
-                '-m', 'piper.download_voices',
-                voiceName,
-                '--data-dir', MODELS_DIR,
-            ]);
+            const child = spawn('python3', ['-m', 'piper.download_voices', voiceName, '--data-dir', MODELS_DIR]);
 
             child.stderr.on('data', (data) => {
                 client.log('INFO', `Piper download: ${data.toString().trim()}`, 'info');

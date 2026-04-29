@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import * as Discord from 'discord.js';
 
 import { client } from '../index.js';
+import { getTTSProvider } from '../tts/getTTSProvider.js';
 import * as Constants from '../util/constants.js';
 import { languages as Languages } from '../util/languages.js';
-import { getTTSProvider } from '../tts/getTTSProvider.js';
 
 import { cwdPath } from '../utils/filesystemUtils.js';
 

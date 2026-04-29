@@ -7,8 +7,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
     const connection = getVoiceConnection(guildId);
     if (!connection) return;
 
-    const { language, voiceGender, ttsProvider, piperVoice } =
-        client.getInstance(guildId).generalSettings;
+    const { language, voiceGender, ttsProvider, piperVoice } = client.getInstance(guildId).generalSettings;
     const voice = ttsProvider === 'piper' ? piperVoice : voiceGender;
 
     try {
