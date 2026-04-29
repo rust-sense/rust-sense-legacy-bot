@@ -1,4 +1,4 @@
-import { createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice';
+import { createAudioPlayer, createAudioResource, getVoiceConnection, StreamType } from '@discordjs/voice';
 
 import { client } from '../index.js';
 import { getTTSProvider } from '../tts/getTTSProvider.js';
@@ -12,7 +12,7 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
 
     try {
         const stream = await getTTSProvider(guildId).synthesize(text, language, voice);
-        const resource = createAudioResource(stream as any);
+        const resource = createAudioResource(stream as any, { inputType: StreamType.OggOpus });
         const player = createAudioPlayer();
         connection.subscribe(player);
         player.play(resource);

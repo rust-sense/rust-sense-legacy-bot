@@ -1,7 +1,5 @@
 import { spawn } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import { createReadStream } from 'node:fs';
-import { access, mkdir, unlink } from 'node:fs/promises';
+import { access } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 
@@ -82,38 +80,90 @@ export class PiperProvider implements TTSProvider {
             await this.downloadModel(voice);
         }
 
-        await mkdir('/tmp/tts', { recursive: true });
-        const wavPath = path.join('/tmp/tts', `${randomUUID()}.wav`);
+        const piper = spawn('piper', [
+            '--model',
+            modelPath,
+            '--data-dir',
+            MODELS_DIR,
+            '--output_raw',
+        ]);
 
-        await new Promise<void>((resolve, reject) => {
-            const child = spawn('piper', ['--model', modelPath, '--data-dir', MODELS_DIR, '--output_file', wavPath]);
+        const ffmpeg = spawn('ffmpeg', [
+            '-f',
+            's16le',
+            '-ar',
+            '22050',
+            '-ac',
+            '1',
+            '-i',
+            'pipe:0',
+            '-c:a',
+            'libopus',
+            '-application',
+            'voip',
+            '-f',
+            'ogg',
+            'pipe:1',
+        ]);
 
-            child.stdin.write(text);
-            child.stdin.end();
+        piper.stdout.pipe(ffmpeg.stdin);
 
-            child.stderr.on('data', (data) => {
-                client.log('INFO', `Piper: ${data.toString().trim()}`, 'info');
-            });
-
-            child.on('error', reject);
-            child.on('close', (code) => {
-                if (code === 0) resolve();
-                else reject(new Error(`Piper exited with code ${code}`));
-            });
+        piper.on('error', (err) => {
+            client.log('ERROR', `Piper process error: ${err.message}`, 'error');
+            ffmpeg.kill();
         });
 
-        const stream = createReadStream(wavPath);
-        stream.on('close', () => {
-            unlink(wavPath).catch(() => {});
+        piper.stderr.on('data', (data) => {
+            client.log('INFO', `Piper: ${data.toString().trim()}`, 'info');
         });
-        return stream;
+
+        piper.on('close', (code) => {
+            if (code !== 0) {
+                client.log('ERROR', `Piper exited with code ${code}`, 'error');
+                ffmpeg.kill();
+            }
+        });
+
+        ffmpeg.on('error', (err) => {
+            client.log('ERROR', `FFmpeg process error: ${err.message}`, 'error');
+            piper.kill();
+        });
+
+        if (ffmpeg.stderr) {
+            ffmpeg.stderr.on('data', (data) => {
+                const line = data.toString().trim();
+                if (line.toLowerCase().startsWith('error')) {
+                    client.log('ERROR', `FFmpeg: ${line}`, 'error');
+                }
+            });
+        }
+
+        piper.stdin.write(text);
+        piper.stdin.end();
+
+        if (ffmpeg.stdout) {
+            ffmpeg.stdout.on('close', () => {
+                piper.kill();
+                ffmpeg.kill();
+            });
+
+            return ffmpeg.stdout;
+        }
+
+        throw new Error('Failed to create ffmpeg output stream');
     }
 
     private async downloadModel(voiceName: string): Promise<void> {
         client.log('INFO', `Downloading Piper model: ${voiceName}`, 'info');
 
         await new Promise<void>((resolve, reject) => {
-            const child = spawn('python3', ['-m', 'piper.download_voices', voiceName, '--data-dir', MODELS_DIR]);
+            const child = spawn('python3', [
+                '-m',
+                'piper.download_voices',
+                voiceName,
+                '--data-dir',
+                MODELS_DIR,
+            ]);
 
             child.stderr.on('data', (data) => {
                 client.log('INFO', `Piper download: ${data.toString().trim()}`, 'info');
