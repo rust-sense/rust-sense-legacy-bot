@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
-import { rustplus } from './rustplus_pb.js';
 import { Camera } from './Camera.js';
+import { rustplus } from './rustplus_pb.js';
 
 export class RustPlus extends EventEmitter {
     server: string;

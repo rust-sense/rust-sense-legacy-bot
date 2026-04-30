@@ -1,6 +1,5 @@
-import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
-
 import { resolve } from '../container.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import rustplusLiteEvents from '../rustplusLiteEvents/index.js';
 import type { RustplusEvent } from '../types/discord.js';
 

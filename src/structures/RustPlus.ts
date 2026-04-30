@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import Translate from 'translate';
 import { resolve } from '../container.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
@@ -9,6 +8,7 @@ import * as DiscordTools from '../discordTools/discordTools.js';
 import * as DiscordVoice from '../discordTools/discordVoice.js';
 import * as InGameChatHandler from '../handlers/inGameChatHandler.js';
 import * as TeamHandler from '../handlers/teamHandler.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import rustplusEvents from '../rustplusEvents/index.js';
 import RustPlusLite from '../structures/RustPlusLite.js';
 import type { RustplusEvent } from '../types/discord.js';

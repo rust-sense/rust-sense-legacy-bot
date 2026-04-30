@@ -127,7 +127,9 @@ export class Camera extends EventEmitter {
                     const l = rayData[dataPointer++];
                     const o = rayData[dataPointer++];
                     const s = rayData[dataPointer++];
-                    const u = (3 * (((t = (l << 2) | (o >> 6)) / 128) | 0) + 5 * (((r = 63 & o) / 16) | 0) + 7 * (i = s)) & 63;
+                    const u =
+                        (3 * (((t = (l << 2) | (o >> 6)) / 128) | 0) + 5 * (((r = 63 & o) / 16) | 0) + 7 * (i = s)) &
+                        63;
                     const f = rayLookback[u];
                     f[0] = t;
                     f[1] = r;
@@ -163,7 +165,11 @@ export class Camera extends EventEmitter {
                     } else {
                         const A = rayData[dataPointer++];
                         const F = rayData[dataPointer++];
-                        const D = (3 * (((t = (A << 2) | (F >> 6)) / 128) | 0) + 5 * (((r = 63 & F) / 16) | 0) + 7 * (i = 63 & n)) & 63;
+                        const D =
+                            (3 * (((t = (A << 2) | (F >> 6)) / 128) | 0) +
+                                5 * (((r = 63 & F) / 16) | 0) +
+                                7 * (i = 63 & n)) &
+                            63;
                         const E = rayLookback[D];
                         E[0] = t;
                         E[1] = r;
@@ -178,8 +184,14 @@ export class Camera extends EventEmitter {
         }
 
         const colours = [
-            [0.5, 0.5, 0.5], [0.8, 0.7, 0.7], [0.3, 0.7, 1], [0.6, 0.6, 0.6],
-            [0.7, 0.7, 0.7], [0.8, 0.6, 0.4], [1, 0.4, 0.4], [1, 0.1, 0.1],
+            [0.5, 0.5, 0.5],
+            [0.8, 0.7, 0.7],
+            [0.3, 0.7, 1],
+            [0.6, 0.6, 0.6],
+            [0.7, 0.7, 0.7],
+            [0.8, 0.6, 0.4],
+            [1, 0.4, 0.4],
+            [1, 0.1, 0.1],
         ];
 
         const image = new Jimp({ width, height });
@@ -198,11 +210,7 @@ export class Camera extends EventEmitter {
                 target_colour = [208, 230, 252];
             } else {
                 const colour = colours[material];
-                target_colour = [
-                    alignment * colour[0] * 255,
-                    alignment * colour[1] * 255,
-                    alignment * colour[2] * 255,
-                ];
+                target_colour = [alignment * colour[0] * 255, alignment * colour[1] * 255, alignment * colour[2] * 255];
             }
 
             const x = i % width;

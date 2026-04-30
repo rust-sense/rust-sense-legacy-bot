@@ -1,24 +1,24 @@
 import { EventEmitter } from 'events';
 import { BufferReader } from 'protobufjs';
-import { mcs_proto } from './proto/mcs_pb.js';
 import {
-    MCS_VERSION_TAG_AND_SIZE,
-    MCS_TAG_AND_SIZE,
-    MCS_SIZE,
-    MCS_PROTO_BYTES,
-    kVersionPacketLen,
-    kTagPacketLen,
-    kSizePacketLenMin,
-    kMCSVersion,
-    kHeartbeatPingTag,
+    kCloseTag,
+    kDataMessageStanzaTag,
     kHeartbeatAckTag,
+    kHeartbeatPingTag,
+    kIqStanzaTag,
     kLoginRequestTag,
     kLoginResponseTag,
-    kCloseTag,
-    kIqStanzaTag,
-    kDataMessageStanzaTag,
+    kMCSVersion,
+    kSizePacketLenMin,
     kStreamErrorStanzaTag,
+    kTagPacketLen,
+    kVersionPacketLen,
+    MCS_PROTO_BYTES,
+    MCS_SIZE,
+    MCS_TAG_AND_SIZE,
+    MCS_VERSION_TAG_AND_SIZE,
 } from './constants.js';
+import { mcs_proto } from './proto/mcs_pb.js';
 
 export class Parser extends EventEmitter {
     private _socket: any;

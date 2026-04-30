@@ -81,13 +81,7 @@ export class PiperProvider implements TTSProvider {
             await this.downloadModel(voice);
         }
 
-        const piper = spawn('piper', [
-            '--model',
-            modelPath,
-            '--data-dir',
-            MODELS_DIR,
-            '--output_raw',
-        ]);
+        const piper = spawn('piper', ['--model', modelPath, '--data-dir', MODELS_DIR, '--output_raw']);
 
         const ffmpeg = spawn('ffmpeg', [
             '-f',
@@ -200,13 +194,7 @@ export class PiperProvider implements TTSProvider {
         client.log('INFO', `Downloading Piper model: ${voiceName}`, 'info');
 
         await new Promise<void>((resolve, reject) => {
-            const child = spawn('python3', [
-                '-m',
-                'piper.download_voices',
-                voiceName,
-                '--data-dir',
-                MODELS_DIR,
-            ]);
+            const child = spawn('python3', ['-m', 'piper.download_voices', voiceName, '--data-dir', MODELS_DIR]);
 
             child.stderr.on('data', (data) => {
                 client.log('INFO', `Piper download: ${data.toString().trim()}`, 'info');

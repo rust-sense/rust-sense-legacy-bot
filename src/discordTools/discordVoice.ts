@@ -81,7 +81,11 @@ export async function sendDiscordVoiceMessage(guildId: string, text: string) {
             ttsQueues.set(guildId, queue);
         }
         queue.push(resource);
-        client.log('INFO', `TTS queued for guild ${guildId} (queue length: ${queue.length}, player status: ${player.state.status})`, 'info');
+        client.log(
+            'INFO',
+            `TTS queued for guild ${guildId} (queue length: ${queue.length}, player status: ${player.state.status})`,
+            'info',
+        );
 
         if (player.state.status === AudioPlayerStatus.Idle) {
             playNext(guildId);

@@ -14,9 +14,9 @@ interface DecryptObject {
 
 // https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
 export default function decrypt(object: DecryptObject, keys: DecryptKeys): any {
-    const cryptoKey = object.appData.find(item => item.key === 'crypto-key');
+    const cryptoKey = object.appData.find((item) => item.key === 'crypto-key');
     if (!cryptoKey) throw new Error('crypto-key is missing');
-    const salt = object.appData.find(item => item.key === 'encryption');
+    const salt = object.appData.find((item) => item.key === 'encryption');
     if (!salt) throw new Error('salt is missing');
     const dh = crypto.createECDH('prime256v1');
     dh.setPrivateKey(keys.privateKey, 'base64');

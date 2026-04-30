@@ -2,15 +2,10 @@ import { EventEmitter } from 'events';
 import Long from 'long';
 import net from 'net';
 import tls from 'tls';
-import { Parser } from './Parser.js';
+import { kDataMessageStanzaTag, kLoginRequestTag, kLoginResponseTag, kMCSVersion } from './constants.js';
 import { checkIn } from './gcm.js';
+import { Parser } from './Parser.js';
 import { mcs_proto } from './proto/mcs_pb.js';
-import {
-    kMCSVersion,
-    kLoginRequestTag,
-    kDataMessageStanzaTag,
-    kLoginResponseTag,
-} from './constants.js';
 
 const HOST = 'mtalk.google.com';
 const PORT = 5228;
@@ -141,7 +136,7 @@ export default class Client extends EventEmitter {
         this._destroy();
         const timeout = Math.min(++this._retryCount, MAX_RETRY_TIMEOUT) * 1000;
         this._retryTimeout = setTimeout(() => {
-            this.connect().catch(err => this.emit('error', err));
+            this.connect().catch((err) => this.emit('error', err));
         }, timeout);
     }
 
