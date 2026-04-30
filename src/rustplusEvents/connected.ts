@@ -43,7 +43,7 @@ export default {
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'rustplusOperational'));
 
         const info = await rustplus.getInfoAsync();
-        if (rustplus.isResponseValid(info)) {
+        if (rustplus.isResponseValid(info) && info.info) {
             const { default: Info } = await import('../structures/Info.js');
             rustplus.info = new Info(info.info);
         }
