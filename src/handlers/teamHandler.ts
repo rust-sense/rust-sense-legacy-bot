@@ -10,6 +10,8 @@ export async function handler(rustplus: any, client: DiscordBot, teamInfo: any):
 }
 
 export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
+    if (!teamInfo || !teamInfo.leaderSteamId || !Array.isArray(teamInfo.members)) return;
+
     const instance = client.getInstance(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
