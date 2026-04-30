@@ -1,7 +1,6 @@
 import axios from 'axios';
 import Long from 'long';
-// @ts-ignore — no types for protobufjs/minimal
-import * as $protobuf from 'protobufjs/minimal.js';
+import $protobuf from 'protobufjs/minimal.js';
 import { checkin_proto } from './proto/mcs_pb.js';
 
 // Ensure Long is available for int64 field serialization

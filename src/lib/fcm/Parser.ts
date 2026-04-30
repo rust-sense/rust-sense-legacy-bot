@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events';
-import { BufferReader } from 'protobufjs';
+import $protobuf from 'protobufjs/minimal.js';
+
+const { BufferReader } = $protobuf;
 import {
     kCloseTag,
     kDataMessageStanzaTag,
