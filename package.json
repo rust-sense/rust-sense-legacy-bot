@@ -6,7 +6,7 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "proto:gen": "pbjs -t static-module -w es6 --es6 src/lib/fcm/proto/mcs.proto src/lib/fcm/proto/checkin.proto src/lib/fcm/proto/android_checkin.proto -o src/lib/fcm/proto/mcs_pb.js && pbts -o src/lib/fcm/proto/mcs_pb.d.ts src/lib/fcm/proto/mcs_pb.js && pbjs -t static-module -w es6 --es6 src/lib/rustplus/rustplus.proto -o src/lib/rustplus/rustplus_pb.js && pbts -o src/lib/rustplus/rustplus_pb.d.ts src/lib/rustplus/rustplus_pb.js",
+        "proto:gen": "pbjs -t static-module -w es6 --es6 src/lib/fcm/proto/mcs.proto src/lib/fcm/proto/checkin.proto src/lib/fcm/proto/android_checkin.proto -o src/lib/fcm/proto/mcs_pb.js && pbts -o src/lib/fcm/proto/mcs_pb.d.ts src/lib/fcm/proto/mcs_pb.js && pbjs -t static-module -w es6 --es6 src/lib/rustplus/rustplus.proto -o src/lib/rustplus/rustplus_pb.js && pbts -o src/lib/rustplus/rustplus_pb.d.ts src/lib/rustplus/rustplus_pb.js && sed -i 's/import \\* as \\$protobuf from \"protobufjs\\/minimal\"/import \\$protobuf from \"protobufjs\\/minimal.js\"/' src/lib/fcm/proto/mcs_pb.js src/lib/rustplus/rustplus_pb.js",
         "build": "pnpm run proto:gen && tsc",
         "test": "tsc --noEmit",
         "dev": "pnpm run proto:gen && tsx watch src/index.ts",
