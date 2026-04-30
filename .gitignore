@@ -16,3 +16,9 @@ data/staticData.sqlite-wal
 data/runtimeData.sqlite
 data/runtimeData.sqlite-shm
 data/runtimeData.sqlite-wal
+
+# generated proto static modules
+src/lib/fcm/proto/mcs_pb.js
+src/lib/fcm/proto/mcs_pb.d.ts
+src/lib/rustplus/rustplus_pb.js
+src/lib/rustplus/rustplus_pb.d.ts

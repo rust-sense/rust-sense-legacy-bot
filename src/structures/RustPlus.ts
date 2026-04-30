@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import RustPlusLib from '@liamcottle/rustplus.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import Translate from 'translate';
 import { resolve } from '../container.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';

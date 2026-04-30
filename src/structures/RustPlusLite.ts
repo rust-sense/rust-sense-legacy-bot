@@ -1,4 +1,4 @@
-import RustPlusLib from '@liamcottle/rustplus.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 
 import { resolve } from '../container.js';
 import rustplusLiteEvents from '../rustplusLiteEvents/index.js';

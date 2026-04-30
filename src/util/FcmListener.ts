@@ -2,7 +2,7 @@ import * as DiscordModule from 'discord.js';
 
 const Discord: any = DiscordModule;
 
-import PushReceiverClient from '@liamcottle/push-receiver/src/client.js';
+import PushReceiverClient from '../lib/fcm/Client.js';
 
 import Battlemetrics from '../structures/Battlemetrics.js';
 import * as ConstantsModule from '../util/constants.js';
