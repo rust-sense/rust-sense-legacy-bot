@@ -1,7 +1,7 @@
-const Discord = require('discord.js');
-
-import { ensureAppStateDirs } from './utils/filesystemUtils';
-const DiscordBot = require('./structures/DiscordBot');
+import * as Discord from 'discord.js';
+import { registerSingleton } from './container.js';
+import DiscordBot from './structures/DiscordBot.js';
+import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 
 export const client = new DiscordBot({
     intents: [
@@ -13,7 +13,9 @@ export const client = new DiscordBot({
     ],
     retryLimit: 2,
     restRequestTimeout: 60000,
-});
+} as Discord.ClientOptions);
+
+registerSingleton('discordBot', client);
 
 ensureAppStateDirs().then(() => {
     client.build();

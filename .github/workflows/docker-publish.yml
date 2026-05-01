@@ -10,6 +10,7 @@ on:
     tags: [ "v*.*.*" ]
   pull_request:
     branches: [ develop ]
+    types: [ opened, synchronize, reopened, labeled, unlabeled, ready_for_review ]
 
 env:
   REGISTRY: ghcr.io
@@ -19,9 +20,8 @@ jobs:
   get-metadata:
     runs-on: ubuntu-24.04
 
-    if: github.event_name != 'pull_request'
-
     outputs:
+      should-publish: ${{ steps.publish-policy.outputs.should-publish }}
       tags: ${{ steps.meta.outputs.tags }}
       labels: ${{ steps.meta.outputs.labels }}
       version: ${{ steps.meta.outputs.version }}
@@ -29,7 +29,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Determine publish policy
+        id: publish-policy
+        run: |
+          echo "should-publish=${{ github.event_name != 'pull_request' || (contains(github.event.pull_request.labels.*.name, 'build/preview') && github.event.pull_request.head.repo.full_name == github.repository) }}" >> "$GITHUB_OUTPUT"
 
       - name: Extract Docker metadata
         id: meta
@@ -40,6 +48,11 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=raw,value=unstable,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
             type=semver,pattern={{version}}
+            type=ref,event=pr,enable=${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build/preview') && github.event.pull_request.head.repo.full_name == github.repository }}
+
+      - name: Note fork preview policy
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build/preview') && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "Preview image publishing is disabled for forked pull requests. The Docker image build still validates mergeability."
 
   build-arch-manifest:
     strategy:
@@ -68,10 +81,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Login in registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
+        if: needs.get-metadata.outputs.should-publish == 'true'
         uses: docker/login-action@6d4b68b490aef8836e8fb5e50ee7b3bdfa5894f0
         with:
           registry: ${{ env.REGISTRY }}
@@ -88,15 +104,17 @@ jobs:
           context: .
           platforms: ${{ matrix.docker-platform }}
           labels: ${{ needs.get-metadata.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ needs.get-metadata.outputs.should-publish == 'true' }}
 
       - name: Export digest
+        if: needs.get-metadata.outputs.should-publish == 'true'
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
+        if: needs.get-metadata.outputs.should-publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ matrix.type }}
@@ -107,7 +125,7 @@ jobs:
   merge-manifest:
     runs-on: ubuntu-24.04
 
-    if: github.event_name != 'pull_request'
+    if: needs.get-metadata.outputs.should-publish == 'true'
 
     permissions:
       contents: read
