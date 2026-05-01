@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { StreamType } from '@discordjs/voice';
 
 import { client } from '../../index.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
@@ -42,6 +43,8 @@ function fetchAllVoiceKeys(): Promise<string[]> {
 }
 
 export class PiperProvider implements TTSProvider {
+    readonly streamType = StreamType.OggOpus;
+
     async getVoices(language: string): Promise<VoiceOption[]> {
         let keys: string[];
         try {

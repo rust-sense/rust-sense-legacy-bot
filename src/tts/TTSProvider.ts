@@ -1,4 +1,5 @@
 import type { Readable } from 'node:stream';
+import type { StreamType } from '@discordjs/voice';
 
 export interface VoiceOption {
     label: string;
@@ -6,6 +7,7 @@ export interface VoiceOption {
 }
 
 export interface TTSProvider {
+    readonly streamType: StreamType;
     synthesize(text: string, language: string, voice: string): Promise<Readable>;
     getVoices(language: string): Promise<VoiceOption[]>;
 }
