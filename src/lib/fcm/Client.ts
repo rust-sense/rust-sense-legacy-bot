@@ -15,6 +15,7 @@ import {
     kMCSVersion,
     kStreamErrorStanzaTag,
 } from './constants.js';
+import { normalizeFcmNumericCredential } from './credentials.js';
 import { checkIn } from './gcm.js';
 import { Parser } from './Parser.js';
 import { LoginRequest_AuthService, LoginRequestSchema } from './proto/mcs_pb.js';
@@ -52,8 +53,8 @@ export default class Client extends EventEmitter {
 
     constructor(androidId: string, securityToken: string, persistentIds: string[] = [], logger: ILogger = noopLogger) {
         super();
-        this._androidId = androidId;
-        this._securityToken = securityToken;
+        this._androidId = normalizeFcmNumericCredential(androidId, 'GCM Android ID');
+        this._securityToken = normalizeFcmNumericCredential(securityToken, 'GCM security token');
         this._persistentIds = persistentIds;
         this._log = logger;
         this._retryCount = 0;

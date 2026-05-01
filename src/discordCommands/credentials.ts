@@ -4,6 +4,7 @@ import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import { normalizeFcmNumericCredential } from '../lib/fcm/credentials.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as InstanceUtils from '../util/instanceUtils.js';
 
@@ -121,6 +122,21 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     const credentials = InstanceUtils.readCredentialsFile(guildId);
     const steamId = interaction.options.getString('steam_id');
     const isHoster = interaction.options.getBoolean('host') || Object.keys(credentials).length === 1;
+    let androidId: string;
+    let securityToken: string;
+
+    try {
+        androidId = normalizeFcmNumericCredential(interaction.options.getString('gcm_android_id'), 'GCM Android ID');
+        securityToken = normalizeFcmNumericCredential(
+            interaction.options.getString('gcm_security_token'),
+            'GCM security token',
+        );
+    } catch (e: any) {
+        const str = e.message || 'Invalid GCM credentials';
+        await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+        client.log(client.intlGet(null, 'warningCap'), str, 'warn');
+        return;
+    }
 
     if (Object.keys(credentials).length !== 1 && isHoster) {
         if (!client.isAdministrator(interaction)) {
@@ -142,8 +158,8 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
 
     credentials[steamId] = {};
     credentials[steamId].gcm = {};
-    credentials[steamId].gcm.android_id = interaction.options.getString('gcm_android_id');
-    credentials[steamId].gcm.security_token = interaction.options.getString('gcm_security_token');
+    credentials[steamId].gcm.android_id = androidId;
+    credentials[steamId].gcm.security_token = securityToken;
     credentials[steamId].issued_date = interaction.options.getString('issued_date');
     credentials[steamId].expire_date = interaction.options.getString('expire_date');
     credentials[steamId].discord_user_id = interaction.member.user.id;
