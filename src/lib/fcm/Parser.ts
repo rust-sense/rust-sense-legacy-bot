@@ -1,5 +1,5 @@
-import { fromBinary } from '@bufbuild/protobuf';
 import type { DescMessage } from '@bufbuild/protobuf';
+import { fromBinary } from '@bufbuild/protobuf';
 import { BinaryReader } from '@bufbuild/protobuf/wire';
 import { EventEmitter } from 'events';
 import type { ILogger } from '../ILogger.js';
