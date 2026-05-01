@@ -1,7 +1,8 @@
 import { create, fromBinary, toBinary } from '@bufbuild/protobuf';
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
-import { rustPlusLogger as log } from '../logger.js';
+import type { ILogger } from '../ILogger.js';
+import { noopLogger } from '../ILogger.js';
 import { Camera } from './Camera.js';
 import { AppMessageSchema, AppRequestSchema } from './rustplus_pb.js';
 
@@ -14,6 +15,7 @@ export class RustPlus extends EventEmitter {
     seq: number;
     seqCallbacks: Array<((message: any) => boolean | void) | undefined>;
     websocket: WebSocket | null;
+    private libLogger: ILogger;
 
     constructor(
         server: string,
@@ -21,6 +23,7 @@ export class RustPlus extends EventEmitter {
         playerId: string | number,
         playerToken: string | number,
         useFacepunchProxy = false,
+        logger: ILogger = noopLogger,
     ) {
         super();
         this.server = server;
@@ -31,6 +34,11 @@ export class RustPlus extends EventEmitter {
         this.seq = 0;
         this.seqCallbacks = [];
         this.websocket = null;
+        this.libLogger = logger;
+    }
+
+    setLogger(logger: ILogger): void {
+        this.libLogger = logger;
     }
 
     connect(): void {
@@ -43,16 +51,16 @@ export class RustPlus extends EventEmitter {
         const address = this.useFacepunchProxy
             ? `wss://companion-rust.facepunch.com/game/${this.server}/${this.port}`
             : `ws://${this.server}:${this.port}`;
-        log.info(`connecting to ${address}`);
+        this.libLogger.info(`connecting to ${address}`);
         this.websocket = new WebSocket(address);
 
         this.websocket.on('open', () => {
-            log.info(`WebSocket connected to ${address}`);
+            this.libLogger.info(`WebSocket connected to ${address}`);
             this.emit('connected');
         });
 
         this.websocket.on('error', (e: Error) => {
-            log.error(`WebSocket error: ${e.message}`);
+            this.libLogger.error(`WebSocket error: ${e.message}`);
             this.emit('error', e);
         });
 
@@ -60,20 +68,20 @@ export class RustPlus extends EventEmitter {
             const message = fromBinary(AppMessageSchema, new Uint8Array(data));
 
             if (message.response && message.response.seq && this.seqCallbacks[message.response.seq]) {
-                log.debug(`received response seq=${message.response.seq}`);
+                this.libLogger.debug(`received response seq=${message.response.seq}`);
                 const callback = this.seqCallbacks[message.response.seq]!;
                 const result = callback(message);
                 delete this.seqCallbacks[message.response.seq];
                 if (result) return;
             } else {
-                log.debug(`received broadcast message`);
+                this.libLogger.debug(`received broadcast message`);
             }
 
             this.emit('message', message);
         });
 
         this.websocket.on('close', () => {
-            log.info('WebSocket disconnected');
+            this.libLogger.info('WebSocket disconnected');
             this.emit('disconnected');
         });
     }
@@ -92,7 +100,7 @@ export class RustPlus extends EventEmitter {
     sendRequest(data: any, callback?: (message: any) => boolean | void): void {
         const currentSeq = ++this.seq;
         const requestType = Object.keys(data).find((k) => k !== 'entityId') ?? 'unknown';
-        log.debug(`sending request seq=${currentSeq} type=${requestType}`);
+        this.libLogger.debug(`sending request seq=${currentSeq} type=${requestType}`);
 
         if (callback) {
             this.seqCallbacks[currentSeq] = callback;

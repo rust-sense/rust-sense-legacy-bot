@@ -2,6 +2,8 @@ import { create } from '@bufbuild/protobuf';
 import { sizeDelimitedEncode } from '@bufbuild/protobuf/wire';
 import { EventEmitter } from 'events';
 import tls from 'tls';
+import type { ILogger } from '../ILogger.js';
+import { noopLogger } from '../ILogger.js';
 import {
     kCloseTag,
     kDataMessageStanzaTag,
@@ -13,6 +15,9 @@ import {
     kMCSVersion,
     kStreamErrorStanzaTag,
 } from './constants.js';
+import { checkIn } from './gcm.js';
+import { Parser } from './Parser.js';
+import { LoginRequest_AuthService, LoginRequestSchema } from './proto/mcs_pb.js';
 
 const TAG_NAMES: Record<number, string> = {
     [kHeartbeatPingTag]: 'HeartbeatPing',
@@ -24,10 +29,6 @@ const TAG_NAMES: Record<number, string> = {
     [kDataMessageStanzaTag]: 'DataMessageStanza',
     [kStreamErrorStanzaTag]: 'StreamErrorStanza',
 };
-import { checkIn } from './gcm.js';
-import { fcmLogger as log } from '../logger.js';
-import { Parser } from './Parser.js';
-import { LoginRequest_AuthService, LoginRequestSchema } from './proto/mcs_pb.js';
 
 const HOST = 'mtalk.google.com';
 const PORT = 5228;
@@ -41,6 +42,7 @@ export default class Client extends EventEmitter {
     private _retryTimeout: ReturnType<typeof setTimeout> | null;
     private _socket: tls.TLSSocket | null;
     private _parser: Parser | null;
+    private _log: ILogger;
 
     private _onSocketConnect: () => void;
     private _onSocketClose: () => void;
@@ -48,11 +50,12 @@ export default class Client extends EventEmitter {
     private _onMessage: (msg: { tag: number; object: any }) => void;
     private _onParserError: (error: Error) => void;
 
-    constructor(androidId: string, securityToken: string, persistentIds: string[] = []) {
+    constructor(androidId: string, securityToken: string, persistentIds: string[] = [], logger: ILogger = noopLogger) {
         super();
         this._androidId = androidId;
         this._securityToken = securityToken;
         this._persistentIds = persistentIds;
+        this._log = logger;
         this._retryCount = 0;
         this._retryTimeout = null;
         this._socket = null;
@@ -65,14 +68,14 @@ export default class Client extends EventEmitter {
     }
 
     async connect(): Promise<void> {
-        log.debug('connect() called');
+        this._log.debug('connect() called');
         await this._checkIn();
         this._connectSocket();
         if (!this._socket) return;
-        this._parser = new Parser(this._socket);
+        this._parser = new Parser(this._socket, this._log);
         this._parser.on('message', this._onMessage);
         this._parser.on('error', this._onParserError);
-        log.debug('parser attached to socket');
+        this._log.debug('parser attached to socket');
     }
 
     destroy(): void {
@@ -80,25 +83,25 @@ export default class Client extends EventEmitter {
     }
 
     private async _checkIn(): Promise<void> {
-        log.debug(`checkIn starting for androidId: ${this._androidId}`);
-        await checkIn(this._androidId, this._securityToken);
-        log.debug('checkIn complete');
+        this._log.debug(`checkIn starting for androidId: ${this._androidId}`);
+        await checkIn(this._androidId, this._securityToken, this._log);
+        this._log.debug('checkIn complete');
     }
 
     private _connectSocket(): void {
-        log.debug(`connecting to ${HOST}:${PORT}`);
+        this._log.debug(`connecting to ${HOST}:${PORT}`);
         this._socket = tls.connect({ host: HOST, port: PORT, servername: HOST });
         this._socket.setKeepAlive(true);
         this._socket.on('connect', this._onSocketConnect);
         this._socket.on('close', this._onSocketClose);
         this._socket.on('error', this._onSocketError);
         const loginBuf = this._loginBuffer();
-        log.debug(`writing login buffer (${loginBuf.length}B) to socket`);
+        this._log.debug(`writing login buffer (${loginBuf.length}B) to socket`);
         this._socket.write(loginBuf);
     }
 
     private _destroy(): void {
-        log.debug('destroying socket and parser');
+        this._log.debug('destroying socket and parser');
         if (this._retryTimeout) {
             clearTimeout(this._retryTimeout);
             this._retryTimeout = null;
@@ -120,7 +123,9 @@ export default class Client extends EventEmitter {
 
     private _loginBuffer(): Buffer {
         const hexAndroidId = BigInt(this._androidId).toString(16);
-        log.debug(`building login request: deviceId=android-${hexAndroidId}, persistentIds=${this._persistentIds.length}`);
+        this._log.debug(
+            `building login request: deviceId=android-${hexAndroidId}, persistentIds=${this._persistentIds.length}`,
+        );
         const request = create(LoginRequestSchema, {
             adaptiveHeartbeat: false,
             authService: LoginRequest_AuthService.ANDROID_ID,
@@ -143,30 +148,30 @@ export default class Client extends EventEmitter {
 
     private _handleSocketConnect(): void {
         this._retryCount = 0;
-        log.info('socket connected');
+        this._log.info('socket connected');
         this.emit('connect');
     }
 
     private _handleSocketClose(): void {
-        log.info('socket closed, retrying...');
+        this._log.info('socket closed, retrying...');
         this.emit('disconnect');
         this._retry();
     }
 
     private _handleSocketError(error: Error): void {
-        log.error(`socket error [${(error as any).code ?? 'unknown'}]: ${error.message}`);
+        this._log.error(`socket error [${(error as any).code ?? 'unknown'}]: ${error.message}`);
         // socket errors are handled via the close event which triggers retry
     }
 
     private _handleParserError(error: Error): void {
-        log.error(`parser error: ${error.message}`);
+        this._log.error(`parser error: ${error.message}`);
         this._retry();
     }
 
     private _retry(): void {
         this._destroy();
         const timeout = Math.min(++this._retryCount, MAX_RETRY_TIMEOUT) * 1000;
-        log.debug(`scheduling retry #${this._retryCount} in ${timeout}ms`);
+        this._log.debug(`scheduling retry #${this._retryCount} in ${timeout}ms`);
         this._retryTimeout = setTimeout(() => {
             this.connect().catch((err) => this.emit('error', err));
         }, timeout);
@@ -174,37 +179,37 @@ export default class Client extends EventEmitter {
 
     private _handleMessage({ tag, object }: { tag: number; object: any }): void {
         const tagName = TAG_NAMES[tag] ?? `unknown(${tag})`;
-        log.debug(`message received: ${tagName}`);
+        this._log.debug(`message received: ${tagName}`);
         if (tag === kLoginResponseTag) {
-            log.info('login response received');
+            this._log.info('login response received');
             this._persistentIds = [];
         } else if (tag === kDataMessageStanzaTag) {
             this._onDataMessage(object);
         } else if (tag === kHeartbeatPingTag) {
-            log.debug('heartbeat ping from server');
+            this._log.debug('heartbeat ping from server');
         } else if (tag === kHeartbeatAckTag) {
-            log.debug('heartbeat ack from server');
+            this._log.debug('heartbeat ack from server');
         } else if (tag === kCloseTag) {
-            log.info('server sent Close — connection will drop');
+            this._log.info('server sent Close - connection will drop');
         } else if (tag === kStreamErrorStanzaTag) {
-            log.error(`stream error from server: ${JSON.stringify(object)}`);
+            this._log.error(`stream error from server: ${JSON.stringify(object)}`);
         } else if (tag === kIqStanzaTag) {
-            log.debug(`IQ stanza: ${JSON.stringify(object)}`);
+            this._log.debug(`IQ stanza: ${JSON.stringify(object)}`);
         }
     }
 
     private _onDataMessage(object: any): void {
         const keys = object.appData?.map((d: any) => d.key) ?? [];
-        log.debug(`data message, persistentId: ${object.persistentId}, appData keys: [${keys.join(', ')}]`);
+        this._log.debug(`data message, persistentId: ${object.persistentId}, appData keys: [${keys.join(', ')}]`);
 
         if (this._persistentIds.includes(object.persistentId)) {
-            log.debug(`duplicate persistentId ${object.persistentId}, skipping`);
+            this._log.debug(`duplicate persistentId ${object.persistentId}, skipping`);
             return;
         }
 
         // bot uses only unencrypted FCM messages — skip encrypted ones entirely
         if (keys.includes('crypto-key')) {
-            log.warn('encrypted FCM message received, skipping (crypto-key present)');
+            this._log.warn('encrypted FCM message received, skipping (crypto-key present)');
             return;
         }
 

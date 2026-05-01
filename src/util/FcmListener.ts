@@ -5,6 +5,7 @@ const Discord: any = DiscordModule;
 import PushReceiverClient from '../lib/fcm/Client.js';
 
 import Battlemetrics from '../structures/Battlemetrics.js';
+import LibLoggerAdapter from '../structures/LibLoggerAdapter.js';
 import * as ConstantsModule from '../util/constants.js';
 
 const Constants: any = ConstantsModule;
@@ -113,7 +114,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
 
     let listener: any;
     try {
-        listener = new PushReceiverClient(androidId, securityToken, []);
+        listener = new PushReceiverClient(androidId, securityToken, [], new LibLoggerAdapter(client.logger, 'FCM'));
     } catch (e: any) {
         client.log(
             client.intlGet(null, 'errorCap'),

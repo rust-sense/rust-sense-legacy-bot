@@ -20,6 +20,7 @@ import * as InstanceUtils from '../util/instanceUtils.js';
 import { languages } from '../util/languages.js';
 import * as Timer from '../util/timer.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
+import LibLoggerAdapter from './LibLoggerAdapter.js';
 import Logger from './Logger.js';
 
 function getClient(): any {
@@ -467,6 +468,7 @@ export default class RustPlus extends RustPlusLib {
         this.logger = new Logger(`${this.guildId}.log`);
         this.logger.setGuildId(this.guildId);
         this.logger.serverName = instance.serverList[this.serverId].title;
+        this.setLogger(new LibLoggerAdapter(this.logger, 'RustPlus'));
 
         this.generalSettings = instance.generalSettings;
         this.notificationSettings = instance.notificationSettings;

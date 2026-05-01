@@ -1,14 +1,12 @@
 import { create, fromBinary, toBinary } from '@bufbuild/protobuf';
 import axios from 'axios';
-import { fcmLogger as log } from '../logger.js';
-import {
-    AndroidCheckinRequestSchema,
-    AndroidCheckinResponseSchema,
-} from './proto/checkin_pb.js';
+import type { ILogger } from '../ILogger.js';
+import { noopLogger } from '../ILogger.js';
+import { AndroidCheckinRequestSchema, AndroidCheckinResponseSchema } from './proto/checkin_pb.js';
 
 const CHECKIN_URL = 'https://android.clients.google.com/checkin';
 
-export async function checkIn(androidId: string, securityToken: string): Promise<any> {
+export async function checkIn(androidId: string, securityToken: string, log: ILogger = noopLogger): Promise<any> {
     log.debug(`sending checkIn request to ${CHECKIN_URL}`);
     const buffer = getCheckinRequest(androidId, securityToken);
     const response = await axios.post(CHECKIN_URL, buffer, {

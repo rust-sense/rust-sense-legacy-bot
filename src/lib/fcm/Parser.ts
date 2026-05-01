@@ -2,7 +2,8 @@ import { fromBinary } from '@bufbuild/protobuf';
 import type { DescMessage } from '@bufbuild/protobuf';
 import { BinaryReader } from '@bufbuild/protobuf/wire';
 import { EventEmitter } from 'events';
-import { fcmLogger as log } from '../logger.js';
+import type { ILogger } from '../ILogger.js';
+import { noopLogger } from '../ILogger.js';
 import {
     kCloseTag,
     kDataMessageStanzaTag,
@@ -42,10 +43,12 @@ export class Parser extends EventEmitter {
     private _handshakeComplete: boolean;
     private _isWaitingForData: boolean;
     private _onData: (buffer: Buffer) => void;
+    private _log: ILogger;
 
-    constructor(socket: any) {
+    constructor(socket: any, logger: ILogger = noopLogger) {
         super();
         this._socket = socket;
+        this._log = logger;
         this._state = MCS_VERSION_TAG_AND_SIZE;
         this._data = Buffer.alloc(0);
         this._sizePacketSoFar = 0;
@@ -122,7 +125,7 @@ export class Parser extends EventEmitter {
     private _onGotVersion(): void {
         const version = this._data.readInt8(0);
         this._data = this._data.slice(1);
-        log.debug(`MCS version byte: ${version}`);
+        this._log.debug(`MCS version byte: ${version}`);
         if (version < kMCSVersion && version !== 38) {
             this._emitError(new Error(`Got wrong version: ${version}`));
             return;
@@ -177,7 +180,7 @@ export class Parser extends EventEmitter {
         }
 
         if (this._messageSize === 0) {
-            log.debug(`zero-size message for tag=${this._messageTag}`);
+            this._log.debug(`zero-size message for tag=${this._messageTag}`);
             this.emit('message', { tag: this._messageTag, object: {} });
             this._getNextMessage();
             return;
@@ -193,15 +196,15 @@ export class Parser extends EventEmitter {
         this._data = this._data.slice(this._messageSize);
         const object = fromBinary(schema, buffer);
 
-        log.debug(`decoded message tag=${this._messageTag}, size=${this._messageSize}B`);
+        this._log.debug(`decoded message tag=${this._messageTag}, size=${this._messageSize}B`);
         this.emit('message', { tag: this._messageTag, object });
 
         if (this._messageTag === kLoginResponseTag) {
             if (this._handshakeComplete) {
-                log.error('unexpected duplicate login response');
+                this._log.error('unexpected duplicate login response');
             } else {
                 this._handshakeComplete = true;
-                log.debug('MCS handshake complete');
+                this._log.debug('MCS handshake complete');
             }
         }
 
