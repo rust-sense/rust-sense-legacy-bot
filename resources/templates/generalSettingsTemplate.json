@@ -5,7 +5,7 @@
     "piperVoice": "en_US-lessac-medium",
     "prefix": "!",
     "muteInGameBotMessages": false,
-    "trademark": "rustplusplus",
+    "trademark": "rust-sense",
     "inGameCommandsEnabled": true,
     "inGameCommandAccessMode": "blacklist",
     "fcmAlarmNotificationEnabled": false,

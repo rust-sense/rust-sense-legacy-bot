@@ -10,5 +10,5 @@ services:
     environment:
       - RPP_DISCORD_CLIENT_ID=111....1111
       - RPP_DISCORD_TOKEN=token
-    container_name: rpp
-    image: ghcr.io/alexemanuelol/rustplusplus
+    container_name: rust-sense
+    image: ghcr.io/rust-sense/bot

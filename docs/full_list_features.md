@@ -18,13 +18,13 @@
 - **/recycle** - Display the output of recycling an item.
 - **/research** - Display the cost to research an item.
 - **/reset** - Reset Discord Channels.
-- **/role** - Setup a specific role to use rustplusplus.
+- **/role** - Setup a specific role to use rust-sense.
 - **/storagemonitor** - Change image of paired Storage Monitors.
 - **/switch** - Change image of paired Storage Monitors.
 - **/upkeep** - Get the upkeep cost of an item.
-- **/uptime** - Get the current uptime for rustplusplus.
+- **/uptime** - Get the current uptime for rust-sense.
 - **/whitelist** - Whitelist a user for in-game bot commands.
-- **/voice** - Let rustplusplus join voicechat.
+- **/voice** - Let rust-sense join voicechat.
 
 ## In-Game Commands
 - **afk** - Display afk teammates.
@@ -41,7 +41,7 @@
 - **leader** - Transfer leadership.
 - **marker/markers** - Set markers to navigate to.
 - **market** - Search for or subscribe to items in vending machines.
-- **mute** - Mute rustplusplus In-Game.
+- **mute** - Mute rust-sense In-Game.
 - **note/notes** - Add notes.
 - **offline** - Display offline teammates.
 - **online** - Display online teammates.
@@ -50,7 +50,7 @@
 - **prox** - Display teammates that are nearby.
 - **recycle** - Display the output of recycling an item.
 - **research** - Display the cost to research an item.
-- **send** - Send a message through rustplusplus to a person on Discord.
+- **send** - Send a message through rust-sense to a person on Discord.
 - **small** - Get information regarding Small Oil Rig.
 - **steamid** - Get teammate steamid.
 - **team** - Get team information (names of all teammates).
@@ -59,9 +59,9 @@
 - **tr** - Translate from English to another language.
 - **trf** - Translate from one language to another.
 - **tts** - Text-To-Speech (Need to have teamchat open in Discord).
-- **unmute** - Unmute rustplusplus In-Game.
+- **unmute** - Unmute rust-sense In-Game.
 - **upkeep** - Check upkeep of Storage Monitor Tool Cupboards.
-- **uptime** - Display the uptime of rustplusplus and currently connected server.
+- **uptime** - Display the uptime of rust-sense and currently connected server.
 - **vendor** - Get information regarding the Traveling Vendor
 - **wipe** - Display time since wipe.
 
@@ -97,7 +97,7 @@
 
 ## Other
 - Connect through different Rust Servers seemingly through the `servers` Text-Channel in Discord.
-- Easily access rustplusplus settings via the Discord Text-Channel `settings`.
+- Easily access rust-sense settings via the Discord Text-Channel `settings`.
 - Run In-Game commands either from In-Game teamchat or from Discord Text-Channel `commands`.
 - Communicate with teammates from In-Game to Discord and vice versa.
 - Get activity information in the `activity` Text-Channel on Discord. Information such as Smart Devices not reachable, Teammate connect/disconnect/leave/join/death, Smart Alarms notify when triggered, Server went offline/online, Map Wipe Detection, Storage Monitor Decay Notification, Tracker notifications etc...

@@ -106,7 +106,7 @@ export function getTrademarkSelectMenu(guildId: string, trademark: string) {
             customId: 'Trademark',
             placeholder: `${trademark === 'NOT SHOWING' ? client.intlGet(guildId, 'notShowingCap') : trademark}`,
             options: [
-                getTrademarkOption(guildId, 'rustplusplus'),
+                getTrademarkOption(guildId, 'rust-sense'),
                 getTrademarkOption(guildId, 'Rust++'),
                 getTrademarkOption(guildId, 'R++'),
                 getTrademarkOption(guildId, 'RPP'),

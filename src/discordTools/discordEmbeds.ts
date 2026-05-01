@@ -1062,10 +1062,10 @@ export function getUserSendEmbed(guildId, serverId, sender, str) {
 }
 
 export function getHelpEmbed(guildId) {
-    const repository = 'https://github.com/faithix/rustplusplus';
-    const credentials = `${repository}/blob/master/docs/credentials.md`;
-    const pairServer = `${repository}/blob/master/docs/pair_and_connect_to_server.md`;
-    const commands = `${repository}/blob/master/docs/commands.md`;
+    const repository = 'https://github.com/rust-sense/bot';
+    const credentials = `${repository}/blob/develop/docs/credentials.md`;
+    const pairServer = `${repository}/blob/develop/docs/pair_and_connect_to_server.md`;
+    const commands = `${repository}/blob/develop/docs/commands.md`;
 
     const description =
         `→ [${client.intlGet(guildId, 'commandsHelpHowToCredentials')}](${credentials})\n` +
@@ -1075,7 +1075,7 @@ export function getHelpEmbed(guildId) {
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
         timestamp: true,
-        title: `rustplusplus Help`,
+        title: `rust-sense Help`,
         description: description,
     });
 }

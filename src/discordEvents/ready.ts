@@ -32,7 +32,7 @@ export default {
         }
 
         try {
-            await client.user.setAvatar(cwdPath('resources/images/rustplusplus_logo.png'));
+            await client.user.setAvatar(cwdPath('resources/images/rust-sense_logo.png'));
         } catch (e) {
             client.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'ignoreSetAvatar'), 'warn');
         }

@@ -20,7 +20,7 @@ export default async function setupGuildCategory(
         }
     }
     if (category === undefined) {
-        category = await DiscordTools.addCategory(guild.id, 'rustplusplus', perms);
+        category = await DiscordTools.addCategory(guild.id, 'rust-sense', perms);
         if (!category) {
             return undefined;
         }
