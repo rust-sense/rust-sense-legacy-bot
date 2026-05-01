@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import RustPlusLib from '@liamcottle/rustplus.js';
 import Translate from 'translate';
 import { resolve } from '../container.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
@@ -9,6 +8,7 @@ import * as DiscordTools from '../discordTools/discordTools.js';
 import * as DiscordVoice from '../discordTools/discordVoice.js';
 import * as InGameChatHandler from '../handlers/inGameChatHandler.js';
 import * as TeamHandler from '../handlers/teamHandler.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import rustplusEvents from '../rustplusEvents/index.js';
 import RustPlusLite from '../structures/RustPlusLite.js';
 import type { RustplusEvent } from '../types/discord.js';
@@ -20,6 +20,7 @@ import * as InstanceUtils from '../util/instanceUtils.js';
 import { languages } from '../util/languages.js';
 import * as Timer from '../util/timer.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
+import LibLoggerAdapter from './LibLoggerAdapter.js';
 import Logger from './Logger.js';
 
 function getClient(): any {
@@ -467,6 +468,7 @@ export default class RustPlus extends RustPlusLib {
         this.logger = new Logger(`${this.guildId}.log`);
         this.logger.setGuildId(this.guildId);
         this.logger.serverName = instance.serverList[this.serverId].title;
+        this.setLogger(new LibLoggerAdapter(this.logger, 'RustPlus'));
 
         this.generalSettings = instance.generalSettings;
         this.notificationSettings = instance.notificationSettings;

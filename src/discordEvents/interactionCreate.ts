@@ -46,7 +46,16 @@ export default {
                 client.log(client.intlGet(null, 'errorCap'), e, 'error');
 
                 const str = client.intlGet(interaction.guildId, 'errorExecutingCommand');
-                await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
+                const embed = DiscordEmbeds.getActionInfoEmbed(1, str);
+                try {
+                    await interaction.editReply(embed);
+                } catch {
+                    try {
+                        await interaction.reply(embed);
+                    } catch {
+                        /* interaction is dead — nothing to do */
+                    }
+                }
                 client.log(client.intlGet(null, 'errorCap'), str, 'error');
             }
         } else if (interaction.type === InteractionType.ModalSubmit) {

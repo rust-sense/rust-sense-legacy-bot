@@ -6,9 +6,10 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "build": "tsc",
-        "test": "tsc --noEmit",
-        "dev": "tsx watch src/index.ts",
+        "proto:gen": "buf generate src/lib/fcm/proto && buf generate --template buf.rustplus.gen.yaml src/lib/rustplus",
+        "build": "pnpm run proto:gen && tsc",
+        "test": "pnpm run proto:gen && tsc --noEmit",
+        "dev": "pnpm run proto:gen && tsx watch src/index.ts",
         "format": "biome format --write",
         "lint": "biome lint"
     },
@@ -22,12 +23,11 @@
     },
     "homepage": "https://github.com/rust-sense/bot",
     "dependencies": {
+        "@bufbuild/protobuf": "^2.5.2",
         "@discordjs/builders": "^1.14.1",
         "@discordjs/rest": "^2.6.1",
         "@discordjs/voice": "^0.19.2",
         "@formatjs/intl": "^4.1.8",
-        "@liamcottle/push-receiver": "^0.0.4",
-        "@liamcottle/rustplus.js": "git+https://github.com/alexemanuelol/rustplus.js.git#089cfd3db1b04709911948bce669273139c6a124",
         "awilix": "^13.0.3",
         "axios": "^1.15.2",
         "colors": "^1.4.0",
@@ -36,22 +36,26 @@
         "ffmpeg-static": "^5.3.0",
         "gm": "^1.25.1",
         "intl-messageformat": "^11.2.3",
+        "http_ece": "^1.2.0",
         "jimp": "^1.6.1",
         "lodash": "^4.18.1",
         "sodium-native": "^5.1.0",
         "translate": "^3.0.1",
         "winston": "^3.19.0",
-        "winston-daily-rotate-file": "^5.0.0"
+        "winston-daily-rotate-file": "^5.0.0",
+        "ws": "^8.18.0"
     },
     "resolutions": {
-        "jpeg-js": "0.4.4",
-        "protobufjs": "7.5.5"
+        "jpeg-js": "0.4.4"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.13",
+        "@bufbuild/buf": "^1.51.0",
+        "@bufbuild/protoc-gen-es": "^2.5.2",
+        "@types/ws": "^8.5.14",
         "@types/gm": "^1.25.4",
         "@types/lodash": "^4.17.16",
-        "@types/node": "^20.17.46",
+        "@types/node": "^22.0.0",
         "tsx": "^4.19.4",
         "typescript": "^5.8.3"
     }

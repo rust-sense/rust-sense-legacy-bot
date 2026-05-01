@@ -16,3 +16,9 @@ data/staticData.sqlite-wal
 data/runtimeData.sqlite
 data/runtimeData.sqlite-shm
 data/runtimeData.sqlite-wal
+
+# generated proto static modules
+src/lib/fcm/proto/mcs_pb.ts
+src/lib/fcm/proto/checkin_pb.ts
+src/lib/fcm/proto/android_checkin_pb.ts
+src/lib/rustplus/rustplus_pb.ts

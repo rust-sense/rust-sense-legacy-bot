@@ -1,9 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { MessageFlags } from 'discord.js';
-
-import { destroyGuildTTS } from '../discordTools/discordVoice.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { destroyGuildTTS } from '../discordTools/discordVoice.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {

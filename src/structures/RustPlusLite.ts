@@ -1,8 +1,8 @@
-import RustPlusLib from '@liamcottle/rustplus.js';
-
 import { resolve } from '../container.js';
+import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import rustplusLiteEvents from '../rustplusLiteEvents/index.js';
 import type { RustplusEvent } from '../types/discord.js';
+import LibLoggerAdapter from './LibLoggerAdapter.js';
 
 function getClient() {
     return resolve<{
@@ -35,7 +35,7 @@ export default class RustPlusLite extends RustPlusLib {
         steamId: string,
         playerToken: string,
     ) {
-        super(serverIp, appPort, steamId, playerToken);
+        super(serverIp, appPort, steamId, playerToken, false, new LibLoggerAdapter(logger, 'RustPlus LITE'));
 
         this.serverId = `${this.server}-${this.port}`;
         this.guildId = guildId;
