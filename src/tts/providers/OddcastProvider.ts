@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import { StreamType } from '@discordjs/voice';
 import getStaticFilesStorage from '../../util/getStaticFilesStorage.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
@@ -21,6 +22,8 @@ const ACTOR_NAMES: Record<string, Record<string, string | null>> = {
 };
 
 export class OddcastProvider implements TTSProvider {
+    readonly streamType = StreamType.Arbitrary;
+
     async getVoices(language: string): Promise<VoiceOption[]> {
         const langActors = Actors[language];
         if (!langActors) return [];
@@ -50,6 +53,18 @@ export class OddcastProvider implements TTSProvider {
 
         const url = `https://cache-a.oddcast.com/tts/genC.php?EID=${params.EID}&LID=${params.LID}&VID=${params.VID}&TXT=${encodeURIComponent(text)}&EXT=mp3`;
         const response = await fetch(url);
+        if (!response.ok) {
+            const body = await response.text();
+            throw new Error(`Oddcast TTS request failed with ${response.status}: ${body.slice(0, 200)}`);
+        }
+        if (!response.body) {
+            throw new Error('Oddcast TTS response did not include an audio body');
+        }
+        const contentType = response.headers.get('content-type') ?? '';
+        if (contentType.includes('text/') || contentType.includes('json')) {
+            const body = await response.text();
+            throw new Error(`Oddcast TTS returned non-audio content (${contentType}): ${body.slice(0, 200)}`);
+        }
         return Readable.fromWeb(response.body as any);
     }
 }
