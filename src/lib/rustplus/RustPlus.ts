@@ -69,7 +69,7 @@ export class RustPlus extends EventEmitter {
                 log.debug(`received broadcast message`);
             }
 
-            this.emit('message', fromBinary(AppMessageSchema, new Uint8Array(data)));
+            this.emit('message', message);
         });
 
         this.websocket.on('close', () => {

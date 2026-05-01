@@ -18,7 +18,7 @@ export async function checkIn(androidId: string, securityToken: string): Promise
     log.debug(`checkIn response: HTTP ${response.status}, ${response.data.byteLength}B`);
     const body = new Uint8Array(response.data);
     const result = fromBinary(AndroidCheckinResponseSchema, body);
-    log.debug(`checkIn decoded: androidId=${result.androidId}, securityToken=${result.securityToken}`);
+    log.debug(`checkIn decoded: androidId=${result.androidId}, securityToken=<redacted>`);
     return result;
 }
 
