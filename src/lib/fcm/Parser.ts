@@ -1,7 +1,8 @@
+import { fromBinary } from '@bufbuild/protobuf';
+import type { DescMessage } from '@bufbuild/protobuf';
+import { BinaryReader } from '@bufbuild/protobuf/wire';
 import { EventEmitter } from 'events';
-import $protobuf from 'protobufjs/minimal.js';
-
-const { BufferReader } = $protobuf;
+import { fcmLogger as log } from '../logger.js';
 import {
     kCloseTag,
     kDataMessageStanzaTag,
@@ -20,7 +21,16 @@ import {
     MCS_TAG_AND_SIZE,
     MCS_VERSION_TAG_AND_SIZE,
 } from './constants.js';
-import { mcs_proto } from './proto/mcs_pb.js';
+import {
+    CloseSchema,
+    DataMessageStanzaSchema,
+    HeartbeatAckSchema,
+    HeartbeatPingSchema,
+    IqStanzaSchema,
+    LoginRequestSchema,
+    LoginResponseSchema,
+    StreamErrorStanzaSchema,
+} from './proto/mcs_pb.js';
 
 export class Parser extends EventEmitter {
     private _socket: any;
@@ -112,6 +122,7 @@ export class Parser extends EventEmitter {
     private _onGotVersion(): void {
         const version = this._data.readInt8(0);
         this._data = this._data.slice(1);
+        log.debug(`MCS version byte: ${version}`);
         if (version < kMCSVersion && version !== 38) {
             this._emitError(new Error(`Got wrong version: ${version}`));
             return;
@@ -127,12 +138,12 @@ export class Parser extends EventEmitter {
 
     private _onGotMessageSize(): void {
         let incompleteSizePacket = false;
-        const reader = new BufferReader(this._data);
+        const reader = new BinaryReader(this._data);
 
         try {
-            this._messageSize = reader.int32();
+            this._messageSize = reader.uint32();
         } catch (error: any) {
-            if (error.message.startsWith('index out of range:')) {
+            if (error instanceof RangeError && error.message === 'premature EOF') {
                 incompleteSizePacket = true;
             } else {
                 this._emitError(error);
@@ -159,13 +170,14 @@ export class Parser extends EventEmitter {
     }
 
     private _onGotMessageBytes(): void {
-        const type = this._buildTypeFromTag(this._messageTag);
-        if (!type) {
-            this._emitError(new Error('Unknown tag'));
+        const schema = this._schemaFromTag(this._messageTag);
+        if (!schema) {
+            this._emitError(new Error(`Unknown tag: ${this._messageTag}`));
             return;
         }
 
         if (this._messageSize === 0) {
+            log.debug(`zero-size message for tag=${this._messageTag}`);
             this.emit('message', { tag: this._messageTag, object: {} });
             this._getNextMessage();
             return;
@@ -179,20 +191,17 @@ export class Parser extends EventEmitter {
 
         const buffer = this._data.slice(0, this._messageSize);
         this._data = this._data.slice(this._messageSize);
-        const message = type.decode(buffer);
-        const object = type.toObject(message, {
-            longs: String,
-            enums: String,
-            bytes: Buffer,
-        });
+        const object = fromBinary(schema, buffer);
 
+        log.debug(`decoded message tag=${this._messageTag}, size=${this._messageSize}B`);
         this.emit('message', { tag: this._messageTag, object });
 
         if (this._messageTag === kLoginResponseTag) {
             if (this._handshakeComplete) {
-                console.error('Unexpected login response');
+                log.error('unexpected duplicate login response');
             } else {
                 this._handshakeComplete = true;
+                log.debug('MCS handshake complete');
             }
         }
 
@@ -206,24 +215,24 @@ export class Parser extends EventEmitter {
         this._waitForData();
     }
 
-    private _buildTypeFromTag(tag: number): any {
+    private _schemaFromTag(tag: number): DescMessage | null {
         switch (tag) {
             case kHeartbeatPingTag:
-                return mcs_proto.HeartbeatPing;
+                return HeartbeatPingSchema;
             case kHeartbeatAckTag:
-                return mcs_proto.HeartbeatAck;
+                return HeartbeatAckSchema;
             case kLoginRequestTag:
-                return mcs_proto.LoginRequest;
+                return LoginRequestSchema;
             case kLoginResponseTag:
-                return mcs_proto.LoginResponse;
+                return LoginResponseSchema;
             case kCloseTag:
-                return mcs_proto.Close;
+                return CloseSchema;
             case kIqStanzaTag:
-                return mcs_proto.IqStanza;
+                return IqStanzaSchema;
             case kDataMessageStanzaTag:
-                return mcs_proto.DataMessageStanza;
+                return DataMessageStanzaSchema;
             case kStreamErrorStanzaTag:
-                return mcs_proto.StreamErrorStanza;
+                return StreamErrorStanzaSchema;
             default:
                 return null;
         }

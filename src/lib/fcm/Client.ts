@@ -1,11 +1,33 @@
+import { create } from '@bufbuild/protobuf';
+import { sizeDelimitedEncode } from '@bufbuild/protobuf/wire';
 import { EventEmitter } from 'events';
-import Long from 'long';
-import net from 'net';
 import tls from 'tls';
-import { kDataMessageStanzaTag, kLoginRequestTag, kLoginResponseTag, kMCSVersion } from './constants.js';
+import {
+    kCloseTag,
+    kDataMessageStanzaTag,
+    kHeartbeatAckTag,
+    kHeartbeatPingTag,
+    kIqStanzaTag,
+    kLoginRequestTag,
+    kLoginResponseTag,
+    kMCSVersion,
+    kStreamErrorStanzaTag,
+} from './constants.js';
+
+const TAG_NAMES: Record<number, string> = {
+    [kHeartbeatPingTag]: 'HeartbeatPing',
+    [kHeartbeatAckTag]: 'HeartbeatAck',
+    [kLoginRequestTag]: 'LoginRequest',
+    [kLoginResponseTag]: 'LoginResponse',
+    [kCloseTag]: 'Close',
+    [kIqStanzaTag]: 'IqStanza',
+    [kDataMessageStanzaTag]: 'DataMessageStanza',
+    [kStreamErrorStanzaTag]: 'StreamErrorStanza',
+};
 import { checkIn } from './gcm.js';
+import { fcmLogger as log } from '../logger.js';
 import { Parser } from './Parser.js';
-import { mcs_proto } from './proto/mcs_pb.js';
+import { LoginRequest_AuthService, LoginRequestSchema } from './proto/mcs_pb.js';
 
 const HOST = 'mtalk.google.com';
 const PORT = 5228;
@@ -43,12 +65,14 @@ export default class Client extends EventEmitter {
     }
 
     async connect(): Promise<void> {
+        log.debug('connect() called');
         await this._checkIn();
         this._connectSocket();
         if (!this._socket) return;
         this._parser = new Parser(this._socket);
         this._parser.on('message', this._onMessage);
         this._parser.on('error', this._onParserError);
+        log.debug('parser attached to socket');
     }
 
     destroy(): void {
@@ -56,20 +80,25 @@ export default class Client extends EventEmitter {
     }
 
     private async _checkIn(): Promise<void> {
+        log.debug(`checkIn starting for androidId: ${this._androidId}`);
         await checkIn(this._androidId, this._securityToken);
+        log.debug('checkIn complete');
     }
 
     private _connectSocket(): void {
-        this._socket = new tls.TLSSocket(new net.Socket());
+        log.debug(`connecting to ${HOST}:${PORT}`);
+        this._socket = tls.connect({ host: HOST, port: PORT, servername: HOST });
         this._socket.setKeepAlive(true);
         this._socket.on('connect', this._onSocketConnect);
         this._socket.on('close', this._onSocketClose);
         this._socket.on('error', this._onSocketError);
-        this._socket.connect({ host: HOST, port: PORT });
-        this._socket.write(this._loginBuffer());
+        const loginBuf = this._loginBuffer();
+        log.debug(`writing login buffer (${loginBuf.length}B) to socket`);
+        this._socket.write(loginBuf);
     }
 
     private _destroy(): void {
+        log.debug('destroying socket and parser');
         if (this._retryTimeout) {
             clearTimeout(this._retryTimeout);
             this._retryTimeout = null;
@@ -90,10 +119,11 @@ export default class Client extends EventEmitter {
     }
 
     private _loginBuffer(): Buffer {
-        const hexAndroidId = Long.fromString(this._androidId).toString(16);
-        const loginRequest = {
+        const hexAndroidId = BigInt(this._androidId).toString(16);
+        log.debug(`building login request: deviceId=android-${hexAndroidId}, persistentIds=${this._persistentIds.length}`);
+        const request = create(LoginRequestSchema, {
             adaptiveHeartbeat: false,
-            authService: 2,
+            authService: LoginRequest_AuthService.ANDROID_ID,
             authToken: this._securityToken,
             id: 'chrome-63.0.3234.0',
             domain: 'mcs.android.com',
@@ -105,57 +135,76 @@ export default class Client extends EventEmitter {
             setting: [{ name: 'new_vc', value: '1' }],
             clientEvent: [],
             receivedPersistentId: this._persistentIds,
-        };
+        });
 
-        const errorMessage = mcs_proto.LoginRequest.verify(loginRequest);
-        if (errorMessage) throw new Error(errorMessage);
-
-        const buffer = mcs_proto.LoginRequest.encodeDelimited(loginRequest).finish();
-        return Buffer.concat([Buffer.from([kMCSVersion, kLoginRequestTag]), Buffer.from(buffer)]);
+        const encoded = sizeDelimitedEncode(LoginRequestSchema, request);
+        return Buffer.concat([Buffer.from([kMCSVersion, kLoginRequestTag]), encoded]);
     }
 
     private _handleSocketConnect(): void {
         this._retryCount = 0;
+        log.info('socket connected');
         this.emit('connect');
     }
 
     private _handleSocketClose(): void {
+        log.info('socket closed, retrying...');
         this.emit('disconnect');
         this._retry();
     }
 
-    private _handleSocketError(_error: Error): void {
+    private _handleSocketError(error: Error): void {
+        log.error(`socket error [${(error as any).code ?? 'unknown'}]: ${error.message}`);
         // socket errors are handled via the close event which triggers retry
     }
 
-    private _handleParserError(_error: Error): void {
+    private _handleParserError(error: Error): void {
+        log.error(`parser error: ${error.message}`);
         this._retry();
     }
 
     private _retry(): void {
         this._destroy();
         const timeout = Math.min(++this._retryCount, MAX_RETRY_TIMEOUT) * 1000;
+        log.debug(`scheduling retry #${this._retryCount} in ${timeout}ms`);
         this._retryTimeout = setTimeout(() => {
             this.connect().catch((err) => this.emit('error', err));
         }, timeout);
     }
 
     private _handleMessage({ tag, object }: { tag: number; object: any }): void {
+        const tagName = TAG_NAMES[tag] ?? `unknown(${tag})`;
+        log.debug(`message received: ${tagName}`);
         if (tag === kLoginResponseTag) {
+            log.info('login response received');
             this._persistentIds = [];
         } else if (tag === kDataMessageStanzaTag) {
             this._onDataMessage(object);
+        } else if (tag === kHeartbeatPingTag) {
+            log.debug('heartbeat ping from server');
+        } else if (tag === kHeartbeatAckTag) {
+            log.debug('heartbeat ack from server');
+        } else if (tag === kCloseTag) {
+            log.info('server sent Close — connection will drop');
+        } else if (tag === kStreamErrorStanzaTag) {
+            log.error(`stream error from server: ${JSON.stringify(object)}`);
+        } else if (tag === kIqStanzaTag) {
+            log.debug(`IQ stanza: ${JSON.stringify(object)}`);
         }
     }
 
     private _onDataMessage(object: any): void {
+        const keys = object.appData?.map((d: any) => d.key) ?? [];
+        log.debug(`data message, persistentId: ${object.persistentId}, appData keys: [${keys.join(', ')}]`);
+
         if (this._persistentIds.includes(object.persistentId)) {
+            log.debug(`duplicate persistentId ${object.persistentId}, skipping`);
             return;
         }
 
         // bot uses only unencrypted FCM messages — skip encrypted ones entirely
-        if ('crypto-key' in object.appData) {
-            console.warn('Skipping encrypted FCM message (crypto-key present)');
+        if (keys.includes('crypto-key')) {
+            log.warn('encrypted FCM message received, skipping (crypto-key present)');
             return;
         }
 

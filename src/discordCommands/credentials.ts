@@ -75,7 +75,13 @@ export default {
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        try {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        } catch (e) {
+            // Discord may have processed the defer despite throwing — continue so
+            // the subcommand handlers can still call editReply successfully.
+            client.log(client.intlGet(null, 'errorCap'), `deferReply failed (continuing): ${e}`, 'error');
+        }
 
         switch (interaction.options.getSubcommand()) {
             case 'add':

@@ -1,31 +1,29 @@
+import { create, fromBinary, toBinary } from '@bufbuild/protobuf';
 import axios from 'axios';
-import Long from 'long';
-import $protobuf from 'protobufjs/minimal.js';
-import { checkin_proto } from './proto/mcs_pb.js';
-
-// Ensure Long is available for int64 field serialization
-$protobuf.util.Long = Long;
-$protobuf.configure();
+import { fcmLogger as log } from '../logger.js';
+import {
+    AndroidCheckinRequestSchema,
+    AndroidCheckinResponseSchema,
+} from './proto/checkin_pb.js';
 
 const CHECKIN_URL = 'https://android.clients.google.com/checkin';
 
 export async function checkIn(androidId: string, securityToken: string): Promise<any> {
+    log.debug(`sending checkIn request to ${CHECKIN_URL}`);
     const buffer = getCheckinRequest(androidId, securityToken);
     const response = await axios.post(CHECKIN_URL, buffer, {
         headers: { 'Content-Type': 'application/x-protobuf' },
         responseType: 'arraybuffer',
     });
-    const body = Buffer.from(response.data);
-    const message = checkin_proto.AndroidCheckinResponse.decode(body);
-    return checkin_proto.AndroidCheckinResponse.toObject(message, {
-        longs: String,
-        enums: String,
-        bytes: String,
-    });
+    log.debug(`checkIn response: HTTP ${response.status}, ${response.data.byteLength}B`);
+    const body = new Uint8Array(response.data);
+    const result = fromBinary(AndroidCheckinResponseSchema, body);
+    log.debug(`checkIn decoded: androidId=${result.androidId}, securityToken=${result.securityToken}`);
+    return result;
 }
 
-function getCheckinRequest(androidId: string, securityToken: string): Buffer {
-    const payload = {
+function getCheckinRequest(androidId: string, securityToken: string): Uint8Array {
+    const request = create(AndroidCheckinRequestSchema, {
         userSerialNumber: 0,
         checkin: {
             type: 3,
@@ -36,11 +34,8 @@ function getCheckinRequest(androidId: string, securityToken: string): Buffer {
             },
         },
         version: 3,
-        id: androidId ? Long.fromString(androidId) : undefined,
-        securityToken: securityToken ? Long.fromString(securityToken, true) : undefined,
-    };
-    const errMsg = checkin_proto.AndroidCheckinRequest.verify(payload);
-    if (errMsg) throw new Error(errMsg);
-    const message = checkin_proto.AndroidCheckinRequest.create(payload);
-    return Buffer.from(checkin_proto.AndroidCheckinRequest.encode(message).finish());
+        id: androidId ? BigInt(androidId) : undefined,
+        securityToken: securityToken ? BigInt(securityToken) : undefined,
+    });
+    return toBinary(AndroidCheckinRequestSchema, request);
 }

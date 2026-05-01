@@ -44,7 +44,7 @@ export default class Logger {
             );
         }
 
-        this.logger = Winston.createLogger({ transports });
+        this.logger = Winston.createLogger({ level: config.general.logLevel, transports });
     }
 
     setGuildId(guildId: string | null): void {

@@ -6,7 +6,7 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "proto:gen": "pbjs -t static-module -w es6 --es6 src/lib/fcm/proto/mcs.proto src/lib/fcm/proto/checkin.proto src/lib/fcm/proto/android_checkin.proto -o src/lib/fcm/proto/mcs_pb.js && pbts -o src/lib/fcm/proto/mcs_pb.d.ts src/lib/fcm/proto/mcs_pb.js && pbjs -t static-module -w es6 --es6 src/lib/rustplus/rustplus.proto -o src/lib/rustplus/rustplus_pb.js && pbts -o src/lib/rustplus/rustplus_pb.d.ts src/lib/rustplus/rustplus_pb.js && sed -i 's/import \\* as \\$protobuf from \"protobufjs\\/minimal\"/import \\$protobuf from \"protobufjs\\/minimal.js\"/' src/lib/fcm/proto/mcs_pb.js src/lib/rustplus/rustplus_pb.js",
+        "proto:gen": "buf generate src/lib/fcm/proto && buf generate --template buf.rustplus.gen.yaml src/lib/rustplus",
         "build": "pnpm run proto:gen && tsc",
         "test": "pnpm run proto:gen && tsc --noEmit",
         "dev": "pnpm run proto:gen && tsx watch src/index.ts",
@@ -23,6 +23,7 @@
     },
     "homepage": "https://github.com/rust-sense/bot",
     "dependencies": {
+        "@bufbuild/protobuf": "^2.5.2",
         "@discordjs/builders": "^1.14.1",
         "@discordjs/rest": "^2.6.1",
         "@discordjs/voice": "^0.19.2",
@@ -37,9 +38,7 @@
         "intl-messageformat": "^11.2.3",
         "http_ece": "^1.2.0",
         "jimp": "^1.6.1",
-        "long": "^5.3.0",
         "lodash": "^4.18.1",
-        "protobufjs": "^7.5.5",
         "sodium-native": "^5.1.0",
         "translate": "^3.0.1",
         "winston": "^3.19.0",
@@ -47,16 +46,16 @@
         "ws": "^8.18.0"
     },
     "resolutions": {
-        "jpeg-js": "0.4.4",
-        "protobufjs": "7.5.5"
+        "jpeg-js": "0.4.4"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.13",
+        "@bufbuild/buf": "^1.51.0",
+        "@bufbuild/protoc-gen-es": "^2.5.2",
         "@types/ws": "^8.5.14",
-        "protobufjs-cli": "1.1.3",
         "@types/gm": "^1.25.4",
         "@types/lodash": "^4.17.16",
-        "@types/node": "^20.17.46",
+        "@types/node": "^22.0.0",
         "tsx": "^4.19.4",
         "typescript": "^5.8.3"
     }

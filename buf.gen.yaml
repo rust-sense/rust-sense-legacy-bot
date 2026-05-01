@@ -1,0 +1,7 @@
+version: v2
+plugins:
+  - local: ./node_modules/.bin/protoc-gen-es
+    out: src/lib/fcm/proto
+    opt:
+      - target=ts
+      - import_extension=.js

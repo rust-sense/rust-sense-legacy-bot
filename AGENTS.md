@@ -41,9 +41,10 @@ When the user asks to deploy changes, follow this exact procedure:
 
 - **Language:** TypeScript (Node.js)
 - **Framework:** Discord.js v14 with @discordjs/voice
-- **Build:** `npm run build` (tsc)
-- **Lint:** `npm run lint` (biome)
-- **Format:** `npm run format` (biome)
+- **Package Manager:** pnpm (always use pnpm, not npm)
+- **Build:** `pnpm build` (tsc)
+- **Lint:** `pnpm lint` (biome)
+- **Format:** `pnpm format` (biome)
 
 ### Key Directories
 - `src/discordTools/` - Discord integration utilities
@@ -67,7 +68,7 @@ When the user asks to deploy changes, follow this exact procedure:
 
 ## Important Notes
 
-- Always run `npm run build` after making changes to verify TypeScript compiles
+- Always run `pnpm build` after making changes to verify TypeScript compiles
 - The project uses conventional commits (feat:, fix:, style:, etc.)
 - The `develop` branch is the deployment target
 - Piper models are stored in `/app/models` inside the container
