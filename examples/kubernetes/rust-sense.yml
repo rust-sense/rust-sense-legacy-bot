@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: rustplusplus-data
+  name: rust-sense-data
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,7 +13,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: rustplusplus-config
+  name: rust-sense-config
 data:
   discord.username: Rust
   discord.client_id: <discord app client_id>
@@ -21,7 +21,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: rustplusplus-secrets
+  name: rust-sense-secrets
 type: Opaque
 data:
   discord.token: <discord app token in base64>
@@ -30,57 +30,57 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: rustplusplus
-    image: rustplusplus
-  name: rustplusplus
+    app: rust-sense
+    image: rust-sense
+  name: rust-sense
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: rustplusplus
+      app: rust-sense
   strategy:
     type: Recreate
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: rustplusplus
-        image: rustplusplus
+        app: rust-sense
+        image: rust-sense
     spec:
       containers:
         - env:
             - name: RPP_DISCORD_USERNAME
               valueFrom:
                 configMapKeyRef:
-                  name: rustplusplus-config
+                  name: rust-sense-config
                   key: discord.username
             - name: RPP_DISCORD_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: rustplusplus-config
+                  name: rust-sense-config
                   key: discord.client_id
             - name: RPP_DISCORD_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: rustplusplus-secrets
+                  name: rust-sense-secrets
                   key: discord.token
-          image: ghcr.io/alexemanuelol/rustplusplus
+          image: ghcr.io/rust-sense/bot
           imagePullPolicy: Always
-          name: rustplusplus
+          name: rust-sense
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /app/credentials
-              name: rustplusplus-data
+              name: rust-sense-data
               subPath: credentials
             - mountPath: /app/instances
-              name: rustplusplus-data
+              name: rust-sense-data
               subPath: instances
             - mountPath: /app/logs
-              name: rustplusplus-data
+              name: rust-sense-data
               subPath: logs
       dnsPolicy: ClusterFirst
       restartPolicy: Always
@@ -88,7 +88,7 @@ spec:
       securityContext: {}
       terminationGracePeriodSeconds: 30
       volumes:
-        - name: rustplusplus-data
+        - name: rust-sense-data
           persistentVolumeClaim:
-            claimName: rustplusplus-data
+            claimName: rust-sense-data
 ---

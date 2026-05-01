@@ -1,5 +1,5 @@
 {
-    "name": "rustplusplus",
+    "name": "rust-sense",
     "version": "1.30.1",
     "description": "A NodeJS Discord Bot that uses the rustplus.js library to utilize the power of the Rust+ Companion App with additional Quality-of-Life features.",
     "type": "module",

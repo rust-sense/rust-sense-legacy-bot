@@ -1,7 +1,7 @@
 services:
-  rustplusbot:
-    image: ghcr.io/faithix/rustplusplus:master
-    container_name: rustplusbot
+  rust-sense:
+    image: ghcr.io/rust-sense/bot:unstable
+    container_name: rust-sense-bot
     environment:
       - RPP_DISCORD_TOKEN=TOKEN
       - RPP_DISCORD_CLIENT_ID=CLIENT_ID

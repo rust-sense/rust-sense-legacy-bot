@@ -26,7 +26,7 @@ Slash Command | Description
 [**/recycle**](commands.md#recycle) | Display the output of recycling an item.
 [**/research**](commands.md#research) | Display the cost to research an item.
 [**/reset**](commands.md#reset) | Reset Discord channels.
-[**/role**](commands.md#role) | Set/Clear a specific role that will be able to see the rustplusplus category content.
+[**/role**](commands.md#role) | Set/Clear a specific role that will be able to see the rust-sense category content.
 [**/storagemonitor**](commands.md#storagemonitors) | Operations on Storage Monitors.
 [**/switch**](commands.md#switch) | Operations on Smart Switches.
 [**/upkeep**](commands.md#upkeep) | Get the upkeep cost of an item.
@@ -282,13 +282,13 @@ Subcommand | Options | Description | Required
 
 ## **/role**
 
-> **Set/Clear a specific role that will be able to see the rustplusplus category content.**
+> **Set/Clear a specific role that will be able to see the rust-sense category content.**
 
 Subcommand | Options | Description | Required
 ---------- | ------- | ----------- | --------
 `set` | &nbsp; | Set the role. | &nbsp;
-&nbsp; | `role` | The role rustplusplus channels will be visible to. | `True`
-`clear` | &nbsp; | Clear the role (to allow everyone to see the rustplusplus channels). | &nbsp;
+&nbsp; | `role` | The role rust-sense channels will be visible to. | `True`
+`clear` | &nbsp; | Clear the role (to allow everyone to see the rust-sense channels). | &nbsp;
 
 ![Discord Slash Command role Image](images/slash_commands/role.png)
 

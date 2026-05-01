@@ -486,19 +486,19 @@ export function getHelpButtons() {
             getButton({
                 style: Discord.ButtonStyle.Link,
                 label: 'REPOSITORY',
-                url: 'https://github.com/faithix/rustplusplus',
+                url: 'https://github.com/rust-sense/bot',
             }),
         ),
         new Discord.ActionRowBuilder().addComponents(
             getButton({
                 style: Discord.ButtonStyle.Link,
                 label: 'DOCUMENTATION',
-                url: 'https://github.com/faithix/rustplusplus/blob/master/docs/documentation.md',
+                url: 'https://github.com/rust-sense/bot/blob/develop/docs/documentation.md',
             }),
             getButton({
                 style: Discord.ButtonStyle.Link,
                 label: 'CREDENTIALS',
-                url: 'https://rustplusplus-credentials.netlify.app/',
+                url: 'https://rust-sense-credentials.netlify.app/',
             }),
         ),
     ];

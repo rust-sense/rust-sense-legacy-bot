@@ -8,7 +8,7 @@ export default {
         logLevel: process.env.RPP_LOG_LEVEL || 'info',
     },
     discord: {
-        username: process.env.RPP_DISCORD_USERNAME || 'rustplusplus',
+        username: process.env.RPP_DISCORD_USERNAME || 'rust-sense',
         clientId: process.env.RPP_DISCORD_CLIENT_ID || '',
         token: process.env.RPP_DISCORD_TOKEN || '',
         ownerUserId: process.env.RPP_DISCORD_OWNER_USER_ID || null,
