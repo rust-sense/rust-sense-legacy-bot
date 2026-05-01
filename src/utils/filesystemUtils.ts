@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const APP_STATE_DIR_NAMES = ['logs', 'instances', 'credentials', 'maps', 'authtokens'] as const;
+export const APP_STATE_DIR_NAMES = ['logs', 'instances', 'credentials', 'maps', 'authtokens', 'data'] as const;
 
 export function cwdPath(...paths: string[]) {
     return path.join(process.cwd(), ...paths);

@@ -1,5 +1,6 @@
 import * as Discord from 'discord.js';
 import { registerSingleton } from './container.js';
+import { initPersistence } from './persistence/index.js';
 import DiscordBot from './structures/DiscordBot.js';
 import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 
@@ -17,7 +18,8 @@ export const client = new DiscordBot({
 
 registerSingleton('discordBot', client);
 
-ensureAppStateDirs().then(() => {
+ensureAppStateDirs().then(async () => {
+    await initPersistence();
     client.build();
 });
 

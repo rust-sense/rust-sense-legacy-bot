@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { getPersistenceCache } from '../persistence/index.js';
 import type { Instance } from '../types/instance.js';
 import * as Constants from './constants.js';
 import * as InstanceUtils from './instanceUtils.js';
@@ -13,8 +14,14 @@ interface ClientLike {
 export default function createInstanceFile(client: ClientLike, guild: { id: string }): void {
     let instance: Instance | null = null;
     const instancePath = path.join(process.cwd(), 'instances', `${guild.id}.json`);
+    let persistedInstanceExists = fs.existsSync(instancePath);
+    try {
+        persistedInstanceExists = persistedInstanceExists || getPersistenceCache().hasGuild(guild.id);
+    } catch {
+        /* Persistence is not initialized in some tests and scripts. */
+    }
 
-    if (!fs.existsSync(instancePath)) {
+    if (!persistedInstanceExists) {
         instance = {
             firstTime: true,
             role: null,

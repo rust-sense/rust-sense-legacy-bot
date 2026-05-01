@@ -16,6 +16,9 @@ data/staticData.sqlite-wal
 data/runtimeData.sqlite
 data/runtimeData.sqlite-shm
 data/runtimeData.sqlite-wal
+data/state.sqlite
+data/state.sqlite-shm
+data/state.sqlite-wal
 
 # generated proto static modules
 src/lib/fcm/proto/mcs_pb.ts

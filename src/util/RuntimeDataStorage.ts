@@ -1,13 +1,7 @@
+import Database from 'better-sqlite3';
 import Fs from 'fs';
 import Path from 'path';
 import { fileURLToPath } from 'url';
-
-let DatabaseSync: typeof import('node:sqlite').DatabaseSync | null = null;
-try {
-    ({ DatabaseSync } = await import('node:sqlite'));
-} catch (_e) {
-    /* node:sqlite unavailable in this runtime. */
-}
 
 const DATABASE_FILE_NAME = 'runtimeData.sqlite';
 const TABLE_NAME = 'runtime_server_state';
@@ -18,15 +12,15 @@ interface RuntimeDataStorageOptions {
 }
 
 interface Statements {
-    getServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
-    upsertServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
-    deleteServerState: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    getServerState: Database.Statement;
+    upsertServerState: Database.Statement;
+    deleteServerState: Database.Statement;
 }
 
 export default class RuntimeDataStorage {
     private dataPath: string;
     private databasePath: string;
-    private db: import('node:sqlite').DatabaseSync | null = null;
+    private db: Database.Database | null = null;
     private statements: Statements | null = null;
 
     constructor(options: RuntimeDataStorageOptions = {}) {
@@ -34,15 +28,11 @@ export default class RuntimeDataStorage {
         this.dataPath = options.dataPath ?? Path.join(__dirname, '..', '..', 'data');
         this.databasePath = options.databasePath ?? Path.join(this.dataPath, DATABASE_FILE_NAME);
 
-        if (DatabaseSync === null) {
-            throw new Error('node:sqlite is unavailable. Runtime data persistence requires Node.js 22+ in this build.');
-        }
-
         if (!Fs.existsSync(this.dataPath)) {
             Fs.mkdirSync(this.dataPath, { recursive: true });
         }
 
-        this.db = new DatabaseSync(this.databasePath);
+        this.db = new Database(this.databasePath);
         this.prepareDatabase();
         this.prepareStatements();
     }

@@ -1,13 +1,7 @@
+import Database from 'better-sqlite3';
 import Fs from 'fs';
 import Path from 'path';
 import { fileURLToPath } from 'url';
-
-let DatabaseSync: typeof import('node:sqlite').DatabaseSync | null = null;
-try {
-    ({ DatabaseSync } = await import('node:sqlite'));
-} catch (_e) {
-    /* node:sqlite unavailable in this runtime. */
-}
 
 const SQLITE_SCHEMA_VERSION = '2';
 const SQLITE_DATABASE_FILE = 'staticData.sqlite';
@@ -75,17 +69,17 @@ interface BuildResult {
 }
 
 interface Statements {
-    getKeys: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
-    hasEntry: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
-    getEntry: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
-    getDatasetEntries: ReturnType<import('node:sqlite').DatabaseSync['prepare']>;
+    getKeys: Database.Statement;
+    hasEntry: Database.Statement;
+    getEntry: Database.Statement;
+    getDatasetEntries: Database.Statement;
 }
 
 export default class RustlabsStaticStorage {
     private dataPath: string;
     private sourceDirectory: string;
     private sqlitePath: string;
-    private db: import('node:sqlite').DatabaseSync | null = null;
+    private db: Database.Database | null = null;
     private statements: Statements | null = null;
     private datasetCache = new Map<string, unknown>();
 
@@ -94,15 +88,11 @@ export default class RustlabsStaticStorage {
         this.sourceDirectory = options.sourceDirectory ?? RustlabsStaticStorage.getDefaultJsonSourcePath(this.dataPath);
         this.sqlitePath = options.sqlitePath ?? RustlabsStaticStorage.getDefaultSqlitePath(this.dataPath);
 
-        if (DatabaseSync === null) {
-            throw new Error('node:sqlite is unavailable. Use Node.js 22+ or install a SQLite driver for this project.');
-        }
-
         if (!Fs.existsSync(this.sqlitePath)) {
             throw new Error(`Static SQLite database missing at "${this.sqlitePath}". Run "npm run build:static-db".`);
         }
 
-        this.db = new DatabaseSync(this.sqlitePath);
+        this.db = new Database(this.sqlitePath, { readonly: true, fileMustExist: true });
         this.validateSchema();
         this.prepareStatements();
     }
@@ -134,10 +124,6 @@ export default class RustlabsStaticStorage {
     }
 
     static buildDatabaseFromJsonFiles(options: BuildDatabaseOptions = {}): BuildResult {
-        if (DatabaseSync === null) {
-            throw new Error('node:sqlite is unavailable. Use Node.js 22+ to build the static database.');
-        }
-
         const dataPath = options.dataPath ?? RustlabsStaticStorage.getDefaultDataPath();
         const sourceDirectory = options.sourceDirectory ?? RustlabsStaticStorage.getDefaultJsonSourcePath(dataPath);
         const databasePath = options.databasePath ?? RustlabsStaticStorage.getDefaultSqlitePath(dataPath);
@@ -156,7 +142,7 @@ export default class RustlabsStaticStorage {
             Fs.mkdirSync(databaseDirectory, { recursive: true });
         }
 
-        const db = new DatabaseSync(databasePath);
+        const db = new Database(databasePath);
         let totalRows = 0;
         const datasetRows: Record<string, number> = {};
         try {

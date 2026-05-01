@@ -1,18 +1,35 @@
+import { getPersistenceCache } from '../persistence/index.js';
 import type { Credentials, Instance } from '../types/instance.js';
 import { cwdPath, loadJsonSync, writeJsonSync } from '../utils/filesystemUtils.js';
 
 export function readInstanceFile(guildId: string): Instance {
-    return loadJsonSync(cwdPath('instances', `${guildId}.json`)) as Instance;
+    try {
+        return getPersistenceCache().getInstance(guildId);
+    } catch {
+        return loadJsonSync(cwdPath('instances', `${guildId}.json`)) as Instance;
+    }
 }
 
 export function writeInstanceFile(guildId: string, instance: Instance): void {
-    writeJsonSync(cwdPath('instances', `${guildId}.json`), instance);
+    try {
+        getPersistenceCache().setInstance(guildId, instance);
+    } catch {
+        writeJsonSync(cwdPath('instances', `${guildId}.json`), instance);
+    }
 }
 
 export function readCredentialsFile(guildId: string): Credentials {
-    return loadJsonSync(cwdPath('credentials', `${guildId}.json`)) as Credentials;
+    try {
+        return getPersistenceCache().getCredentials(guildId);
+    } catch {
+        return loadJsonSync(cwdPath('credentials', `${guildId}.json`)) as Credentials;
+    }
 }
 
 export function writeCredentialsFile(guildId: string, credentials: Credentials): void {
-    writeJsonSync(cwdPath('credentials', `${guildId}.json`), credentials);
+    try {
+        getPersistenceCache().setCredentials(guildId, credentials);
+    } catch {
+        writeJsonSync(cwdPath('credentials', `${guildId}.json`), credentials);
+    }
 }

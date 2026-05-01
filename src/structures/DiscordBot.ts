@@ -9,6 +9,7 @@ import discordEvents from '../discordEvents/index.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import RustLabs from '../structures/RustLabs.js';
 import RustPlus from '../structures/RustPlus.js';
@@ -318,6 +319,10 @@ export default class DiscordBot extends Discord.Client {
     }
 
     getInstance(guildId: string): import('../types/instance.js').Instance {
+        if (!(guildId in this.instances)) {
+            this.instances[guildId] = InstanceUtils.readInstanceFile(guildId);
+        }
+
         return this.instances[guildId];
     }
 
@@ -353,14 +358,7 @@ export default class DiscordBot extends Discord.Client {
     }
 
     createRustplusInstancesFromConfig(): void {
-        const files = fs.readdirSync(cwdPath('instances'));
-
-        for (const file of files) {
-            if (!file.endsWith('.json')) {
-                continue;
-            }
-
-            const guildId = file.replace('.json', '');
+        for (const guildId of getPersistenceCache().listGuildIds()) {
             const instance = this.getInstance(guildId);
             if (!instance) {
                 continue;
@@ -376,6 +374,41 @@ export default class DiscordBot extends Discord.Client {
                 );
             }
         }
+    }
+
+    deleteGuildState(guildId: string): void {
+        this.fcmListeners[guildId]?.destroy();
+        delete this.fcmListeners[guildId];
+
+        for (const listener of Object.values(this.fcmListenersLite[guildId] ?? {})) {
+            listener.destroy();
+        }
+        delete this.fcmListenersLite[guildId];
+
+        this.rustplusInstances[guildId]?.deleteThisRustplusInstance();
+        delete this.rustplusInstances[guildId];
+        delete this.activeRustplusInstances[guildId];
+        delete this.rustplusReconnecting[guildId];
+        delete this.rustplusMaps[guildId];
+        delete this.customGuildIntl[guildId];
+        delete this.instances[guildId];
+
+        if (this.rustplusReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusReconnectTimers[guildId]);
+        }
+        delete this.rustplusReconnectTimers[guildId];
+
+        if (this.rustplusLiteReconnectTimers[guildId]) {
+            clearTimeout(this.rustplusLiteReconnectTimers[guildId]);
+        }
+        delete this.rustplusLiteReconnectTimers[guildId];
+
+        if (this.voiceLeaveTimeouts[guildId]) {
+            clearTimeout(this.voiceLeaveTimeouts[guildId]);
+        }
+        delete this.voiceLeaveTimeouts[guildId];
+
+        getPersistenceCache().deleteGuild(guildId);
     }
 
     resetRustplusVariables(guildId: string): void {

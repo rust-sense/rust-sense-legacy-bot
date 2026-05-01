@@ -1,14 +1,28 @@
 services:
+  dbmate:
+    image: ghcr.io/amacneil/dbmate
+    command: --schema-file /tmp/rust-sense-schema.sql up
+    environment:
+      - DATABASE_URL=sqlite3:/app/data/state.sqlite
+    volumes:
+      - ./data:/app/data
+      - ./db/migrations/sqlite:/db/migrations
   rust-sense:
     image: ghcr.io/rust-sense/bot:unstable
     container_name: rust-sense-bot
     environment:
       - RPP_DISCORD_TOKEN=TOKEN
       - RPP_DISCORD_CLIENT_ID=CLIENT_ID
+      - RPP_PERSISTENCE_ADAPTER=sqlite
+      - RPP_SQLITE_PATH=/app/data/state.sqlite
+    depends_on:
+      dbmate:
+        condition: service_completed_successfully
     volumes:
       - ./logs:/app/logs
       - ./instances:/app/instances
       - ./credentials:/app/credentials
       - ./maps:/app/maps
       - ./authtokens:/app/authtokens
+      - ./data:/app/data
     restart: unless-stopped
