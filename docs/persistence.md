@@ -13,6 +13,7 @@ The bot still assumes one active process owns Discord, Rust+ side effects, recon
 ```bash
 RPP_PERSISTENCE_ADAPTER=sqlite
 RPP_SQLITE_PATH=data/state.sqlite
+RPP_MIGRATE_LEGACY_JSON=true
 ```
 
 For Postgres:
@@ -53,6 +54,12 @@ When `sqlite` or `postgres` starts, existing `instances/*.json` and `credentials
 - `legacy_json_migration_source_checksum`
 
 A completed marker prevents re-import. An `in_progress` marker fails startup and requires operator inspection.
+
+Set `RPP_MIGRATE_LEGACY_JSON=false` to skip this startup import when the relational database is already authoritative.
+
+## Adapter Boundary
+
+The active adapter API is split by persistence domain: guild core metadata, guild settings, servers, guild collections, and credentials. Current bot code can still request a legacy-compatible `Instance` through the cache, but that assembly is a compatibility layer on top of domain operations rather than the storage contract.
 
 ## Smoke Test
 

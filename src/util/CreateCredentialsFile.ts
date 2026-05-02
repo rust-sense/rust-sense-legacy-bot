@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import { getPersistenceCache } from '../persistence/index.js';
+import { getPersistenceCache, isPersistenceInitialized } from '../persistence/index.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 interface ClientLike {
@@ -18,6 +18,11 @@ export default function createCredentialsFile(client: ClientLike, guild: { id: s
     }
 
     if (!persistedCredentialsExist) {
+        if (isPersistenceInitialized()) {
+            getPersistenceCache().setCredentials(guild.id, { hoster: null });
+            return;
+        }
+
         fs.writeFileSync(guildCredentialsFilePath, JSON.stringify({ hoster: null }, null, 2));
     }
 }

@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import { registerSingleton } from './container.js';
-import { initPersistence } from './persistence/index.js';
+import { closePersistence, initPersistence } from './persistence/index.js';
 import DiscordBot from './structures/DiscordBot.js';
 import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 
@@ -33,4 +33,21 @@ process.on('unhandledRejection', (error) => {
     );
 
     console.error(error);
+});
+
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+    client.log(client.intlGet(null, 'infoCap'), `Received ${signal}, closing persistence`, 'info');
+    try {
+        await closePersistence();
+    } finally {
+        process.exit(0);
+    }
+}
+
+process.once('SIGINT', (signal) => {
+    void shutdown(signal);
+});
+
+process.once('SIGTERM', (signal) => {
+    void shutdown(signal);
 });

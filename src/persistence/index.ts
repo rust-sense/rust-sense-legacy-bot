@@ -11,12 +11,13 @@ let cache: GuildStateCache | null = null;
 export function createPersistenceAdapter(): PersistenceAdapter {
     const adapterName = config.persistence.adapter;
     if (adapterName === 'json') return new JsonAdapter();
-    if (adapterName === 'sqlite') return new SqliteAdapter(config.persistence.sqlitePath);
+    if (adapterName === 'sqlite')
+        return new SqliteAdapter(config.persistence.sqlitePath, config.persistence.migrateLegacyJson);
     if (adapterName === 'postgres') {
         if (!config.persistence.postgresUrl) {
             throw new Error('RPP_POSTGRES_URL is required when RPP_PERSISTENCE_ADAPTER=postgres');
         }
-        return new PostgresAdapter(config.persistence.postgresUrl);
+        return new PostgresAdapter(config.persistence.postgresUrl, config.persistence.migrateLegacyJson);
     }
 
     throw new Error(`Unsupported persistence adapter: ${adapterName satisfies never}`);
@@ -36,6 +37,17 @@ export function getPersistenceCache(): GuildStateCache {
     return cache;
 }
 
+export function isPersistenceInitialized(): boolean {
+    return cache !== null;
+}
+
 export function getPersistenceAdapterName(): PersistenceAdapterName {
     return adapter?.name ?? config.persistence.adapter;
+}
+
+export async function closePersistence(): Promise<void> {
+    await cache?.flush();
+    await adapter?.close();
+    cache = null;
+    adapter = null;
 }

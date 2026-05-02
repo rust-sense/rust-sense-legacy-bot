@@ -13,7 +13,7 @@ import {
     NOTIFICATION_COLUMNS,
     normalizeTracker,
 } from './relationalMapping.js';
-import type { PersistenceAdapter } from './types.js';
+import type { GuildCollectionsState, GuildCoreState, GuildSettingsState, PersistenceAdapter } from './types.js';
 
 type Row = Record<string, any>;
 
@@ -27,7 +27,10 @@ export class SqliteAdapter implements PersistenceAdapter {
         'templates/notificationSettingsTemplate.json',
     );
 
-    constructor(private readonly sqlitePath: string) {}
+    constructor(
+        private readonly sqlitePath: string,
+        private readonly migrateLegacyJsonOnInit = true,
+    ) {}
 
     async init(): Promise<void> {
         if (!fs.existsSync(this.sqlitePath)) {
@@ -36,7 +39,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         this.db = new Database(this.sqlitePath);
         this.db.pragma('foreign_keys = ON');
         this.validateMigrated();
-        this.migrateLegacyJson();
+        if (this.migrateLegacyJsonOnInit) this.migrateLegacyJson();
     }
 
     async close(): Promise<void> {
@@ -55,58 +58,117 @@ export class SqliteAdapter implements PersistenceAdapter {
         return Boolean(this.database().prepare('SELECT 1 FROM guilds WHERE guild_id = ?').get(guildId));
     }
 
-    readInstance(guildId: string): Instance {
+    readGuildCore(guildId: string): GuildCoreState {
         const db = this.database();
         const guild = db.prepare('SELECT * FROM guilds WHERE guild_id = ?').get(guildId) as Row | undefined;
         if (!guild) {
             throw new Error(`No persisted guild state found for ${guildId}`);
         }
 
-        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
-        instance.firstTime = fromDbBool(guild.first_time);
-        instance.role = guild.role_id;
-        instance.adminRole = guild.admin_role_id;
-        instance.activeServer = guild.active_server_id;
-        instance.channelId = {
-            category: guild.channel_category_id,
-            information: guild.channel_information_id,
-            servers: guild.channel_servers_id,
-            settings: guild.channel_settings_id,
-            commands: guild.channel_commands_id,
-            events: guild.channel_events_id,
-            teamchat: guild.channel_teamchat_id,
-            switches: guild.channel_switches_id,
-            switchGroups: guild.channel_switch_groups_id,
-            alarms: guild.channel_alarms_id,
-            storageMonitors: guild.channel_storage_monitors_id,
-            activity: guild.channel_activity_id,
-            trackers: guild.channel_trackers_id,
+        return {
+            firstTime: fromDbBool(guild.first_time),
+            role: guild.role_id,
+            adminRole: guild.admin_role_id,
+            activeServer: guild.active_server_id,
+            channelId: {
+                category: guild.channel_category_id,
+                information: guild.channel_information_id,
+                servers: guild.channel_servers_id,
+                settings: guild.channel_settings_id,
+                commands: guild.channel_commands_id,
+                events: guild.channel_events_id,
+                teamchat: guild.channel_teamchat_id,
+                switches: guild.channel_switches_id,
+                switchGroups: guild.channel_switch_groups_id,
+                alarms: guild.channel_alarms_id,
+                storageMonitors: guild.channel_storage_monitors_id,
+                activity: guild.channel_activity_id,
+                trackers: guild.channel_trackers_id,
+            },
+            informationMessageId: {
+                map: guild.information_map_message_id,
+                server: guild.information_server_message_id,
+                event: guild.information_event_message_id,
+                team: guild.information_team_message_id,
+                battlemetricsPlayers: guild.information_battlemetrics_players_message_id,
+            },
         };
-        instance.informationMessageId = {
-            map: guild.information_map_message_id,
-            server: guild.information_server_message_id,
-            event: guild.information_event_message_id,
-            team: guild.information_team_message_id,
-            battlemetricsPlayers: guild.information_battlemetrics_players_message_id,
-        };
-
-        this.readSettings(db, guildId, instance);
-        this.readServers(db, guildId, instance);
-        this.readGuildCollections(db, guildId, instance);
-
-        return instance;
     }
 
-    writeInstance(guildId: string, instance: Instance): void {
+    writeGuildCore(guildId: string, core: GuildCoreState): void {
+        this.writeGuild(guildId, core);
+    }
+
+    readGuildSettings(guildId: string): GuildSettingsState {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        this.readSettings(this.database(), guildId, instance);
+        return {
+            generalSettings: instance.generalSettings,
+            notificationSettings: instance.notificationSettings,
+        };
+    }
+
+    writeGuildSettings(guildId: string, settings: GuildSettingsState): void {
+        const db = this.database();
+        db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
+        db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
+        this.writeSettings(guildId, settings);
+    }
+
+    readServers(guildId: string): Record<string, Server> {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        this.hydrateServers(this.database(), guildId, instance);
+        return instance.serverList;
+    }
+
+    replaceServers(guildId: string, servers: Record<string, Server>): void {
+        const db = this.database();
+        db.prepare('DELETE FROM servers WHERE guild_id = ?').run(guildId);
+        this.insertServers(guildId, { serverList: servers } as Instance);
+    }
+
+    readGuildCollections(guildId: string): GuildCollectionsState {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        this.hydrateGuildCollections(this.database(), guildId, instance);
+        return {
+            trackers: instance.trackers,
+            marketSubscriptionList: instance.marketSubscriptionList,
+            marketBlacklist: instance.marketBlacklist,
+            teamChatColors: instance.teamChatColors,
+            blacklist: instance.blacklist,
+            whitelist: instance.whitelist,
+            aliases: instance.aliases,
+            customIntlMessages: instance.customIntlMessages,
+        };
+    }
+
+    replaceGuildCollections(guildId: string, collections: GuildCollectionsState): void {
+        const db = this.database();
+        for (const table of [
+            'trackers',
+            'market_subscriptions',
+            'market_blacklist',
+            'blacklist_entries',
+            'whitelist_entries',
+            'aliases',
+            'custom_intl_messages',
+            'team_chat_colors',
+        ]) {
+            db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(guildId);
+        }
+        this.insertGuildCollections(guildId, collections as Instance);
+    }
+
+    private writeInstance(guildId: string, instance: Instance): void {
         const db = this.database();
         const existingCredentials = this.hasGuild(guildId) ? this.readCredentials(guildId) : null;
         db.exec('BEGIN IMMEDIATE');
         try {
-            this.deleteGuildRows(guildId, false);
+            db.prepare('DELETE FROM guilds WHERE guild_id = ?').run(guildId);
             this.writeGuild(guildId, instance);
             this.writeSettings(guildId, instance);
-            this.writeServers(guildId, instance);
-            this.writeGuildCollections(guildId, instance);
+            this.insertServers(guildId, instance);
+            this.insertGuildCollections(guildId, instance);
             if (existingCredentials) this.writeCredentialsRows(guildId, existingCredentials);
             db.exec('COMMIT');
         } catch (error) {
@@ -226,15 +288,6 @@ export class SqliteAdapter implements PersistenceAdapter {
         ).run(manifest.checksum);
     }
 
-    private deleteGuildRows(guildId: string, deleteGuild: boolean): void {
-        const db = this.database();
-        if (deleteGuild) {
-            db.prepare('DELETE FROM guilds WHERE guild_id = ?').run(guildId);
-            return;
-        }
-        db.prepare('DELETE FROM guilds WHERE guild_id = ?').run(guildId);
-    }
-
     private writeCredentialsRows(guildId: string, credentials: Credentials): void {
         const db = this.database();
         db.prepare('DELETE FROM fcm_credentials WHERE guild_id = ?').run(guildId);
@@ -262,7 +315,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private writeGuild(guildId: string, instance: Instance): void {
+    private writeGuild(guildId: string, instance: GuildCoreState): void {
         this.database()
             .prepare(
                 `INSERT INTO guilds (
@@ -272,7 +325,30 @@ export class SqliteAdapter implements PersistenceAdapter {
                     channel_switch_groups_id, channel_alarms_id, channel_storage_monitors_id, channel_activity_id,
                     channel_trackers_id, information_map_message_id, information_server_message_id,
                     information_event_message_id, information_team_message_id, information_battlemetrics_players_message_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET
+                    first_time = excluded.first_time,
+                    role_id = excluded.role_id,
+                    admin_role_id = excluded.admin_role_id,
+                    active_server_id = excluded.active_server_id,
+                    channel_category_id = excluded.channel_category_id,
+                    channel_information_id = excluded.channel_information_id,
+                    channel_servers_id = excluded.channel_servers_id,
+                    channel_settings_id = excluded.channel_settings_id,
+                    channel_commands_id = excluded.channel_commands_id,
+                    channel_events_id = excluded.channel_events_id,
+                    channel_teamchat_id = excluded.channel_teamchat_id,
+                    channel_switches_id = excluded.channel_switches_id,
+                    channel_switch_groups_id = excluded.channel_switch_groups_id,
+                    channel_alarms_id = excluded.channel_alarms_id,
+                    channel_storage_monitors_id = excluded.channel_storage_monitors_id,
+                    channel_activity_id = excluded.channel_activity_id,
+                    channel_trackers_id = excluded.channel_trackers_id,
+                    information_map_message_id = excluded.information_map_message_id,
+                    information_server_message_id = excluded.information_server_message_id,
+                    information_event_message_id = excluded.information_event_message_id,
+                    information_team_message_id = excluded.information_team_message_id,
+                    information_battlemetrics_players_message_id = excluded.information_battlemetrics_players_message_id`,
             )
             .run(
                 guildId,
@@ -301,7 +377,7 @@ export class SqliteAdapter implements PersistenceAdapter {
             );
     }
 
-    private writeSettings(guildId: string, instance: Instance): void {
+    private writeSettings(guildId: string, instance: GuildSettingsState): void {
         const generalColumns = ['guild_id', ...GENERAL_COLUMNS.map(([, column]) => column)];
         this.database()
             .prepare(
@@ -355,7 +431,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private writeServers(guildId: string, instance: Instance): void {
+    private insertServers(guildId: string, instance: Pick<Instance, 'serverList'>): void {
         const db = this.database();
         const insertServer = db.prepare(`
             INSERT INTO servers (
@@ -526,7 +602,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private readServers(db: Database.Database, guildId: string, instance: Instance): void {
+    private hydrateServers(db: Database.Database, guildId: string, instance: Instance): void {
         for (const row of db.prepare('SELECT * FROM servers WHERE guild_id = ?').all(guildId) as Row[]) {
             const server: Server = {
                 serverId: row.server_id,
@@ -669,7 +745,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private writeGuildCollections(guildId: string, instance: Instance): void {
+    private insertGuildCollections(guildId: string, instance: Pick<Instance, keyof GuildCollectionsState>): void {
         const db = this.database();
         const insertTracker = db.prepare(`
             INSERT INTO trackers (
@@ -764,7 +840,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private readGuildCollections(db: Database.Database, guildId: string, instance: Instance): void {
+    private hydrateGuildCollections(db: Database.Database, guildId: string, instance: Instance): void {
         for (const row of db.prepare('SELECT * FROM trackers WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.trackers[row.tracker_id] = {
                 id: row.id,
