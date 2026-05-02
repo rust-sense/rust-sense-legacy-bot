@@ -331,8 +331,8 @@ export class PostgresAdapter implements PersistenceAdapter {
             (credentials as unknown as Record<string, unknown>)[row.steam_id] = {
                 discord_user_id: row.discord_user_id,
                 gcm: {
-                    androidId: row.gcm_android_id,
-                    securityToken: row.gcm_security_token,
+                    android_id: row.gcm_android_id,
+                    security_token: row.gcm_security_token,
                 },
                 issuedDate: row.issued_date,
                 expireDate: row.expire_date,
@@ -362,8 +362,8 @@ export class PostgresAdapter implements PersistenceAdapter {
                     guildId,
                     steamId,
                     credential.discord_user_id ?? '',
-                    (credential.gcm as Row | undefined)?.androidId ?? credential.gcm_android_id ?? '',
-                    (credential.gcm as Row | undefined)?.securityToken ?? credential.gcm_security_token ?? '',
+                    (credential.gcm as Row | undefined)?.android_id ?? credential.gcm_android_id ?? '',
+                    (credential.gcm as Row | undefined)?.security_token ?? credential.gcm_security_token ?? '',
                     credential.issuedDate ?? credential.issued_date ?? null,
                     credential.expireDate ?? credential.expire_date ?? null,
                 ],

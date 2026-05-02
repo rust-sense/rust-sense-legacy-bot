@@ -113,6 +113,14 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
     const androidId = credentials[activeSteamId].gcm.android_id;
     const securityToken = credentials[activeSteamId].gcm.security_token;
 
+    if (!androidId || !securityToken) {
+        client.log(
+            client.intlGet(null, 'warningCap'),
+            `FCM listener skipped for GuildID: ${guild.id}, SteamID: ${activeSteamId}: GCM credentials not configured`,
+        );
+        return;
+    }
+
     let listener: any;
     try {
         listener = new PushReceiverClient(androidId, securityToken, [], new LibLoggerAdapter(client.logger, 'FCM'));
