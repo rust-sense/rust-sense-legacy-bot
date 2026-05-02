@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { PersistenceService } from '../src/persistence/PersistenceService.js';
 import { PostgresAdapter } from '../src/persistence/PostgresAdapter.js';
 import { createEmptyInstance } from '../src/persistence/relationalMapping.js';
 import { SqliteAdapter } from '../src/persistence/SqliteAdapter.js';
@@ -221,22 +222,86 @@ function assertRoundTrip(instance: Instance, credentials: Credentials): void {
 
 async function adapterRoundTrip(adapter: PersistenceAdapter): Promise<void> {
     await adapter.init();
+    const service = new PersistenceService(adapter);
     const instanceState = instanceToCompatibilityState(buildInstance());
-    adapter.writeGuildCore('guild-smoke', instanceState);
-    adapter.writeGuildSettings('guild-smoke', instanceState);
-    adapter.replaceServers('guild-smoke', instanceState.serverList);
-    adapter.replaceGuildCollections('guild-smoke', instanceState);
-    adapter.writeCredentials('guild-smoke', buildCredentials());
+    await adapter.writeGuildCore('guild-smoke', instanceState);
+    await adapter.writeGuildSettings('guild-smoke', instanceState);
+    await adapter.replaceServers('guild-smoke', instanceState.serverList);
+    await adapter.replaceGuildCollections('guild-smoke', instanceState);
+    await adapter.writeCredentials('guild-smoke', buildCredentials());
     await adapter.flush();
     const roundTripped = createEmptyInstance(
-        adapter.readGuildSettings('guild-smoke').generalSettings,
-        adapter.readGuildSettings('guild-smoke').notificationSettings,
+        (await adapter.readGuildSettings('guild-smoke')).generalSettings,
+        (await adapter.readGuildSettings('guild-smoke')).notificationSettings,
     );
-    Object.assign(roundTripped, adapter.readGuildCore('guild-smoke'));
-    roundTripped.serverList = adapter.readServers('guild-smoke');
-    Object.assign(roundTripped, adapter.readGuildCollections('guild-smoke'));
-    assertRoundTrip(roundTripped, adapter.readCredentials('guild-smoke'));
+    Object.assign(roundTripped, await adapter.readGuildCore('guild-smoke'));
+    roundTripped.serverList = await adapter.readServers('guild-smoke');
+    Object.assign(roundTripped, await adapter.readGuildCollections('guild-smoke'));
+    assertRoundTrip(roundTripped, await adapter.readCredentials('guild-smoke'));
+    assertRoundTrip(await service.readGuildState('guild-smoke'), await service.getCredentials('guild-smoke'));
     await adapter.close();
+}
+
+async function sqliteRollbackSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-rollback-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const state = instanceToCompatibilityState(buildInstance());
+        await adapter.writeGuildCore('guild-rollback', state);
+        await adapter.writeGuildSettings('guild-rollback', state);
+        await adapter.replaceServers('guild-rollback', state.serverList);
+
+        const brokenServers = structuredClone(state.serverList);
+        brokenServers['server-1'].switches[123] = {
+            ...brokenServers['server-1'].switches[7],
+            id: 123,
+            name: null as unknown as string,
+        };
+
+        assert.throws(() => adapter.replaceServers('guild-rollback', brokenServers));
+        assert.equal((await adapter.readServers('guild-rollback'))['server-1'].switches[7].name, 'Switch');
+        assert.equal((await adapter.readServers('guild-rollback'))['server-1'].switches[123], undefined);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteFullGuildRollbackSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-full-guild-rollback-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        const original = buildInstance();
+        await service.saveGuildStateChanges('guild-full-rollback', original);
+
+        const broken = structuredClone(original);
+        broken.role = 'changed-before-failure';
+        broken.serverList['server-1'].switches[123] = {
+            ...broken.serverList['server-1'].switches[7],
+            id: 123,
+            name: null as unknown as string,
+        };
+
+        await assert.rejects(() => service.saveGuildStateChanges('guild-full-rollback', broken));
+        const roundTripped = await service.readGuildState('guild-full-rollback');
+        assert.equal(roundTripped.role, 'role-id');
+        assert.equal(roundTripped.serverList['server-1'].switches[7].name, 'Switch');
+        assert.equal(roundTripped.serverList['server-1'].switches[123], undefined);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
 }
 
 async function sqliteSmoke(): Promise<void> {
@@ -264,22 +329,22 @@ async function sqliteLegacyMigrationSmoke(): Promise<void> {
     try {
         const adapter = new SqliteAdapter(databasePath);
         await adapter.init();
-        const settings = adapter.readGuildSettings('guild-legacy');
+        const settings = await adapter.readGuildSettings('guild-legacy');
         const instance = createEmptyInstance(settings.generalSettings, settings.notificationSettings);
-        Object.assign(instance, adapter.readGuildCore('guild-legacy'));
-        instance.serverList = adapter.readServers('guild-legacy');
-        Object.assign(instance, adapter.readGuildCollections('guild-legacy'));
-        assertRoundTrip(instance, adapter.readCredentials('guild-legacy'));
+        Object.assign(instance, await adapter.readGuildCore('guild-legacy'));
+        instance.serverList = await adapter.readServers('guild-legacy');
+        Object.assign(instance, await adapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(instance, await adapter.readCredentials('guild-legacy'));
         await adapter.close();
 
         const secondAdapter = new SqliteAdapter(databasePath);
         await secondAdapter.init();
-        const secondSettings = secondAdapter.readGuildSettings('guild-legacy');
+        const secondSettings = await secondAdapter.readGuildSettings('guild-legacy');
         const secondInstance = createEmptyInstance(secondSettings.generalSettings, secondSettings.notificationSettings);
-        Object.assign(secondInstance, secondAdapter.readGuildCore('guild-legacy'));
-        secondInstance.serverList = secondAdapter.readServers('guild-legacy');
-        Object.assign(secondInstance, secondAdapter.readGuildCollections('guild-legacy'));
-        assertRoundTrip(secondInstance, secondAdapter.readCredentials('guild-legacy'));
+        Object.assign(secondInstance, await secondAdapter.readGuildCore('guild-legacy'));
+        secondInstance.serverList = await secondAdapter.readServers('guild-legacy');
+        Object.assign(secondInstance, await secondAdapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(secondInstance, await secondAdapter.readCredentials('guild-legacy'));
         await secondAdapter.close();
     } finally {
         process.chdir(originalCwd);
@@ -301,7 +366,47 @@ async function postgresSmoke(): Promise<void> {
     }
 }
 
+async function postgresLegacyMigrationSmoke(): Promise<void> {
+    const postgresUrl = process.env.RPP_TEST_POSTGRES_MIGRATION_URL;
+    if (!postgresUrl) return;
+
+    const root = prepareTempCwd('rpp-postgres-legacy-smoke-');
+    fs.writeFileSync(path.join(root, 'instances', 'guild-legacy.json'), JSON.stringify(buildInstance(), null, 2));
+    fs.writeFileSync(path.join(root, 'credentials', 'guild-legacy.json'), JSON.stringify(buildCredentials(), null, 2));
+    migratePostgres(postgresUrl);
+
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new PostgresAdapter(postgresUrl);
+        await adapter.init();
+        const settings = await adapter.readGuildSettings('guild-legacy');
+        const instance = createEmptyInstance(settings.generalSettings, settings.notificationSettings);
+        Object.assign(instance, await adapter.readGuildCore('guild-legacy'));
+        instance.serverList = await adapter.readServers('guild-legacy');
+        Object.assign(instance, await adapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(instance, await adapter.readCredentials('guild-legacy'));
+        await adapter.close();
+
+        // Second init should skip migration (already completed) and still read back the same data
+        const secondAdapter = new PostgresAdapter(postgresUrl);
+        await secondAdapter.init();
+        const secondSettings = await secondAdapter.readGuildSettings('guild-legacy');
+        const secondInstance = createEmptyInstance(secondSettings.generalSettings, secondSettings.notificationSettings);
+        Object.assign(secondInstance, await secondAdapter.readGuildCore('guild-legacy'));
+        secondInstance.serverList = await secondAdapter.readServers('guild-legacy');
+        Object.assign(secondInstance, await secondAdapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(secondInstance, await secondAdapter.readCredentials('guild-legacy'));
+        await secondAdapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
 await sqliteSmoke();
+await sqliteRollbackSmoke();
+await sqliteFullGuildRollbackSmoke();
 await sqliteLegacyMigrationSmoke();
 await postgresSmoke();
+await postgresLegacyMigrationSmoke();
 console.log('persistence smoke passed');

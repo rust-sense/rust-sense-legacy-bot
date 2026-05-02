@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export function handler(rustplus: any, client: DiscordBot, time: any) {
@@ -6,7 +7,7 @@ export function handler(rustplus: any, client: DiscordBot, time: any) {
     checkChanges(rustplus, client, time);
 }
 
-export function checkChanges(rustplus: any, client: DiscordBot, time: any) {
+export async function checkChanges(rustplus: any, client: DiscordBot, time: any) {
     if (rustplus.time.timeTillActive) return;
 
     const prevTime = rustplus.time.time;
@@ -91,11 +92,11 @@ export function checkChanges(rustplus: any, client: DiscordBot, time: any) {
 
         rustplus.time.timeTillActive = true;
 
-        const instance = client.getInstance(rustplus.guildId);
+        const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
 
         instance.serverList[rustplus.serverId].timeTillDay = rustplus.time.timeTillDay;
         instance.serverList[rustplus.serverId].timeTillNight = rustplus.time.timeTillNight;
-        client.setInstance(rustplus.guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
 
         rustplus.log(client.intlGet(null, 'timeCap'), client.intlGet(null, '24HoursInGameTimePassed'), 'info');
         return;

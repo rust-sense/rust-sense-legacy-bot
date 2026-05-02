@@ -1,12 +1,12 @@
 import config from '../config.js';
-import { GuildStateCache } from './GuildStateCache.js';
 import { JsonAdapter } from './JsonAdapter.js';
+import { PersistenceService } from './PersistenceService.js';
 import { PostgresAdapter } from './PostgresAdapter.js';
 import { SqliteAdapter } from './SqliteAdapter.js';
 import type { PersistenceAdapter, PersistenceAdapterName } from './types.js';
 
 let adapter: PersistenceAdapter | null = null;
-let cache: GuildStateCache | null = null;
+let service: PersistenceService | null = null;
 
 export function createPersistenceAdapter(): PersistenceAdapter {
     const adapterName = config.persistence.adapter;
@@ -26,19 +26,23 @@ export function createPersistenceAdapter(): PersistenceAdapter {
 export async function initPersistence(): Promise<void> {
     adapter = createPersistenceAdapter();
     await adapter.init();
-    cache = new GuildStateCache(adapter);
+    service = new PersistenceService(adapter);
 }
 
-export function getPersistenceCache(): GuildStateCache {
-    if (!cache) {
+export function getPersistenceService(): PersistenceService {
+    if (!service) {
         throw new Error('Persistence has not been initialized');
     }
 
-    return cache;
+    return service;
+}
+
+export function getPersistenceCache(): PersistenceService {
+    return getPersistenceService();
 }
 
 export function isPersistenceInitialized(): boolean {
-    return cache !== null;
+    return service !== null;
 }
 
 export function getPersistenceAdapterName(): PersistenceAdapterName {
@@ -46,8 +50,8 @@ export function getPersistenceAdapterName(): PersistenceAdapterName {
 }
 
 export async function closePersistence(): Promise<void> {
-    await cache?.flush();
+    await service?.flush();
     await adapter?.close();
-    cache = null;
+    service = null;
     adapter = null;
 }

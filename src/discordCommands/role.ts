@@ -4,6 +4,7 @@ import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
@@ -54,14 +55,14 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
 
         const verifyId = client.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -94,7 +95,7 @@ export default {
                     instance.role = role.id;
                 }
 
-                client.setInstance(interaction.guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
 
                 await postRoleChangeHook();
 
@@ -112,7 +113,7 @@ export default {
                     instance.role = null;
                 }
 
-                client.setInstance(interaction.guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
 
                 await postRoleChangeHook();
 

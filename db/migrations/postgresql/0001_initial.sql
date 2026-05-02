@@ -5,6 +5,10 @@ CREATE TABLE IF NOT EXISTS _persistence_meta (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO _persistence_meta (key, value, updated_at)
+VALUES ('schema_version', '1', CURRENT_TIMESTAMP)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
+
 CREATE TABLE IF NOT EXISTS guilds (
   guild_id TEXT PRIMARY KEY,
   first_time INTEGER NOT NULL,

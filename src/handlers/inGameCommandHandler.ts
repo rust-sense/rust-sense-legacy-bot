@@ -1,3 +1,4 @@
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as SmartAlarmHandler from './smartAlarmHandler.js';
 import * as SmartSwitchGroupHandler from './smartSwitchGroupHandler.js';
@@ -5,7 +6,7 @@ import * as SmartSwitchHandler from './smartSwitchHandler.js';
 
 export async function inGameCommandHandler(rustplus: any, client: DiscordBot, message: any) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     let command = message.broadcast.teamMessage.message.message;
     for (const alias of instance.aliases) {

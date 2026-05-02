@@ -20,12 +20,13 @@ import * as DiscordModalsModule from '../discordTools/discordModals.js';
 
 const DiscordModals: any = DiscordModalsModule;
 
+import { getPersistenceCache } from '../persistence/index.js';
 import * as UtilsModule from '../util/utils.js';
 
 const Utils: any = UtilsModule;
 
 export default async (client: DiscordBot, interaction: any) => {
-    const instance = client.getInstance(interaction.guildId);
+    const instance = await getPersistenceCache().readGuildState(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
@@ -39,7 +40,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const setting = instance.notificationSettings[ids.setting];
 
         setting.discord = !setting.discord;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.notificationSettings[ids.setting].discord = setting.discord;
 
@@ -67,7 +68,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const setting = instance.notificationSettings[ids.setting];
 
         setting.inGame = !setting.inGame;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.notificationSettings[ids.setting].inGame = setting.inGame;
 
@@ -95,7 +96,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const setting = instance.notificationSettings[ids.setting];
 
         setting.voice = !setting.voice;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.notificationSettings[ids.setting].voice = setting.voice;
 
@@ -120,7 +121,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'AllowInGameCommands') {
         instance.generalSettings.inGameCommandsEnabled = !instance.generalSettings.inGameCommandsEnabled;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.inGameCommandsEnabled = instance.generalSettings.inGameCommandsEnabled;
 
@@ -139,7 +140,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'BotMutedInGame') {
         instance.generalSettings.muteInGameBotMessages = !instance.generalSettings.muteInGameBotMessages;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.muteInGameBotMessages = instance.generalSettings.muteInGameBotMessages;
 
@@ -158,7 +159,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'InGameTeammateConnection') {
         instance.generalSettings.connectionNotify = !instance.generalSettings.connectionNotify;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.connectionNotify = instance.generalSettings.connectionNotify;
 
@@ -171,11 +172,11 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
+            components: [await DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
         });
     } else if (interaction.customId === 'InGameTeammateAfk') {
         instance.generalSettings.afkNotify = !instance.generalSettings.afkNotify;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.afkNotify = instance.generalSettings.afkNotify;
 
@@ -188,11 +189,11 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
+            components: [await DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
         });
     } else if (interaction.customId === 'InGameTeammateDeath') {
         instance.generalSettings.deathNotify = !instance.generalSettings.deathNotify;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.deathNotify = instance.generalSettings.deathNotify;
 
@@ -205,11 +206,11 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
+            components: [await DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
         });
     } else if (interaction.customId === 'FcmAlarmNotification') {
         instance.generalSettings.fcmAlarmNotificationEnabled = !instance.generalSettings.fcmAlarmNotificationEnabled;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.fcmAlarmNotificationEnabled = instance.generalSettings.fcmAlarmNotificationEnabled;
@@ -233,7 +234,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'FcmAlarmNotificationEveryone') {
         instance.generalSettings.fcmAlarmNotificationEveryone = !instance.generalSettings.fcmAlarmNotificationEveryone;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.fcmAlarmNotificationEveryone =
@@ -258,7 +259,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'SmartAlarmNotifyInGame') {
         instance.generalSettings.smartAlarmNotifyInGame = !instance.generalSettings.smartAlarmNotifyInGame;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.smartAlarmNotifyInGame = instance.generalSettings.smartAlarmNotifyInGame;
 
@@ -281,7 +282,7 @@ export default async (client: DiscordBot, interaction: any) => {
     } else if (interaction.customId === 'SmartSwitchNotifyInGameWhenChangedFromDiscord') {
         instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord =
             !instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord =
@@ -305,7 +306,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'LeaderCommandEnabled') {
         instance.generalSettings.leaderCommandEnabled = !instance.generalSettings.leaderCommandEnabled;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.leaderCommandEnabled = instance.generalSettings.leaderCommandEnabled;
 
@@ -324,7 +325,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'LeaderCommandOnlyForPaired') {
         instance.generalSettings.leaderCommandOnlyForPaired = !instance.generalSettings.leaderCommandOnlyForPaired;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.leaderCommandOnlyForPaired = instance.generalSettings.leaderCommandOnlyForPaired;
@@ -347,7 +348,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'MapWipeNotifyEveryone') {
         instance.generalSettings.mapWipeNotifyEveryone = !instance.generalSettings.mapWipeNotifyEveryone;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) rustplus.generalSettings.mapWipeNotifyEveryone = instance.generalSettings.mapWipeNotifyEveryone;
 
@@ -365,7 +366,7 @@ export default async (client: DiscordBot, interaction: any) => {
     } else if (interaction.customId === 'ItemAvailableNotifyInGame') {
         instance.generalSettings.itemAvailableInVendingMachineNotifyInGame =
             !instance.generalSettings.itemAvailableInVendingMachineNotifyInGame;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.itemAvailableInVendingMachineNotifyInGame =
@@ -390,7 +391,7 @@ export default async (client: DiscordBot, interaction: any) => {
     } else if (interaction.customId === 'DisplayInformationBattlemetricsAllOnlinePlayers') {
         instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers =
             !instance.generalSettings.displayInformationBattlemetricsAllOnlinePlayers;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.displayInformationBattlemetricsAllOnlinePlayers =
@@ -415,7 +416,7 @@ export default async (client: DiscordBot, interaction: any) => {
     } else if (interaction.customId === 'BattlemetricsServerNameChanges') {
         instance.generalSettings.battlemetricsServerNameChanges =
             !instance.generalSettings.battlemetricsServerNameChanges;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.battlemetricsServerNameChanges =
@@ -430,12 +431,12 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+            components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         });
     } else if (interaction.customId === 'BattlemetricsTrackerNameChanges') {
         instance.generalSettings.battlemetricsTrackerNameChanges =
             !instance.generalSettings.battlemetricsTrackerNameChanges;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.battlemetricsTrackerNameChanges =
@@ -450,12 +451,12 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+            components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         });
     } else if (interaction.customId === 'BattlemetricsGlobalNameChanges') {
         instance.generalSettings.battlemetricsGlobalNameChanges =
             !instance.generalSettings.battlemetricsGlobalNameChanges;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.battlemetricsGlobalNameChanges =
@@ -470,11 +471,11 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+            components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         });
     } else if (interaction.customId === 'BattlemetricsGlobalLogin') {
         instance.generalSettings.battlemetricsGlobalLogin = !instance.generalSettings.battlemetricsGlobalLogin;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.battlemetricsGlobalLogin = instance.generalSettings.battlemetricsGlobalLogin;
@@ -488,11 +489,11 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+            components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         });
     } else if (interaction.customId === 'BattlemetricsGlobalLogout') {
         instance.generalSettings.battlemetricsGlobalLogout = !instance.generalSettings.battlemetricsGlobalLogout;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus)
             rustplus.generalSettings.battlemetricsGlobalLogout = instance.generalSettings.battlemetricsGlobalLogout;
@@ -506,7 +507,7 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         await client.interactionUpdate(interaction, {
-            components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+            components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         });
     } else if (interaction.customId.startsWith('ServerConnect')) {
         const ids = JSON.parse(interaction.customId.replace('ServerConnect', ''));
@@ -524,7 +525,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         instance.activeServer = ids.serverId;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         /* Disconnect previous instance is any */
         if (rustplus) {
@@ -564,7 +565,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        interaction.deferUpdate();
+        await interaction.deferUpdate();
 
         const groupsToUpdate = [];
         for (const [entityId, content] of Object.entries(server.switches) as [string, any][]) {
@@ -598,7 +599,7 @@ export default async (client: DiscordBot, interaction: any) => {
             }
         }
 
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('CustomTimersEdit')) {
         const ids = JSON.parse(interaction.customId.replace('CustomTimersEdit', ''));
         const server = instance.serverList[ids.serverId];
@@ -619,10 +620,10 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        interaction.deferUpdate();
+        await interaction.deferUpdate();
 
         /* Find an available tracker id */
-        const trackerId = client.findAvailableTrackerId(guildId);
+        const trackerId = await client.findAvailableTrackerId(guildId);
 
         instance.trackers[trackerId] = {
             id: trackerId,
@@ -641,7 +642,7 @@ export default async (client: DiscordBot, interaction: any) => {
             lastOnline: null,
             lastWipe: null,
         };
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         await DiscordMessages.sendTrackerMessage(guildId, trackerId);
     } else if (interaction.customId.startsWith('CreateGroup')) {
@@ -653,9 +654,9 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        interaction.deferUpdate();
+        await interaction.deferUpdate();
 
-        const groupId = client.findAvailableGroupId(guildId, ids.serverId);
+        const groupId = await client.findAvailableGroupId(guildId, ids.serverId);
 
         server.switchGroups[groupId] = {
             id: groupId,
@@ -667,7 +668,7 @@ export default async (client: DiscordBot, interaction: any) => {
             active: false,
             serverId: ids.serverId,
         };
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -690,7 +691,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
         instance.activeServer = null;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.resetRustplusVariables(guildId);
 
@@ -705,8 +706,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('ServerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -721,7 +722,7 @@ export default async (client: DiscordBot, interaction: any) => {
             await DiscordTools.clearTextChannel(rustplus.guildId, instance.channelId.storageMonitors, 100);
 
             instance.activeServer = null;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             client.resetRustplusVariables(guildId);
 
@@ -737,7 +738,7 @@ export default async (client: DiscordBot, interaction: any) => {
         await DiscordTools.deleteMessageById(guildId, instance.channelId.servers, server.messageId);
 
         delete instance.serverList[ids.serverId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('SmartSwitchOn') || interaction.customId.startsWith('SmartSwitchOff')) {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchOn', '').replace('SmartSwitchOff', ''));
         const server = instance.serverList[ids.serverId];
@@ -748,7 +749,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         if (!rustplus || (rustplus && rustplus.serverId !== ids.serverId)) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -758,7 +759,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const active = interaction.customId.startsWith('SmartSwitchOn') ? true : false;
         const prevActive = server.switches[ids.entityId].active;
         server.switches[ids.entityId].active = active;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         rustplus.interactionSwitches.push(ids.entityId);
 
@@ -769,12 +770,12 @@ export default async (client: DiscordBot, interaction: any) => {
             }
             server.switches[ids.entityId].reachable = false;
             server.switches[ids.entityId].active = prevActive;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             rustplus.interactionSwitches = rustplus.interactionSwitches.filter((e) => e !== ids.entityId);
         } else {
             server.switches[ids.entityId].reachable = true;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
         }
 
         if (instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord) {
@@ -815,8 +816,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -832,7 +833,7 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         delete server.switches[ids.entityId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         if (rustplus) {
             clearTimeout(rustplus.currentSwitchTimeouts[ids.entityId]);
@@ -842,11 +843,11 @@ export default async (client: DiscordBot, interaction: any) => {
         for (const [groupId, content] of Object.entries(server.switchGroups) as [string, any][]) {
             if (content.switches.includes(ids.entityId.toString())) {
                 server.switchGroups[groupId].switches = content.switches.filter((e) => e !== ids.entityId.toString());
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
                 await DiscordMessages.sendSmartSwitchGroupMessage(guildId, ids.serverId, groupId);
             }
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('SmartAlarmEveryone')) {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmEveryone', ''));
         const server = instance.serverList[ids.serverId];
@@ -857,7 +858,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         server.alarms[ids.entityId].everyone = !server.alarms[ids.entityId].everyone;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -872,8 +873,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -885,7 +886,7 @@ export default async (client: DiscordBot, interaction: any) => {
         await DiscordTools.deleteMessageById(guildId, instance.channelId.alarms, server.alarms[ids.entityId].messageId);
 
         delete server.alarms[ids.entityId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('SmartAlarmEdit')) {
         const ids = JSON.parse(interaction.customId.replace('SmartAlarmEdit', ''));
         const server = instance.serverList[ids.serverId];
@@ -907,7 +908,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         server.storageMonitors[ids.entityId].everyone = !server.storageMonitors[ids.entityId].everyone;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -928,7 +929,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         server.storageMonitors[ids.entityId].inGame = !server.storageMonitors[ids.entityId].inGame;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -954,8 +955,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorToolCupboardDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -971,7 +972,7 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         delete server.storageMonitors[ids.entityId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('StorageMonitorRecycle')) {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorRecycle', ''));
         const server = instance.serverList[ids.serverId];
@@ -981,7 +982,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        interaction.deferUpdate();
+        await interaction.deferUpdate();
 
         if (!rustplus || (rustplus && rustplus.serverId !== ids.serverId)) return;
 
@@ -991,14 +992,14 @@ export default async (client: DiscordBot, interaction: any) => {
                 await DiscordMessages.sendStorageMonitorNotFoundMessage(guildId, ids.serverId, ids.entityId);
             }
             server.storageMonitors[ids.entityId].reachable = false;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             await DiscordMessages.sendStorageMonitorMessage(guildId, ids.serverId, ids.entityId);
             return;
         }
 
         server.storageMonitors[ids.entityId].reachable = true;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         const items = client.rustlabs.getRecycleDataFromArray(entityInfo.entityInfo.payload.items);
 
@@ -1016,8 +1017,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('StorageMonitorContainerDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -1033,10 +1034,10 @@ export default async (client: DiscordBot, interaction: any) => {
         );
 
         delete server.storageMonitors[ids.entityId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId === 'RecycleDelete') {
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -1050,7 +1051,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        interaction.deferUpdate();
+        await interaction.deferUpdate();
 
         if (rustplus) {
             clearTimeout(rustplus.currentSwitchTimeouts[ids.group]);
@@ -1105,8 +1106,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('GroupDelete', ''));
         const server = instance.serverList[ids.serverId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -1128,7 +1129,7 @@ export default async (client: DiscordBot, interaction: any) => {
             );
 
             delete server.switchGroups[ids.groupId];
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
         }
     } else if (interaction.customId.startsWith('GroupAddSwitch')) {
         const ids = JSON.parse(interaction.customId.replace('GroupAddSwitch', ''));
@@ -1162,7 +1163,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         tracker.everyone = !tracker.everyone;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -1200,8 +1201,8 @@ export default async (client: DiscordBot, interaction: any) => {
         const ids = JSON.parse(interaction.customId.replace('TrackerDelete', ''));
         const tracker = instance.trackers[ids.trackerId];
 
-        if (!client.isAdministrator(interaction)) {
-            interaction.deferUpdate();
+        if (!(await client.isAdministrator(interaction))) {
+            await interaction.deferUpdate();
             return;
         }
 
@@ -1213,7 +1214,7 @@ export default async (client: DiscordBot, interaction: any) => {
         await DiscordTools.deleteMessageById(guildId, instance.channelId.trackers, tracker.messageId);
 
         delete instance.trackers[ids.trackerId];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     } else if (interaction.customId.startsWith('TrackerAddPlayer')) {
         const ids = JSON.parse(interaction.customId.replace('TrackerAddPlayer', ''));
         const tracker = instance.trackers[ids.trackerId];
@@ -1246,7 +1247,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         tracker.inGame = !tracker.inGame;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),

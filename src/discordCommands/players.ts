@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
@@ -86,7 +87,7 @@ export default {
                 return;
             }
 
-            const instance = client.getInstance(interaction.guildId);
+            const instance = await getPersistenceCache().readGuildState(interaction.guildId);
             const server = instance.serverList[rustplus.serverId];
             if (!server || (server && !server.battlemetricsId)) {
                 const str = client.intlGet(interaction.guildId, 'invalidBattlemetricsId');
@@ -154,6 +155,7 @@ async function playersNameHandler(client: DiscordBot, interaction: any, battleme
         /* Online or any */
         players = players.concat(bmInstance.getOnlinePlayerIdsOrderedByTime());
     }
+
     if (status === '1' || status === '2') {
         /* Offline or any */
         players = players.concat(bmInstance.getOfflinePlayerIdsOrderedByLeastTimeSinceOnline());

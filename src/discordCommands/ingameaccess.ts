@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
@@ -33,7 +34,7 @@ export default {
 
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
-        const instance = client.getInstance(guildId);
+        const instance = await getPersistenceCache().readGuildState(guildId);
         const rustplus = client.rustplusInstances[guildId];
 
         const verifyId = client.generateVerifyId();
@@ -41,7 +42,7 @@ export default {
 
         if (!(await client.validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(guildId, 'missingPermission');
             await client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -56,7 +57,7 @@ export default {
                 {
                     const mode = normalizeAccessMode(interaction.options.getString('mode'));
                     instance.generalSettings.inGameCommandAccessMode = mode;
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     if (rustplus) rustplus.generalSettings.inGameCommandAccessMode = mode;
 

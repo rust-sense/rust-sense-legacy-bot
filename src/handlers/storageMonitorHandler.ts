@@ -1,9 +1,10 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
 export async function handler(rustplus: any, client: DiscordBot) {
-    let instance = client.getInstance(rustplus.guildId);
+    let instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
 
@@ -18,9 +19,9 @@ export async function handler(rustplus: any, client: DiscordBot) {
     }
 
     if (rustplus.storageMonitorIntervalCounter === 0) {
-        let instance = client.getInstance(guildId);
+        let instance = await getPersistenceCache().readGuildState(guildId);
         for (const entityId in instance.serverList[serverId].storageMonitors) {
-            instance = client.getInstance(guildId);
+            instance = await getPersistenceCache().readGuildState(guildId);
 
             const info = await rustplus.getEntityInfoAsync(entityId);
             if (!rustplus.isResponseValid(info)) {
@@ -31,7 +32,7 @@ export async function handler(rustplus: any, client: DiscordBot) {
             } else {
                 instance.serverList[serverId].storageMonitors[entityId].reachable = true;
             }
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
                 if (
@@ -77,7 +78,7 @@ export async function handler(rustplus: any, client: DiscordBot) {
                     } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                         instance.serverList[serverId].storageMonitors[entityId].type = 'largeWoodBox';
                     }
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
                 }
             }
 

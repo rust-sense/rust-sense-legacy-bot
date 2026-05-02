@@ -3,6 +3,7 @@ import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
@@ -56,14 +57,14 @@ export default {
 
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
-        const instance = client.getInstance(guildId);
+        const instance = await getPersistenceCache().readGuildState(guildId);
 
         const verifyId = client.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(guildId, 'missingPermission');
             await client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -99,7 +100,7 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['discordIds'].push(discordUser.id);
-                            client.setInstance(guildId, instance);
+                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                             await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
@@ -124,7 +125,7 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['steamIds'].push(steamid);
-                            client.setInstance(guildId, instance);
+                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
                             str +=
                                 client.intlGet(guildId, 'userAddedToBlacklist', {
                                     user: name,
@@ -173,7 +174,7 @@ export default {
                             instance.blacklist['discordIds'] = instance.blacklist['discordIds'].filter(
                                 (e: string) => e !== discordUser.id,
                             );
-                            client.setInstance(guildId, instance);
+                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                             await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
@@ -200,7 +201,7 @@ export default {
                             instance.blacklist['steamIds'] = instance.blacklist['steamIds'].filter(
                                 (e: string) => e !== steamid,
                             );
-                            client.setInstance(guildId, instance);
+                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
                             str +=
                                 client.intlGet(guildId, 'userRemovedFromBlacklist', {
                                     user: name,

@@ -5,12 +5,11 @@ import * as Constants from '../util/constants.js';
 
 export default {
     name: 'voiceStateUpdate',
-    async execute(client: DiscordBot, oldState: any, newState: any) {
+    execute(client: DiscordBot, oldState: any, newState: any) {
         checkBotLeaveVoice(client, oldState, newState);
     },
 };
-
-async function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: any) {
+function checkBotLeaveVoice(client: DiscordBot, oldState: any, newState: any) {
     const guildId = oldState.guild.id;
 
     if (!Object.hasOwn(client.voiceLeaveTimeouts, guildId)) client.voiceLeaveTimeouts[guildId] = null;
@@ -62,5 +61,6 @@ function botLeaveVoiceTimeout(guildId: string) {
     if (connection) {
         connection.destroy();
     }
+
     destroyGuildTTS(guildId);
 }

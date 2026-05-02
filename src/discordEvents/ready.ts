@@ -11,8 +11,8 @@ export default {
     once: true,
     async execute(client: DiscordBot) {
         for (const guild of client.guilds.cache) {
-            createInstanceFile(client, guild[1]);
-            createCredentialsFile(client, guild[1]);
+            await createInstanceFile(client, guild[1]);
+            await createCredentialsFile(client, guild[1]);
             client.fcmListenersLite[guild[0]] = {};
         }
 

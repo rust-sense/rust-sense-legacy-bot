@@ -3,14 +3,15 @@ import { PermissionFlagsBits } from 'discord.js';
 
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type { DiscordBot } from '../types/discord.js';
 
 export default async function setupGuildCategory(
     client: DiscordBot,
     guild: Guild,
 ): Promise<CategoryChannel | undefined> {
-    const instance = client.getInstance(guild.id);
-    const perms = PermissionHandler.getPermissionsReset(client, guild, false);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
+    const perms = await PermissionHandler.getPermissionsReset(client, guild, false);
 
     let category: CategoryChannel | undefined = undefined;
     if (instance.channelId.category !== null) {
@@ -19,13 +20,14 @@ export default async function setupGuildCategory(
             category = undefined;
         }
     }
+
     if (category === undefined) {
         category = await DiscordTools.addCategory(guild.id, 'rust-sense', perms);
         if (!category) {
             return undefined;
         }
         instance.channelId.category = category.id;
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
     }
 
     try {

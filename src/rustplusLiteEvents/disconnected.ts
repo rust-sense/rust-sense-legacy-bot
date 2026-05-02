@@ -2,7 +2,7 @@ import config from '../config.js';
 
 export default {
     name: 'disconnected',
-    async execute(rustplusLite, client) {
+    execute(rustplusLite, client) {
         rustplusLite.log(client.intlGet(null, 'disconnectedCap'), client.intlGet(null, 'disconnectedFromServer'));
 
         if (rustplusLite.isActive && client.activeRustplusInstances[rustplusLite.guildId]) {

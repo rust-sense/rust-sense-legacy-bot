@@ -4,6 +4,6 @@ import type DiscordBot from '../structures/DiscordBot.js';
 export default {
     name: 'guildDelete',
     async execute(client: DiscordBot, guild: Guild) {
-        client.deleteGuildState(guild.id);
+        await client.deleteGuildState(guild.id);
     },
 };

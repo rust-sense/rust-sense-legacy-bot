@@ -34,6 +34,7 @@ import * as ScrapeModule from '../util/scrape.js';
 
 const Scrape: any = ScrapeModule;
 
+import { getPersistenceCache } from '../persistence/index.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 /**
@@ -46,7 +47,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
     const isLite = steamId !== null;
     const logPrefix = isLite ? 'FCM Lite' : 'FCM Host';
 
-    const credentials = InstanceUtils.readCredentialsFile(guild.id);
+    const credentials = await InstanceUtils.readCredentialsFile(guild.id);
     const hoster = credentials.hoster;
 
     if (isLite) {
@@ -371,7 +372,7 @@ async function pairingServer(
     isLite: boolean,
     activeSteamId: any,
 ) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
 
     if (isLite) {
@@ -385,7 +386,7 @@ async function pairingServer(
             steamId: body.playerId,
             playerToken: body.playerToken,
         };
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
         const rustplus = client.rustplusInstances[guild.id];
         if (rustplus && rustplus.serverId === serverId && rustplus.team.leaderSteamId === activeSteamId) {
@@ -409,6 +410,7 @@ async function pairingServer(
         }
 
         instance.serverList[serverId] = {
+            serverId: serverId,
             title: title,
             serverIp: body.ip,
             appPort: body.port,
@@ -423,6 +425,7 @@ async function pairingServer(
             storageMonitors: server ? server.storageMonitors : {},
             markers: server ? server.markers : {},
             switchGroups: server ? server.switchGroups : {},
+            customCameraGroups: server ? server.customCameraGroups : {},
             messageId: messageObj !== undefined ? messageObj.id : null,
             battlemetricsId: battlemetricsId,
             connect: !bmInstance.lastUpdateSuccessful
@@ -454,20 +457,21 @@ async function pairingServer(
             playerToken: body.playerToken,
         };
 
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
         await DiscordMessages.sendServerMessage(guild.id, serverId, null);
     }
 }
 
 async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPlayerId: any) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
 
     const switches = instance.serverList[serverId].switches;
     const entityExist = Object.hasOwn(switches, body.entityId);
     instance.serverList[serverId].switches[body.entityId] = {
+        id: entityExist ? switches[body.entityId].id : body.entityId,
         active: entityExist ? switches[body.entityId].active : false,
         reachable: entityExist ? switches[body.entityId].reachable : true,
         name: entityExist ? switches[body.entityId].name : client.intlGet(guild.id, 'smartSwitch'),
@@ -481,7 +485,7 @@ async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPl
         proximity: entityExist ? switches[body.entityId].proximity : Constants.PROXIMITY_SETTING_DEFAULT_METERS,
         messageId: entityExist ? switches[body.entityId].messageId : null,
     };
-    client.setInstance(guild.id, instance);
+    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -504,14 +508,14 @@ async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPl
         if (instance.serverList[serverId].switches[body.entityId].reachable) {
             instance.serverList[serverId].switches[body.entityId].active = info.entityInfo.payload.value;
         }
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
         await DiscordMessages.sendSmartSwitchMessage(guild.id, serverId, body.entityId);
     }
 }
 
 async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairingPlayerId: any) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
 
@@ -528,10 +532,13 @@ async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairi
         id: entityExist ? alarms[body.entityId].id : body.entityId,
         image: entityExist ? alarms[body.entityId].image : 'smart_alarm.png',
         location: entityExist ? alarms[body.entityId].location : null,
+        x: entityExist ? alarms[body.entityId].x : null,
+        y: entityExist ? alarms[body.entityId].y : null,
         server: entityExist ? alarms[body.entityId].server : body.name,
+        inGame: entityExist ? alarms[body.entityId].inGame : true,
         messageId: entityExist ? alarms[body.entityId].messageId : null,
     };
-    client.setInstance(guild.id, instance);
+    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -552,14 +559,14 @@ async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairi
         if (instance.serverList[serverId].alarms[body.entityId].reachable) {
             instance.serverList[serverId].alarms[body.entityId].active = info.entityInfo.payload.value;
         }
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
     }
 
     await DiscordMessages.sendSmartAlarmMessage(guild.id, serverId, body.entityId);
 }
 
 async function pairingEntityStorageMonitor(client: any, guild: any, body: any, pairingPlayerId: any) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     if (!Object.hasOwn(instance.serverList, serverId)) return;
 
@@ -576,10 +583,14 @@ async function pairingEntityStorageMonitor(client: any, guild: any, body: any, p
         inGame: entityExist ? storageMonitors[body.entityId].inGame : true,
         image: entityExist ? storageMonitors[body.entityId].image : 'storage_monitor.png',
         location: entityExist ? storageMonitors[body.entityId].location : null,
+        x: entityExist ? storageMonitors[body.entityId].x : null,
+        y: entityExist ? storageMonitors[body.entityId].y : null,
+        items: entityExist ? storageMonitors[body.entityId].items : [],
+        capacity: entityExist ? storageMonitors[body.entityId].capacity : null,
         server: entityExist ? storageMonitors[body.entityId].server : body.name,
         messageId: entityExist ? storageMonitors[body.entityId].messageId : null,
     };
-    client.setInstance(guild.id, instance);
+    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -619,7 +630,7 @@ async function pairingEntityStorageMonitor(client: any, guild: any, body: any, p
                 hasProtection: info.entityInfo.payload.hasProtection,
             };
         }
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 
         await DiscordMessages.sendStorageMonitorMessage(guild.id, serverId, body.entityId);
     }
@@ -636,7 +647,7 @@ async function alarmAlarm(client: any, guild: any, title: any, message: any, bod
     to the credential owner and which is not part of the currently connected rust server can notify IF the general
     setting fcmAlarmNotificationEnabled is enabled. Those notifications will be handled here. */
 
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     const entityId = body.entityId;
     const server = instance.serverList[serverId];
@@ -646,14 +657,14 @@ async function alarmAlarm(client: any, guild: any, title: any, message: any, bod
 
     if ((!rustplus || rustplus.serverId !== serverId) && instance.generalSettings.fcmAlarmNotificationEnabled) {
         server.alarms[entityId].lastTrigger = Math.floor(Date.now() / 1000);
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
         client.log(client.intlGet(null, 'infoCap'), `${title}: ${message}`);
     }
 }
 
 async function alarmRaidAlarm(client: any, guild: any, title: any, message: any, body: any) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const serverId = `${body.ip}-${body.port}`;
     const rustplus = client.rustplusInstances[guild.id];
 
@@ -692,7 +703,7 @@ async function playerDeath(client: any, guild: any, title: any, message: any, bo
 }
 
 async function teamLogin(client: any, guild: any, title: any, message: any, body: any) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const rustplus = client.rustplusInstances[guild.id];
     const serverId = `${body.ip}-${body.port}`;
 
@@ -722,7 +733,7 @@ async function teamLogin(client: any, guild: any, title: any, message: any, body
 }
 
 //async function newsNews(client, guild, full, data, body) {
-//    const instance = client.getInstance(guild.id);
+//    const instance = await getPersistenceCache().readGuildState(guild.id);
 //
 //    const content = {
 //        embeds: [DiscordEmbeds.getNewsEmbed(guild.id, data)],

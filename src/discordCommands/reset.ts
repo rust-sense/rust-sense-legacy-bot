@@ -5,6 +5,7 @@ import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
@@ -45,14 +46,14 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
 
         const verifyId = client.generateVerifyId();
         client.logInteraction(interaction, verifyId, 'slashCommand');
 
         if (!(await client.validatePermissions(interaction))) return;
 
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -74,7 +75,7 @@ export default {
                     const SetupGuildChannels = await import('../discordTools/SetupGuildChannels.js');
                     await SetupGuildChannels.default(client, guild, category);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
                     await category!.permissionOverwrites.set(perms).catch((e: any) => {
                         client.log(
                             client.intlGet(null, 'warningCap'),
@@ -149,7 +150,7 @@ export default {
 
             case 'servers':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
 
                     const category = await DiscordTools.getCategoryById(
                         guild!.id,
@@ -181,7 +182,7 @@ export default {
 
             case 'settings':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
 
                     const category = await DiscordTools.getCategoryById(
                         guild!.id,
@@ -216,7 +217,7 @@ export default {
                     await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switches as string, 100);
                     await DiscordTools.clearTextChannel(guild!.id, instance.channelId.switchGroups as string, 100);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
 
                     const category = await DiscordTools.getCategoryById(
                         guild!.id,
@@ -274,7 +275,7 @@ export default {
                 {
                     await DiscordTools.clearTextChannel(guild!.id, instance.channelId.storageMonitors as string, 100);
 
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
 
                     const category = await DiscordTools.getCategoryById(
                         guild!.id,
@@ -309,7 +310,7 @@ export default {
 
             case 'trackers':
                 {
-                    const perms = PermissionHandler.getPermissionsRemoved(client, guild!);
+                    const perms = await PermissionHandler.getPermissionsRemoved(client, guild!);
 
                     const category = await DiscordTools.getCategoryById(
                         guild!.id,

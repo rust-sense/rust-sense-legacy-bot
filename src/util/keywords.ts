@@ -1,3 +1,4 @@
+import { getPersistenceCache } from '../persistence/index.js';
 export function getListOfCommandKeywords(
     client: { intlGet: (guildId: string | null, key: string) => string },
     guildId: string,
@@ -94,10 +95,10 @@ export function getListOfCommandKeywords(
     ];
 }
 
-export function getListOfUsedKeywords(
+export async function getListOfUsedKeywords(
     client: {
         intlGet: (guildId: string | null, key: string) => string;
-        getInstance: (guildId: string) => {
+        getInstance: (guildId: string) => Promise<{
             serverList: Record<
                 string,
                 {
@@ -106,12 +107,12 @@ export function getListOfUsedKeywords(
                     switchGroups: Record<number, unknown>;
                 }
             >;
-        };
+        }>;
     },
     guildId: string,
     serverId: string,
-): string[] {
-    const instance = client.getInstance(guildId);
+): Promise<string[]> {
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     let list = [...getListOfCommandKeywords(client, guildId)];
     const server = instance.serverList[serverId];
@@ -119,9 +120,11 @@ export function getListOfUsedKeywords(
     for (const [_id, _value] of Object.entries(server.alarms)) {
         list.push((_value as { name: string }).name);
     }
+
     for (const [_id, _value] of Object.entries(server.switches)) {
         list.push((_value as { name: string }).name);
     }
+
     for (const [_id, _value] of Object.entries(server.switchGroups)) {
         list.push((_value as { name: string }).name);
     }

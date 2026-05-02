@@ -1,9 +1,10 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Timer from '../util/timer.js';
 
 export async function handler(rustplus: any, client: DiscordBot) {
-    let instance = client.getInstance(rustplus.guildId);
+    let instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
 
@@ -19,7 +20,7 @@ export async function handler(rustplus: any, client: DiscordBot) {
 
     if (rustplus.smartAlarmIntervalCounter === 0) {
         for (const entityId in instance.serverList[serverId].alarms) {
-            instance = client.getInstance(guildId);
+            instance = await getPersistenceCache().readGuildState(guildId);
 
             const info = await rustplus.getEntityInfoAsync(entityId);
             if (!rustplus.isResponseValid(info)) {
@@ -27,14 +28,14 @@ export async function handler(rustplus: any, client: DiscordBot) {
                     await DiscordMessages.sendSmartAlarmNotFoundMessage(guildId, serverId, entityId);
 
                     instance.serverList[serverId].alarms[entityId].reachable = false;
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                 }
             } else {
                 if (!instance.serverList[serverId].alarms[entityId].reachable) {
                     instance.serverList[serverId].alarms[entityId].reachable = true;
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                 }
@@ -43,10 +44,10 @@ export async function handler(rustplus: any, client: DiscordBot) {
     }
 }
 
-export function smartAlarmCommandHandler(rustplus: any, client: DiscordBot, command: string) {
+export async function smartAlarmCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const alarms = instance.serverList[serverId].alarms;
     const prefix = rustplus.generalSettings.prefix;
 

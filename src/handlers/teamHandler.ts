@@ -1,7 +1,7 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
-
 import { getPlayerName } from '../utils/playerNameUtils.js';
 
 export async function handler(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
@@ -12,7 +12,7 @@ export async function handler(rustplus: any, client: DiscordBot, teamInfo: any):
 export async function checkChanges(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
     if (!teamInfo || !teamInfo.leaderSteamId || !Array.isArray(teamInfo.members)) return;
 
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
     const server = instance.serverList[serverId];

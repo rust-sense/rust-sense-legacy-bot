@@ -49,6 +49,7 @@ export class OddcastProvider implements TTSProvider {
             const fallback = voice === 'male' ? 'female' : 'male';
             params = langActors[fallback] ?? null;
         }
+
         if (!params) throw new Error(`No Oddcast actor found for language ${language}`);
 
         const url = `https://cache-a.oddcast.com/tts/genC.php?EID=${params.EID}&LID=${params.LID}&VID=${params.VID}&TXT=${encodeURIComponent(text)}&EXT=mp3`;
@@ -57,6 +58,7 @@ export class OddcastProvider implements TTSProvider {
             const body = await response.text();
             throw new Error(`Oddcast TTS request failed with ${response.status}: ${body.slice(0, 200)}`);
         }
+
         if (!response.body) {
             throw new Error('Oddcast TTS response did not include an audio body');
         }

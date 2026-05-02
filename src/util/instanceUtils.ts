@@ -2,28 +2,28 @@ import { getPersistenceCache, isPersistenceInitialized } from '../persistence/in
 import type { Credentials, Instance } from '../types/instance.js';
 import { cwdPath, loadJsonSync, writeJsonSync } from '../utils/filesystemUtils.js';
 
-export function readInstanceFile(guildId: string): Instance {
-    if (isPersistenceInitialized()) return getPersistenceCache().getInstance(guildId);
+export async function readInstanceFile(guildId: string): Promise<Instance> {
+    if (isPersistenceInitialized()) return await getPersistenceCache().readGuildState(guildId);
     return loadJsonSync(cwdPath('instances', `${guildId}.json`)) as Instance;
 }
 
-export function writeInstanceFile(guildId: string, instance: Instance): void {
+export async function writeInstanceFile(guildId: string, instance: Instance): Promise<void> {
     if (isPersistenceInitialized()) {
-        getPersistenceCache().setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
         return;
     }
 
     writeJsonSync(cwdPath('instances', `${guildId}.json`), instance);
 }
 
-export function readCredentialsFile(guildId: string): Credentials {
-    if (isPersistenceInitialized()) return getPersistenceCache().getCredentials(guildId);
+export async function readCredentialsFile(guildId: string): Promise<Credentials> {
+    if (isPersistenceInitialized()) return await getPersistenceCache().getCredentials(guildId);
     return loadJsonSync(cwdPath('credentials', `${guildId}.json`)) as Credentials;
 }
 
-export function writeCredentialsFile(guildId: string, credentials: Credentials): void {
+export async function writeCredentialsFile(guildId: string, credentials: Credentials): Promise<void> {
     if (isPersistenceInitialized()) {
-        getPersistenceCache().setCredentials(guildId, credentials);
+        await getPersistenceCache().setCredentials(guildId, credentials);
         return;
     }
 

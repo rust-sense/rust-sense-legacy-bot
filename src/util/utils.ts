@@ -140,6 +140,7 @@ function levenshteinDistance(s1: string, s2: string): number {
     for (let i = 0; i <= m; i++) {
         dp[i] = [i];
     }
+
     for (let j = 0; j <= n; j++) {
         dp[0][j] = j;
     }

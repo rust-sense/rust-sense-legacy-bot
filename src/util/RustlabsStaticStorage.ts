@@ -133,6 +133,7 @@ export default class RustlabsStaticStorage {
             const jsonPath = Path.join(sourceDirectory, file);
             if (!Fs.existsSync(jsonPath)) missingFiles.push(jsonPath);
         }
+
         if (missingFiles.length > 0) {
             throw new Error(`Missing source JSON files for static DB build:\n${missingFiles.join('\n')}`);
         }

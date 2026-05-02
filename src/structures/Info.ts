@@ -123,33 +123,43 @@ export default class Info {
     isNameChanged(info: InfoData): boolean {
         return this.name !== info.name;
     }
+
     isHeaderImageChanged(info: InfoData): boolean {
         return this.headerImage !== info.headerImage;
     }
+
     isUrlChanged(info: InfoData): boolean {
         return this.url !== info.url;
     }
+
     isMapChanged(info: InfoData): boolean {
         return this.map !== info.map;
     }
+
     isMapSizeChanged(info: InfoData): boolean {
         return this.mapSize !== info.mapSize;
     }
+
     isWipeTimeChanged(info: InfoData): boolean {
         return this.wipeTime !== info.wipeTime;
     }
+
     isPlayersChanged(info: InfoData): boolean {
         return this.players !== info.players;
     }
+
     isMaxPlayersChanged(info: InfoData): boolean {
         return this.maxPlayers !== info.maxPlayers;
     }
+
     isQueuedPlayersChanged(info: InfoData): boolean {
         return this.queuedPlayers !== info.queuedPlayers;
     }
+
     isSeedChanged(info: InfoData): boolean {
         return this.seed !== info.seed;
     }
+
     isSaltChanged(info: InfoData): boolean {
         return this.salt !== info.salt;
     }
@@ -158,9 +168,11 @@ export default class Info {
     isMaxPlayersIncreased(info: InfoData): boolean {
         return this.maxPlayers < info.maxPlayers;
     }
+
     isMaxPlayersDecreased(info: InfoData): boolean {
         return this.maxPlayers > info.maxPlayers;
     }
+
     isQueue(): boolean {
         return this.queuedPlayers !== 0;
     }
@@ -184,6 +196,7 @@ export default class Info {
     getSecondsSinceWipe(): number {
         return (new Date().getTime() - new Date(this.wipeTime * 1000).getTime()) / 1000;
     }
+
     getTimeSinceWipe(ignore = ''): string {
         return Timer.secondsToFullScale(this.getSecondsSinceWipe(), ignore);
     }

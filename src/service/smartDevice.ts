@@ -1,8 +1,9 @@
 import { client } from '../index.js';
+import { getPersistenceCache } from '../persistence/index.js';
 
-export function getSmartDevice(guildId: string, entityId: string) {
+export async function getSmartDevice(guildId: string, entityId: string) {
     /* Temporary function till discord modals gets more functional */
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     for (const serverId in instance.serverList) {
         for (const switchId in instance.serverList[serverId].switches) {
@@ -13,6 +14,7 @@ export function getSmartDevice(guildId: string, entityId: string) {
                 };
             }
         }
+
         for (const alarmId in instance.serverList[serverId].alarms) {
             if (entityId === alarmId) {
                 return {
@@ -21,6 +23,7 @@ export function getSmartDevice(guildId: string, entityId: string) {
                 };
             }
         }
+
         for (const storageMonitorId in instance.serverList[serverId].storageMonitors) {
             if (entityId === storageMonitorId) {
                 return {

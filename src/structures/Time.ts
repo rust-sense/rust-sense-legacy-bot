@@ -1,3 +1,4 @@
+import { getPersistenceCache } from '../persistence/index.js';
 import * as TimeLib from '../util/timer.js';
 
 interface TimeData {
@@ -13,14 +14,7 @@ interface RustplusLike {
     serverId: string;
 }
 
-interface ClientLike {
-    getInstance: (guildId: string) => {
-        serverList: Record<
-            string,
-            { timeTillDay: Record<string, number> | null; timeTillNight: Record<string, number> | null }
-        >;
-    };
-}
+type ClientLike = object;
 
 export default class Time {
     private _dayLengthMinutes: number;
@@ -117,15 +111,19 @@ export default class Time {
     isDayLengthMinutesChanged(time: TimeData): boolean {
         return this.dayLengthMinutes !== time.dayLengthMinutes;
     }
+
     isTimeScaleChanged(time: TimeData): boolean {
         return this.timeScale !== time.timeScale;
     }
+
     isSunriseChanged(time: TimeData): boolean {
         return this.sunrise !== time.sunrise;
     }
+
     isSunsetChanged(time: TimeData): boolean {
         return this.sunset !== time.sunset;
     }
+
     isTimeChanged(time: TimeData): boolean {
         return this.time !== time.time;
     }
@@ -146,8 +144,8 @@ export default class Time {
         return this.isDay() && !(time.time >= time.sunrise && time.time < time.sunset);
     }
 
-    loadTimeTillConfig(): void {
-        const instance = this.client.getInstance(this.rustplus.guildId);
+    async loadTimeTillConfig(): Promise<void> {
+        const instance = await getPersistenceCache().readGuildState(this.rustplus.guildId);
         const server = instance.serverList[this.rustplus.serverId];
 
         if (server.timeTillDay !== null) this.timeTillDay = server.timeTillDay;

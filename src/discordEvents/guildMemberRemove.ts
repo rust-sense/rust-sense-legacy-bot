@@ -7,7 +7,7 @@ export default {
         const guildId = member.guild.id;
         const userId = member.user.id;
 
-        const credentials = InstanceUtils.readCredentialsFile(guildId);
+        const credentials = await InstanceUtils.readCredentialsFile(guildId);
 
         const steamId = Object.keys(credentials).find(
             (e) => credentials[e] && credentials[e].discord_user_id === userId,
@@ -29,6 +29,6 @@ export default {
         }
 
         delete credentials[steamId];
-        InstanceUtils.writeCredentialsFile(guildId, credentials);
+        await InstanceUtils.writeCredentialsFile(guildId, credentials);
     },
 };

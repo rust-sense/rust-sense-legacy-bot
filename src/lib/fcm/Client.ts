@@ -107,6 +107,7 @@ export default class Client extends EventEmitter {
             clearTimeout(this._retryTimeout);
             this._retryTimeout = null;
         }
+
         if (this._socket) {
             this._socket.removeListener('connect', this._onSocketConnect);
             this._socket.removeListener('close', this._onSocketClose);
@@ -114,6 +115,7 @@ export default class Client extends EventEmitter {
             this._socket.destroy();
             this._socket = null;
         }
+
         if (this._parser) {
             this._parser.removeListener('message', this._onMessage);
             this._parser.removeListener('error', this._onParserError);

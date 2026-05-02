@@ -3,6 +3,7 @@ import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Constants from '../util/constants.js';
 
@@ -75,7 +76,7 @@ export default {
 async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
-    if (!client.isAdministrator(interaction)) {
+    if (!(await client.isAdministrator(interaction))) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -85,7 +86,7 @@ async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: str
     const messageKey = interaction.options.getString('key');
     const messageText = interaction.options.getString('text');
 
-    const guildInstance = client.getInstance(guildId);
+    const guildInstance = await getPersistenceCache().readGuildState(guildId);
 
     const defaultIntl = client.checkLocaleIntlLoad(Constants.DEFAULT_LOCALE);
     if (!(messageKey in defaultIntl.messages)) {
@@ -99,7 +100,7 @@ async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: str
 
     guildInstance.customIntlMessages[messageKey] = messageText;
     client.loadGuildCustomIntl(guildId, guildInstance, messageKey, messageText);
-    client.setInstance(guildId, guildInstance);
+    await getPersistenceCache().saveGuildStateChanges(guildId, guildInstance);
 
     const str = client.intlGet(interaction.guildId, 'customIntlSetSuccess', {
         key: messageKey,
@@ -111,7 +112,7 @@ async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: str
 async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
-    if (!client.isAdministrator(interaction)) {
+    if (!(await client.isAdministrator(interaction))) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -120,7 +121,7 @@ async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: s
 
     const messageKey = interaction.options.getString('key');
 
-    const guildInstance = client.getInstance(guildId);
+    const guildInstance = await getPersistenceCache().readGuildState(guildId);
 
     if (!(messageKey in guildInstance.customIntlMessages)) {
         const str = client.intlGet(guildId, 'customIntlResetKeyNotCustomized', {
@@ -133,7 +134,7 @@ async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: s
 
     delete guildInstance.customIntlMessages[messageKey];
     delete client.customGuildIntl[guildId][messageKey];
-    client.setInstance(guildId, guildInstance);
+    await getPersistenceCache().saveGuildStateChanges(guildId, guildInstance);
 
     const str = client.intlGet(interaction.guildId, 'customIntlResetSuccess', {
         key: messageKey,
@@ -145,7 +146,7 @@ async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: s
 async function showCustomIntl(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
 
-    const guildInstance = client.getInstance(guildId);
+    const guildInstance = await getPersistenceCache().readGuildState(guildId);
 
     const title = client.intlGet(guildId, 'customIntlTitle');
     const keyFieldName = client.intlGet(guildId, 'customIntlKey');

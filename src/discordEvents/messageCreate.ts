@@ -1,10 +1,11 @@
 import * as DiscordTools from '../discordTools/discordTools.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
     name: 'messageCreate',
     async execute(client: DiscordBot, message: any) {
-        const instance = client.getInstance(message.guild.id);
+        const instance = await getPersistenceCache().readGuildState(message.guild.id);
         const rustplus = client.rustplusInstances[message.guild.id];
 
         if (message.author.bot || !rustplus || (rustplus && !rustplus.isOperational)) return;

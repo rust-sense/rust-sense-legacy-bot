@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
@@ -20,7 +21,7 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
         const verifyId = client.generateVerifyId();

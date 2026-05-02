@@ -12,17 +12,19 @@ import {
     NOTIFICATION_COLUMNS,
     normalizeTracker,
 } from './relationalMapping.js';
-import type { GuildCollectionsState, GuildCoreState, GuildSettingsState, PersistenceAdapter } from './types.js';
+import type {
+    GuildCollectionsState,
+    GuildCoreState,
+    GuildSettingsState,
+    GuildStateDomain,
+    PersistenceAdapter,
+} from './types.js';
 
 type Row = Record<string, any>;
 
 export class PostgresAdapter implements PersistenceAdapter {
     readonly name = 'postgres' as const;
     private pool: Pool | null = null;
-    private readonly instances: Record<string, Instance> = {};
-    private readonly credentials: Record<string, Credentials> = {};
-    private writeQueue: Promise<unknown> = Promise.resolve();
-    private writeError: unknown = null;
     private readonly generalTemplate = loadJsonResourceSync<Instance['generalSettings']>(
         'templates/generalSettingsTemplate.json',
     );
@@ -39,93 +41,91 @@ export class PostgresAdapter implements PersistenceAdapter {
         this.pool = new Pool({ connectionString: this.connectionString });
         await this.validateMigrated();
         if (this.migrateLegacyJsonOnInit) await this.migrateLegacyJson();
-        await this.loadCacheFromDatabase();
     }
 
     async close(): Promise<void> {
-        await this.flush();
         await this.pool?.end();
         this.pool = null;
     }
 
-    listGuildIds(): string[] {
-        return Object.keys(this.instances).sort();
+    async listGuildIds(): Promise<string[]> {
+        return (await this.rows('SELECT guild_id FROM guilds ORDER BY guild_id')).map((row) => row.guild_id);
     }
 
-    hasGuild(guildId: string): boolean {
-        return guildId in this.instances;
+    async hasGuild(guildId: string): Promise<boolean> {
+        return Boolean((await this.rows('SELECT 1 FROM guilds WHERE guild_id = ?', [guildId]))[0]);
     }
 
-    readGuildCore(guildId: string): GuildCoreState {
-        const instance = this.instances[guildId];
-        if (!instance) throw new Error(`No persisted guild state found for ${guildId}`);
+    async readGuildCore(guildId: string): Promise<GuildCoreState> {
+        const guild = (await this.rows('SELECT * FROM guilds WHERE guild_id = ?', [guildId]))[0];
+        if (!guild) throw new Error(`No persisted guild state found for ${guildId}`);
         return {
-            firstTime: instance.firstTime,
-            role: instance.role,
-            adminRole: instance.adminRole,
-            activeServer: instance.activeServer,
-            channelId: instance.channelId,
-            informationMessageId: instance.informationMessageId,
+            firstTime: fromDbBool(guild.first_time),
+            role: guild.role_id,
+            adminRole: guild.admin_role_id,
+            activeServer: guild.active_server_id,
+            channelId: {
+                category: guild.channel_category_id,
+                information: guild.channel_information_id,
+                servers: guild.channel_servers_id,
+                settings: guild.channel_settings_id,
+                commands: guild.channel_commands_id,
+                events: guild.channel_events_id,
+                teamchat: guild.channel_teamchat_id,
+                switches: guild.channel_switches_id,
+                switchGroups: guild.channel_switch_groups_id,
+                alarms: guild.channel_alarms_id,
+                storageMonitors: guild.channel_storage_monitors_id,
+                activity: guild.channel_activity_id,
+                trackers: guild.channel_trackers_id,
+            },
+            informationMessageId: {
+                map: guild.information_map_message_id,
+                server: guild.information_server_message_id,
+                event: guild.information_event_message_id,
+                team: guild.information_team_message_id,
+                battlemetricsPlayers: guild.information_battlemetrics_players_message_id,
+            },
         };
     }
 
-    writeGuildCore(guildId: string, core: GuildCoreState): void {
-        const instance = this.getOrCreateCachedInstance(guildId);
-        instance.firstTime = core.firstTime;
-        instance.role = core.role;
-        instance.adminRole = core.adminRole;
-        instance.activeServer = core.activeServer;
-        instance.channelId = core.channelId;
-        instance.informationMessageId = core.informationMessageId;
-        this.enqueueWrite(() => this.withTransaction((client) => this.writeGuild(client, guildId, core)));
+    async writeGuildCore(guildId: string, core: GuildCoreState): Promise<void> {
+        await this.withTransaction((client) => this.writeGuild(client, guildId, core));
     }
 
-    readGuildSettings(guildId: string): GuildSettingsState {
-        const instance = this.instances[guildId];
-        if (!instance) throw new Error(`No persisted guild state found for ${guildId}`);
+    async readGuildSettings(guildId: string): Promise<GuildSettingsState> {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        await this.readSettings(guildId, instance);
         return {
             generalSettings: instance.generalSettings,
             notificationSettings: instance.notificationSettings,
         };
     }
 
-    writeGuildSettings(guildId: string, settings: GuildSettingsState): void {
-        const instance = this.getOrCreateCachedInstance(guildId);
-        instance.generalSettings = settings.generalSettings;
-        instance.notificationSettings = settings.notificationSettings;
-        this.enqueueWrite(() =>
-            this.withTransaction(async (client) => {
-                await this.run(client, 'DELETE FROM guild_general_settings WHERE guild_id = ?', [guildId]);
-                await this.run(client, 'DELETE FROM guild_notification_settings WHERE guild_id = ?', [guildId]);
-                await this.writeSettings(client, guildId, settings);
-            }),
-        );
+    async writeGuildSettings(guildId: string, settings: GuildSettingsState): Promise<void> {
+        await this.withTransaction(async (client) => {
+            await this.run(client, 'DELETE FROM guild_general_settings WHERE guild_id = ?', [guildId]);
+            await this.run(client, 'DELETE FROM guild_notification_settings WHERE guild_id = ?', [guildId]);
+            await this.writeSettings(client, guildId, settings);
+        });
     }
 
-    readServers(guildId: string): Record<string, Server> {
-        const instance = this.instances[guildId];
-        if (!instance) throw new Error(`No persisted guild state found for ${guildId}`);
+    async readServers(guildId: string): Promise<Record<string, Server>> {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        await this.hydrateServers(guildId, instance);
         return instance.serverList;
     }
 
-    replaceServers(guildId: string, servers: Record<string, Server>): void {
-        const instance = this.getOrCreateCachedInstance(guildId);
-        instance.serverList = servers;
-        instance.serverListLite = {};
-        for (const server of Object.values(servers)) {
-            addServerLite(instance, server);
-        }
-        this.enqueueWrite(() =>
-            this.withTransaction(async (client) => {
-                await this.run(client, 'DELETE FROM servers WHERE guild_id = ?', [guildId]);
-                await this.writeServers(client, guildId, { serverList: servers } as Instance);
-            }),
-        );
+    async replaceServers(guildId: string, servers: Record<string, Server>): Promise<void> {
+        await this.withTransaction(async (client) => {
+            await this.run(client, 'DELETE FROM servers WHERE guild_id = ?', [guildId]);
+            await this.writeServers(client, guildId, { serverList: servers } as Instance);
+        });
     }
 
-    readGuildCollections(guildId: string): GuildCollectionsState {
-        const instance = this.instances[guildId];
-        if (!instance) throw new Error(`No persisted guild state found for ${guildId}`);
+    async readGuildCollections(guildId: string): Promise<GuildCollectionsState> {
+        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        await this.hydrateGuildCollections(guildId, instance);
         return {
             trackers: instance.trackers,
             marketSubscriptionList: instance.marketSubscriptionList,
@@ -138,18 +138,55 @@ export class PostgresAdapter implements PersistenceAdapter {
         };
     }
 
-    replaceGuildCollections(guildId: string, collections: GuildCollectionsState): void {
-        const instance = this.getOrCreateCachedInstance(guildId);
-        instance.trackers = collections.trackers;
-        instance.marketSubscriptionList = collections.marketSubscriptionList;
-        instance.marketBlacklist = collections.marketBlacklist;
-        instance.teamChatColors = collections.teamChatColors;
-        instance.blacklist = collections.blacklist;
-        instance.whitelist = collections.whitelist;
-        instance.aliases = collections.aliases;
-        instance.customIntlMessages = collections.customIntlMessages;
-        this.enqueueWrite(() =>
-            this.withTransaction(async (client) => {
+    async replaceGuildCollections(guildId: string, collections: GuildCollectionsState): Promise<void> {
+        await this.withTransaction(async (client) => {
+            for (const table of [
+                'trackers',
+                'market_subscriptions',
+                'market_blacklist',
+                'blacklist_entries',
+                'whitelist_entries',
+                'aliases',
+                'custom_intl_messages',
+                'team_chat_colors',
+            ]) {
+                await this.run(client, `DELETE FROM ${table} WHERE guild_id = ?`, [guildId]);
+            }
+            await this.writeGuildCollections(client, guildId, collections as Instance);
+        });
+    }
+
+    async deleteGuild(guildId: string): Promise<void> {
+        await this.withTransaction((client) => this.run(client, 'DELETE FROM guilds WHERE guild_id = ?', [guildId]));
+    }
+
+    readCredentials(guildId: string): Promise<Credentials> {
+        return this.readCredentialsFromDatabase(guildId);
+    }
+
+    async writeCredentials(guildId: string, credentials: Credentials): Promise<void> {
+        await this.writeCredentialsAsync(guildId, credentials);
+    }
+
+    async bootstrapGuildState(guildId: string, instance: Instance): Promise<void> {
+        await this.writeInstanceAsync(guildId, instance);
+    }
+
+    async writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): Promise<void> {
+        await this.withTransaction(async (client) => {
+            if (domains.includes('core')) {
+                await this.writeGuild(client, guildId, instance);
+            }
+            if (domains.includes('settings')) {
+                await this.run(client, 'DELETE FROM guild_general_settings WHERE guild_id = ?', [guildId]);
+                await this.run(client, 'DELETE FROM guild_notification_settings WHERE guild_id = ?', [guildId]);
+                await this.writeSettings(client, guildId, instance);
+            }
+            if (domains.includes('servers')) {
+                await this.run(client, 'DELETE FROM servers WHERE guild_id = ?', [guildId]);
+                await this.writeServers(client, guildId, instance);
+            }
+            if (domains.includes('collections')) {
                 for (const table of [
                     'trackers',
                     'market_subscriptions',
@@ -162,79 +199,30 @@ export class PostgresAdapter implements PersistenceAdapter {
                 ]) {
                     await this.run(client, `DELETE FROM ${table} WHERE guild_id = ?`, [guildId]);
                 }
-                await this.writeGuildCollections(client, guildId, collections as Instance);
-            }),
-        );
+                await this.writeGuildCollections(client, guildId, instance);
+            }
+        });
     }
 
-    private readInstance(guildId: string): Instance {
-        const instance = this.instances[guildId];
-        if (!instance) throw new Error(`No persisted guild state found for ${guildId}`);
-        return instance;
-    }
-
-    private writeInstance(guildId: string, instance: Instance): void {
-        this.instances[guildId] = instance;
-        this.enqueueWrite(() => this.writeInstanceAsync(guildId, instance));
-    }
-
-    deleteGuild(guildId: string): void {
-        delete this.instances[guildId];
-        delete this.credentials[guildId];
-        this.enqueueWrite(() =>
-            this.withTransaction((client) => this.run(client, 'DELETE FROM guilds WHERE guild_id = ?', [guildId])),
-        );
-    }
-
-    readCredentials(guildId: string): Credentials {
-        return this.credentials[guildId] ?? { hoster: null };
-    }
-
-    writeCredentials(guildId: string, credentials: Credentials): void {
-        this.credentials[guildId] = credentials;
-        this.enqueueWrite(() => this.writeCredentialsAsync(guildId, credentials));
-    }
-
-    async flush(): Promise<void> {
-        await this.writeQueue;
-        if (this.writeError) {
-            const error = this.writeError;
-            this.writeError = null;
-            throw error;
-        }
-    }
+    async flush(): Promise<void> {}
 
     private database(): Pool {
         if (!this.pool) throw new Error('Postgres persistence adapter has not been initialized');
         return this.pool;
     }
 
-    private getOrCreateCachedInstance(guildId: string): Instance {
-        if (!(guildId in this.instances)) {
-            this.instances[guildId] = createEmptyInstance(
-                { ...this.generalTemplate },
-                structuredClone(this.notificationTemplate),
-            );
-        }
-
-        return this.instances[guildId];
-    }
-
     private async validateMigrated(): Promise<void> {
         try {
-            await this.database().query("SELECT 1 FROM _persistence_meta WHERE key = 'schema_validation'");
+            const schemaVersion = (
+                await this.database().query("SELECT value FROM _persistence_meta WHERE key = 'schema_version'")
+            ).rows[0]?.value;
+            if (schemaVersion !== '1') {
+                throw new Error(`expected schema_version=1, got ${schemaVersion ?? 'missing'}`);
+            }
         } catch (error) {
             throw new Error(
                 `Postgres persistence schema is missing or incomplete. Run dbmate before starting the bot. ${error}`,
             );
-        }
-    }
-
-    private async loadCacheFromDatabase(): Promise<void> {
-        const guildIds = (await this.rows('SELECT guild_id FROM guilds ORDER BY guild_id')).map((row) => row.guild_id);
-        for (const guildId of guildIds) {
-            this.instances[guildId] = await this.readInstanceFromDatabase(guildId);
-            this.credentials[guildId] = await this.readCredentialsFromDatabase(guildId);
         }
     }
 
@@ -280,7 +268,7 @@ export class PostgresAdapter implements PersistenceAdapter {
     }
 
     private async writeInstanceAsync(guildId: string, instance: Instance): Promise<void> {
-        const existingCredentials = this.credentials[guildId] ?? (await this.readCredentialsFromDatabase(guildId));
+        const existingCredentials = await this.readCredentialsFromDatabase(guildId);
         await this.withTransaction(async (client) => {
             await this.run(client, 'DELETE FROM guilds WHERE guild_id = ?', [guildId]);
             await this.writeGuild(client, guildId, instance);
@@ -471,6 +459,9 @@ export class PostgresAdapter implements PersistenceAdapter {
 
     private async readSettings(guildId: string, instance: Instance): Promise<void> {
         const general = (await this.rows('SELECT * FROM guild_general_settings WHERE guild_id = ?', [guildId]))[0];
+        if (!general) {
+            throw new Error(`Persisted guild settings are missing for ${guildId}`);
+        }
         for (const [key, column] of GENERAL_COLUMNS) {
             const templateValue = this.generalTemplate[key];
             instance.generalSettings[key] =
@@ -480,6 +471,9 @@ export class PostgresAdapter implements PersistenceAdapter {
         const notification = (
             await this.rows('SELECT * FROM guild_notification_settings WHERE guild_id = ?', [guildId])
         )[0];
+        if (!notification) {
+            throw new Error(`Persisted guild notification settings are missing for ${guildId}`);
+        }
         for (const [section, prefix, key] of NOTIFICATION_COLUMNS) {
             if (!(section in instance.notificationSettings)) instance.notificationSettings[section] = {};
             const templateValue = this.notificationTemplate[section]?.[key];
@@ -549,6 +543,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     );
                 }
             }
+
             for (const [switchId, smartSwitch] of Object.entries(server.switches ?? {})) {
                 await this.insert(
                     client,
@@ -589,6 +584,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     ],
                 );
             }
+
             for (const [alarmId, alarm] of Object.entries(server.alarms ?? {})) {
                 await this.insert(
                     client,
@@ -631,6 +627,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     ],
                 );
             }
+
             for (const [monitorId, monitor] of Object.entries(server.storageMonitors ?? {})) {
                 await this.insert(
                     client,
@@ -681,6 +678,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     );
                 }
             }
+
             for (const [groupId, group] of Object.entries(server.switchGroups ?? {})) {
                 await this.insert(
                     client,
@@ -706,6 +704,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     );
                 }
             }
+
             for (const [groupId, group] of Object.entries(server.customCameraGroups ?? {})) {
                 await this.insert(
                     client,
@@ -722,6 +721,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     );
                 }
             }
+
             for (const [markerKey, marker] of Object.entries(server.markers ?? {})) {
                 await this.insert(
                     client,
@@ -730,6 +730,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                     [guildId, serverId, markerKey, marker.x, marker.y, marker.location],
                 );
             }
+
             for (const [noteId, note] of Object.entries(server.notes ?? {})) {
                 await this.insert(
                     client,
@@ -782,6 +783,7 @@ export class PostgresAdapter implements PersistenceAdapter {
             server[target] ??= {};
             server[target][row.sample_key] = Number(row.seconds);
         }
+
         for (const row of await this.rows('SELECT * FROM smart_switches WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].switches[row.switch_id] = {
                 id: row.switch_id,
@@ -800,6 +802,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 serverId: row.server_id,
             };
         }
+
         for (const row of await this.rows('SELECT * FROM smart_alarms WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].alarms[row.alarm_id] = {
                 id: row.alarm_id,
@@ -819,6 +822,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 server: row.server_id,
             };
         }
+
         for (const row of await this.rows('SELECT * FROM storage_monitors WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].storageMonitors[row.storage_monitor_id] = {
                 id: row.storage_monitor_id,
@@ -839,12 +843,14 @@ export class PostgresAdapter implements PersistenceAdapter {
                 upkeep: row.upkeep,
             };
         }
+
         for (const row of await this.rows('SELECT * FROM storage_monitor_items WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].storageMonitors[row.storage_monitor_id].items.push({
                 itemId: row.item_id,
                 quantity: row.quantity,
             });
         }
+
         for (const row of await this.rows('SELECT * FROM switch_groups WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].switchGroups[row.group_id] = {
                 id: row.group_id,
@@ -857,9 +863,11 @@ export class PostgresAdapter implements PersistenceAdapter {
                 messageId: row.message_id,
             };
         }
+
         for (const row of await this.rows('SELECT * FROM switch_group_members WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].switchGroups[row.group_id].switches.push(row.switch_id);
         }
+
         for (const row of await this.rows('SELECT * FROM custom_camera_groups WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].customCameraGroups[row.group_id] = {
                 id: row.group_id,
@@ -867,9 +875,11 @@ export class PostgresAdapter implements PersistenceAdapter {
                 cameras: [],
             };
         }
+
         for (const row of await this.rows('SELECT * FROM custom_camera_group_members WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].customCameraGroups[row.group_id].cameras.push(row.camera);
         }
+
         for (const row of await this.rows('SELECT * FROM markers WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].markers[row.marker_key] = {
                 x: row.x,
@@ -877,6 +887,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 location: row.location,
             };
         }
+
         for (const row of await this.rows('SELECT * FROM notes WHERE guild_id = ?', [guildId])) {
             instance.serverList[row.server_id].notes[row.note_id] = row.note;
         }
@@ -945,9 +956,11 @@ export class PostgresAdapter implements PersistenceAdapter {
                 );
             }
         }
+
         for (const item of instance.marketBlacklist ?? []) {
             await this.insert(client, 'market_blacklist', ['guild_id', 'item'], [guildId, item]);
         }
+
         for (const entryId of instance.blacklist.discordIds ?? []) {
             await this.insert(
                 client,
@@ -956,6 +969,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 [guildId, 'discord', entryId],
             );
         }
+
         for (const entryId of instance.blacklist.steamIds ?? []) {
             await this.insert(
                 client,
@@ -964,9 +978,11 @@ export class PostgresAdapter implements PersistenceAdapter {
                 [guildId, 'steam', entryId],
             );
         }
+
         for (const steamId of instance.whitelist.steamIds ?? []) {
             await this.insert(client, 'whitelist_entries', ['guild_id', 'steam_id'], [guildId, steamId]);
         }
+
         for (const alias of instance.aliases ?? []) {
             await this.insert(
                 client,
@@ -975,6 +991,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 [guildId, alias.index, alias.alias, alias.value],
             );
         }
+
         for (const [key, message] of Object.entries(instance.customIntlMessages ?? {})) {
             await this.insert(
                 client,
@@ -983,6 +1000,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 [guildId, key, message],
             );
         }
+
         for (const [steamId, color] of Object.entries(instance.teamChatColors ?? {})) {
             await this.insert(client, 'team_chat_colors', ['guild_id', 'steam_id', 'color'], [guildId, steamId, color]);
         }
@@ -1008,6 +1026,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 players: [],
             };
         }
+
         for (const row of await this.rows('SELECT * FROM tracker_players WHERE guild_id = ? ORDER BY player_index', [
             guildId,
         ])) {
@@ -1017,6 +1036,7 @@ export class PostgresAdapter implements PersistenceAdapter {
                 playerId: row.player_id,
             });
         }
+
         for (const row of await this.rows('SELECT * FROM market_subscriptions WHERE guild_id = ?', [guildId])) {
             instance.marketSubscriptionList[row.list_type as 'all' | 'buy' | 'sell'].push(row.item);
         }
@@ -1036,6 +1056,7 @@ export class PostgresAdapter implements PersistenceAdapter {
         for (const row of await this.rows('SELECT * FROM custom_intl_messages WHERE guild_id = ?', [guildId])) {
             instance.customIntlMessages[row.message_key] = row.message;
         }
+
         for (const row of await this.rows('SELECT * FROM team_chat_colors WHERE guild_id = ?', [guildId])) {
             instance.teamChatColors[row.steam_id] = row.color;
         }
@@ -1054,13 +1075,6 @@ export class PostgresAdapter implements PersistenceAdapter {
         } finally {
             client.release();
         }
-    }
-
-    private enqueueWrite(callback: () => Promise<unknown>): void {
-        const write = this.writeQueue.then(callback);
-        this.writeQueue = write.catch((error) => {
-            this.writeError = error;
-        });
     }
 
     private async insert(

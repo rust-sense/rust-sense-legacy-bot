@@ -1,6 +1,7 @@
 import { InteractionType } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 function safeDeferUpdate(client: DiscordBot, interaction: any) {
@@ -16,7 +17,7 @@ function safeDeferUpdate(client: DiscordBot, interaction: any) {
 export default {
     name: 'interactionCreate',
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
 
         /* Check so that the interaction comes from valid channels */
         if (!Object.values(instance.channelId).includes(interaction.channelId) && !interaction.isCommand) {

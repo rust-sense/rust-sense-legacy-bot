@@ -14,6 +14,8 @@ import type {
 } from '../types/instance.js';
 
 export type PersistenceAdapterName = 'json' | 'sqlite' | 'postgres';
+export type MaybePromise<T> = T | Promise<T>;
+export type GuildStateDomain = 'core' | 'settings' | 'servers' | 'collections';
 
 export interface GuildCoreState {
     firstTime: boolean;
@@ -50,19 +52,21 @@ export interface PersistenceAdapter {
 
     init(): Promise<void>;
     close(): Promise<void>;
-    listGuildIds(): string[];
-    hasGuild(guildId: string): boolean;
-    readGuildCore(guildId: string): GuildCoreState;
-    writeGuildCore(guildId: string, core: GuildCoreState): void;
-    readGuildSettings(guildId: string): GuildSettingsState;
-    writeGuildSettings(guildId: string, settings: GuildSettingsState): void;
-    readServers(guildId: string): Record<string, Server>;
-    replaceServers(guildId: string, servers: Record<string, Server>): void;
-    readGuildCollections(guildId: string): GuildCollectionsState;
-    replaceGuildCollections(guildId: string, collections: GuildCollectionsState): void;
-    deleteGuild(guildId: string): void;
-    readCredentials(guildId: string): Credentials;
-    writeCredentials(guildId: string, credentials: Credentials): void;
+    listGuildIds(): MaybePromise<string[]>;
+    hasGuild(guildId: string): MaybePromise<boolean>;
+    readGuildCore(guildId: string): MaybePromise<GuildCoreState>;
+    writeGuildCore(guildId: string, core: GuildCoreState): MaybePromise<void>;
+    readGuildSettings(guildId: string): MaybePromise<GuildSettingsState>;
+    writeGuildSettings(guildId: string, settings: GuildSettingsState): MaybePromise<void>;
+    readServers(guildId: string): MaybePromise<Record<string, Server>>;
+    replaceServers(guildId: string, servers: Record<string, Server>): MaybePromise<void>;
+    readGuildCollections(guildId: string): MaybePromise<GuildCollectionsState>;
+    replaceGuildCollections(guildId: string, collections: GuildCollectionsState): MaybePromise<void>;
+    deleteGuild(guildId: string): MaybePromise<void>;
+    readCredentials(guildId: string): MaybePromise<Credentials>;
+    writeCredentials(guildId: string, credentials: Credentials): MaybePromise<void>;
+    bootstrapGuildState(guildId: string, instance: Instance): MaybePromise<void>;
+    writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): MaybePromise<void>;
     flush(): Promise<void>;
 }
 

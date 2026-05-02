@@ -13,7 +13,13 @@ import {
     NOTIFICATION_COLUMNS,
     normalizeTracker,
 } from './relationalMapping.js';
-import type { GuildCollectionsState, GuildCoreState, GuildSettingsState, PersistenceAdapter } from './types.js';
+import type {
+    GuildCollectionsState,
+    GuildCoreState,
+    GuildSettingsState,
+    GuildStateDomain,
+    PersistenceAdapter,
+} from './types.js';
 
 type Row = Record<string, any>;
 
@@ -109,10 +115,12 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     writeGuildSettings(guildId: string, settings: GuildSettingsState): void {
-        const db = this.database();
-        db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
-        db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
-        this.writeSettings(guildId, settings);
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
+            db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
+            this.writeSettings(guildId, settings);
+        });
     }
 
     readServers(guildId: string): Record<string, Server> {
@@ -122,9 +130,11 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     replaceServers(guildId: string, servers: Record<string, Server>): void {
-        const db = this.database();
-        db.prepare('DELETE FROM servers WHERE guild_id = ?').run(guildId);
-        this.insertServers(guildId, { serverList: servers } as Instance);
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare('DELETE FROM servers WHERE guild_id = ?').run(guildId);
+            this.insertServers(guildId, { serverList: servers } as Instance);
+        });
     }
 
     readGuildCollections(guildId: string): GuildCollectionsState {
@@ -143,20 +153,22 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     replaceGuildCollections(guildId: string, collections: GuildCollectionsState): void {
-        const db = this.database();
-        for (const table of [
-            'trackers',
-            'market_subscriptions',
-            'market_blacklist',
-            'blacklist_entries',
-            'whitelist_entries',
-            'aliases',
-            'custom_intl_messages',
-            'team_chat_colors',
-        ]) {
-            db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(guildId);
-        }
-        this.insertGuildCollections(guildId, collections as Instance);
+        this.withTransaction(() => {
+            const db = this.database();
+            for (const table of [
+                'trackers',
+                'market_subscriptions',
+                'market_blacklist',
+                'blacklist_entries',
+                'whitelist_entries',
+                'aliases',
+                'custom_intl_messages',
+                'team_chat_colors',
+            ]) {
+                db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(guildId);
+            }
+            this.insertGuildCollections(guildId, collections as Instance);
+        });
     }
 
     private writeInstance(guildId: string, instance: Instance): void {
@@ -219,6 +231,43 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
+    bootstrapGuildState(guildId: string, instance: Instance): void {
+        this.writeInstance(guildId, instance);
+    }
+
+    writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            if (domains.includes('core')) {
+                this.writeGuild(guildId, instance);
+            }
+            if (domains.includes('settings')) {
+                db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
+                db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
+                this.writeSettings(guildId, instance);
+            }
+            if (domains.includes('servers')) {
+                db.prepare('DELETE FROM servers WHERE guild_id = ?').run(guildId);
+                this.insertServers(guildId, instance);
+            }
+            if (domains.includes('collections')) {
+                for (const table of [
+                    'trackers',
+                    'market_subscriptions',
+                    'market_blacklist',
+                    'blacklist_entries',
+                    'whitelist_entries',
+                    'aliases',
+                    'custom_intl_messages',
+                    'team_chat_colors',
+                ]) {
+                    db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(guildId);
+                }
+                this.insertGuildCollections(guildId, instance);
+            }
+        });
+    }
+
     async flush(): Promise<void> {}
 
     private database(): Database.Database {
@@ -226,9 +275,29 @@ export class SqliteAdapter implements PersistenceAdapter {
         return this.db;
     }
 
+    private withTransaction<T>(callback: () => T): T {
+        const db = this.database();
+        db.exec('BEGIN IMMEDIATE');
+        try {
+            const result = callback();
+            db.exec('COMMIT');
+            return result;
+        } catch (error) {
+            db.exec('ROLLBACK');
+            throw error;
+        }
+    }
+
     private validateMigrated(): void {
         try {
-            this.database().prepare("SELECT 1 FROM _persistence_meta WHERE key = 'schema_validation'").get();
+            const schemaVersion = (
+                this.database().prepare("SELECT value FROM _persistence_meta WHERE key = 'schema_version'").get() as
+                    | Row
+                    | undefined
+            )?.value;
+            if (schemaVersion !== '1') {
+                throw new Error(`expected schema_version=1, got ${schemaVersion ?? 'missing'}`);
+            }
         } catch (error) {
             throw new Error(
                 `SQLite persistence schema is missing or incomplete. Run dbmate before starting the bot. ${error}`,
@@ -412,16 +481,24 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     private readSettings(db: Database.Database, guildId: string, instance: Instance): void {
-        const general = db.prepare('SELECT * FROM guild_general_settings WHERE guild_id = ?').get(guildId) as Row;
+        const general = db.prepare('SELECT * FROM guild_general_settings WHERE guild_id = ?').get(guildId) as
+            | Row
+            | undefined;
+        if (!general) {
+            throw new Error(`Persisted guild settings are missing for ${guildId}`);
+        }
         for (const [key, column] of GENERAL_COLUMNS) {
             const templateValue = this.generalTemplate[key];
             instance.generalSettings[key] =
                 typeof templateValue === 'boolean' ? fromDbBool(general[column]) : (general[column] ?? templateValue);
         }
 
-        const notification = db
-            .prepare('SELECT * FROM guild_notification_settings WHERE guild_id = ?')
-            .get(guildId) as Row;
+        const notification = db.prepare('SELECT * FROM guild_notification_settings WHERE guild_id = ?').get(guildId) as
+            | Row
+            | undefined;
+        if (!notification) {
+            throw new Error(`Persisted guild notification settings are missing for ${guildId}`);
+        }
         for (const [section, prefix, key] of NOTIFICATION_COLUMNS) {
             if (!(section in instance.notificationSettings)) instance.notificationSettings[section] = {};
             const templateValue = this.notificationTemplate[section]?.[key];
@@ -510,6 +587,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                     insertTime.run(guildId, serverId, phase, sampleKey, seconds);
                 }
             }
+
             for (const [switchId, smartSwitch] of Object.entries(server.switches ?? {})) {
                 insertSwitch.run(
                     guildId,
@@ -529,6 +607,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                     smartSwitch.everyone == null ? null : dbBool(smartSwitch.everyone),
                 );
             }
+
             for (const [alarmId, alarm] of Object.entries(server.alarms ?? {})) {
                 insertAlarm.run(
                     guildId,
@@ -549,6 +628,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                     dbBool(alarm.everyone),
                 );
             }
+
             for (const [monitorId, monitor] of Object.entries(server.storageMonitors ?? {})) {
                 insertMonitor.run(
                     guildId,
@@ -572,6 +652,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                     insertMonitorItem.run(guildId, serverId, monitorId, item.itemId, item.quantity);
                 }
             }
+
             for (const [groupId, group] of Object.entries(server.switchGroups ?? {})) {
                 insertGroup.run(
                     guildId,
@@ -587,15 +668,18 @@ export class SqliteAdapter implements PersistenceAdapter {
                     insertGroupMember.run(guildId, serverId, groupId, switchId);
                 }
             }
+
             for (const [groupId, group] of Object.entries(server.customCameraGroups ?? {})) {
                 insertCameraGroup.run(guildId, serverId, groupId, group.name);
                 for (const camera of group.cameras ?? []) {
                     insertCamera.run(guildId, serverId, groupId, camera);
                 }
             }
+
             for (const [markerKey, marker] of Object.entries(server.markers ?? {})) {
                 insertMarker.run(guildId, serverId, markerKey, marker.x, marker.y, marker.location);
             }
+
             for (const [noteId, note] of Object.entries(server.notes ?? {})) {
                 insertNote.run(guildId, serverId, noteId, note);
             }
@@ -643,6 +727,7 @@ export class SqliteAdapter implements PersistenceAdapter {
             server[target] ??= {};
             server[target][row.sample_key] = row.seconds;
         }
+
         for (const row of db.prepare('SELECT * FROM smart_switches WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].switches[row.switch_id] = {
                 id: row.switch_id,
@@ -661,6 +746,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 serverId: row.server_id,
             };
         }
+
         for (const row of db.prepare('SELECT * FROM smart_alarms WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].alarms[row.alarm_id] = {
                 id: row.alarm_id,
@@ -680,6 +766,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 server: row.server_id,
             };
         }
+
         for (const row of db.prepare('SELECT * FROM storage_monitors WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].storageMonitors[row.storage_monitor_id] = {
                 id: row.storage_monitor_id,
@@ -700,12 +787,14 @@ export class SqliteAdapter implements PersistenceAdapter {
                 upkeep: row.upkeep,
             };
         }
+
         for (const row of db.prepare('SELECT * FROM storage_monitor_items WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].storageMonitors[row.storage_monitor_id].items.push({
                 itemId: row.item_id,
                 quantity: row.quantity,
             });
         }
+
         for (const row of db.prepare('SELECT * FROM switch_groups WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].switchGroups[row.group_id] = {
                 id: row.group_id,
@@ -718,9 +807,11 @@ export class SqliteAdapter implements PersistenceAdapter {
                 messageId: row.message_id,
             };
         }
+
         for (const row of db.prepare('SELECT * FROM switch_group_members WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].switchGroups[row.group_id].switches.push(row.switch_id);
         }
+
         for (const row of db.prepare('SELECT * FROM custom_camera_groups WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].customCameraGroups[row.group_id] = {
                 id: row.group_id,
@@ -728,11 +819,13 @@ export class SqliteAdapter implements PersistenceAdapter {
                 cameras: [],
             };
         }
+
         for (const row of db
             .prepare('SELECT * FROM custom_camera_group_members WHERE guild_id = ?')
             .all(guildId) as Row[]) {
             instance.serverList[row.server_id].customCameraGroups[row.group_id].cameras.push(row.camera);
         }
+
         for (const row of db.prepare('SELECT * FROM markers WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].markers[row.marker_key] = {
                 x: row.x,
@@ -740,6 +833,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 location: row.location,
             };
         }
+
         for (const row of db.prepare('SELECT * FROM notes WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.serverList[row.server_id].notes[row.note_id] = row.note;
         }
@@ -796,9 +890,11 @@ export class SqliteAdapter implements PersistenceAdapter {
                 insertMarketSubscription.run(guildId, listType, item);
             }
         }
+
         for (const item of instance.marketBlacklist ?? []) {
             db.prepare('INSERT INTO market_blacklist (guild_id, item) VALUES (?, ?)').run(guildId, item);
         }
+
         for (const entryId of instance.blacklist.discordIds ?? []) {
             db.prepare('INSERT INTO blacklist_entries (guild_id, entry_type, entry_id) VALUES (?, ?, ?)').run(
                 guildId,
@@ -806,6 +902,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 entryId,
             );
         }
+
         for (const entryId of instance.blacklist.steamIds ?? []) {
             db.prepare('INSERT INTO blacklist_entries (guild_id, entry_type, entry_id) VALUES (?, ?, ?)').run(
                 guildId,
@@ -813,9 +910,11 @@ export class SqliteAdapter implements PersistenceAdapter {
                 entryId,
             );
         }
+
         for (const steamId of instance.whitelist.steamIds ?? []) {
             db.prepare('INSERT INTO whitelist_entries (guild_id, steam_id) VALUES (?, ?)').run(guildId, steamId);
         }
+
         for (const alias of instance.aliases ?? []) {
             db.prepare('INSERT INTO aliases (guild_id, alias_index, alias, value) VALUES (?, ?, ?, ?)').run(
                 guildId,
@@ -824,6 +923,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 alias.value,
             );
         }
+
         for (const [key, message] of Object.entries(instance.customIntlMessages ?? {})) {
             db.prepare('INSERT INTO custom_intl_messages (guild_id, message_key, message) VALUES (?, ?, ?)').run(
                 guildId,
@@ -831,6 +931,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 message,
             );
         }
+
         for (const [steamId, color] of Object.entries(instance.teamChatColors ?? {})) {
             db.prepare('INSERT INTO team_chat_colors (guild_id, steam_id, color) VALUES (?, ?, ?)').run(
                 guildId,
@@ -860,6 +961,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 players: [],
             };
         }
+
         for (const row of db
             .prepare('SELECT * FROM tracker_players WHERE guild_id = ? ORDER BY player_index')
             .all(guildId) as Row[]) {
@@ -869,6 +971,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 playerId: row.player_id,
             });
         }
+
         for (const row of db.prepare('SELECT * FROM market_subscriptions WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.marketSubscriptionList[row.list_type as 'all' | 'buy' | 'sell'].push(row.item);
         }
@@ -888,6 +991,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         for (const row of db.prepare('SELECT * FROM custom_intl_messages WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.customIntlMessages[row.message_key] = row.message;
         }
+
         for (const row of db.prepare('SELECT * FROM team_chat_colors WHERE guild_id = ?').all(guildId) as Row[]) {
             instance.teamChatColors[row.steam_id] = row.color;
         }

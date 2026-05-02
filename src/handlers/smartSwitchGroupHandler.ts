@@ -1,8 +1,9 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import * as Timer from '../util/timer.js';
 
-export async function handler(rustplus: any, client: DiscordBot) {}
+export function handler(rustplus: any, client: DiscordBot) {}
 
 export async function updateSwitchGroupIfContainSwitch(
     client: DiscordBot,
@@ -10,7 +11,7 @@ export async function updateSwitchGroupIfContainSwitch(
     serverId: string,
     switchId: string,
 ) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     for (const [groupId, content] of Object.entries(
         instance.serverList[serverId].switchGroups as Record<string, any>,
@@ -21,8 +22,13 @@ export async function updateSwitchGroupIfContainSwitch(
     }
 }
 
-export function getGroupsFromSwitchList(client: DiscordBot, guildId: string, serverId: string, switches: string[]) {
-    const instance = client.getInstance(guildId);
+export async function getGroupsFromSwitchList(
+    client: DiscordBot,
+    guildId: string,
+    serverId: string,
+    switches: string[],
+) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     let groupsId = [];
     for (let entity of switches) {
@@ -46,7 +52,7 @@ export async function TurnOnOffGroup(
     groupId: string,
     value: boolean,
 ) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     const switches = instance.serverList[serverId].switchGroups[groupId].switches;
 
@@ -69,7 +75,7 @@ export async function TurnOnOffGroup(
     for (const entityId of actionSwitches) {
         const prevActive = instance.serverList[serverId].switches[entityId].active;
         instance.serverList[serverId].switches[entityId].active = value;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
         rustplus.interactionSwitches.push(entityId);
 
@@ -80,12 +86,12 @@ export async function TurnOnOffGroup(
             }
             instance.serverList[serverId].switches[entityId].reachable = false;
             instance.serverList[serverId].switches[entityId].active = prevActive;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             rustplus.interactionSwitches = rustplus.interactionSwitches.filter((e: string) => e !== entityId);
         } else {
             instance.serverList[serverId].switches[entityId].reachable = true;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
         }
 
         DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
@@ -99,7 +105,7 @@ export async function TurnOnOffGroup(
 export async function smartSwitchGroupCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const switchGroups = instance.serverList[serverId].switchGroups;
     const prefix = rustplus.generalSettings.prefix;
 
@@ -183,7 +189,7 @@ export async function smartSwitchGroupCommandHandler(rustplus: any, client: Disc
     });
 
     rustplus.currentSwitchTimeouts[groupId] = setTimeout(async function () {
-        const instance = client.getInstance(guildId);
+        const instance = await getPersistenceCache().readGuildState(guildId);
         if (
             !Object.hasOwn(instance.serverList, serverId) ||
             !Object.hasOwn(instance.serverList[serverId].switchGroups, groupId)

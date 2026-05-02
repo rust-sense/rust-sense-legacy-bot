@@ -3,6 +3,7 @@ import { PermissionFlagsBits } from 'discord.js';
 
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type { DiscordBot } from '../types/discord.js';
 
 export default async function setupGuildChannels(client: DiscordBot, guild: Guild, category: CategoryChannel | null) {
@@ -38,8 +39,8 @@ async function addTextChannel(
     parent: CategoryChannel,
     permissionWrite = false,
 ) {
-    const instance = client.getInstance(guild.id);
-    const perms = PermissionHandler.getPermissionsReset(client, guild, permissionWrite);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
+    const perms = await PermissionHandler.getPermissionsReset(client, guild, permissionWrite);
 
     let channel: TextChannel | undefined = undefined;
     if (instance.channelId[idName as keyof typeof instance.channelId] !== null) {
@@ -49,10 +50,11 @@ async function addTextChannel(
         );
         if (channel && !botCanUseTextChannel(guild, channel)) {
             (instance.channelId as unknown as Record<string, string | null>)[idName] = null;
-            client.setInstance(guild.id, instance);
+            await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
             channel = undefined;
         }
     }
+
     if (channel === undefined) {
         const normalizedName = name.toLowerCase().replace(/\s+/g, '-');
         channel = await DiscordTools.addTextChannel(guild.id, normalizedName, parent.id, perms);
@@ -60,7 +62,7 @@ async function addTextChannel(
             return;
         }
         (instance.channelId as unknown as Record<string, string | null>)[idName] = channel.id;
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
     }
 
     if (channel && (instance.firstTime || channel.parentId !== parent.id)) {

@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-
 import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 import * as DiscordButtons from './discordButtons.js';
@@ -9,7 +9,7 @@ import * as DiscordSelectMenus from './discordSelectMenus.js';
 import * as DiscordTools from './discordTools.js';
 
 export default async (client: DiscordBot, guild: any, forced: boolean = false) => {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
     const channel = DiscordTools.getTextChannelById(guild.id, instance.channelId.settings);
 
     if (!channel) {
@@ -28,12 +28,12 @@ export default async (client: DiscordBot, guild: any, forced: boolean = false) =
         await setupNotificationSettings(client, guild.id, channel);
 
         instance.firstTime = false;
-        client.setInstance(guild.id, instance);
+        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
     }
 };
 
 async function setupGeneralSettings(client: DiscordBot, guildId: string, channel: any) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     await client.messageSend(channel, {
         files: [
@@ -132,7 +132,7 @@ async function setupGeneralSettings(client: DiscordBot, guildId: string, channel
                 thumbnail: `attachment://settings_logo.png`,
             }),
         ],
-        components: [DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
+        components: [await DiscordButtons.getInGameTeammateNotificationsButtons(guildId)],
         files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 
@@ -301,13 +301,13 @@ async function setupGeneralSettings(client: DiscordBot, guildId: string, channel
                 thumbnail: `attachment://settings_logo.png`,
             }),
         ],
-        components: DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
+        components: await DiscordButtons.getSubscribeToChangesBattlemetricsButtons(guildId),
         files: [new Discord.AttachmentBuilder(cwdPath('resources/images/settings_logo.png'))],
     });
 }
 
 async function setupNotificationSettings(client: DiscordBot, guildId: string, channel: any) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     await client.messageSend(channel, {
         files: [

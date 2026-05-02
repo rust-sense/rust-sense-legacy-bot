@@ -4,13 +4,14 @@ import * as GameMapModule from '../util/GameMap.js';
 
 const GameMap = GameMapModule;
 
+import { getPersistenceCache } from '../persistence/index.js';
 import * as Timer from '../util/timer.js';
 import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
 
 const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule;
 
 export async function handler(rustplus: any, client: DiscordBot, time: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
 
@@ -31,7 +32,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 if (instance.serverList[serverId].switches[entityId].reachable) {
                     await DiscordMessages.sendSmartSwitchNotFoundMessage(guildId, serverId, entityId);
                     instance.serverList[serverId].switches[entityId].reachable = false;
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                     changedSwitches.push(entityId);
@@ -39,7 +40,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             } else {
                 if (!instance.serverList[serverId].switches[entityId].reachable) {
                     instance.serverList[serverId].switches[entityId].reachable = true;
-                    client.setInstance(guildId, instance);
+                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                     changedSwitches.push(entityId);
@@ -55,7 +56,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
         )) {
             if (content.autoDayNightOnOff === 1) {
                 instance.serverList[serverId].switches[entityId].active = true;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -70,13 +71,13 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
             } else if (content.autoDayNightOnOff === 2) {
                 instance.serverList[serverId].switches[entityId].active = false;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -91,7 +92,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -103,7 +104,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
         )) {
             if (content.autoDayNightOnOff === 1) {
                 instance.serverList[serverId].switches[entityId].active = false;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -118,13 +119,13 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
             } else if (content.autoDayNightOnOff === 2) {
                 instance.serverList[serverId].switches[entityId].active = true;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -139,7 +140,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -153,7 +154,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             if (content.active) continue;
 
             instance.serverList[serverId].switches[entityId].active = true;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             rustplus.interactionSwitches.push(entityId);
 
@@ -168,7 +169,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             } else {
                 instance.serverList[serverId].switches[entityId].reachable = true;
             }
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
             changedSwitches.push(entityId);
@@ -177,7 +178,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             if (!content.active) continue;
 
             instance.serverList[serverId].switches[entityId].active = false;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             rustplus.interactionSwitches.push(entityId);
 
@@ -192,7 +193,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
             } else {
                 instance.serverList[serverId].switches[entityId].reachable = true;
             }
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
             changedSwitches.push(entityId);
@@ -207,7 +208,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 
             if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                 instance.serverList[serverId].switches[entityId].active = shouldBeOn;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -222,7 +223,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -238,7 +239,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 
             if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                 instance.serverList[serverId].switches[entityId].active = shouldBeOn;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -253,7 +254,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -267,7 +268,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 
             if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                 instance.serverList[serverId].switches[entityId].active = shouldBeOn;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -282,7 +283,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -296,7 +297,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 
             if ((shouldBeOn && !content.active) || (!shouldBeOn && content.active)) {
                 instance.serverList[serverId].switches[entityId].active = shouldBeOn;
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 rustplus.interactionSwitches.push(entityId);
 
@@ -311,7 +312,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
                 } else {
                     instance.serverList[serverId].switches[entityId].reachable = true;
                 }
-                client.setInstance(guildId, instance);
+                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                 DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
                 changedSwitches.push(entityId);
@@ -319,7 +320,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
         }
     }
 
-    let groupsId = SmartSwitchGroupHandler.getGroupsFromSwitchList(client, guildId, serverId, changedSwitches);
+    let groupsId = await SmartSwitchGroupHandler.getGroupsFromSwitchList(client, guildId, serverId, changedSwitches);
 
     for (let groupId of groupsId) {
         await DiscordMessages.sendSmartSwitchGroupMessage(guildId, serverId, groupId);
@@ -329,7 +330,7 @@ export async function handler(rustplus: any, client: DiscordBot, time: any) {
 export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBot, command: string) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const switches = instance.serverList[serverId].switches;
     const prefix = rustplus.generalSettings.prefix;
 
@@ -383,7 +384,7 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
         const info = await rustplus.getEntityInfoAsync(entityId);
         if (!rustplus.isResponseValid(info)) {
             switches[entityId].reachable = false;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
             DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
             SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
 
@@ -444,7 +445,7 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
     });
 
     rustplus.currentSwitchTimeouts[entityId] = setTimeout(async function () {
-        const instance = client.getInstance(guildId);
+        const instance = await getPersistenceCache().readGuildState(guildId);
         if (!Object.hasOwn(instance.serverList[serverId].switches, entityId)) return;
 
         await smartSwitchCommandTurnOnOff(rustplus, client, entityId, !active);
@@ -469,12 +470,12 @@ export async function smartSwitchCommandTurnOnOff(
 ) {
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const switches = instance.serverList[serverId].switches;
 
     const prevActive = switches[entityId].active;
     switches[entityId].active = active;
-    client.setInstance(guildId, instance);
+    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
     rustplus.interactionSwitches.push(entityId);
 
@@ -495,7 +496,7 @@ export async function smartSwitchCommandTurnOnOff(
     } else {
         switches[entityId].reachable = true;
     }
-    client.setInstance(guildId, instance);
+    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
     DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
     SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);

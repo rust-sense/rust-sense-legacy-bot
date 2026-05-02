@@ -117,6 +117,14 @@ export class JsonAdapter implements PersistenceAdapter {
         writeJsonAtomic(credentialsPath(guildId), credentials);
     }
 
+    bootstrapGuildState(guildId: string, instance: Instance): void {
+        writeJsonAtomic(instancePath(guildId), instance);
+    }
+
+    writeGuildDomains(guildId: string, instance: Instance): void {
+        writeJsonAtomic(instancePath(guildId), instance);
+    }
+
     async flush(): Promise<void> {}
 
     private readInstanceOrEmpty(guildId: string): Instance {

@@ -8,15 +8,14 @@ import * as InstanceUtils from './instanceUtils.js';
 interface ClientLike {
     readGeneralSettingsTemplate: () => Record<string, unknown>;
     readNotificationSettingsTemplate: () => Record<string, unknown>;
-    setInstance: (guildId: string, instance: Instance) => void;
 }
 
-export default function createInstanceFile(client: ClientLike, guild: { id: string }): void {
+export default async function createInstanceFile(client: ClientLike, guild: { id: string }): Promise<void> {
     let instance: Instance | null = null;
     const instancePath = path.join(process.cwd(), 'instances', `${guild.id}.json`);
     let persistedInstanceExists = fs.existsSync(instancePath);
     try {
-        persistedInstanceExists = persistedInstanceExists || getPersistenceCache().hasGuild(guild.id);
+        persistedInstanceExists = persistedInstanceExists || (await getPersistenceCache().hasGuild(guild.id));
     } catch {
         /* Persistence is not initialized in some tests and scripts. */
     }
@@ -72,7 +71,7 @@ export default function createInstanceFile(client: ClientLike, guild: { id: stri
             customIntlMessages: {},
         };
     } else {
-        instance = InstanceUtils.readInstanceFile(guild.id);
+        instance = await InstanceUtils.readInstanceFile(guild.id);
 
         if (!Object.hasOwn(instance, 'firstTime')) {
             instance.firstTime = true;
@@ -221,19 +220,23 @@ export default function createInstanceFile(client: ClientLike, guild: { id: stri
         if (!Object.hasOwn(content, 'cargoShipEgressTimeMs')) {
             content.cargoShipEgressTimeMs = Constants.DEFAULT_CARGO_SHIP_EGRESS_TIME_MS;
         }
+
         if (!Object.hasOwn(content, 'oilRigLockedCrateUnlockTimeMs')) {
             content.oilRigLockedCrateUnlockTimeMs = Constants.DEFAULT_OIL_RIG_LOCKED_CRATE_UNLOCK_TIME_MS;
         }
+
         if (!Object.hasOwn(content, 'deepSeaMinWipeCooldownMs')) {
             content.deepSeaMinWipeCooldownMs = Constants.DEFAULT_DEEP_SEA_MIN_WIPE_COOLDOWN_MS;
         }
+
         if (!Object.hasOwn(content, 'deepSeaMaxWipeCooldownMs')) {
             content.deepSeaMaxWipeCooldownMs = Constants.DEFAULT_DEEP_SEA_MAX_WIPE_COOLDOWN_MS;
         }
+
         if (!Object.hasOwn(content, 'deepSeaWipeDurationMs')) {
             content.deepSeaWipeDurationMs = Constants.DEFAULT_DEEP_SEA_WIPE_DURATION_MS;
         }
     }
 
-    client.setInstance(guild.id, instance);
+    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
 }

@@ -8,18 +8,18 @@ interface ClientLike {
     intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
 }
 
-export default function createCredentialsFile(client: ClientLike, guild: { id: string }): void {
+export default async function createCredentialsFile(client: ClientLike, guild: { id: string }): Promise<void> {
     const guildCredentialsFilePath = cwdPath('credentials', `${guild.id}.json`);
     let persistedCredentialsExist = fs.existsSync(guildCredentialsFilePath);
     try {
-        persistedCredentialsExist = persistedCredentialsExist || getPersistenceCache().hasGuild(guild.id);
+        persistedCredentialsExist = persistedCredentialsExist || (await getPersistenceCache().hasGuild(guild.id));
     } catch {
         /* Persistence is not initialized in some tests and scripts. */
     }
 
     if (!persistedCredentialsExist) {
         if (isPersistenceInitialized()) {
-            getPersistenceCache().setCredentials(guild.id, { hoster: null });
+            await getPersistenceCache().setCredentials(guild.id, { hoster: null });
             return;
         }
 

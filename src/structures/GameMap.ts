@@ -383,15 +383,19 @@ export default class GameMap {
     isWidthChanged(map: MapData): boolean {
         return this.width !== map.width;
     }
+
     isHeightChanged(map: MapData): boolean {
         return this.height !== map.height;
     }
+
     isOceanMarginChanged(map: MapData): boolean {
         return this.oceanMargin !== map.oceanMargin;
     }
+
     isMonumentsChanged(map: MapData): boolean {
         return JSON.stringify(this.monuments) !== JSON.stringify(map.monuments);
     }
+
     isBackgroundChanged(map: MapData): boolean {
         return this.background !== map.background;
     }
@@ -412,7 +416,7 @@ export default class GameMap {
         await this.setupMapMarkerImages();
     }
 
-    async writeMapClean(): Promise<void> {
+    writeMapClean(): void {
         fs.writeFileSync(this.mapMarkerImageMeta.map.image, client.rustplusMaps[this.rustplus.guildId] as string);
     }
 
@@ -433,7 +437,7 @@ export default class GameMap {
         }
     }
 
-    async mapAppendMonuments(): Promise<void> {
+    mapAppendMonuments(): Promise<void> {
         if (this.rustplus.info === null) {
             this.rustplus.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'couldNotAppendMapMonuments'));
             return;
@@ -591,7 +595,7 @@ export default class GameMap {
         return { x, y };
     }
 
-    async gmWriteAsync(image: ReturnType<typeof Gm>, path: string): Promise<void> {
+    gmWriteAsync(image: ReturnType<typeof Gm>, path: string): Promise<void> {
         return new Promise((resolve, reject) => {
             image.write(path, (err) => {
                 if (err) reject(err);
@@ -617,7 +621,7 @@ export default class GameMap {
         return Math.floor(gridSize) * 7;
     }
 
-    static async getMapImage(rustplus: RustplusLike): Promise<Buffer | null> {
+    static getMapImage(rustplus: RustplusLike): Buffer | null {
         const mapImage = client.rustplusMaps[rustplus.guildId];
         if (!mapImage) return null;
         return Buffer.from(mapImage as string, 'base64');
