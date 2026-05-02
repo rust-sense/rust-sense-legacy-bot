@@ -51,8 +51,10 @@
         "winston-daily-rotate-file": "^5.0.0",
         "ws": "^8.18.0"
     },
-    "resolutions": {
-        "jpeg-js": "0.4.4"
+    "pnpm": {
+        "overrides": {
+            "jpeg-js": "0.4.4"
+        }
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.13",
