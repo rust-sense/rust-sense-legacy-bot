@@ -45,7 +45,13 @@ export class SqliteAdapter implements PersistenceAdapter {
         this.db = new Database(this.sqlitePath);
         this.db.pragma('foreign_keys = ON');
         this.validateMigrated();
-        if (this.migrateLegacyJsonOnInit) await this.migrateLegacyJson();
+        if (this.migrateLegacyJsonOnInit) {
+            await this.migrateLegacyJson();
+        } else {
+            console.info(
+                '[persistence] Legacy JSON migration is disabled for SQLite by RPP_MIGRATE_LEGACY_JSON=false.',
+            );
+        }
     }
 
     async close(): Promise<void> {
@@ -291,20 +297,52 @@ export class SqliteAdapter implements PersistenceAdapter {
                 | Row
                 | undefined
         )?.value;
-        if (status === 'completed') return;
+        const source = new JsonAdapter();
+        const manifest = source.sourceManifest();
+        if (status === 'completed') {
+            const migratedGuildCount = this.readMetaValue('legacy_json_migration_source_guild_count') ?? 'unknown';
+            const migratedChecksum = this.readMetaValue('legacy_json_migration_source_checksum') ?? 'unknown';
+            console.info(
+                `[persistence] Legacy JSON migration already completed for SQLite; skipping. ` +
+                    `Recorded source guilds=${migratedGuildCount}, recorded checksum=${migratedChecksum}, ` +
+                    `current source guilds=${manifest.guildCount}, current checksum=${manifest.checksum}.`,
+            );
+            if (migratedChecksum !== 'unknown' && migratedChecksum !== manifest.checksum) {
+                console.warn(
+                    '[persistence] Legacy JSON source files differ from the completed migration checksum. ' +
+                        'The migration will not be re-run automatically; inspect the target database and legacy JSON files manually.',
+                );
+            }
+            return;
+        }
         if (status === 'in_progress') {
             throw new Error(
                 'Legacy JSON migration is marked in_progress. Inspect persistence state before restarting.',
             );
         }
+        if (status) {
+            console.warn(
+                `[persistence] Legacy JSON migration has unexpected SQLite status '${status}'. ` +
+                    'The adapter will attempt a new migration and overwrite that status.',
+            );
+        }
 
+        console.info(
+            `[persistence] Starting one-time legacy JSON to SQLite migration. ` +
+                `Target state key: _persistence_meta.legacy_json_migration_status. ` +
+                `Source guilds=${manifest.guildCount}, source checksum=${manifest.checksum}.`,
+        );
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_status', 'in_progress', CURRENT_TIMESTAMP)",
         ).run();
-        let manifest: { guildCount: number; checksum: string };
+        let migratedManifest: { guildCount: number; checksum: string };
         try {
-            manifest = await migrateFromJsonAdapter(new JsonAdapter(), this);
+            migratedManifest = await migrateFromJsonAdapter(source, this);
         } catch (error) {
+            console.error(
+                `[persistence] Legacy JSON to SQLite migration failed while status is in_progress. ` +
+                    `The next startup will stop until _persistence_meta is inspected. Error: ${error}`,
+            );
             throw error;
         }
         db.prepare(
@@ -312,10 +350,21 @@ export class SqliteAdapter implements PersistenceAdapter {
         ).run();
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_guild_count', ?, CURRENT_TIMESTAMP)",
-        ).run(String(manifest.guildCount));
+        ).run(String(migratedManifest.guildCount));
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_checksum', ?, CURRENT_TIMESTAMP)",
-        ).run(manifest.checksum);
+        ).run(migratedManifest.checksum);
+        console.info(
+            `[persistence] Completed legacy JSON to SQLite migration. ` +
+                `Migrated guilds=${migratedManifest.guildCount}, source checksum=${migratedManifest.checksum}. ` +
+                'Future startups will skip this migration because legacy_json_migration_status=completed.',
+        );
+    }
+
+    private readMetaValue(key: string): string | null {
+        return (
+            this.database().prepare('SELECT value FROM _persistence_meta WHERE key = ?').get(key) as Row | undefined
+        )?.value;
     }
 
     private writeCredentialsRows(guildId: string, credentials: Credentials): void {

@@ -352,8 +352,15 @@ async function sqliteLegacyMigrationSmoke(): Promise<void> {
         assertRoundTrip(instance, await adapter.readCredentials('guild-legacy'));
         await adapter.close();
 
+        const migrationStateAfterFirstInit = readSqliteMigrationState(databasePath);
+        assert.equal(migrationStateAfterFirstInit.status, 'completed');
+        assert.equal(migrationStateAfterFirstInit.guildCount, '1');
+        assert.ok(migrationStateAfterFirstInit.checksum);
+
         const secondAdapter = new SqliteAdapter(databasePath);
         await secondAdapter.init();
+        const migrationStateAfterSecondInit = readSqliteMigrationState(databasePath);
+        assert.deepEqual(migrationStateAfterSecondInit, migrationStateAfterFirstInit);
         const secondSettings = await secondAdapter.readGuildSettings('guild-legacy');
         const secondInstance = createEmptyInstance(secondSettings.generalSettings, secondSettings.notificationSettings);
         Object.assign(secondInstance, await secondAdapter.readGuildCore('guild-legacy'));
@@ -363,6 +370,26 @@ async function sqliteLegacyMigrationSmoke(): Promise<void> {
         await secondAdapter.close();
     } finally {
         process.chdir(originalCwd);
+    }
+}
+
+function readSqliteMigrationState(databasePath: string): {
+    status: string | null;
+    guildCount: string | null;
+    checksum: string | null;
+} {
+    const db = new Database(databasePath);
+    try {
+        const readValue = (key: string): string | null =>
+            (db.prepare('SELECT value FROM _persistence_meta WHERE key = ?').get(key) as { value: string } | undefined)
+                ?.value ?? null;
+        return {
+            status: readValue('legacy_json_migration_status'),
+            guildCount: readValue('legacy_json_migration_source_guild_count'),
+            checksum: readValue('legacy_json_migration_source_checksum'),
+        };
+    } finally {
+        db.close();
     }
 }
 

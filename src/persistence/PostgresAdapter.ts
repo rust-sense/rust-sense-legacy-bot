@@ -40,7 +40,13 @@ export class PostgresAdapter implements PersistenceAdapter {
     async init(): Promise<void> {
         this.pool = new Pool({ connectionString: this.connectionString });
         await this.validateMigrated();
-        if (this.migrateLegacyJsonOnInit) await this.migrateLegacyJson();
+        if (this.migrateLegacyJsonOnInit) {
+            await this.migrateLegacyJson();
+        } else {
+            console.info(
+                '[persistence] Legacy JSON migration is disabled for Postgres by RPP_MIGRATE_LEGACY_JSON=false.',
+            );
+        }
     }
 
     async close(): Promise<void> {
@@ -209,21 +215,54 @@ export class PostgresAdapter implements PersistenceAdapter {
         const status = (
             await this.rows("SELECT value FROM _persistence_meta WHERE key = 'legacy_json_migration_status'")
         )[0]?.value;
-        if (status === 'completed') return;
+        const source = new JsonAdapter();
+        const manifest = source.sourceManifest();
+        if (status === 'completed') {
+            const migratedGuildCount = await this.readMetaValue('legacy_json_migration_source_guild_count');
+            const migratedChecksum = await this.readMetaValue('legacy_json_migration_source_checksum');
+            console.info(
+                `[persistence] Legacy JSON migration already completed for Postgres; skipping. ` +
+                    `Recorded source guilds=${migratedGuildCount ?? 'unknown'}, ` +
+                    `recorded checksum=${migratedChecksum ?? 'unknown'}, current source guilds=${manifest.guildCount}, ` +
+                    `current checksum=${manifest.checksum}.`,
+            );
+            if (migratedChecksum && migratedChecksum !== manifest.checksum) {
+                console.warn(
+                    '[persistence] Legacy JSON source files differ from the completed migration checksum. ' +
+                        'The migration will not be re-run automatically; inspect the target database and legacy JSON files manually.',
+                );
+            }
+            return;
+        }
         if (status === 'in_progress') {
             throw new Error(
                 'Legacy JSON migration is marked in_progress. Inspect persistence state before restarting.',
             );
         }
+        if (status) {
+            console.warn(
+                `[persistence] Legacy JSON migration has unexpected Postgres status '${status}'. ` +
+                    'The adapter will attempt a new migration and overwrite that status.',
+            );
+        }
 
+        console.info(
+            `[persistence] Starting one-time legacy JSON to Postgres migration. ` +
+                `Target state key: _persistence_meta.legacy_json_migration_status. ` +
+                `Source guilds=${manifest.guildCount}, source checksum=${manifest.checksum}.`,
+        );
         await this.run(
             this.database(),
             "INSERT INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_status', 'in_progress', CURRENT_TIMESTAMP) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP",
         );
-        let manifest: { guildCount: number; checksum: string };
+        let migratedManifest: { guildCount: number; checksum: string };
         try {
-            manifest = await migrateFromJsonAdapter(new JsonAdapter(), this);
+            migratedManifest = await migrateFromJsonAdapter(source, this);
         } catch (error) {
+            console.error(
+                `[persistence] Legacy JSON to Postgres migration failed while status is in_progress. ` +
+                    `The next startup will stop until _persistence_meta is inspected. Error: ${error}`,
+            );
             throw error;
         }
         await this.run(
@@ -233,13 +272,22 @@ export class PostgresAdapter implements PersistenceAdapter {
         await this.run(
             this.database(),
             "INSERT INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_guild_count', ?, CURRENT_TIMESTAMP) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP",
-            [String(manifest.guildCount)],
+            [String(migratedManifest.guildCount)],
         );
         await this.run(
             this.database(),
             "INSERT INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_checksum', ?, CURRENT_TIMESTAMP) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP",
-            [manifest.checksum],
+            [migratedManifest.checksum],
         );
+        console.info(
+            `[persistence] Completed legacy JSON to Postgres migration. ` +
+                `Migrated guilds=${migratedManifest.guildCount}, source checksum=${migratedManifest.checksum}. ` +
+                'Future startups will skip this migration because legacy_json_migration_status=completed.',
+        );
+    }
+
+    private async readMetaValue(key: string): Promise<string | null> {
+        return (await this.rows('SELECT value FROM _persistence_meta WHERE key = ?', [key]))[0]?.value ?? null;
     }
 
     private async writeInstanceAsync(guildId: string, instance: Instance): Promise<void> {
