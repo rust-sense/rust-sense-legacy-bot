@@ -1,4 +1,4 @@
-# RustPlusPlus Bot - Agent Guidelines
+# RustSense Bot - Agent Guidelines
 
 ## Deployment Procedure
 
@@ -48,17 +48,17 @@ When the user asks to deploy changes, follow this exact procedure:
 
 4. **Rollout the deployment**
    ```bash
-   kubectl rollout restart -n rustplusplus deploy/rpp-public
+   kubectl rollout restart -n rustsense deploy/rpp-public
    ```
 
 5. **Verify rollout completed**
    ```bash
-   kubectl rollout status -n rustplusplus deploy/rpp-public
+   kubectl rollout status -n rustsense deploy/rpp-public
    ```
    If rollout status fails or times out, inspect the deployment and recent pods before taking further action:
    ```bash
-   kubectl get pods -n rustplusplus
-   kubectl describe deploy/rpp-public -n rustplusplus
+   kubectl get pods -n rustsense
+   kubectl describe deploy/rpp-public -n rustsense
    ```
    Do not run rollback commands unless the user explicitly approves them.
 
@@ -87,7 +87,7 @@ When the user asks to deploy changes, follow this exact procedure:
 
 ### Infrastructure
 - **Container:** Docker image built by CI on push to `develop`
-- **Orchestration:** Kubernetes (namespace: `rustplusplus`)
+- **Orchestration:** Kubernetes (namespace: `rustsense`)
 - **Deployment:** `deploy/rpp-public`
 - **CI/CD:** GitHub Actions (Docker image build + Build/code quality)
 
