@@ -3,7 +3,6 @@ import * as ConstantsModule from '../domain/constants.js';
 import { client } from '../index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
-import { getServerRustMapsUrl } from '../utils/serverUtils.js';
 
 const Constants: any = ConstantsModule;
 
@@ -343,11 +342,8 @@ export async function sendServerConnectionInvalidMessage(guildId: string, server
 
 export async function sendInformationMapMessage(guildId: string) {
     const instance = await getPersistenceCache().readGuildState(guildId);
-    const rustplus = client.rustplusInstances[guildId];
-    const rustMapsUrl = rustplus ? getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]) : null;
 
     const content = {
-        content: rustMapsUrl ?? '',
         files: [new Discord.AttachmentBuilder(cwdPath(`maps/${guildId}_map_full.png`))],
     };
 
@@ -444,10 +440,8 @@ export async function sendTTSMessage(guildId: string, name: string, text: string
 
 export async function sendUpdateMapInformationMessage(rustplus: any) {
     const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
-    const rustMapsUrl = getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]);
 
     const content = {
-        content: rustMapsUrl ?? '',
         files: [new Discord.AttachmentBuilder(cwdPath(`maps/${rustplus.guildId}_map_full.png`))],
     };
 

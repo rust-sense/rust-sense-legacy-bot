@@ -713,6 +713,7 @@ export async function getUpdateServerInformationEmbed(rustplus) {
     const mapSeedFieldName = client.intlGet(guildId, 'mapSeed');
     const mapSaltFieldName = client.intlGet(guildId, 'mapSalt');
     const mapFieldName = client.intlGet(guildId, 'map');
+    const mapSalt = rustplus.info.salt ?? client.intlGet(guildId, 'unavailable');
     const rustMapsUrl = getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]);
 
     const embed = getEmbed({
@@ -741,12 +742,14 @@ export async function getUpdateServerInformationEmbed(rustplus) {
     embed.addFields(
         { name: mapSizeFieldName, value: `\`${rustplus.info.mapSize}\``, inline: true },
         { name: mapSeedFieldName, value: `\`${rustplus.info.seed}\``, inline: true },
-        { name: mapSaltFieldName, value: `\`${rustplus.info.salt}\``, inline: true },
+        { name: mapSaltFieldName, value: `\`${mapSalt}\``, inline: true },
         { name: mapFieldName, value: `\`${rustplus.info.map}\``, inline: true },
+        {
+            name: 'RustMaps Link',
+            value: rustMapsUrl ? `[${mapFieldName}](${rustMapsUrl})` : `\`${client.intlGet(guildId, 'unavailable')}\``,
+            inline: true,
+        },
     );
-    if (rustMapsUrl) {
-        embed.addFields({ name: 'RustMaps', value: `[${mapFieldName}](${rustMapsUrl})`, inline: true });
-    }
 
     if (instance.serverList[rustplus.serverId].connect !== null) {
         embed.addFields({
