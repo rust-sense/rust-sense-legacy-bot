@@ -385,8 +385,8 @@ export async function smartSwitchCommandHandler(rustplus: any, client: DiscordBo
         if (!rustplus.isResponseValid(info)) {
             switches[entityId].reachable = false;
             await getPersistenceCache().saveGuildStateChanges(guildId, instance);
-            DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
-            SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
+            await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+            await SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
 
             rustplus.sendInGameMessage(
                 client.intlGet(guildId, 'noCommunicationSmartSwitch', {
@@ -498,6 +498,6 @@ export async function smartSwitchCommandTurnOnOff(
     }
     await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
-    DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
-    SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
+    await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
+    await SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, serverId, entityId);
 }

@@ -1060,7 +1060,7 @@ export default class RustPlus extends RustPlusLib {
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!(await this.isResponseValid(teamInfo))) return null;
-        TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
+        await TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
 
@@ -1683,7 +1683,7 @@ export default class RustPlus extends RustPlusLib {
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!(await this.isResponseValid(teamInfo))) return null;
-        TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
+        await TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
 

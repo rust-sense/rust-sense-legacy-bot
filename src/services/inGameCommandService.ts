@@ -240,7 +240,7 @@ export async function inGameCommandHandler(rustplus: any, client: DiscordBot, me
     } else {
         /* Maybe a custom command? */
 
-        if (SmartAlarmHandler.smartAlarmCommandHandler(rustplus, client, command)) {
+        if (await SmartAlarmHandler.smartAlarmCommandHandler(rustplus, client, command)) {
             rustplus.logInGameCommand('Smart Alarm', message);
             return true;
         }

@@ -801,8 +801,8 @@ export default async (client: DiscordBot, interaction: any) => {
             }),
         );
 
-        DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId, interaction);
-        SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, ids.serverId, ids.entityId);
+        await DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId, interaction);
+        await SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, guildId, ids.serverId, ids.entityId);
     } else if (interaction.customId.startsWith('SmartSwitchEdit')) {
         const ids = JSON.parse(interaction.customId.replace('SmartSwitchEdit', ''));
         const server = instance.serverList[ids.serverId];

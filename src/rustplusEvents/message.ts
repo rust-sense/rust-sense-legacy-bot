@@ -5,7 +5,7 @@ import * as TeamHandler from '../services/teamService.js';
 
 export default {
     name: 'message',
-    execute(rustplus: any, client: any, message: any) {
+    async execute(rustplus: any, client: any, message: any) {
         if (!rustplus.isServerAvailable()) return rustplus.deleteThisRustplusInstance();
 
         if (!rustplus.isOperational) return;
@@ -13,26 +13,26 @@ export default {
         if (Object.hasOwn(message, 'response')) {
             messageResponse(rustplus, client, message);
         } else if (Object.hasOwn(message, 'broadcast')) {
-            messageBroadcast(rustplus, client, message);
+            await messageBroadcast(rustplus, client, message);
         }
     },
 };
 function messageResponse(rustplus: any, client: any, message: any) {
     /* Not implemented */
 }
-function messageBroadcast(rustplus: any, client: any, message: any) {
+async function messageBroadcast(rustplus: any, client: any, message: any) {
     if (Object.hasOwn(message.broadcast, 'teamChanged')) {
-        messageBroadcastTeamChanged(rustplus, client, message);
+        await messageBroadcastTeamChanged(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'teamMessage')) {
-        messageBroadcastTeamMessage(rustplus, client, message);
+        await messageBroadcastTeamMessage(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'entityChanged')) {
-        messageBroadcastEntityChanged(rustplus, client, message);
+        await messageBroadcastEntityChanged(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'cameraRays')) {
         messageBroadcastCameraRays(rustplus, client, message);
     }
 }
-function messageBroadcastTeamChanged(rustplus: any, client: any, message: any) {
-    TeamHandler.processTeamUpdate(rustplus, client, message.broadcast.teamChanged.teamInfo);
+async function messageBroadcastTeamChanged(rustplus: any, client: any, message: any) {
+    await TeamHandler.processTeamUpdate(rustplus, client, message.broadcast.teamChanged.teamInfo);
     const changed = rustplus.team.isLeaderSteamIdChanged(message.broadcast.teamChanged.teamInfo);
     rustplus.team.updateTeam(message.broadcast.teamChanged.teamInfo);
     if (changed) rustplus.updateLeaderRustPlusLiteInstance();
@@ -111,11 +111,11 @@ async function messageBroadcastEntityChanged(rustplus: any, client: any, message
     const entityId = message.broadcast.entityChanged.entityId;
 
     if (Object.hasOwn(instance.serverList[rustplus.serverId].switches, entityId)) {
-        messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
+        await messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
     } else if (Object.hasOwn(instance.serverList[rustplus.serverId].alarms, entityId)) {
-        messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
+        await messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
     } else if (Object.hasOwn(instance.serverList[rustplus.serverId].storageMonitors, entityId)) {
-        messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
+        await messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
     }
 }
 function messageBroadcastCameraRays(rustplus: any, client: any, message: any) {
@@ -144,9 +144,9 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus: any, client: a
     server.switches[entityId].active = active;
     await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
 
-    DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
+    await DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
     const SmartSwitchGroupHandler = await import('../services/smartSwitchGroupService.js');
-    SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
+    await SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
 }
 
 async function messageBroadcastEntityChangedSmartAlarm(rustplus: any, client: any, message: any) {
@@ -172,7 +172,7 @@ async function messageBroadcastEntityChangedSmartAlarm(rustplus: any, client: an
         }
     }
 
-    DiscordMessages.sendSmartAlarmMessage(rustplus.guildId, rustplus.serverId, entityId);
+    await DiscordMessages.sendSmartAlarmMessage(rustplus.guildId, rustplus.serverId, entityId);
 }
 
 async function messageBroadcastEntityChangedStorageMonitor(rustplus: any, client: any, message: any) {
