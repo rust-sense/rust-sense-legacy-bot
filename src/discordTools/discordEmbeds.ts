@@ -3,7 +3,7 @@ import * as Constants from '../domain/constants.js';
 import { secondsToFullScale } from '../domain/timer.js';
 import { client } from '../index.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import { serverIdToConnectString } from '../utils/serverUtils.js';
+import { getServerRustMapsUrl, serverIdToConnectString } from '../utils/serverUtils.js';
 import * as Utils from './discordFormattingUtils.js';
 import * as DiscordTools from './discordTools.js';
 
@@ -69,6 +69,10 @@ export async function getServerEmbed(guildId, serverId) {
         const bmId = server.battlemetricsId;
         const bmIdLink = `[${bmId}](${Constants.BATTLEMETRICS_SERVER_URL}${bmId})`;
         description += `__**${client.intlGet(guildId, 'battlemetricsId')}:**__ ${bmIdLink}\n`;
+        const rustMapsUrl = getServerRustMapsUrl(client, server);
+        if (rustMapsUrl) {
+            description += `__**RustMaps:**__ [${client.intlGet(guildId, 'map')}](${rustMapsUrl})\n`;
+        }
 
         const bmInstance = client.battlemetricsInstances[bmId];
         if (bmInstance) {
@@ -709,6 +713,7 @@ export async function getUpdateServerInformationEmbed(rustplus) {
     const mapSeedFieldName = client.intlGet(guildId, 'mapSeed');
     const mapSaltFieldName = client.intlGet(guildId, 'mapSalt');
     const mapFieldName = client.intlGet(guildId, 'map');
+    const rustMapsUrl = getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]);
 
     const embed = getEmbed({
         title: client.intlGet(guildId, 'serverInfo'),
@@ -739,6 +744,9 @@ export async function getUpdateServerInformationEmbed(rustplus) {
         { name: mapSaltFieldName, value: `\`${rustplus.info.salt}\``, inline: true },
         { name: mapFieldName, value: `\`${rustplus.info.map}\``, inline: true },
     );
+    if (rustMapsUrl) {
+        embed.addFields({ name: 'RustMaps', value: `[${mapFieldName}](${rustMapsUrl})`, inline: true });
+    }
 
     if (instance.serverList[rustplus.serverId].connect !== null) {
         embed.addFields({
