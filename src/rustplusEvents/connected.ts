@@ -1,6 +1,6 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import * as PollingHandlerModule from '../handlers/pollingHandler.js';
 import { getPersistenceCache } from '../persistence/index.js';
+import * as PollingHandlerModule from '../services/pollingService.js';
 
 const PollingHandler = PollingHandlerModule;
 
@@ -92,10 +92,15 @@ export default {
         rustplus.isNewConnection = false;
         rustplus.loadMarkers();
 
-        await PollingHandler.pollingHandler(rustplus, client);
+        await PollingHandler.pollRustPlusState(rustplus, client);
         rustplus.restorePersistentRuntimeState();
         rustplus.persistMapMarkersRuntimeState();
-        rustplus.pollingTaskId = setInterval(PollingHandler.pollingHandler, client.pollingIntervalMs, rustplus, client);
+        rustplus.pollingTaskId = setInterval(
+            PollingHandler.pollRustPlusState,
+            client.pollingIntervalMs,
+            rustplus,
+            client,
+        );
         rustplus.isOperational = true;
 
         rustplus.updateLeaderRustPlusLiteInstance();

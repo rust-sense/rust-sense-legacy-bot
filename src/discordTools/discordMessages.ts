@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
+import * as ConstantsModule from '../domain/constants.js';
 import { client } from '../index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as ConstantsModule from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 const Constants: any = ConstantsModule;
@@ -22,8 +22,8 @@ import * as DiscordToolsModule from './discordTools.js';
 
 const DiscordTools: any = DiscordToolsModule;
 
+import * as ScrapeModule from '../infrastructure/scrape.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as ScrapeModule from '../util/scrape.js';
 
 const Scrape: any = ScrapeModule;
 

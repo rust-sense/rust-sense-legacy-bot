@@ -1,5 +1,5 @@
+import * as Constants from '../domain/constants.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 
 export async function inGameChatHandler(
     rustplus: any,

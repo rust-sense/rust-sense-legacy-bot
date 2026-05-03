@@ -1,7 +1,7 @@
 const Fs = require('fs');
 const Path = require('path');
 
-const Utils = require('../util/utils.js');
+const Utils = require('../src/utils/stringUtils.js');
 
 let Chromium = null;
 try {

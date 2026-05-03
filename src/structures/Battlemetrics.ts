@@ -1,8 +1,8 @@
 import Axios from 'axios';
 
 import { client } from '../index.js';
-import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
-import * as Utils from '../util/utils.js';
+import getStaticFilesStorage from '../infrastructure/getStaticFilesStorage.js';
+import * as Utils from '../utils/stringUtils.js';
 
 const randomUsernamesData = getStaticFilesStorage().getDatasetObject('RandomUsernames') as {
     RandomUsernames?: string[];

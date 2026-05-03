@@ -1,6 +1,6 @@
+import * as ConstantsModule from '../domain/constants.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as ConstantsModule from '../util/constants.js';
 
 const Constants: any = ConstantsModule;
 
@@ -12,20 +12,20 @@ import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
 
 const DiscordMessages: any = DiscordMessagesModule;
 
-import * as KeywordsModule from '../util/keywords.js';
+import * as KeywordsModule from '../services/keywordsService.js';
 
 const Keywords: any = KeywordsModule;
 
-import * as ScrapeModule from '../util/scrape.js';
+import * as ScrapeModule from '../infrastructure/scrape.js';
 
 const Scrape: any = ScrapeModule;
 
-import * as TrackerInputParserModule from '../util/trackerInputParser.js';
+import * as TrackerInputParserModule from '../domain/trackerInputParser.js';
 
 const TrackerInputParser: any = TrackerInputParserModule;
 
+import * as UtilsModule from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as UtilsModule from '../util/utils.js';
 
 const Utils: any = UtilsModule;
 

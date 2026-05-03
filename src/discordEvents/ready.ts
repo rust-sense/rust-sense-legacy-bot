@@ -1,9 +1,9 @@
 import { ActivityType } from 'discord.js';
 import config from '../config.js';
-import * as BattlemetricsHandler from '../handlers/battlemetricsHandler.js';
+import * as BattlemetricsHandler from '../services/battlemetricsService.js';
+import ensureGuildCredentials from '../services/ensureGuildCredentials.js';
+import ensureGuildState from '../services/ensureGuildState.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import createCredentialsFile from '../util/CreateCredentialsFile.js';
-import createInstanceFile from '../util/CreateInstanceFile.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 export default {
@@ -11,8 +11,8 @@ export default {
     once: true,
     async execute(client: DiscordBot) {
         for (const guild of client.guilds.cache) {
-            await createInstanceFile(client, guild[1]);
-            await createCredentialsFile(client, guild[1]);
+            await ensureGuildState(client, guild[1]);
+            await ensureGuildCredentials(client, guild[1]);
             client.fcmListenersLite[guild[0]] = {};
         }
 
@@ -57,8 +57,8 @@ export default {
         }
 
         await client.updateBattlemetricsInstances();
-        BattlemetricsHandler.handler(client, true);
-        client.battlemetricsIntervalId = setInterval(BattlemetricsHandler.handler, 60000, client, false);
+        BattlemetricsHandler.syncBattlemetrics(client, true);
+        client.battlemetricsIntervalId = setInterval(BattlemetricsHandler.syncBattlemetrics, 60000, client, false);
 
         client.createRustplusInstancesFromConfig();
     },

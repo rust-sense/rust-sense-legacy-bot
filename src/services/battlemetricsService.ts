@@ -1,11 +1,11 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import * as Constants from '../domain/constants.js';
+import * as Scrape from '../infrastructure/scrape.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
-import * as Scrape from '../util/scrape.js';
 
-export async function handler(client: DiscordBot, firstTime = false) {
+export async function syncBattlemetrics(client: DiscordBot, firstTime = false) {
     const searchSteamProfiles = client.battlemetricsIntervalCounter === 0 ? true : false;
     const calledSteamProfiles = new Object();
 

@@ -3,13 +3,13 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import Database from 'better-sqlite3';
+import { createEmptyInstance } from '../src/domain/guildState.js';
 import { PersistenceService } from '../src/persistence/PersistenceService.js';
 import { PostgresAdapter } from '../src/persistence/PostgresAdapter.js';
-import { createEmptyInstance } from '../src/persistence/relationalMapping.js';
 import { SqliteAdapter } from '../src/persistence/SqliteAdapter.js';
 import { instanceToCompatibilityState, type PersistenceAdapter } from '../src/persistence/types.js';
 import type { Credentials, Instance } from '../src/types/instance.js';
-import { loadJsonResourceSync } from '../src/utils/filesystemUtils.js';
 
 const repoRoot = process.cwd();
 
@@ -54,15 +54,20 @@ function migratePostgres(postgresUrl: string): void {
 }
 
 function buildInstance(): Instance {
-    const generalSettings = loadJsonResourceSync<Instance['generalSettings']>('templates/generalSettingsTemplate.json');
-    const notificationSettings = loadJsonResourceSync<Instance['notificationSettings']>(
-        'templates/notificationSettingsTemplate.json',
-    );
-    const instance = createEmptyInstance(generalSettings, notificationSettings);
+    const instance = createEmptyInstance();
     instance.firstTime = false;
     instance.role = 'role-id';
     instance.adminRole = 'admin-role-id';
     instance.activeServer = 'server-1';
+    instance.generalSettings.prefix = '?';
+    instance.generalSettings.commandDelay = 250;
+    instance.notificationSettings.cargoShipDetectedSetting.discord = false;
+    instance.notificationSettings.cargoShipDetectedSetting.inGame = true;
+    instance.channelId.category = 'category-channel';
+    instance.channelId.commands = 'commands-channel';
+    instance.channelId.storageMonitors = 'storage-channel';
+    instance.informationMessageId.map = 'map-message';
+    instance.informationMessageId.battlemetricsPlayers = 'battlemetrics-message';
     instance.marketSubscriptionList.all.push('rifle.ak');
     instance.marketBlacklist.push('stones');
     instance.blacklist.discordIds.push('discord-blocked');
@@ -195,8 +200,8 @@ function buildCredentials(): Credentials {
         765: {
             discord_user_id: 'discord-user',
             gcm: {
-                androidId: 'android-id',
-                securityToken: 'security-token',
+                android_id: 'android-id',
+                security_token: 'security-token',
             },
             issuedDate: 'issued',
             expireDate: 'expires',
@@ -206,6 +211,16 @@ function buildCredentials(): Credentials {
 
 function assertRoundTrip(instance: Instance, credentials: Credentials): void {
     assert.equal(instance.role, 'role-id');
+    assert.equal(instance.channelId.category, 'category-channel');
+    assert.equal(instance.channelId.commands, 'commands-channel');
+    assert.equal(instance.channelId.storageMonitors, 'storage-channel');
+    assert.equal(instance.informationMessageId.map, 'map-message');
+    assert.equal(instance.informationMessageId.battlemetricsPlayers, 'battlemetrics-message');
+    assert.equal(instance.generalSettings.prefix, '?');
+    assert.equal(instance.generalSettings.commandDelay, 250);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.discord, false);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.inGame, true);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.image, 'cargoship_logo.png');
     assert.equal(instance.serverList['server-1'].switches[7].name, 'Switch');
     assert.equal(instance.serverList['server-1'].alarms[8].message, 'alarm');
     assert.equal(instance.serverList['server-1'].storageMonitors[9].items[0]?.quantity, 456);
@@ -217,7 +232,7 @@ function assertRoundTrip(instance: Instance, credentials: Credentials): void {
     assert.equal(instance.marketSubscriptionList.all[0], 'rifle.ak');
     assert.equal(instance.aliases[0]?.alias, 'ak');
     assert.equal(credentials.hoster, '765');
-    assert.equal((credentials as any)[765].gcm.securityToken, 'security-token');
+    assert.equal((credentials as any)[765].gcm.security_token, 'security-token');
 }
 
 async function adapterRoundTrip(adapter: PersistenceAdapter): Promise<void> {
@@ -351,6 +366,41 @@ async function sqliteLegacyMigrationSmoke(): Promise<void> {
     }
 }
 
+async function sqliteSettingsRegistryFallbackSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-settings-registry-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.saveGuildStateChanges('guild-settings-registry', buildInstance());
+        await adapter.close();
+
+        const database = new Database(databasePath);
+        database
+            .prepare("DELETE FROM guild_settings WHERE guild_id = ? AND setting_key = 'general.prefix'")
+            .run('guild-settings-registry');
+        database
+            .prepare('INSERT INTO guild_settings (guild_id, setting_key, setting_value) VALUES (?, ?, ?)')
+            .run('guild-settings-registry', 'general.removedSetting', 'ignored');
+        database.close();
+
+        const secondAdapter = new SqliteAdapter(databasePath);
+        await secondAdapter.init();
+        const settings = await secondAdapter.readGuildSettings('guild-settings-registry');
+        assert.equal(settings.generalSettings.prefix, '!');
+        assert.equal(settings.generalSettings.removedSetting, undefined);
+        assert.equal(settings.notificationSettings.cargoShipDetectedSetting.image, 'cargoship_logo.png');
+        await secondAdapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
 async function postgresSmoke(): Promise<void> {
     const postgresUrl = process.env.RPP_TEST_POSTGRES_URL;
     if (!postgresUrl) return;
@@ -407,6 +457,7 @@ await sqliteSmoke();
 await sqliteRollbackSmoke();
 await sqliteFullGuildRollbackSmoke();
 await sqliteLegacyMigrationSmoke();
+await sqliteSettingsRegistryFallbackSmoke();
 await postgresSmoke();
 await postgresLegacyMigrationSmoke();
 console.log('persistence smoke passed');

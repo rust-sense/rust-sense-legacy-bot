@@ -1,5 +1,5 @@
-import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
-import { findClosestString } from '../util/utils.js';
+import getStaticFilesStorage from '../infrastructure/getStaticFilesStorage.js';
+import { findClosestString } from '../utils/stringUtils.js';
 import Items from './Items.js';
 
 const IGNORED_RECYCLE_ITEMS = ['-946369541' /* Low Grade Fuel */];

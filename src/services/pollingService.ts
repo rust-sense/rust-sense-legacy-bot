@@ -1,17 +1,17 @@
-import * as InformationHandler from '../handlers/informationHandler.js';
-import * as SmartAlarmHandler from '../handlers/smartAlarmHandler.js';
-import * as SmartSwitchHandler from '../handlers/smartSwitchHandler.js';
-import * as StorageMonitorHandler from '../handlers/storageMonitorHandler.js';
-import * as TeamHandler from '../handlers/teamHandler.js';
-import * as TimeHandler from '../handlers/timeHandler.js';
-import * as VendingMachines from '../handlers/vendingMachineHandler.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import Info from '../structures/Info.js';
 import MapMarkers from '../structures/MapMarkers.js';
 import Team from '../structures/Team.js';
 import Time from '../structures/Time.js';
+import * as InformationHandler from './informationService.js';
+import * as SmartAlarmHandler from './smartAlarmService.js';
+import * as SmartSwitchHandler from './smartSwitchService.js';
+import * as StorageMonitorHandler from './storageMonitorService.js';
+import * as TeamHandler from './teamService.js';
+import * as TimeHandler from './timeService.js';
+import * as VendingMachines from './vendingMachineService.js';
 
-export async function pollingHandler(rustplus: any, client: DiscordBot) {
+export async function pollRustPlusState(rustplus: any, client: DiscordBot) {
     if (rustplus._pollingInProgress) return;
     rustplus._pollingInProgress = true;
     try {
@@ -33,14 +33,14 @@ export async function pollingHandler(rustplus: any, client: DiscordBot) {
             rustplus.restorePersistentRuntimeState();
         }
 
-        await handlers(rustplus, client, info, mapMarkers, teamInfo, time);
+        await processPollResults(rustplus, client, info, mapMarkers, teamInfo, time);
         rustplus.isFirstPoll = false;
     } finally {
         rustplus._pollingInProgress = false;
     }
 }
 
-export async function handlers(
+export async function processPollResults(
     rustplus: any,
     client: DiscordBot,
     info: any,
@@ -48,18 +48,18 @@ export async function handlers(
     teamInfo: any,
     time: any,
 ) {
-    await TeamHandler.handler(rustplus, client, teamInfo.teamInfo);
+    await TeamHandler.processTeamUpdate(rustplus, client, teamInfo.teamInfo);
     rustplus.team.updateTeam(teamInfo.teamInfo);
 
-    await SmartSwitchHandler.handler(rustplus, client, time.time);
-    TimeHandler.handler(rustplus, client, time.time);
-    await VendingMachines.handler(rustplus, client, mapMarkers.mapMarkers);
+    await SmartSwitchHandler.syncSmartSwitches(rustplus, client, time.time);
+    TimeHandler.syncRustPlusTime(rustplus, client, time.time);
+    await VendingMachines.syncVendingMachines(rustplus, client, mapMarkers.mapMarkers);
 
     rustplus.time.updateTime(time.time);
     rustplus.info.updateInfo(info.info);
     rustplus.mapMarkers.updateMapMarkers(mapMarkers.mapMarkers);
 
-    await InformationHandler.handler(rustplus);
-    await StorageMonitorHandler.handler(rustplus, client);
-    await SmartAlarmHandler.handler(rustplus, client);
+    await InformationHandler.syncServerInformation(rustplus);
+    await StorageMonitorHandler.syncStorageMonitors(rustplus, client);
+    await SmartAlarmHandler.syncSmartAlarms(rustplus, client);
 }

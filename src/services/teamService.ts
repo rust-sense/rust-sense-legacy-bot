@@ -1,10 +1,10 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Constants from '../domain/constants.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
 
-export async function handler(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
+export async function processTeamUpdate(rustplus: any, client: DiscordBot, teamInfo: any): Promise<void> {
     /* Handle team changes */
     await checkChanges(rustplus, client, teamInfo);
 }

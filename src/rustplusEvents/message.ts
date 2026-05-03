@@ -1,7 +1,7 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import * as TeamHandler from '../handlers/teamHandler.js';
+import * as Constants from '../domain/constants.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Constants from '../util/constants.js';
+import * as TeamHandler from '../services/teamService.js';
 
 export default {
     name: 'message',
@@ -32,7 +32,7 @@ function messageBroadcast(rustplus: any, client: any, message: any) {
     }
 }
 function messageBroadcastTeamChanged(rustplus: any, client: any, message: any) {
-    TeamHandler.handler(rustplus, client, message.broadcast.teamChanged.teamInfo);
+    TeamHandler.processTeamUpdate(rustplus, client, message.broadcast.teamChanged.teamInfo);
     const changed = rustplus.team.isLeaderSteamIdChanged(message.broadcast.teamChanged.teamInfo);
     rustplus.team.updateTeam(message.broadcast.teamChanged.teamInfo);
     if (changed) rustplus.updateLeaderRustPlusLiteInstance();
@@ -46,7 +46,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         /* Delay inGameChatHandler */
         clearTimeout(rustplus.inGameChatTimeout);
         const commandDelayMs = Number.parseInt(rustplus.generalSettings.commandDelay) * 1000;
-        const InGameChatHandler = await import('../handlers/inGameChatHandler.js');
+        const InGameChatHandler = await import('../services/inGameChatService.js');
         rustplus.inGameChatTimeout = setTimeout(InGameChatHandler.inGameChatHandler, commandDelayMs, rustplus, client);
     }
 
@@ -74,7 +74,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
             }),
             'info',
         );
-        const TeamChatHandler = await import('../handlers/teamChatHandler.js');
+        const TeamChatHandler = await import('../services/teamChatService.js');
         TeamChatHandler.default(rustplus, client, message.broadcast.teamMessage.message);
         return;
     }
@@ -89,7 +89,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         return;
     }
 
-    const CommandHandler = await import('../handlers/inGameCommandHandler.js');
+    const CommandHandler = await import('../services/inGameCommandService.js');
     const isCommand = await CommandHandler.inGameCommandHandler(rustplus, client, message);
     if (isCommand) return;
 
@@ -102,7 +102,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         'info',
     );
 
-    const TeamChatHandler = await import('../handlers/teamChatHandler.js');
+    const TeamChatHandler = await import('../services/teamChatService.js');
     TeamChatHandler.default(rustplus, client, message.broadcast.teamMessage.message);
 }
 
@@ -145,7 +145,7 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus: any, client: a
     await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
 
     DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
-    const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js');
+    const SmartSwitchGroupHandler = await import('../services/smartSwitchGroupService.js');
     SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
 }
 

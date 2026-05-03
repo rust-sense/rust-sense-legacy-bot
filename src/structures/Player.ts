@@ -1,6 +1,6 @@
-import * as Constants from '../util/constants.js';
-import * as GameMap from '../util/GameMap.js';
-import * as Time from '../util/timer.js';
+import * as Constants from '../domain/constants.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Time from '../domain/timer.js';
 
 interface PlayerData {
     steamId: string | number;

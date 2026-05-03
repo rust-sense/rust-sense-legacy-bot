@@ -1,18 +1,24 @@
 import fs from 'node:fs';
 import Database from 'better-sqlite3';
+import { buildDefaultGeneralSettings, buildDefaultNotificationSettings } from '../domain/guildSettings.js';
+import { addServerLite, createEmptyInstance } from '../domain/guildState.js';
 import type { Credentials, Instance, Server } from '../types/instance.js';
-import { loadJsonResourceSync } from '../utils/filesystemUtils.js';
-import { legacyGuildIds, legacySourceManifest, readLegacyCredentials, readLegacyInstance } from './legacyJson.js';
 import {
-    addServerLite,
-    createEmptyInstance,
+    applyPersistedGuildSetting,
+    PERSISTED_GUILD_SETTING_DEFINITIONS,
+    readGuildSettingValue,
+    serializeGuildSettingValue,
+} from './guildSettingsRegistry.js';
+import { JsonAdapter } from './JsonAdapter.js';
+import { migrateFromJsonAdapter } from './jsonMigration.js';
+import {
+    CHANNEL_ID_KEYS,
     credentialEntries,
     dbBool,
     fromDbBool,
-    GENERAL_COLUMNS,
-    NOTIFICATION_COLUMNS,
+    INFORMATION_MESSAGE_ID_KEYS,
     normalizeTracker,
-} from './relationalMapping.js';
+} from './relational/mapping.js';
 import type {
     GuildCollectionsState,
     GuildCoreState,
@@ -26,12 +32,6 @@ type Row = Record<string, any>;
 export class SqliteAdapter implements PersistenceAdapter {
     readonly name = 'sqlite' as const;
     private db: Database.Database | null = null;
-    private readonly generalTemplate = loadJsonResourceSync<Instance['generalSettings']>(
-        'templates/generalSettingsTemplate.json',
-    );
-    private readonly notificationTemplate = loadJsonResourceSync<Instance['notificationSettings']>(
-        'templates/notificationSettingsTemplate.json',
-    );
 
     constructor(
         private readonly sqlitePath: string,
@@ -45,7 +45,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         this.db = new Database(this.sqlitePath);
         this.db.pragma('foreign_keys = ON');
         this.validateMigrated();
-        if (this.migrateLegacyJsonOnInit) this.migrateLegacyJson();
+        if (this.migrateLegacyJsonOnInit) await this.migrateLegacyJson();
     }
 
     async close(): Promise<void> {
@@ -76,37 +76,18 @@ export class SqliteAdapter implements PersistenceAdapter {
             role: guild.role_id,
             adminRole: guild.admin_role_id,
             activeServer: guild.active_server_id,
-            channelId: {
-                category: guild.channel_category_id,
-                information: guild.channel_information_id,
-                servers: guild.channel_servers_id,
-                settings: guild.channel_settings_id,
-                commands: guild.channel_commands_id,
-                events: guild.channel_events_id,
-                teamchat: guild.channel_teamchat_id,
-                switches: guild.channel_switches_id,
-                switchGroups: guild.channel_switch_groups_id,
-                alarms: guild.channel_alarms_id,
-                storageMonitors: guild.channel_storage_monitors_id,
-                activity: guild.channel_activity_id,
-                trackers: guild.channel_trackers_id,
-            },
-            informationMessageId: {
-                map: guild.information_map_message_id,
-                server: guild.information_server_message_id,
-                event: guild.information_event_message_id,
-                team: guild.information_team_message_id,
-                battlemetricsPlayers: guild.information_battlemetrics_players_message_id,
-            },
+            channelId: this.readChannelIds(db, guildId),
+            informationMessageId: this.readInformationMessageIds(db, guildId),
         };
     }
 
     writeGuildCore(guildId: string, core: GuildCoreState): void {
-        this.writeGuild(guildId, core);
+        this.withTransaction(() => this.writeGuild(guildId, core));
     }
 
     readGuildSettings(guildId: string): GuildSettingsState {
-        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        if (!this.hasGuild(guildId)) throw new Error(`No persisted guild state found for ${guildId}`);
+        const instance = createEmptyInstance();
         this.readSettings(this.database(), guildId, instance);
         return {
             generalSettings: instance.generalSettings,
@@ -117,14 +98,13 @@ export class SqliteAdapter implements PersistenceAdapter {
     writeGuildSettings(guildId: string, settings: GuildSettingsState): void {
         this.withTransaction(() => {
             const db = this.database();
-            db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
-            db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
+            db.prepare('DELETE FROM guild_settings WHERE guild_id = ?').run(guildId);
             this.writeSettings(guildId, settings);
         });
     }
 
     readServers(guildId: string): Record<string, Server> {
-        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        const instance = createEmptyInstance();
         this.hydrateServers(this.database(), guildId, instance);
         return instance.serverList;
     }
@@ -138,7 +118,7 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     readGuildCollections(guildId: string): GuildCollectionsState {
-        const instance = createEmptyInstance({ ...this.generalTemplate }, structuredClone(this.notificationTemplate));
+        const instance = createEmptyInstance();
         this.hydrateGuildCollections(this.database(), guildId, instance);
         return {
             trackers: instance.trackers,
@@ -242,8 +222,7 @@ export class SqliteAdapter implements PersistenceAdapter {
                 this.writeGuild(guildId, instance);
             }
             if (domains.includes('settings')) {
-                db.prepare('DELETE FROM guild_general_settings WHERE guild_id = ?').run(guildId);
-                db.prepare('DELETE FROM guild_notification_settings WHERE guild_id = ?').run(guildId);
+                db.prepare('DELETE FROM guild_settings WHERE guild_id = ?').run(guildId);
                 this.writeSettings(guildId, instance);
             }
             if (domains.includes('servers')) {
@@ -305,7 +284,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         }
     }
 
-    private migrateLegacyJson(): void {
+    private async migrateLegacyJson(): Promise<void> {
         const db = this.database();
         const status = (
             db.prepare("SELECT value FROM _persistence_meta WHERE key = 'legacy_json_migration_status'").get() as
@@ -319,30 +298,12 @@ export class SqliteAdapter implements PersistenceAdapter {
             );
         }
 
-        const guildIds = legacyGuildIds();
-        const manifest = legacySourceManifest();
-        if (guildIds.length === 0) {
-            db.prepare(
-                "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_status', 'completed', CURRENT_TIMESTAMP)",
-            ).run();
-            db.prepare(
-                "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_guild_count', '0', CURRENT_TIMESTAMP)",
-            ).run();
-            db.prepare(
-                "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_checksum', ?, CURRENT_TIMESTAMP)",
-            ).run(manifest.checksum);
-            return;
-        }
-
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_status', 'in_progress', CURRENT_TIMESTAMP)",
         ).run();
+        let manifest: { guildCount: number; checksum: string };
         try {
-            for (const guildId of guildIds) {
-                const instance = readLegacyInstance(guildId);
-                this.writeInstance(guildId, instance);
-                this.writeCredentials(guildId, readLegacyCredentials(guildId));
-            }
+            manifest = await migrateFromJsonAdapter(new JsonAdapter(), this);
         } catch (error) {
             throw error;
         }
@@ -351,7 +312,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         ).run();
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_guild_count', ?, CURRENT_TIMESTAMP)",
-        ).run(String(guildIds.length));
+        ).run(String(manifest.guildCount));
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_checksum', ?, CURRENT_TIMESTAMP)",
         ).run(manifest.checksum);
@@ -385,127 +346,73 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     private writeGuild(guildId: string, instance: GuildCoreState): void {
-        this.database()
-            .prepare(
-                `INSERT INTO guilds (
-                    guild_id, first_time, role_id, admin_role_id, active_server_id,
-                    channel_category_id, channel_information_id, channel_servers_id, channel_settings_id,
-                    channel_commands_id, channel_events_id, channel_teamchat_id, channel_switches_id,
-                    channel_switch_groups_id, channel_alarms_id, channel_storage_monitors_id, channel_activity_id,
-                    channel_trackers_id, information_map_message_id, information_server_message_id,
-                    information_event_message_id, information_team_message_id, information_battlemetrics_players_message_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(guild_id) DO UPDATE SET
-                    first_time = excluded.first_time,
-                    role_id = excluded.role_id,
-                    admin_role_id = excluded.admin_role_id,
-                    active_server_id = excluded.active_server_id,
-                    channel_category_id = excluded.channel_category_id,
-                    channel_information_id = excluded.channel_information_id,
-                    channel_servers_id = excluded.channel_servers_id,
-                    channel_settings_id = excluded.channel_settings_id,
-                    channel_commands_id = excluded.channel_commands_id,
-                    channel_events_id = excluded.channel_events_id,
-                    channel_teamchat_id = excluded.channel_teamchat_id,
-                    channel_switches_id = excluded.channel_switches_id,
-                    channel_switch_groups_id = excluded.channel_switch_groups_id,
-                    channel_alarms_id = excluded.channel_alarms_id,
-                    channel_storage_monitors_id = excluded.channel_storage_monitors_id,
-                    channel_activity_id = excluded.channel_activity_id,
-                    channel_trackers_id = excluded.channel_trackers_id,
-                    information_map_message_id = excluded.information_map_message_id,
-                    information_server_message_id = excluded.information_server_message_id,
-                    information_event_message_id = excluded.information_event_message_id,
-                    information_team_message_id = excluded.information_team_message_id,
-                    information_battlemetrics_players_message_id = excluded.information_battlemetrics_players_message_id`,
-            )
-            .run(
-                guildId,
-                dbBool(instance.firstTime),
-                instance.role,
-                instance.adminRole,
-                instance.activeServer,
-                instance.channelId.category,
-                instance.channelId.information,
-                instance.channelId.servers,
-                instance.channelId.settings,
-                instance.channelId.commands,
-                instance.channelId.events,
-                instance.channelId.teamchat,
-                instance.channelId.switches,
-                instance.channelId.switchGroups,
-                instance.channelId.alarms,
-                instance.channelId.storageMonitors,
-                instance.channelId.activity,
-                instance.channelId.trackers,
-                instance.informationMessageId.map,
-                instance.informationMessageId.server,
-                instance.informationMessageId.event,
-                instance.informationMessageId.team,
-                instance.informationMessageId.battlemetricsPlayers,
-            );
+        const db = this.database();
+        db.prepare(
+            `INSERT INTO guilds (guild_id, first_time, role_id, admin_role_id, active_server_id)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(guild_id) DO UPDATE SET
+                first_time = excluded.first_time,
+                role_id = excluded.role_id,
+                admin_role_id = excluded.admin_role_id,
+                active_server_id = excluded.active_server_id`,
+        ).run(guildId, dbBool(instance.firstTime), instance.role, instance.adminRole, instance.activeServer);
+
+        db.prepare('DELETE FROM guild_discord_ids WHERE guild_id = ?').run(guildId);
+        const insertId = db.prepare('INSERT INTO guild_discord_ids (guild_id, id_key, id_value) VALUES (?, ?, ?)');
+        for (const [property, idKey] of CHANNEL_ID_KEYS) {
+            const value = instance.channelId[property];
+            if (value) insertId.run(guildId, idKey, value);
+        }
+        for (const [property, idKey] of INFORMATION_MESSAGE_ID_KEYS) {
+            const value = instance.informationMessageId[property];
+            if (value) insertId.run(guildId, idKey, value);
+        }
     }
 
     private writeSettings(guildId: string, instance: GuildSettingsState): void {
-        const generalColumns = ['guild_id', ...GENERAL_COLUMNS.map(([, column]) => column)];
-        this.database()
-            .prepare(
-                `INSERT INTO guild_general_settings (${generalColumns.join(', ')}) VALUES (${generalColumns.map(() => '?').join(', ')})`,
-            )
-            .run(
-                guildId,
-                ...GENERAL_COLUMNS.map(([key]) => {
-                    const value = instance.generalSettings[key] ?? this.generalTemplate[key];
-                    return typeof value === 'boolean' ? dbBool(value) : value;
-                }),
-            );
-
-        const notificationColumns = [
-            'guild_id',
-            ...NOTIFICATION_COLUMNS.map(([, prefix, key]) => `${prefix}_${toDbSettingKey(key)}`),
-        ];
-        this.database()
-            .prepare(
-                `INSERT INTO guild_notification_settings (${notificationColumns.join(', ')}) VALUES (${notificationColumns.map(() => '?').join(', ')})`,
-            )
-            .run(
-                guildId,
-                ...NOTIFICATION_COLUMNS.map(([section, , key]) => {
-                    const value =
-                        instance.notificationSettings[section]?.[key] ??
-                        this.notificationTemplate[section]?.[key] ??
-                        null;
-                    return typeof value === 'boolean' ? dbBool(value) : value;
-                }),
-            );
+        const insert = this.database().prepare(
+            'INSERT INTO guild_settings (guild_id, setting_key, setting_value) VALUES (?, ?, ?)',
+        );
+        for (const definition of PERSISTED_GUILD_SETTING_DEFINITIONS) {
+            const value = readGuildSettingValue(instance, definition.key);
+            insert.run(guildId, definition.key, serializeGuildSettingValue(definition, value));
+        }
     }
 
     private readSettings(db: Database.Database, guildId: string, instance: Instance): void {
-        const general = db.prepare('SELECT * FROM guild_general_settings WHERE guild_id = ?').get(guildId) as
-            | Row
-            | undefined;
-        if (!general) {
-            throw new Error(`Persisted guild settings are missing for ${guildId}`);
+        instance.generalSettings = buildDefaultGeneralSettings();
+        instance.notificationSettings = buildDefaultNotificationSettings();
+        for (const row of db
+            .prepare('SELECT setting_key, setting_value FROM guild_settings WHERE guild_id = ?')
+            .all(guildId) as Row[]) {
+            applyPersistedGuildSetting(instance, row.setting_key, row.setting_value);
         }
-        for (const [key, column] of GENERAL_COLUMNS) {
-            const templateValue = this.generalTemplate[key];
-            instance.generalSettings[key] =
-                typeof templateValue === 'boolean' ? fromDbBool(general[column]) : (general[column] ?? templateValue);
-        }
+    }
 
-        const notification = db.prepare('SELECT * FROM guild_notification_settings WHERE guild_id = ?').get(guildId) as
-            | Row
-            | undefined;
-        if (!notification) {
-            throw new Error(`Persisted guild notification settings are missing for ${guildId}`);
+    private readChannelIds(db: Database.Database, guildId: string): GuildCoreState['channelId'] {
+        const channelId = createEmptyInstance().channelId;
+        const rows = db
+            .prepare("SELECT id_key, id_value FROM guild_discord_ids WHERE guild_id = ? AND id_key LIKE 'channel.%'")
+            .all(guildId) as Row[];
+        const rowsByKey = new Map(rows.map((row) => [row.id_key, row.id_value]));
+        for (const [property, idKey] of CHANNEL_ID_KEYS) {
+            channelId[property] = rowsByKey.get(idKey) ?? null;
         }
-        for (const [section, prefix, key] of NOTIFICATION_COLUMNS) {
-            if (!(section in instance.notificationSettings)) instance.notificationSettings[section] = {};
-            const templateValue = this.notificationTemplate[section]?.[key];
-            const value = notification[`${prefix}_${toDbSettingKey(key)}`];
-            instance.notificationSettings[section][key] =
-                typeof templateValue === 'boolean' ? fromDbBool(value) : (value ?? templateValue);
+        return channelId;
+    }
+
+    private readInformationMessageIds(db: Database.Database, guildId: string): GuildCoreState['informationMessageId'] {
+        const informationMessageId = createEmptyInstance().informationMessageId;
+        const rows = db
+            .prepare(
+                "SELECT id_key, id_value FROM guild_discord_ids WHERE guild_id = ? AND id_key LIKE 'informationMessage.%'",
+            )
+            .all(guildId) as Row[];
+        const rowsByKey = new Map(rows.map((row) => [row.id_key, row.id_value]));
+        for (const [property, idKey] of INFORMATION_MESSAGE_ID_KEYS) {
+            informationMessageId[property] = rowsByKey.get(idKey) ?? null;
         }
+        return informationMessageId;
     }
 
     private insertServers(guildId: string, instance: Pick<Instance, 'serverList'>): void {
@@ -996,8 +903,4 @@ export class SqliteAdapter implements PersistenceAdapter {
             instance.teamChatColors[row.steam_id] = row.color;
         }
     }
-}
-
-function toDbSettingKey(key: string): string {
-    return key === 'inGame' ? 'in_game' : key;
 }

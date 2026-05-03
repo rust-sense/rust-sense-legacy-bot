@@ -5,8 +5,8 @@ import { Jimp, loadFont } from 'jimp';
 type JimpImage = Awaited<ReturnType<typeof Jimp.read>>;
 type JimpFont = Awaited<ReturnType<typeof loadFont>>;
 
+import * as Constants from '../domain/constants.js';
 import { client } from '../index.js';
-import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 interface Monument {

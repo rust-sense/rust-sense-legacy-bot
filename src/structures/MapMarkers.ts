@@ -1,7 +1,7 @@
+import * as Constants from '../domain/constants.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Timer from '../domain/timer.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Constants from '../util/constants.js';
-import * as GameMap from '../util/GameMap.js';
-import * as Timer from '../util/timer.js';
 
 interface Monument {
     token?: string;

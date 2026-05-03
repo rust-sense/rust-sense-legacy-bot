@@ -6,20 +6,19 @@ import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import * as DiscordVoice from '../discordTools/discordVoice.js';
-import * as InGameChatHandler from '../handlers/inGameChatHandler.js';
-import * as TeamHandler from '../handlers/teamHandler.js';
+import * as Constants from '../domain/constants.js';
+import * as Decay from '../domain/decay.js';
+import * as GameMap from '../domain/GameMap.js';
+import { languages } from '../domain/languages.js';
+import * as Timer from '../domain/timer.js';
+import getRuntimeDataStorage from '../infrastructure/getRuntimeDataStorage.js';
 import { RustPlus as RustPlusLib } from '../lib/rustplus/RustPlus.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import rustplusEvents from '../rustplusEvents/index.js';
+import * as InGameChatHandler from '../services/inGameChatService.js';
+import * as TeamHandler from '../services/teamService.js';
 import RustPlusLite from '../structures/RustPlusLite.js';
 import type { RustplusEvent } from '../types/discord.js';
-import * as Constants from '../util/constants.js';
-import * as Decay from '../util/decay.js';
-import * as GameMap from '../util/GameMap.js';
-import getRuntimeDataStorage from '../util/getRuntimeDataStorage.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
-import { languages } from '../util/languages.js';
-import * as Timer from '../util/timer.js';
 import { getPlayerName } from '../utils/playerNameUtils.js';
 import LibLoggerAdapter from './LibLoggerAdapter.js';
 import Logger from './Logger.js';
@@ -82,6 +81,7 @@ export default class RustPlus extends RustPlusLib {
 
         this.serverId = `${this.server}-${this.port}`;
         this.guildId = guildId;
+        this.intlGet = (...args: Parameters<ReturnType<typeof getClient>['intlGet']>) => getClient().intlGet(...args);
         this.runtimeDataStorage = getRuntimeDataStorage();
         this.persistentRuntimeStateRestored = false;
 
@@ -1060,7 +1060,7 @@ export default class RustPlus extends RustPlusLib {
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!(await this.isResponseValid(teamInfo))) return null;
-        TeamHandler.handler(this, client, teamInfo.teamInfo);
+        TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
 
@@ -1683,7 +1683,7 @@ export default class RustPlus extends RustPlusLib {
 
         const teamInfo = await this.getTeamInfoAsync();
         if (!(await this.isResponseValid(teamInfo))) return null;
-        TeamHandler.handler(this, client, teamInfo.teamInfo);
+        TeamHandler.processTeamUpdate(this, client, teamInfo.teamInfo);
         this.team.updateTeam(teamInfo.teamInfo);
         const caller = this.team.getPlayer(callerSteamId);
 
@@ -1788,7 +1788,7 @@ export default class RustPlus extends RustPlusLib {
 
         if (!name || !message) return client.intlGet(this.guildId, 'missingArguments');
 
-        const credentials = await InstanceUtils.readCredentialsFile(this.guildId);
+        const credentials = await getPersistenceCache().getCredentials(this.guildId);
         for (const player of this.team.players) {
             if (player.name.includes(name)) {
                 if (!(player.steamId in credentials))

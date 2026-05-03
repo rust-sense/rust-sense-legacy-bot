@@ -11,8 +11,8 @@ import * as DiscordToolsModule from '../discordTools/discordTools.js';
 
 const DiscordTools: any = DiscordToolsModule;
 
+import * as Utils from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Utils from '../util/utils.js';
 
 export default async (client: DiscordBot, interaction: any) => {
     const instance = await getPersistenceCache().readGuildState(interaction.guildId);

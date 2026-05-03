@@ -1,5 +1,3 @@
-import { client } from '../index.js';
-
 const GRID_DIAMETER = 146.28571;
 const MARGIN = 1;
 
@@ -11,6 +9,11 @@ function getNumberOfGrids(mapSize: number): number {
 export const gridDiameter = GRID_DIAMETER;
 
 export function getPos(x: number, y: number, mapSize: number, rustplus: any) {
+    const intlGet =
+        rustplus?.intlGet ??
+        ((_guildId: string | null, key: string) => {
+            return key;
+        });
     const correctedMapSize = getCorrectedMapSize(mapSize);
     const pos = {
         location: null as string | null,
@@ -23,27 +26,21 @@ export function getPos(x: number, y: number, mapSize: number, rustplus: any) {
     if (isOutsideGridSystem(x, y, correctedMapSize)) {
         if (isOutsideRowOrColumn(x, y, correctedMapSize)) {
             if (x < 0 && y > correctedMapSize) {
-                pos.location = client.intlGet(rustplus.guildId, 'northWest');
+                pos.location = intlGet(rustplus.guildId, 'northWest');
             } else if (x < 0 && y < 0) {
-                pos.location = client.intlGet(rustplus.guildId, 'southWest');
+                pos.location = intlGet(rustplus.guildId, 'southWest');
             } else if (x > correctedMapSize && y > correctedMapSize) {
-                pos.location = client.intlGet(rustplus.guildId, 'northEast');
+                pos.location = intlGet(rustplus.guildId, 'northEast');
             } else {
-                pos.location = client.intlGet(rustplus.guildId, 'southEast');
+                pos.location = intlGet(rustplus.guildId, 'southEast');
             }
         } else {
             let str = '';
             if (x < 0 || x > correctedMapSize) {
-                str +=
-                    x < 0
-                        ? client.intlGet(rustplus.guildId, 'westOfGrid')
-                        : client.intlGet(rustplus.guildId, 'eastOfGrid');
+                str += x < 0 ? intlGet(rustplus.guildId, 'westOfGrid') : intlGet(rustplus.guildId, 'eastOfGrid');
                 str += ` ${getGridPosNumberY(y, correctedMapSize)}`;
             } else {
-                str +=
-                    y < 0
-                        ? client.intlGet(rustplus.guildId, 'southOfGrid')
-                        : client.intlGet(rustplus.guildId, 'northOfGrid');
+                str += y < 0 ? intlGet(rustplus.guildId, 'southOfGrid') : intlGet(rustplus.guildId, 'northOfGrid');
                 str += ` ${getGridPosLettersX(x, correctedMapSize)}`;
             }
             pos.location = str;

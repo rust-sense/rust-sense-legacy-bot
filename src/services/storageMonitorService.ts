@@ -1,9 +1,9 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Constants from '../domain/constants.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 
-export async function handler(rustplus: any, client: DiscordBot) {
+export async function syncStorageMonitors(rustplus: any, client: DiscordBot) {
     let instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

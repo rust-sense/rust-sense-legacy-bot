@@ -8,7 +8,7 @@ import * as DiscordToolsModule from '../discordTools/discordTools.js';
 
 const DiscordTools: any = DiscordToolsModule;
 
-import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
+import * as SmartSwitchGroupHandlerModule from '../services/smartSwitchGroupService.js';
 
 const SmartSwitchGroupHandler: any = SmartSwitchGroupHandlerModule;
 
@@ -20,10 +20,12 @@ import * as DiscordModalsModule from '../discordTools/discordModals.js';
 
 const DiscordModals: any = DiscordModalsModule;
 
+import * as DiscordFormattingUtilsModule from '../discordTools/discordFormattingUtils.js';
+import * as UtilsModule from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as UtilsModule from '../util/utils.js';
 
 const Utils: any = UtilsModule;
+const DiscordFormattingUtils: any = DiscordFormattingUtilsModule;
 
 export default async (client: DiscordBot, interaction: any) => {
     const instance = await getPersistenceCache().readGuildState(interaction.guildId);
@@ -781,7 +783,7 @@ export default async (client: DiscordBot, interaction: any) => {
         if (instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord) {
             const user = interaction.user.username;
             const name = server.switches[ids.entityId].name;
-            const status = Utils.getActiveStr(client, guildId, active);
+            const status = DiscordFormattingUtils.getActiveStr(client, guildId, active);
             const str = client.intlGet(guildId, 'userTurnedOnOffSmartSwitchFromDiscord', {
                 user: user,
                 name: name,
@@ -1063,7 +1065,7 @@ export default async (client: DiscordBot, interaction: any) => {
                 if (instance.generalSettings.smartSwitchNotifyInGameWhenChangedFromDiscord) {
                     const user = interaction.user.username;
                     const name = server.switchGroups[ids.groupId].name;
-                    const status = Utils.getActiveStr(client, guildId, active);
+                    const status = DiscordFormattingUtils.getActiveStr(client, guildId, active);
                     const str = client.intlGet(guildId, 'userTurnedOnOffSmartSwitchGroupFromDiscord', {
                         user: user,
                         name: name,

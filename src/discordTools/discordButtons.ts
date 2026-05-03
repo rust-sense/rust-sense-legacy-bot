@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
+import * as Constants from '../domain/constants.js';
 import { client } from '../index.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Constants from '../util/constants.js';
 
 const SUCCESS = Discord.ButtonStyle.Success;
 const DANGER = Discord.ButtonStyle.Danger;

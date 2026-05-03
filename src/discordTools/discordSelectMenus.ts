@@ -1,11 +1,10 @@
 import fs from 'node:fs';
 import * as Discord from 'discord.js';
-
+import * as Constants from '../domain/constants.js';
+import { languages as Languages } from '../domain/languages.js';
 import { client } from '../index.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import { getTTSProvider } from '../tts/getTTSProvider.js';
-import * as Constants from '../util/constants.js';
-import { languages as Languages } from '../util/languages.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 export function getSelectMenu(options: any = {}) {

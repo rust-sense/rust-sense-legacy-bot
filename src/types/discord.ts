@@ -19,8 +19,6 @@ export interface DiscordBot extends Client {
     cctv: unknown;
     logger: unknown;
 
-    readGeneralSettingsTemplate(): Record<string, unknown>;
-    readNotificationSettingsTemplate(): Record<string, unknown>;
     intlGet(guildId: string | null, key: string, options?: Record<string, unknown>): string;
     log(title: string, message: string, level: string): void;
     build(): void;

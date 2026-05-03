@@ -1,5 +1,5 @@
+import { addServerLite, createEmptyInstance } from '../domain/guildState.js';
 import type { Credentials, GeneralSettings, Instance, NotificationSettings, Server } from '../types/instance.js';
-import { addServerLite, createEmptyInstance } from './relationalMapping.js';
 import { type GuildStateDomain, instanceToCompatibilityState, type PersistenceAdapter } from './types.js';
 
 type GeneralSettingKey = keyof GeneralSettings;

@@ -3,9 +3,9 @@ import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Constants from '../domain/constants.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 
 export default {
     name: 'customintl',

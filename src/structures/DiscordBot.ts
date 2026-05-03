@@ -8,14 +8,13 @@ import discordCommands from '../discordCommands/index.js';
 import discordEvents from '../discordEvents/index.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import * as Constants from '../domain/constants.js';
 import * as PermissionHandler from '../handlers/permissionHandler.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import RustLabs from '../structures/RustLabs.js';
 import RustPlus from '../structures/RustPlus.js';
 import type { DiscordEvent } from '../types/discord.js';
-import * as Constants from '../util/constants.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
 import { cwdPath, loadJsonResourceSync } from '../utils/filesystemUtils.js';
 import Cctv from './Cctv.js';
 import Items from './Items.js';
@@ -142,7 +141,7 @@ export default class DiscordBot extends Discord.Client {
     async loadGuildsIntlFromCache(): Promise<void> {
         for (const guild of this.guilds.cache) {
             const guildId = guild[0];
-            const instance = await InstanceUtils.readInstanceFile(guildId);
+            const instance = await getPersistenceCache().readGuildState(guildId);
             this.loadGuildIntl(guildId, instance);
         }
     }
@@ -259,10 +258,10 @@ export default class DiscordBot extends Discord.Client {
             await PermissionHandler.resetPermissionsAllChannels(this, guild);
         }
 
-        const FcmListener = (await import('../util/FcmListener.js')).default;
+        const FcmListener = (await import('../infrastructure/FcmListener.js')).default;
         FcmListener(this, guild);
 
-        const credentials = await InstanceUtils.readCredentialsFile(guild.id);
+        const credentials = await getPersistenceCache().getCredentials(guild.id);
         for (const steamId of Object.keys(credentials)) {
             if (steamId !== credentials.hoster && steamId !== 'hoster') {
                 FcmListener(this, guild, steamId);
@@ -278,7 +277,7 @@ export default class DiscordBot extends Discord.Client {
     }
 
     async syncCredentialsWithUsers(guild: any): Promise<void> {
-        const credentials = await InstanceUtils.readCredentialsFile(guild.id);
+        const credentials = await getPersistenceCache().getCredentials(guild.id);
 
         const members = await guild.members.fetch();
         const memberIds: string[] = [];
@@ -316,15 +315,7 @@ export default class DiscordBot extends Discord.Client {
             delete credentials[steamId];
         }
 
-        await InstanceUtils.writeCredentialsFile(guild.id, credentials);
-    }
-
-    readNotificationSettingsTemplate(): Record<string, unknown> {
-        return loadJsonResourceSync('templates/notificationSettingsTemplate.json');
-    }
-
-    readGeneralSettingsTemplate(): Record<string, unknown> {
-        return loadJsonResourceSync('templates/generalSettingsTemplate.json');
+        await getPersistenceCache().setCredentials(guild.id, credentials);
     }
 
     createRustplusInstance(

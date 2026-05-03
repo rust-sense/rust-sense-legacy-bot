@@ -1,16 +1,16 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as GameMapModule from '../domain/GameMap.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as GameMapModule from '../util/GameMap.js';
 
 const GameMap = GameMapModule;
 
+import * as Timer from '../domain/timer.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Timer from '../util/timer.js';
-import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupHandler.js';
+import * as SmartSwitchGroupHandlerModule from './smartSwitchGroupService.js';
 
 const SmartSwitchGroupHandler = SmartSwitchGroupHandlerModule;
 
-export async function handler(rustplus: any, client: DiscordBot, time: any) {
+export async function syncSmartSwitches(rustplus: any, client: DiscordBot, time: any) {
     const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const guildId = rustplus.guildId;
     const serverId = rustplus.serverId;

@@ -1,7 +1,7 @@
 import { getVoiceConnection } from '@discordjs/voice';
 import { destroyGuildTTS } from '../discordTools/discordVoice.js';
+import * as Constants from '../domain/constants.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 
 export default {
     name: 'voiceStateUpdate',

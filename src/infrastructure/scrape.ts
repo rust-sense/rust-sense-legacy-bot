@@ -1,6 +1,6 @@
 import Axios from 'axios';
 
-import * as Constants from './constants.js';
+import * as Constants from '../domain/constants.js';
 
 export async function scrape(url: string): Promise<{ status?: number; data?: string }> {
     try {

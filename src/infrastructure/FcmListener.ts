@@ -2,11 +2,10 @@ import * as DiscordModule from 'discord.js';
 
 const Discord: any = DiscordModule;
 
+import * as ConstantsModule from '../domain/constants.js';
 import PushReceiverClient from '../lib/fcm/Client.js';
-
 import Battlemetrics from '../structures/Battlemetrics.js';
 import LibLoggerAdapter from '../structures/LibLoggerAdapter.js';
-import * as ConstantsModule from '../util/constants.js';
 
 const Constants: any = ConstantsModule;
 
@@ -22,15 +21,11 @@ import * as DiscordToolsModule from '../discordTools/discordTools.js';
 
 const DiscordTools: any = DiscordToolsModule;
 
-import * as InstanceUtilsModule from '../util/instanceUtils.js';
-
-const InstanceUtils: any = InstanceUtilsModule;
-
-import * as GameMapModule from './GameMap.js';
+import * as GameMapModule from '../domain/GameMap.js';
 
 const GameMap: any = GameMapModule;
 
-import * as ScrapeModule from '../util/scrape.js';
+import * as ScrapeModule from './scrape.js';
 
 const Scrape: any = ScrapeModule;
 
@@ -47,7 +42,7 @@ export default async (client: any, guild: any, steamId: string | null = null) =>
     const isLite = steamId !== null;
     const logPrefix = isLite ? 'FCM Lite' : 'FCM Host';
 
-    const credentials = await InstanceUtils.readCredentialsFile(guild.id);
+    const credentials = await getPersistenceCache().getCredentials(guild.id);
     const hoster = credentials.hoster;
 
     if (isLite) {

@@ -1,11 +1,9 @@
 import * as Discord from 'discord.js';
-
+import * as Constants from '../domain/constants.js';
+import { secondsToFullScale } from '../domain/timer.js';
 import { client } from '../index.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as Constants from '../util/constants.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
-import { secondsToFullScale } from '../util/timer.js';
-import * as Utils from '../util/utils.js';
+import * as Utils from './discordFormattingUtils.js';
 import * as DiscordTools from './discordTools.js';
 
 function isValidUrl(url: string): boolean {
@@ -57,7 +55,7 @@ export async function getSmartSwitchEmbed(guildId, serverId, entityId) {
 
 export async function getServerEmbed(guildId, serverId) {
     const instance = await getPersistenceCache().readGuildState(guildId);
-    const credentials = await InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const server = instance.serverList[serverId];
     let hoster: any = client.intlGet(guildId, 'unknown');
     if (Object.hasOwn(credentials, server.steamId)) {
@@ -503,7 +501,7 @@ export async function getStorageMonitorNotFoundEmbed(guildId, serverId, entityId
     const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = server.storageMonitors[entityId];
-    const credentials = await InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -524,7 +522,7 @@ export async function getSmartSwitchNotFoundEmbed(guildId, serverId, entityId) {
     const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = instance.serverList[serverId].switches[entityId];
-    const credentials = await InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -545,7 +543,7 @@ export async function getSmartAlarmNotFoundEmbed(guildId, serverId, entityId) {
     const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = server.alarms[entityId];
-    const credentials = await InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -1009,7 +1007,7 @@ export async function getDiscordCommandResponseEmbed(rustplus, response) {
 }
 
 export async function getCredentialsShowEmbed(guildId) {
-    const credentials = await InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     let names = '';
     let steamIds = '';
     let hoster = '';

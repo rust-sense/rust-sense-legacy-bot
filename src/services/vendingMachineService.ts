@@ -1,11 +1,11 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as GameMapModule from '../domain/GameMap.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as GameMapModule from '../util/GameMap.js';
 
 const GameMap = GameMapModule;
 
-export async function handler(rustplus: any, client: DiscordBot, mapMarkers: any) {
+export async function syncVendingMachines(rustplus: any, client: DiscordBot, mapMarkers: any) {
     /* Handle Vending Machine changes */
     await checkChanges(rustplus, client, mapMarkers);
 }

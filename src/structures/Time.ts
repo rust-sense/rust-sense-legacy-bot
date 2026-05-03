@@ -1,5 +1,5 @@
+import * as TimeLib from '../domain/timer.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import * as TimeLib from '../util/timer.js';
 
 interface TimeData {
     dayLengthMinutes: number;

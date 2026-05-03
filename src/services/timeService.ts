@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
-export function handler(rustplus: any, client: DiscordBot, time: any) {
+export function syncRustPlusTime(rustplus: any, client: DiscordBot, time: any) {
     /* Check time changes */
     checkChanges(rustplus, client, time);
 }

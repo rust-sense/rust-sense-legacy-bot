@@ -4,7 +4,7 @@ import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import { getPersistenceCache } from '../persistence/index.js';
-import { getSmartDevice } from '../service/smartDevice.js';
+import { getSmartDevice } from '../services/smartDevice.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
@@ -170,7 +170,7 @@ export default {
                             DiscordMessages.sendSmartSwitchGroupMessage(guildId, device.serverId, entityId);
                         } else {
                             DiscordMessages.sendSmartSwitchMessage(guildId, device.serverId, entityId);
-                            const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js');
+                            const SmartSwitchGroupHandler = await import('../services/smartSwitchGroupService.js');
                             SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(
                                 client,
                                 guildId,

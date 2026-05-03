@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream';
 import { StreamType } from '@discordjs/voice';
-import getStaticFilesStorage from '../../util/getStaticFilesStorage.js';
+import getStaticFilesStorage from '../../infrastructure/getStaticFilesStorage.js';
 import type { TTSProvider, VoiceOption } from '../TTSProvider.js';
 
 type ActorParams = { EID: string; LID: string; VID: string };

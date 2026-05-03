@@ -1,9 +1,9 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Timer from '../domain/timer.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Timer from '../util/timer.js';
 
-export function handler(rustplus: any, client: DiscordBot) {}
+export function syncSmartSwitchGroups(rustplus: any, client: DiscordBot) {}
 
 export async function updateSwitchGroupIfContainSwitch(
     client: DiscordBot,

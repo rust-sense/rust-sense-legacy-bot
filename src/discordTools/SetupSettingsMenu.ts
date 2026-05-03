@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
+import * as Constants from '../domain/constants.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 import * as DiscordButtons from './discordButtons.js';
 import * as DiscordEmbeds from './discordEmbeds.js';

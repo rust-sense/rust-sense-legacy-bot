@@ -1,5 +1,5 @@
-import * as GameMap from '../util/GameMap.js';
-import * as Timer from '../util/timer.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Timer from '../domain/timer.js';
 
 interface InfoData {
     name: string;
