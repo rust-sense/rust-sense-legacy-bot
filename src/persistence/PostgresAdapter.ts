@@ -1,7 +1,18 @@
 import { Pool, type PoolClient } from 'pg';
 import { buildDefaultGeneralSettings, buildDefaultNotificationSettings } from '../domain/guildSettings.js';
 import { addServerLite, createEmptyInstance } from '../domain/guildState.js';
-import type { Credentials, Instance, Server } from '../types/instance.js';
+import type {
+    Alias,
+    Credentials,
+    Instance,
+    Marker,
+    Server,
+    SmartAlarm,
+    SmartSwitch,
+    StorageMonitor,
+    SwitchGroup,
+    Tracker,
+} from '../types/instance.js';
 import {
     applyPersistedGuildSetting,
     PERSISTED_GUILD_SETTING_DEFINITIONS,
@@ -158,6 +169,15 @@ export class PostgresAdapter implements PersistenceAdapter {
         await this.writeInstanceAsync(guildId, instance);
     }
 
+    async patchGuildState(guildId: string, base: Instance, next: Instance): Promise<void> {
+        await this.withTransaction(async (client) => {
+            await this.patchGuildCore(client, guildId, base, next);
+            await this.patchGuildSettings(client, guildId, base, next);
+            await this.patchServers(client, guildId, base, next);
+            await this.patchGuildCollections(client, guildId, base, next);
+        });
+    }
+
     async writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): Promise<void> {
         await this.withTransaction(async (client) => {
             if (domains.includes('core')) {
@@ -194,6 +214,793 @@ export class PostgresAdapter implements PersistenceAdapter {
     private database(): Pool {
         if (!this.pool) throw new Error('Postgres persistence adapter has not been initialized');
         return this.pool;
+    }
+
+    private async patchGuildCore(client: PoolClient, guildId: string, base: Instance, next: Instance): Promise<void> {
+        const coreUpdates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['firstTime', 'first_time'],
+            ['role', 'role_id'],
+            ['adminRole', 'admin_role_id'],
+            ['activeServer', 'active_server_id'],
+        ] as const) {
+            if (!sameJson(base[property], next[property])) {
+                coreUpdates.push(`${column} = ?`);
+                values.push(property === 'firstTime' ? dbBool(next[property]) : next[property]);
+            }
+        }
+        if (coreUpdates.length > 0) {
+            await this.run(client, `UPDATE guilds SET ${coreUpdates.join(', ')} WHERE guild_id = ?`, [
+                ...values,
+                guildId,
+            ]);
+        }
+
+        for (const [property, idKey] of CHANNEL_ID_KEYS) {
+            if (!sameJson(base.channelId[property], next.channelId[property])) {
+                await this.setDiscordId(client, guildId, idKey, next.channelId[property]);
+            }
+        }
+        for (const [property, idKey] of INFORMATION_MESSAGE_ID_KEYS) {
+            if (!sameJson(base.informationMessageId[property], next.informationMessageId[property])) {
+                await this.setDiscordId(client, guildId, idKey, next.informationMessageId[property]);
+            }
+        }
+    }
+
+    private async patchGuildSettings(
+        client: PoolClient,
+        guildId: string,
+        base: Instance,
+        next: Instance,
+    ): Promise<void> {
+        for (const definition of PERSISTED_GUILD_SETTING_DEFINITIONS) {
+            const baseValue = readGuildSettingValue(base, definition.key);
+            const nextValue = readGuildSettingValue(next, definition.key);
+            if (!sameJson(baseValue, nextValue)) {
+                await this.run(
+                    client,
+                    `INSERT INTO guild_settings (guild_id, setting_key, setting_value)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(guild_id, setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value`,
+                    [guildId, definition.key, serializeGuildSettingValue(definition, nextValue)],
+                );
+            }
+        }
+    }
+
+    private async patchServers(client: PoolClient, guildId: string, base: Instance, next: Instance): Promise<void> {
+        for (const serverId of unionKeys(base.serverList, next.serverList)) {
+            const baseServer = base.serverList[serverId];
+            const nextServer = next.serverList[serverId];
+            if (!nextServer) {
+                await this.run(client, 'DELETE FROM servers WHERE guild_id = ? AND server_id = ?', [guildId, serverId]);
+                continue;
+            }
+            if (!baseServer) {
+                await this.writeServers(client, guildId, { serverList: { [serverId]: nextServer } } as Instance);
+                continue;
+            }
+            await this.patchServer(client, guildId, serverId, baseServer, nextServer);
+        }
+    }
+
+    private async patchServer(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Server,
+        next: Server,
+    ): Promise<void> {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['title', 'title'],
+            ['serverIp', 'server_ip'],
+            ['appPort', 'app_port'],
+            ['steamId', 'steam_id'],
+            ['playerToken', 'player_token'],
+            ['battlemetricsId', 'battlemetrics_id'],
+            ['cargoShipEgressTimeMs', 'cargo_ship_egress_time_ms'],
+            ['oilRigLockedCrateUnlockTimeMs', 'oil_rig_locked_crate_unlock_time_ms'],
+            ['deepSeaMinWipeCooldownMs', 'deep_sea_min_wipe_cooldown_ms'],
+            ['deepSeaMaxWipeCooldownMs', 'deep_sea_max_wipe_cooldown_ms'],
+            ['deepSeaWipeDurationMs', 'deep_sea_wipe_duration_ms'],
+            ['messageId', 'message_id'],
+            ['connect', 'connect'],
+            ['img', 'img'],
+            ['url', 'url'],
+            ['description', 'description'],
+        ] as const) {
+            if (!sameJson(base[property], next[property])) {
+                updates.push(`${column} = ?`);
+                values.push(next[property] ?? null);
+            }
+        }
+        if (updates.length > 0) {
+            await this.run(client, `UPDATE servers SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ?`, [
+                ...values,
+                guildId,
+                serverId,
+            ]);
+        }
+
+        if (!sameJson(base.timeTillDay, next.timeTillDay) || !sameJson(base.timeTillNight, next.timeTillNight)) {
+            await this.run(client, 'DELETE FROM server_time_samples WHERE guild_id = ? AND server_id = ?', [
+                guildId,
+                serverId,
+            ]);
+            for (const [phase, samples] of [
+                ['day', next.timeTillDay],
+                ['night', next.timeTillNight],
+            ] as const) {
+                for (const [sampleKey, seconds] of Object.entries(samples ?? {})) {
+                    await this.insert(
+                        client,
+                        'server_time_samples',
+                        ['guild_id', 'server_id', 'phase', 'sample_key', 'seconds'],
+                        [guildId, serverId, phase, sampleKey, seconds],
+                    );
+                }
+            }
+        }
+
+        await this.patchSmartSwitches(client, guildId, serverId, base.switches ?? {}, next.switches ?? {});
+        await this.patchSmartAlarms(client, guildId, serverId, base.alarms ?? {}, next.alarms ?? {});
+        await this.patchStorageMonitors(
+            client,
+            guildId,
+            serverId,
+            base.storageMonitors ?? {},
+            next.storageMonitors ?? {},
+        );
+        await this.patchSwitchGroups(client, guildId, serverId, base.switchGroups ?? {}, next.switchGroups ?? {});
+        await this.patchCameraGroups(
+            client,
+            guildId,
+            serverId,
+            base.customCameraGroups ?? {},
+            next.customCameraGroups ?? {},
+        );
+        await this.patchMarkers(client, guildId, serverId, base.markers ?? {}, next.markers ?? {});
+        await this.patchNotes(client, guildId, serverId, base.notes ?? {}, next.notes ?? {});
+    }
+
+    private async patchSmartSwitches(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<number, SmartSwitch>,
+        next: Record<number, SmartSwitch>,
+    ): Promise<void> {
+        for (const switchId of unionKeys(base, next)) {
+            const smartSwitch = next[switchId];
+            if (!smartSwitch) {
+                await this.run(
+                    client,
+                    'DELETE FROM smart_switches WHERE guild_id = ? AND server_id = ? AND switch_id = ?',
+                    [guildId, serverId, switchId],
+                );
+            } else if (!sameJson(base[switchId], smartSwitch)) {
+                await this.run(
+                    client,
+                    `INSERT INTO smart_switches (
+                        guild_id, server_id, switch_id, name, active, reachable, location, x, y, image, command,
+                        auto_day_night_on_off, proximity, message_id, everyone
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, switch_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        active = EXCLUDED.active,
+                        reachable = EXCLUDED.reachable,
+                        location = EXCLUDED.location,
+                        x = EXCLUDED.x,
+                        y = EXCLUDED.y,
+                        image = EXCLUDED.image,
+                        command = EXCLUDED.command,
+                        auto_day_night_on_off = EXCLUDED.auto_day_night_on_off,
+                        proximity = EXCLUDED.proximity,
+                        message_id = EXCLUDED.message_id,
+                        everyone = EXCLUDED.everyone`,
+                    [
+                        guildId,
+                        serverId,
+                        switchId,
+                        smartSwitch.name,
+                        dbBool(smartSwitch.active),
+                        dbBool(smartSwitch.reachable),
+                        smartSwitch.location,
+                        smartSwitch.x,
+                        smartSwitch.y,
+                        smartSwitch.image,
+                        smartSwitch.command,
+                        smartSwitch.autoDayNightOnOff,
+                        smartSwitch.proximity,
+                        smartSwitch.messageId,
+                        smartSwitch.everyone == null ? null : dbBool(smartSwitch.everyone),
+                    ],
+                );
+            }
+        }
+    }
+
+    private async patchSmartAlarms(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<number, SmartAlarm>,
+        next: Record<number, SmartAlarm>,
+    ): Promise<void> {
+        for (const alarmId of unionKeys(base, next)) {
+            const alarm = next[alarmId];
+            if (!alarm) {
+                await this.run(
+                    client,
+                    'DELETE FROM smart_alarms WHERE guild_id = ? AND server_id = ? AND alarm_id = ?',
+                    [guildId, serverId, alarmId],
+                );
+            } else if (!sameJson(base[alarmId], alarm)) {
+                await this.run(
+                    client,
+                    `INSERT INTO smart_alarms (
+                        guild_id, server_id, alarm_id, name, active, reachable, location, x, y, image, message, command,
+                        last_trigger, in_game, message_id, everyone
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, alarm_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        active = EXCLUDED.active,
+                        reachable = EXCLUDED.reachable,
+                        location = EXCLUDED.location,
+                        x = EXCLUDED.x,
+                        y = EXCLUDED.y,
+                        image = EXCLUDED.image,
+                        message = EXCLUDED.message,
+                        command = EXCLUDED.command,
+                        last_trigger = EXCLUDED.last_trigger,
+                        in_game = EXCLUDED.in_game,
+                        message_id = EXCLUDED.message_id,
+                        everyone = EXCLUDED.everyone`,
+                    [
+                        guildId,
+                        serverId,
+                        alarmId,
+                        alarm.name,
+                        dbBool(alarm.active),
+                        dbBool(alarm.reachable),
+                        alarm.location,
+                        alarm.x,
+                        alarm.y,
+                        alarm.image,
+                        alarm.message,
+                        alarm.command,
+                        alarm.lastTrigger,
+                        dbBool(alarm.inGame),
+                        alarm.messageId,
+                        dbBool(alarm.everyone),
+                    ],
+                );
+            }
+        }
+    }
+
+    private async patchStorageMonitors(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<number, StorageMonitor>,
+        next: Record<number, StorageMonitor>,
+    ): Promise<void> {
+        for (const monitorId of unionKeys(base, next)) {
+            const monitor = next[monitorId];
+            if (!monitor) {
+                await this.run(
+                    client,
+                    'DELETE FROM storage_monitors WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+                    [guildId, serverId, monitorId],
+                );
+                continue;
+            }
+            const baseWithoutItems = base[monitorId] ? { ...base[monitorId], items: [] } : undefined;
+            const nextWithoutItems = { ...monitor, items: [] };
+            if (!sameJson(baseWithoutItems, nextWithoutItems)) {
+                await this.run(
+                    client,
+                    `INSERT INTO storage_monitors (
+                        guild_id, server_id, storage_monitor_id, name, type, image, reachable, location, x, y, capacity,
+                        decaying, in_game, message_id, everyone, upkeep
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, storage_monitor_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        type = EXCLUDED.type,
+                        image = EXCLUDED.image,
+                        reachable = EXCLUDED.reachable,
+                        location = EXCLUDED.location,
+                        x = EXCLUDED.x,
+                        y = EXCLUDED.y,
+                        capacity = EXCLUDED.capacity,
+                        decaying = EXCLUDED.decaying,
+                        in_game = EXCLUDED.in_game,
+                        message_id = EXCLUDED.message_id,
+                        everyone = EXCLUDED.everyone,
+                        upkeep = EXCLUDED.upkeep`,
+                    [
+                        guildId,
+                        serverId,
+                        monitorId,
+                        monitor.name,
+                        monitor.type,
+                        monitor.image,
+                        dbBool(monitor.reachable),
+                        monitor.location,
+                        monitor.x,
+                        monitor.y,
+                        monitor.capacity,
+                        monitor.decaying == null ? null : dbBool(monitor.decaying),
+                        monitor.inGame == null ? null : dbBool(monitor.inGame),
+                        monitor.messageId,
+                        dbBool(monitor.everyone),
+                        monitor.upkeep ?? null,
+                    ],
+                );
+            }
+            if (!sameJson(base[monitorId]?.items ?? [], monitor.items ?? [])) {
+                await this.run(
+                    client,
+                    'DELETE FROM storage_monitor_items WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+                    [guildId, serverId, monitorId],
+                );
+                for (const item of monitor.items ?? []) {
+                    await this.insert(
+                        client,
+                        'storage_monitor_items',
+                        ['guild_id', 'server_id', 'storage_monitor_id', 'item_id', 'quantity'],
+                        [guildId, serverId, monitorId, item.itemId, item.quantity],
+                    );
+                }
+            }
+        }
+    }
+
+    private async patchSwitchGroups(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<number, SwitchGroup>,
+        next: Record<number, SwitchGroup>,
+    ): Promise<void> {
+        for (const groupId of unionKeys(base, next)) {
+            const group = next[groupId];
+            if (!group) {
+                await this.run(
+                    client,
+                    'DELETE FROM switch_groups WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                    [guildId, serverId, groupId],
+                );
+                continue;
+            }
+            const baseWithoutMembers = base[groupId] ? { ...base[groupId], switches: [] } : undefined;
+            const nextWithoutMembers = { ...group, switches: [] };
+            if (!sameJson(baseWithoutMembers, nextWithoutMembers)) {
+                await this.run(
+                    client,
+                    `INSERT INTO switch_groups (guild_id, server_id, group_id, name, active, image, command, message_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, group_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        active = EXCLUDED.active,
+                        image = EXCLUDED.image,
+                        command = EXCLUDED.command,
+                        message_id = EXCLUDED.message_id`,
+                    [
+                        guildId,
+                        serverId,
+                        groupId,
+                        group.name,
+                        dbBool(group.active),
+                        group.image,
+                        group.command,
+                        group.messageId,
+                    ],
+                );
+            }
+            if (!sameJson(base[groupId]?.switches ?? [], group.switches ?? [])) {
+                await this.run(
+                    client,
+                    'DELETE FROM switch_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                    [guildId, serverId, groupId],
+                );
+                for (const switchId of group.switches ?? []) {
+                    await this.insert(
+                        client,
+                        'switch_group_members',
+                        ['guild_id', 'server_id', 'group_id', 'switch_id'],
+                        [guildId, serverId, groupId, switchId],
+                    );
+                }
+            }
+        }
+    }
+
+    private async patchCameraGroups(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Server['customCameraGroups'],
+        next: Server['customCameraGroups'],
+    ): Promise<void> {
+        for (const groupId of unionKeys(base, next)) {
+            const group = next[groupId];
+            if (!group) {
+                await this.run(
+                    client,
+                    'DELETE FROM custom_camera_groups WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                    [guildId, serverId, groupId],
+                );
+                continue;
+            }
+            if (!sameJson(base[groupId]?.name, group.name)) {
+                await this.run(
+                    client,
+                    `INSERT INTO custom_camera_groups (guild_id, server_id, group_id, name)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, group_id) DO UPDATE SET name = EXCLUDED.name`,
+                    [guildId, serverId, groupId, group.name],
+                );
+            }
+            if (!sameJson(base[groupId]?.cameras ?? [], group.cameras ?? [])) {
+                await this.run(
+                    client,
+                    'DELETE FROM custom_camera_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                    [guildId, serverId, groupId],
+                );
+                for (const camera of group.cameras ?? []) {
+                    await this.insert(
+                        client,
+                        'custom_camera_group_members',
+                        ['guild_id', 'server_id', 'group_id', 'camera'],
+                        [guildId, serverId, groupId, camera],
+                    );
+                }
+            }
+        }
+    }
+
+    private async patchMarkers(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<string, Marker>,
+        next: Record<string, Marker>,
+    ): Promise<void> {
+        for (const markerKey of unionKeys(base, next)) {
+            const marker = next[markerKey];
+            if (!marker) {
+                await this.run(client, 'DELETE FROM markers WHERE guild_id = ? AND server_id = ? AND marker_key = ?', [
+                    guildId,
+                    serverId,
+                    markerKey,
+                ]);
+            } else if (!sameJson(base[markerKey], marker)) {
+                await this.run(
+                    client,
+                    `INSERT INTO markers (guild_id, server_id, marker_key, x, y, location)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, marker_key) DO UPDATE SET
+                        x = EXCLUDED.x,
+                        y = EXCLUDED.y,
+                        location = EXCLUDED.location`,
+                    [guildId, serverId, markerKey, marker.x, marker.y, marker.location],
+                );
+            }
+        }
+    }
+
+    private async patchNotes(
+        client: PoolClient,
+        guildId: string,
+        serverId: string,
+        base: Record<number, string>,
+        next: Record<number, string>,
+    ): Promise<void> {
+        for (const noteId of unionKeys(base, next)) {
+            const note = next[noteId];
+            if (note == null) {
+                await this.run(client, 'DELETE FROM notes WHERE guild_id = ? AND server_id = ? AND note_id = ?', [
+                    guildId,
+                    serverId,
+                    noteId,
+                ]);
+            } else if (!sameJson(base[noteId], note)) {
+                await this.run(
+                    client,
+                    `INSERT INTO notes (guild_id, server_id, note_id, note)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, note_id) DO UPDATE SET note = EXCLUDED.note`,
+                    [guildId, serverId, noteId, note],
+                );
+            }
+        }
+    }
+
+    private async patchGuildCollections(
+        client: PoolClient,
+        guildId: string,
+        base: Instance,
+        next: Instance,
+    ): Promise<void> {
+        await this.patchTrackers(client, guildId, base.trackers ?? {}, next.trackers ?? {});
+        await this.patchMarketSubscriptions(
+            client,
+            guildId,
+            'all',
+            base.marketSubscriptionList.all,
+            next.marketSubscriptionList.all,
+        );
+        await this.patchMarketSubscriptions(
+            client,
+            guildId,
+            'buy',
+            base.marketSubscriptionList.buy,
+            next.marketSubscriptionList.buy,
+        );
+        await this.patchMarketSubscriptions(
+            client,
+            guildId,
+            'sell',
+            base.marketSubscriptionList.sell,
+            next.marketSubscriptionList.sell,
+        );
+        await this.patchStringSet(
+            client,
+            guildId,
+            'market_blacklist',
+            'item',
+            base.marketBlacklist,
+            next.marketBlacklist,
+        );
+        await this.patchBlacklist(client, guildId, 'discord', base.blacklist.discordIds, next.blacklist.discordIds);
+        await this.patchBlacklist(client, guildId, 'steam', base.blacklist.steamIds, next.blacklist.steamIds);
+        await this.patchStringSet(
+            client,
+            guildId,
+            'whitelist_entries',
+            'steam_id',
+            base.whitelist.steamIds,
+            next.whitelist.steamIds,
+        );
+        await this.patchAliases(client, guildId, base.aliases ?? [], next.aliases ?? []);
+        await this.patchKeyValueCollection(
+            client,
+            guildId,
+            'custom_intl_messages',
+            'message_key',
+            'message',
+            base.customIntlMessages ?? {},
+            next.customIntlMessages ?? {},
+        );
+        await this.patchKeyValueCollection(
+            client,
+            guildId,
+            'team_chat_colors',
+            'steam_id',
+            'color',
+            base.teamChatColors ?? {},
+            next.teamChatColors ?? {},
+        );
+    }
+
+    private async patchTrackers(
+        client: PoolClient,
+        guildId: string,
+        base: Record<string, Tracker>,
+        next: Record<string, Tracker>,
+    ): Promise<void> {
+        for (const trackerId of unionKeys(base, next)) {
+            const tracker = next[trackerId];
+            if (!tracker) {
+                await this.run(client, 'DELETE FROM trackers WHERE guild_id = ? AND tracker_id = ?', [
+                    guildId,
+                    trackerId,
+                ]);
+                continue;
+            }
+            const normalized = normalizeTracker(trackerId, tracker);
+            const baseWithoutPlayers = base[trackerId]
+                ? { ...normalizeTracker(trackerId, base[trackerId]), players: [] }
+                : undefined;
+            const nextWithoutPlayers = { ...normalized, players: [] };
+            if (!sameJson(baseWithoutPlayers, nextWithoutPlayers)) {
+                await this.run(
+                    client,
+                    `INSERT INTO trackers (
+                        guild_id, tracker_id, id, name, battlemetrics_id, status, last_screenshot, last_online,
+                        last_wipe, message_id, clan_tag, everyone, in_game, img, title, server_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, tracker_id) DO UPDATE SET
+                        id = EXCLUDED.id,
+                        name = EXCLUDED.name,
+                        battlemetrics_id = EXCLUDED.battlemetrics_id,
+                        status = EXCLUDED.status,
+                        last_screenshot = EXCLUDED.last_screenshot,
+                        last_online = EXCLUDED.last_online,
+                        last_wipe = EXCLUDED.last_wipe,
+                        message_id = EXCLUDED.message_id,
+                        clan_tag = EXCLUDED.clan_tag,
+                        everyone = EXCLUDED.everyone,
+                        in_game = EXCLUDED.in_game,
+                        img = EXCLUDED.img,
+                        title = EXCLUDED.title,
+                        server_id = EXCLUDED.server_id`,
+                    [
+                        guildId,
+                        trackerId,
+                        normalized.id,
+                        normalized.name,
+                        normalized.battlemetricsId,
+                        dbBool(normalized.status),
+                        normalized.lastScreenshot,
+                        normalized.lastOnline,
+                        normalized.lastWipe,
+                        normalized.messageId,
+                        normalized.clanTag,
+                        dbBool(normalized.everyone),
+                        dbBool(normalized.inGame),
+                        normalized.img ?? null,
+                        normalized.title ?? null,
+                        normalized.serverId ?? null,
+                    ],
+                );
+            }
+            if (!sameJson(base[trackerId]?.players ?? [], normalized.players ?? [])) {
+                await this.run(client, 'DELETE FROM tracker_players WHERE guild_id = ? AND tracker_id = ?', [
+                    guildId,
+                    trackerId,
+                ]);
+                for (const [index, player] of normalized.players.entries()) {
+                    await this.insert(
+                        client,
+                        'tracker_players',
+                        ['guild_id', 'tracker_id', 'player_index', 'name', 'steam_id', 'player_id'],
+                        [guildId, trackerId, index, player.name ?? null, player.steamId, player.playerId],
+                    );
+                }
+            }
+        }
+    }
+
+    private async patchMarketSubscriptions(
+        client: PoolClient,
+        guildId: string,
+        listType: 'all' | 'buy' | 'sell',
+        baseItems: string[],
+        nextItems: string[],
+    ): Promise<void> {
+        for (const item of difference(baseItems, nextItems)) {
+            await this.run(
+                client,
+                'DELETE FROM market_subscriptions WHERE guild_id = ? AND list_type = ? AND item = ?',
+                [guildId, listType, item],
+            );
+        }
+        for (const item of difference(nextItems, baseItems)) {
+            await this.run(
+                client,
+                'INSERT INTO market_subscriptions (guild_id, list_type, item) VALUES (?, ?, ?) ON CONFLICT DO NOTHING',
+                [guildId, listType, item],
+            );
+        }
+    }
+
+    private async patchBlacklist(
+        client: PoolClient,
+        guildId: string,
+        entryType: 'discord' | 'steam',
+        baseItems: string[],
+        nextItems: string[],
+    ): Promise<void> {
+        for (const entryId of difference(baseItems, nextItems)) {
+            await this.run(
+                client,
+                'DELETE FROM blacklist_entries WHERE guild_id = ? AND entry_type = ? AND entry_id = ?',
+                [guildId, entryType, entryId],
+            );
+        }
+        for (const entryId of difference(nextItems, baseItems)) {
+            await this.run(
+                client,
+                'INSERT INTO blacklist_entries (guild_id, entry_type, entry_id) VALUES (?, ?, ?) ON CONFLICT DO NOTHING',
+                [guildId, entryType, entryId],
+            );
+        }
+    }
+
+    private async patchStringSet(
+        client: PoolClient,
+        guildId: string,
+        table: 'market_blacklist' | 'whitelist_entries',
+        column: 'item' | 'steam_id',
+        baseItems: string[],
+        nextItems: string[],
+    ): Promise<void> {
+        for (const item of difference(baseItems, nextItems)) {
+            await this.run(client, `DELETE FROM ${table} WHERE guild_id = ? AND ${column} = ?`, [guildId, item]);
+        }
+        for (const item of difference(nextItems, baseItems)) {
+            await this.run(client, `INSERT INTO ${table} (guild_id, ${column}) VALUES (?, ?) ON CONFLICT DO NOTHING`, [
+                guildId,
+                item,
+            ]);
+        }
+    }
+
+    private async patchAliases(
+        client: PoolClient,
+        guildId: string,
+        baseAliases: Alias[],
+        nextAliases: Alias[],
+    ): Promise<void> {
+        const baseByIndex = new Map(baseAliases.map((alias) => [alias.index, alias]));
+        const nextByIndex = new Map(nextAliases.map((alias) => [alias.index, alias]));
+        for (const index of new Set([...baseByIndex.keys(), ...nextByIndex.keys()])) {
+            const nextAlias = nextByIndex.get(index);
+            if (!nextAlias) {
+                await this.run(client, 'DELETE FROM aliases WHERE guild_id = ? AND alias_index = ?', [guildId, index]);
+            } else if (!sameJson(baseByIndex.get(index), nextAlias)) {
+                await this.run(
+                    client,
+                    `INSERT INTO aliases (guild_id, alias_index, alias, value)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, alias_index) DO UPDATE SET
+                        alias = EXCLUDED.alias,
+                        value = EXCLUDED.value`,
+                    [guildId, nextAlias.index, nextAlias.alias, nextAlias.value],
+                );
+            }
+        }
+    }
+
+    private async patchKeyValueCollection(
+        client: PoolClient,
+        guildId: string,
+        table: 'custom_intl_messages' | 'team_chat_colors',
+        keyColumn: 'message_key' | 'steam_id',
+        valueColumn: 'message' | 'color',
+        base: Record<string, string>,
+        next: Record<string, string>,
+    ): Promise<void> {
+        for (const key of unionKeys(base, next)) {
+            const value = next[key];
+            if (value == null) {
+                await this.run(client, `DELETE FROM ${table} WHERE guild_id = ? AND ${keyColumn} = ?`, [guildId, key]);
+            } else if (!sameJson(base[key], value)) {
+                await this.run(
+                    client,
+                    `INSERT INTO ${table} (guild_id, ${keyColumn}, ${valueColumn})
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(guild_id, ${keyColumn}) DO UPDATE SET ${valueColumn} = EXCLUDED.${valueColumn}`,
+                    [guildId, key, value],
+                );
+            }
+        }
+    }
+
+    private async setDiscordId(
+        client: PoolClient,
+        guildId: string,
+        idKey: string,
+        value: string | null,
+    ): Promise<void> {
+        if (value) {
+            await this.run(
+                client,
+                `INSERT INTO guild_discord_ids (guild_id, id_key, id_value)
+                VALUES (?, ?, ?)
+                ON CONFLICT(guild_id, id_key) DO UPDATE SET id_value = EXCLUDED.id_value`,
+                [guildId, idKey, value],
+            );
+        } else {
+            await this.run(client, 'DELETE FROM guild_discord_ids WHERE guild_id = ? AND id_key = ?', [guildId, idKey]);
+        }
     }
 
     private async validateMigrated(): Promise<void> {
@@ -1073,4 +1880,17 @@ export class PostgresAdapter implements PersistenceAdapter {
 function toPostgresSql(sql: string): string {
     let index = 0;
     return sql.replace(/\?/g, () => `$${++index}`);
+}
+
+function sameJson(left: unknown, right: unknown): boolean {
+    return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function unionKeys<T extends object>(left: T | undefined, right: T | undefined): string[] {
+    return Array.from(new Set([...Object.keys(left ?? {}), ...Object.keys(right ?? {})]));
+}
+
+function difference<T>(left: T[] = [], right: T[] = []): T[] {
+    const rightSet = new Set(right);
+    return left.filter((item) => !rightSet.has(item));
 }

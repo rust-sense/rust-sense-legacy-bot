@@ -1,8 +1,10 @@
 import { addServerLite, createEmptyInstance } from '../domain/guildState.js';
 import type { Credentials, GeneralSettings, Instance, NotificationSettings, Server } from '../types/instance.js';
-import { type GuildStateDomain, instanceToCompatibilityState, type PersistenceAdapter } from './types.js';
+import { instanceToCompatibilityState, type PersistenceAdapter } from './types.js';
 
 type GeneralSettingKey = keyof GeneralSettings;
+const guildStateBaseSymbol = Symbol('guildStateBase');
+type GuildStateWithBase = Instance & { [guildStateBaseSymbol]?: Instance };
 
 export class PersistenceService {
     constructor(private readonly adapter: PersistenceAdapter) {}
@@ -154,7 +156,7 @@ export class PersistenceService {
         instance.aliases = collections.aliases;
         instance.customIntlMessages = collections.customIntlMessages;
 
-        return instance;
+        return this.withBaseSnapshot(instance);
     }
 
     async saveGuildStateChanges(guildId: string, instance: Instance): Promise<void> {
@@ -163,47 +165,24 @@ export class PersistenceService {
             return;
         }
 
+        const base = (instance as GuildStateWithBase)[guildStateBaseSymbol];
+        if (base) {
+            await this.adapter.patchGuildState(guildId, base, instance);
+            (instance as GuildStateWithBase)[guildStateBaseSymbol] = structuredClone(instance);
+            return;
+        }
+
         const current = await this.readGuildState(guildId);
-        const state = instanceToCompatibilityState(instance);
-        const domains: GuildStateDomain[] = [];
+        await this.adapter.patchGuildState(guildId, current, instance);
+    }
 
-        if (
-            current.firstTime !== instance.firstTime ||
-            current.role !== instance.role ||
-            current.adminRole !== instance.adminRole ||
-            current.activeServer !== instance.activeServer ||
-            JSON.stringify(current.channelId) !== JSON.stringify(instance.channelId) ||
-            JSON.stringify(current.informationMessageId) !== JSON.stringify(instance.informationMessageId)
-        ) {
-            domains.push('core');
-        }
-
-        if (
-            JSON.stringify(current.generalSettings) !== JSON.stringify(instance.generalSettings) ||
-            JSON.stringify(current.notificationSettings) !== JSON.stringify(instance.notificationSettings)
-        ) {
-            domains.push('settings');
-        }
-
-        if (JSON.stringify(current.serverList) !== JSON.stringify(instance.serverList)) {
-            domains.push('servers');
-        }
-
-        if (
-            JSON.stringify(current.trackers) !== JSON.stringify(instance.trackers) ||
-            JSON.stringify(current.marketSubscriptionList) !== JSON.stringify(instance.marketSubscriptionList) ||
-            JSON.stringify(current.marketBlacklist) !== JSON.stringify(instance.marketBlacklist) ||
-            JSON.stringify(current.teamChatColors) !== JSON.stringify(instance.teamChatColors) ||
-            JSON.stringify(current.blacklist) !== JSON.stringify(instance.blacklist) ||
-            JSON.stringify(current.whitelist) !== JSON.stringify(instance.whitelist) ||
-            JSON.stringify(current.aliases) !== JSON.stringify(instance.aliases) ||
-            JSON.stringify(current.customIntlMessages) !== JSON.stringify(instance.customIntlMessages)
-        ) {
-            domains.push('collections');
-        }
-
-        if (domains.length > 0) {
-            await this.adapter.writeGuildDomains(guildId, instance, domains);
-        }
+    private withBaseSnapshot(instance: Instance): Instance {
+        Object.defineProperty(instance, guildStateBaseSymbol, {
+            configurable: true,
+            enumerable: false,
+            value: structuredClone(instance),
+            writable: true,
+        });
+        return instance;
     }
 }

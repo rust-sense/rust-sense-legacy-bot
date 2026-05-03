@@ -52,10 +52,12 @@ export function getPos(x: number, y: number, mapSize: number, rustplus: any) {
     if (rustplus?.map?.monuments && rustplus?.map?.monumentInfo) {
         for (const monument of rustplus.map.monuments) {
             if (monument.token === 'DungeonBase') continue;
-            if (!Object.prototype.hasOwnProperty.call(rustplus.map.monumentInfo, monument.token)) continue;
+            const monumentInfo =
+                rustplus.map.getMonumentInfo?.(monument.token) ?? rustplus.map.monumentInfo[monument.token];
+            if (!monumentInfo) continue;
 
-            if (getDistance(x, y, monument.x, monument.y) <= rustplus.map.monumentInfo[monument.token].radius) {
-                pos.monument = rustplus.map.monumentInfo[monument.token].clean;
+            if (getDistance(x, y, monument.x, monument.y) <= monumentInfo.radius) {
+                pos.monument = monumentInfo.clean;
                 break;
             }
         }

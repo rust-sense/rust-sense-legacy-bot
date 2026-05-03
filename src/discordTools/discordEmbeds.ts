@@ -3,6 +3,7 @@ import * as Constants from '../domain/constants.js';
 import { secondsToFullScale } from '../domain/timer.js';
 import { client } from '../index.js';
 import { getPersistenceCache } from '../persistence/index.js';
+import { serverIdToConnectString } from '../utils/serverUtils.js';
 import * as Utils from './discordFormattingUtils.js';
 import * as DiscordTools from './discordTools.js';
 
@@ -77,6 +78,8 @@ export async function getServerEmbed(guildId, serverId) {
     }
     description += `\n${server.description}`;
 
+    const connectStr = server.connect ?? serverIdToConnectString(serverId);
+
     return getEmbed({
         title: `${server.title}`,
         color: Constants.COLOR_DEFAULT,
@@ -85,7 +88,7 @@ export async function getServerEmbed(guildId, serverId) {
         fields: [
             {
                 name: client.intlGet(guildId, 'connect'),
-                value: `\`${server.connect === null ? client.intlGet(guildId, 'unavailable') : server.connect}\``,
+                value: `\`${connectStr}\``,
                 inline: true,
             },
             {
@@ -323,14 +326,11 @@ export async function getStorageMonitorEmbed(guildId, serverId, entityId) {
         let upkeep = null;
         if (seconds === 0) {
             upkeep = `:warning:\`${client.intlGet(guildId, 'decayingCap')}\`:warning:`;
-            instance.serverList[serverId].storageMonitors[entityId].upkeep = client.intlGet(guildId, 'decayingCap');
         } else {
             let upkeepTime = secondsToFullScale(seconds);
             upkeep = `\`${upkeepTime}\``;
-            instance.serverList[serverId].storageMonitors[entityId].upkeep = `${upkeepTime}`;
         }
         description += `\n**${client.intlGet(guildId, 'upkeep')}** ${upkeep}`;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
     }
 
     let itemName = '',
@@ -384,13 +384,8 @@ export async function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
             } else {
                 switchActive += `${Constants.NOT_FOUND_EMOJI}\n`;
             }
-        } else {
-            instance.serverList[serverId].switchGroups[groupId].switches = instance.serverList[serverId].switchGroups[
-                groupId
-            ].switches.filter((e) => e !== groupSwitchId);
         }
     }
-    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
     if (switchName === '') switchName = client.intlGet(guildId, 'none');
     if (switchId === '') switchId = client.intlGet(guildId, 'none');

@@ -2,7 +2,18 @@ import fs from 'node:fs';
 import Database from 'better-sqlite3';
 import { buildDefaultGeneralSettings, buildDefaultNotificationSettings } from '../domain/guildSettings.js';
 import { addServerLite, createEmptyInstance } from '../domain/guildState.js';
-import type { Credentials, Instance, Server } from '../types/instance.js';
+import type {
+    Alias,
+    Credentials,
+    Instance,
+    Marker,
+    Server,
+    SmartAlarm,
+    SmartSwitch,
+    StorageMonitor,
+    SwitchGroup,
+    Tracker,
+} from '../types/instance.js';
 import {
     applyPersistedGuildSetting,
     PERSISTED_GUILD_SETTING_DEFINITIONS,
@@ -221,6 +232,15 @@ export class SqliteAdapter implements PersistenceAdapter {
         this.writeInstance(guildId, instance);
     }
 
+    patchGuildState(guildId: string, base: Instance, next: Instance): void {
+        this.withTransaction(() => {
+            this.patchGuildCore(guildId, base, next);
+            this.patchGuildSettings(guildId, base, next);
+            this.patchServers(guildId, base, next);
+            this.patchGuildCollections(guildId, base, next);
+        });
+    }
+
     writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): void {
         this.withTransaction(() => {
             const db = this.database();
@@ -254,6 +274,651 @@ export class SqliteAdapter implements PersistenceAdapter {
     }
 
     async flush(): Promise<void> {}
+
+    private patchGuildCore(guildId: string, base: Instance, next: Instance): void {
+        const db = this.database();
+        const coreUpdates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['firstTime', 'first_time'],
+            ['role', 'role_id'],
+            ['adminRole', 'admin_role_id'],
+            ['activeServer', 'active_server_id'],
+        ] as const) {
+            if (!sameJson(base[property], next[property])) {
+                coreUpdates.push(`${column} = ?`);
+                values.push(property === 'firstTime' ? dbBool(next[property]) : next[property]);
+            }
+        }
+        if (coreUpdates.length > 0) {
+            db.prepare(`UPDATE guilds SET ${coreUpdates.join(', ')} WHERE guild_id = ?`).run(...values, guildId);
+        }
+
+        for (const [property, idKey] of CHANNEL_ID_KEYS) {
+            if (!sameJson(base.channelId[property], next.channelId[property])) {
+                this.setDiscordId(guildId, idKey, next.channelId[property]);
+            }
+        }
+        for (const [property, idKey] of INFORMATION_MESSAGE_ID_KEYS) {
+            if (!sameJson(base.informationMessageId[property], next.informationMessageId[property])) {
+                this.setDiscordId(guildId, idKey, next.informationMessageId[property]);
+            }
+        }
+    }
+
+    private patchGuildSettings(guildId: string, base: Instance, next: Instance): void {
+        const db = this.database();
+        const upsert = db.prepare(
+            `INSERT INTO guild_settings (guild_id, setting_key, setting_value)
+            VALUES (?, ?, ?)
+            ON CONFLICT(guild_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value`,
+        );
+        for (const definition of PERSISTED_GUILD_SETTING_DEFINITIONS) {
+            const baseValue = readGuildSettingValue(base, definition.key);
+            const nextValue = readGuildSettingValue(next, definition.key);
+            if (!sameJson(baseValue, nextValue)) {
+                upsert.run(guildId, definition.key, serializeGuildSettingValue(definition, nextValue));
+            }
+        }
+    }
+
+    private patchServers(guildId: string, base: Instance, next: Instance): void {
+        const db = this.database();
+        for (const serverId of unionKeys(base.serverList, next.serverList)) {
+            const baseServer = base.serverList[serverId];
+            const nextServer = next.serverList[serverId];
+            if (!nextServer) {
+                db.prepare('DELETE FROM servers WHERE guild_id = ? AND server_id = ?').run(guildId, serverId);
+                continue;
+            }
+            if (!baseServer) {
+                this.insertServers(guildId, { serverList: { [serverId]: nextServer } });
+                continue;
+            }
+            this.patchServer(guildId, serverId, baseServer, nextServer);
+        }
+    }
+
+    private patchServer(guildId: string, serverId: string, base: Server, next: Server): void {
+        const db = this.database();
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['title', 'title'],
+            ['serverIp', 'server_ip'],
+            ['appPort', 'app_port'],
+            ['steamId', 'steam_id'],
+            ['playerToken', 'player_token'],
+            ['battlemetricsId', 'battlemetrics_id'],
+            ['cargoShipEgressTimeMs', 'cargo_ship_egress_time_ms'],
+            ['oilRigLockedCrateUnlockTimeMs', 'oil_rig_locked_crate_unlock_time_ms'],
+            ['deepSeaMinWipeCooldownMs', 'deep_sea_min_wipe_cooldown_ms'],
+            ['deepSeaMaxWipeCooldownMs', 'deep_sea_max_wipe_cooldown_ms'],
+            ['deepSeaWipeDurationMs', 'deep_sea_wipe_duration_ms'],
+            ['messageId', 'message_id'],
+            ['connect', 'connect'],
+            ['img', 'img'],
+            ['url', 'url'],
+            ['description', 'description'],
+        ] as const) {
+            if (!sameJson(base[property], next[property])) {
+                updates.push(`${column} = ?`);
+                values.push(next[property] ?? null);
+            }
+        }
+        if (updates.length > 0) {
+            db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ?`).run(
+                ...values,
+                guildId,
+                serverId,
+            );
+        }
+
+        if (!sameJson(base.timeTillDay, next.timeTillDay) || !sameJson(base.timeTillNight, next.timeTillNight)) {
+            db.prepare('DELETE FROM server_time_samples WHERE guild_id = ? AND server_id = ?').run(guildId, serverId);
+            const insert = db.prepare(
+                'INSERT INTO server_time_samples (guild_id, server_id, phase, sample_key, seconds) VALUES (?, ?, ?, ?, ?)',
+            );
+            for (const [phase, samples] of [
+                ['day', next.timeTillDay],
+                ['night', next.timeTillNight],
+            ] as const) {
+                for (const [sampleKey, seconds] of Object.entries(samples ?? {})) {
+                    insert.run(guildId, serverId, phase, sampleKey, seconds);
+                }
+            }
+        }
+
+        this.patchSmartSwitches(guildId, serverId, base.switches ?? {}, next.switches ?? {});
+        this.patchSmartAlarms(guildId, serverId, base.alarms ?? {}, next.alarms ?? {});
+        this.patchStorageMonitors(guildId, serverId, base.storageMonitors ?? {}, next.storageMonitors ?? {});
+        this.patchSwitchGroups(guildId, serverId, base.switchGroups ?? {}, next.switchGroups ?? {});
+        this.patchCameraGroups(guildId, serverId, base.customCameraGroups ?? {}, next.customCameraGroups ?? {});
+        this.patchMarkers(guildId, serverId, base.markers ?? {}, next.markers ?? {});
+        this.patchNotes(guildId, serverId, base.notes ?? {}, next.notes ?? {});
+    }
+
+    private patchSmartSwitches(
+        guildId: string,
+        serverId: string,
+        base: Record<number, SmartSwitch>,
+        next: Record<number, SmartSwitch>,
+    ): void {
+        const db = this.database();
+        for (const switchId of unionKeys(base, next)) {
+            const nextSwitch = next[switchId];
+            if (!nextSwitch) {
+                db.prepare('DELETE FROM smart_switches WHERE guild_id = ? AND server_id = ? AND switch_id = ?').run(
+                    guildId,
+                    serverId,
+                    switchId,
+                );
+            } else if (!sameJson(base[switchId], nextSwitch)) {
+                db.prepare(
+                    `INSERT INTO smart_switches (
+                        guild_id, server_id, switch_id, name, active, reachable, location, x, y, image, command,
+                        auto_day_night_on_off, proximity, message_id, everyone
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, switch_id) DO UPDATE SET
+                        name = excluded.name,
+                        active = excluded.active,
+                        reachable = excluded.reachable,
+                        location = excluded.location,
+                        x = excluded.x,
+                        y = excluded.y,
+                        image = excluded.image,
+                        command = excluded.command,
+                        auto_day_night_on_off = excluded.auto_day_night_on_off,
+                        proximity = excluded.proximity,
+                        message_id = excluded.message_id,
+                        everyone = excluded.everyone`,
+                ).run(
+                    guildId,
+                    serverId,
+                    switchId,
+                    nextSwitch.name,
+                    dbBool(nextSwitch.active),
+                    dbBool(nextSwitch.reachable),
+                    nextSwitch.location,
+                    nextSwitch.x,
+                    nextSwitch.y,
+                    nextSwitch.image,
+                    nextSwitch.command,
+                    nextSwitch.autoDayNightOnOff,
+                    nextSwitch.proximity,
+                    nextSwitch.messageId,
+                    nextSwitch.everyone == null ? null : dbBool(nextSwitch.everyone),
+                );
+            }
+        }
+    }
+
+    private patchSmartAlarms(
+        guildId: string,
+        serverId: string,
+        base: Record<number, SmartAlarm>,
+        next: Record<number, SmartAlarm>,
+    ): void {
+        const db = this.database();
+        for (const alarmId of unionKeys(base, next)) {
+            const nextAlarm = next[alarmId];
+            if (!nextAlarm) {
+                db.prepare('DELETE FROM smart_alarms WHERE guild_id = ? AND server_id = ? AND alarm_id = ?').run(
+                    guildId,
+                    serverId,
+                    alarmId,
+                );
+            } else if (!sameJson(base[alarmId], nextAlarm)) {
+                db.prepare(
+                    `INSERT INTO smart_alarms (
+                        guild_id, server_id, alarm_id, name, active, reachable, location, x, y, image, message, command,
+                        last_trigger, in_game, message_id, everyone
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, alarm_id) DO UPDATE SET
+                        name = excluded.name,
+                        active = excluded.active,
+                        reachable = excluded.reachable,
+                        location = excluded.location,
+                        x = excluded.x,
+                        y = excluded.y,
+                        image = excluded.image,
+                        message = excluded.message,
+                        command = excluded.command,
+                        last_trigger = excluded.last_trigger,
+                        in_game = excluded.in_game,
+                        message_id = excluded.message_id,
+                        everyone = excluded.everyone`,
+                ).run(
+                    guildId,
+                    serverId,
+                    alarmId,
+                    nextAlarm.name,
+                    dbBool(nextAlarm.active),
+                    dbBool(nextAlarm.reachable),
+                    nextAlarm.location,
+                    nextAlarm.x,
+                    nextAlarm.y,
+                    nextAlarm.image,
+                    nextAlarm.message,
+                    nextAlarm.command,
+                    nextAlarm.lastTrigger,
+                    dbBool(nextAlarm.inGame),
+                    nextAlarm.messageId,
+                    dbBool(nextAlarm.everyone),
+                );
+            }
+        }
+    }
+
+    private patchStorageMonitors(
+        guildId: string,
+        serverId: string,
+        base: Record<number, StorageMonitor>,
+        next: Record<number, StorageMonitor>,
+    ): void {
+        const db = this.database();
+        for (const monitorId of unionKeys(base, next)) {
+            const nextMonitor = next[monitorId];
+            if (!nextMonitor) {
+                db.prepare(
+                    'DELETE FROM storage_monitors WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+                ).run(guildId, serverId, monitorId);
+                continue;
+            }
+
+            const baseWithoutItems = base[monitorId] ? { ...base[monitorId], items: [] } : undefined;
+            const nextWithoutItems = { ...nextMonitor, items: [] };
+            if (!sameJson(baseWithoutItems, nextWithoutItems)) {
+                db.prepare(
+                    `INSERT INTO storage_monitors (
+                        guild_id, server_id, storage_monitor_id, name, type, image, reachable, location, x, y, capacity,
+                        decaying, in_game, message_id, everyone, upkeep
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, storage_monitor_id) DO UPDATE SET
+                        name = excluded.name,
+                        type = excluded.type,
+                        image = excluded.image,
+                        reachable = excluded.reachable,
+                        location = excluded.location,
+                        x = excluded.x,
+                        y = excluded.y,
+                        capacity = excluded.capacity,
+                        decaying = excluded.decaying,
+                        in_game = excluded.in_game,
+                        message_id = excluded.message_id,
+                        everyone = excluded.everyone,
+                        upkeep = excluded.upkeep`,
+                ).run(
+                    guildId,
+                    serverId,
+                    monitorId,
+                    nextMonitor.name,
+                    nextMonitor.type,
+                    nextMonitor.image,
+                    dbBool(nextMonitor.reachable),
+                    nextMonitor.location,
+                    nextMonitor.x,
+                    nextMonitor.y,
+                    nextMonitor.capacity,
+                    nextMonitor.decaying == null ? null : dbBool(nextMonitor.decaying),
+                    nextMonitor.inGame == null ? null : dbBool(nextMonitor.inGame),
+                    nextMonitor.messageId,
+                    dbBool(nextMonitor.everyone),
+                    nextMonitor.upkeep ?? null,
+                );
+            }
+
+            if (!sameJson(base[monitorId]?.items ?? [], nextMonitor.items ?? [])) {
+                db.prepare(
+                    'DELETE FROM storage_monitor_items WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+                ).run(guildId, serverId, monitorId);
+                const insertItem = db.prepare(
+                    'INSERT INTO storage_monitor_items (guild_id, server_id, storage_monitor_id, item_id, quantity) VALUES (?, ?, ?, ?, ?)',
+                );
+                for (const item of nextMonitor.items ?? []) {
+                    insertItem.run(guildId, serverId, monitorId, item.itemId, item.quantity);
+                }
+            }
+        }
+    }
+
+    private patchSwitchGroups(
+        guildId: string,
+        serverId: string,
+        base: Record<number, SwitchGroup>,
+        next: Record<number, SwitchGroup>,
+    ): void {
+        const db = this.database();
+        for (const groupId of unionKeys(base, next)) {
+            const nextGroup = next[groupId];
+            if (!nextGroup) {
+                db.prepare('DELETE FROM switch_groups WHERE guild_id = ? AND server_id = ? AND group_id = ?').run(
+                    guildId,
+                    serverId,
+                    groupId,
+                );
+                continue;
+            }
+            const baseWithoutMembers = base[groupId] ? { ...base[groupId], switches: [] } : undefined;
+            const nextWithoutMembers = { ...nextGroup, switches: [] };
+            if (!sameJson(baseWithoutMembers, nextWithoutMembers)) {
+                db.prepare(
+                    `INSERT INTO switch_groups (guild_id, server_id, group_id, name, active, image, command, message_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, group_id) DO UPDATE SET
+                        name = excluded.name,
+                        active = excluded.active,
+                        image = excluded.image,
+                        command = excluded.command,
+                        message_id = excluded.message_id`,
+                ).run(
+                    guildId,
+                    serverId,
+                    groupId,
+                    nextGroup.name,
+                    dbBool(nextGroup.active),
+                    nextGroup.image,
+                    nextGroup.command,
+                    nextGroup.messageId,
+                );
+            }
+            if (!sameJson(base[groupId]?.switches ?? [], nextGroup.switches ?? [])) {
+                db.prepare(
+                    'DELETE FROM switch_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                ).run(guildId, serverId, groupId);
+                const insert = db.prepare(
+                    'INSERT INTO switch_group_members (guild_id, server_id, group_id, switch_id) VALUES (?, ?, ?, ?)',
+                );
+                for (const switchId of nextGroup.switches ?? []) insert.run(guildId, serverId, groupId, switchId);
+            }
+        }
+    }
+
+    private patchCameraGroups(
+        guildId: string,
+        serverId: string,
+        base: Server['customCameraGroups'],
+        next: Server['customCameraGroups'],
+    ): void {
+        const db = this.database();
+        for (const groupId of unionKeys(base, next)) {
+            const nextGroup = next[groupId];
+            if (!nextGroup) {
+                db.prepare(
+                    'DELETE FROM custom_camera_groups WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                ).run(guildId, serverId, groupId);
+                continue;
+            }
+            if (!sameJson(base[groupId]?.name, nextGroup.name)) {
+                db.prepare(
+                    `INSERT INTO custom_camera_groups (guild_id, server_id, group_id, name)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, group_id) DO UPDATE SET name = excluded.name`,
+                ).run(guildId, serverId, groupId, nextGroup.name);
+            }
+            if (!sameJson(base[groupId]?.cameras ?? [], nextGroup.cameras ?? [])) {
+                db.prepare(
+                    'DELETE FROM custom_camera_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?',
+                ).run(guildId, serverId, groupId);
+                const insert = db.prepare(
+                    'INSERT INTO custom_camera_group_members (guild_id, server_id, group_id, camera) VALUES (?, ?, ?, ?)',
+                );
+                for (const camera of nextGroup.cameras ?? []) insert.run(guildId, serverId, groupId, camera);
+            }
+        }
+    }
+
+    private patchMarkers(
+        guildId: string,
+        serverId: string,
+        base: Record<string, Marker>,
+        next: Record<string, Marker>,
+    ) {
+        const db = this.database();
+        for (const markerKey of unionKeys(base, next)) {
+            const marker = next[markerKey];
+            if (!marker) {
+                db.prepare('DELETE FROM markers WHERE guild_id = ? AND server_id = ? AND marker_key = ?').run(
+                    guildId,
+                    serverId,
+                    markerKey,
+                );
+            } else if (!sameJson(base[markerKey], marker)) {
+                db.prepare(
+                    `INSERT INTO markers (guild_id, server_id, marker_key, x, y, location)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, marker_key) DO UPDATE SET
+                        x = excluded.x,
+                        y = excluded.y,
+                        location = excluded.location`,
+                ).run(guildId, serverId, markerKey, marker.x, marker.y, marker.location);
+            }
+        }
+    }
+
+    private patchNotes(guildId: string, serverId: string, base: Record<number, string>, next: Record<number, string>) {
+        const db = this.database();
+        for (const noteId of unionKeys(base, next)) {
+            const note = next[noteId];
+            if (note == null) {
+                db.prepare('DELETE FROM notes WHERE guild_id = ? AND server_id = ? AND note_id = ?').run(
+                    guildId,
+                    serverId,
+                    noteId,
+                );
+            } else if (!sameJson(base[noteId], note)) {
+                db.prepare(
+                    `INSERT INTO notes (guild_id, server_id, note_id, note)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, server_id, note_id) DO UPDATE SET note = excluded.note`,
+                ).run(guildId, serverId, noteId, note);
+            }
+        }
+    }
+
+    private patchGuildCollections(guildId: string, base: Instance, next: Instance): void {
+        this.patchTrackers(guildId, base.trackers ?? {}, next.trackers ?? {});
+        this.patchMarketSubscriptions(guildId, 'all', base.marketSubscriptionList.all, next.marketSubscriptionList.all);
+        this.patchMarketSubscriptions(guildId, 'buy', base.marketSubscriptionList.buy, next.marketSubscriptionList.buy);
+        this.patchMarketSubscriptions(
+            guildId,
+            'sell',
+            base.marketSubscriptionList.sell,
+            next.marketSubscriptionList.sell,
+        );
+        this.patchStringSet(guildId, 'market_blacklist', 'item', base.marketBlacklist, next.marketBlacklist);
+        this.patchBlacklist(guildId, 'discord', base.blacklist.discordIds, next.blacklist.discordIds);
+        this.patchBlacklist(guildId, 'steam', base.blacklist.steamIds, next.blacklist.steamIds);
+        this.patchStringSet(guildId, 'whitelist_entries', 'steam_id', base.whitelist.steamIds, next.whitelist.steamIds);
+        this.patchAliases(guildId, base.aliases ?? [], next.aliases ?? []);
+        this.patchKeyValueCollection(
+            guildId,
+            'custom_intl_messages',
+            'message_key',
+            'message',
+            base.customIntlMessages ?? {},
+            next.customIntlMessages ?? {},
+        );
+        this.patchKeyValueCollection(
+            guildId,
+            'team_chat_colors',
+            'steam_id',
+            'color',
+            base.teamChatColors ?? {},
+            next.teamChatColors ?? {},
+        );
+    }
+
+    private patchTrackers(guildId: string, base: Record<string, Tracker>, next: Record<string, Tracker>): void {
+        const db = this.database();
+        for (const trackerId of unionKeys(base, next)) {
+            const tracker = next[trackerId];
+            if (!tracker) {
+                db.prepare('DELETE FROM trackers WHERE guild_id = ? AND tracker_id = ?').run(guildId, trackerId);
+                continue;
+            }
+            const normalized = normalizeTracker(trackerId, tracker);
+            const baseWithoutPlayers = base[trackerId]
+                ? { ...normalizeTracker(trackerId, base[trackerId]), players: [] }
+                : undefined;
+            const nextWithoutPlayers = { ...normalized, players: [] };
+            if (!sameJson(baseWithoutPlayers, nextWithoutPlayers)) {
+                db.prepare(
+                    `INSERT INTO trackers (
+                        guild_id, tracker_id, id, name, battlemetrics_id, status, last_screenshot, last_online,
+                        last_wipe, message_id, clan_tag, everyone, in_game, img, title, server_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(guild_id, tracker_id) DO UPDATE SET
+                        id = excluded.id,
+                        name = excluded.name,
+                        battlemetrics_id = excluded.battlemetrics_id,
+                        status = excluded.status,
+                        last_screenshot = excluded.last_screenshot,
+                        last_online = excluded.last_online,
+                        last_wipe = excluded.last_wipe,
+                        message_id = excluded.message_id,
+                        clan_tag = excluded.clan_tag,
+                        everyone = excluded.everyone,
+                        in_game = excluded.in_game,
+                        img = excluded.img,
+                        title = excluded.title,
+                        server_id = excluded.server_id`,
+                ).run(
+                    guildId,
+                    trackerId,
+                    normalized.id,
+                    normalized.name,
+                    normalized.battlemetricsId,
+                    dbBool(normalized.status),
+                    normalized.lastScreenshot,
+                    normalized.lastOnline,
+                    normalized.lastWipe,
+                    normalized.messageId,
+                    normalized.clanTag,
+                    dbBool(normalized.everyone),
+                    dbBool(normalized.inGame),
+                    normalized.img ?? null,
+                    normalized.title ?? null,
+                    normalized.serverId ?? null,
+                );
+            }
+            if (!sameJson(base[trackerId]?.players ?? [], normalized.players ?? [])) {
+                db.prepare('DELETE FROM tracker_players WHERE guild_id = ? AND tracker_id = ?').run(guildId, trackerId);
+                const insertPlayer = db.prepare(
+                    'INSERT INTO tracker_players (guild_id, tracker_id, player_index, name, steam_id, player_id) VALUES (?, ?, ?, ?, ?, ?)',
+                );
+                for (const [index, player] of normalized.players.entries()) {
+                    insertPlayer.run(guildId, trackerId, index, player.name ?? null, player.steamId, player.playerId);
+                }
+            }
+        }
+    }
+
+    private patchMarketSubscriptions(
+        guildId: string,
+        listType: 'all' | 'buy' | 'sell',
+        baseItems: string[],
+        nextItems: string[],
+    ): void {
+        const db = this.database();
+        for (const item of difference(baseItems, nextItems)) {
+            db.prepare('DELETE FROM market_subscriptions WHERE guild_id = ? AND list_type = ? AND item = ?').run(
+                guildId,
+                listType,
+                item,
+            );
+        }
+        const insert = db.prepare(
+            'INSERT OR IGNORE INTO market_subscriptions (guild_id, list_type, item) VALUES (?, ?, ?)',
+        );
+        for (const item of difference(nextItems, baseItems)) insert.run(guildId, listType, item);
+    }
+
+    private patchBlacklist(guildId: string, entryType: 'discord' | 'steam', baseItems: string[], nextItems: string[]) {
+        const db = this.database();
+        for (const entryId of difference(baseItems, nextItems)) {
+            db.prepare('DELETE FROM blacklist_entries WHERE guild_id = ? AND entry_type = ? AND entry_id = ?').run(
+                guildId,
+                entryType,
+                entryId,
+            );
+        }
+        const insert = db.prepare(
+            'INSERT OR IGNORE INTO blacklist_entries (guild_id, entry_type, entry_id) VALUES (?, ?, ?)',
+        );
+        for (const entryId of difference(nextItems, baseItems)) insert.run(guildId, entryType, entryId);
+    }
+
+    private patchStringSet(
+        guildId: string,
+        table: 'market_blacklist' | 'whitelist_entries',
+        column: 'item' | 'steam_id',
+        baseItems: string[],
+        nextItems: string[],
+    ): void {
+        const db = this.database();
+        for (const item of difference(baseItems, nextItems)) {
+            db.prepare(`DELETE FROM ${table} WHERE guild_id = ? AND ${column} = ?`).run(guildId, item);
+        }
+        const insert = db.prepare(`INSERT OR IGNORE INTO ${table} (guild_id, ${column}) VALUES (?, ?)`);
+        for (const item of difference(nextItems, baseItems)) insert.run(guildId, item);
+    }
+
+    private patchAliases(guildId: string, baseAliases: Alias[], nextAliases: Alias[]): void {
+        const db = this.database();
+        const baseByIndex = new Map(baseAliases.map((alias) => [alias.index, alias]));
+        const nextByIndex = new Map(nextAliases.map((alias) => [alias.index, alias]));
+        for (const index of new Set([...baseByIndex.keys(), ...nextByIndex.keys()])) {
+            const nextAlias = nextByIndex.get(index);
+            if (!nextAlias) {
+                db.prepare('DELETE FROM aliases WHERE guild_id = ? AND alias_index = ?').run(guildId, index);
+            } else if (!sameJson(baseByIndex.get(index), nextAlias)) {
+                db.prepare(
+                    `INSERT INTO aliases (guild_id, alias_index, alias, value)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(guild_id, alias_index) DO UPDATE SET
+                        alias = excluded.alias,
+                        value = excluded.value`,
+                ).run(guildId, nextAlias.index, nextAlias.alias, nextAlias.value);
+            }
+        }
+    }
+
+    private patchKeyValueCollection(
+        guildId: string,
+        table: 'custom_intl_messages' | 'team_chat_colors',
+        keyColumn: 'message_key' | 'steam_id',
+        valueColumn: 'message' | 'color',
+        base: Record<string, string>,
+        next: Record<string, string>,
+    ): void {
+        const db = this.database();
+        for (const key of unionKeys(base, next)) {
+            const value = next[key];
+            if (value == null) {
+                db.prepare(`DELETE FROM ${table} WHERE guild_id = ? AND ${keyColumn} = ?`).run(guildId, key);
+            } else if (!sameJson(base[key], value)) {
+                db.prepare(
+                    `INSERT INTO ${table} (guild_id, ${keyColumn}, ${valueColumn})
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(guild_id, ${keyColumn}) DO UPDATE SET ${valueColumn} = excluded.${valueColumn}`,
+                ).run(guildId, key, value);
+            }
+        }
+    }
+
+    private setDiscordId(guildId: string, idKey: string, value: string | null): void {
+        const db = this.database();
+        if (value) {
+            db.prepare(
+                `INSERT INTO guild_discord_ids (guild_id, id_key, id_value)
+                VALUES (?, ?, ?)
+                ON CONFLICT(guild_id, id_key) DO UPDATE SET id_value = excluded.id_value`,
+            ).run(guildId, idKey, value);
+        } else {
+            db.prepare('DELETE FROM guild_discord_ids WHERE guild_id = ? AND id_key = ?').run(guildId, idKey);
+        }
+    }
 
     private database(): Database.Database {
         if (!this.db) throw new Error('SQLite persistence adapter has not been initialized');
@@ -952,4 +1617,17 @@ export class SqliteAdapter implements PersistenceAdapter {
             instance.teamChatColors[row.steam_id] = row.color;
         }
     }
+}
+
+function sameJson(left: unknown, right: unknown): boolean {
+    return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function unionKeys<T extends object>(left: T | undefined, right: T | undefined): string[] {
+    return Array.from(new Set([...Object.keys(left ?? {}), ...Object.keys(right ?? {})]));
+}
+
+function difference<T>(left: T[] = [], right: T[] = []): T[] {
+    const rightSet = new Set(right);
+    return left.filter((item) => !rightSet.has(item));
 }

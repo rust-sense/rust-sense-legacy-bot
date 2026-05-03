@@ -606,6 +606,7 @@
     "proxLocation": "{name}은(는) {caller}에서 {direction}° [{location}]방향으로 {distance}m 떨어져 있습니다.",
     "quantity": "수량",
     "questionMark": "물음표",
+    "radtown": "Radtown",
     "ranch": "농장",
     "ratelimited": "속도제한",
     "reconnectingCap": "재연결중",

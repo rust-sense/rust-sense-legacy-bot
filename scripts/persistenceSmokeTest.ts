@@ -114,6 +114,21 @@ function buildInstance(): Instance {
                 messageId: 'switch-message',
                 everyone: true,
             },
+            13: {
+                id: 13,
+                name: 'Second Switch',
+                active: false,
+                reachable: true,
+                location: 'A2',
+                x: 9,
+                y: 10,
+                image: null,
+                command: 'second-switch',
+                autoDayNightOnOff: 0,
+                proximity: 10,
+                messageId: 'second-switch-message',
+                everyone: false,
+            },
         },
         alarms: {
             8: {
@@ -319,6 +334,35 @@ async function sqliteFullGuildRollbackSmoke(): Promise<void> {
     }
 }
 
+async function sqliteConcurrentTargetedPatchSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-targeted-patch-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.saveGuildStateChanges('guild-targeted-patch', buildInstance());
+
+        const firstSnapshot = await service.readGuildState('guild-targeted-patch');
+        const secondSnapshot = await service.readGuildState('guild-targeted-patch');
+        firstSnapshot.serverList['server-1'].switches[7].active = false;
+        secondSnapshot.serverList['server-1'].switches[13].reachable = false;
+
+        await service.saveGuildStateChanges('guild-targeted-patch', firstSnapshot);
+        await service.saveGuildStateChanges('guild-targeted-patch', secondSnapshot);
+
+        const roundTripped = await service.readGuildState('guild-targeted-patch');
+        assert.equal(roundTripped.serverList['server-1'].switches[7].active, false);
+        assert.equal(roundTripped.serverList['server-1'].switches[13].reachable, false);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
 async function sqliteSmoke(): Promise<void> {
     const root = prepareTempCwd('rpp-sqlite-smoke-');
     const databasePath = path.join(root, 'data', 'state.sqlite');
@@ -483,6 +527,7 @@ async function postgresLegacyMigrationSmoke(): Promise<void> {
 await sqliteSmoke();
 await sqliteRollbackSmoke();
 await sqliteFullGuildRollbackSmoke();
+await sqliteConcurrentTargetedPatchSmoke();
 await sqliteLegacyMigrationSmoke();
 await sqliteSettingsRegistryFallbackSmoke();
 await postgresSmoke();

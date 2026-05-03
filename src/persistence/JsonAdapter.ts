@@ -147,6 +147,10 @@ export class JsonAdapter implements PersistenceAdapter {
         this.writeJsonAtomic(this.instancePath(guildId), instance);
     }
 
+    patchGuildState(guildId: string, _base: Instance, next: Instance): void {
+        this.writeJsonAtomic(this.instancePath(guildId), next);
+    }
+
     writeGuildDomains(guildId: string, instance: Instance): void {
         this.writeJsonAtomic(this.instancePath(guildId), instance);
     }

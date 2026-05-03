@@ -606,6 +606,7 @@
     "proxLocation": "{name} jest {distance}m od {caller} w kierunku {direction}° [{location}]",
     "quantity": "Quantity",
     "questionMark": "Question Mark",
+    "radtown": "Radtown",
     "ranch": "Ranch",
     "ratelimited": "RATELIMITED",
     "reconnectingCap": "RECONNECTING",

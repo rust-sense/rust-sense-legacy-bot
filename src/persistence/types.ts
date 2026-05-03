@@ -66,6 +66,7 @@ export interface PersistenceAdapter {
     readCredentials(guildId: string): MaybePromise<Credentials>;
     writeCredentials(guildId: string, credentials: Credentials): MaybePromise<void>;
     bootstrapGuildState(guildId: string, instance: Instance): MaybePromise<void>;
+    patchGuildState(guildId: string, base: Instance, next: Instance): MaybePromise<void>;
     writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): MaybePromise<void>;
     flush(): Promise<void>;
 }
