@@ -82,8 +82,10 @@ export default {
 
                     if (image !== null) {
                         instance.serverList[device.serverId].storageMonitors[entityId].image = `${image}.png`;
+                        await getPersistenceCache().updateStorageMonitorFields(guildId, device.serverId, entityId, {
+                            image: `${image}.png`,
+                        });
                     }
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),

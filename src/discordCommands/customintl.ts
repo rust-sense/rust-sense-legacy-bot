@@ -100,7 +100,7 @@ async function setCustomIntl(client: DiscordBot, interaction: any, verifyId: str
 
     guildInstance.customIntlMessages[messageKey] = messageText;
     client.loadGuildCustomIntl(guildId, guildInstance, messageKey, messageText);
-    await getPersistenceCache().saveGuildStateChanges(guildId, guildInstance);
+    await getPersistenceCache().setCustomIntlMessage(guildId, messageKey, messageText);
 
     const str = client.intlGet(interaction.guildId, 'customIntlSetSuccess', {
         key: messageKey,
@@ -134,7 +134,7 @@ async function resetCustomIntl(client: DiscordBot, interaction: any, verifyId: s
 
     delete guildInstance.customIntlMessages[messageKey];
     delete client.customGuildIntl[guildId][messageKey];
-    await getPersistenceCache().saveGuildStateChanges(guildId, guildInstance);
+    await getPersistenceCache().setCustomIntlMessage(guildId, messageKey, null);
 
     const str = client.intlGet(interaction.guildId, 'customIntlResetSuccess', {
         key: messageKey,

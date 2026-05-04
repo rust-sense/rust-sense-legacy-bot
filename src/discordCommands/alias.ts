@@ -112,12 +112,13 @@ async function addAlias(client: DiscordBot, interaction: any) {
         index += 1;
     }
 
-    instance.aliases.push({
+    const alias = {
         index: index,
         alias: aliasParameter,
         value: valueParameter,
-    });
-    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+    };
+    instance.aliases.push(alias);
+    await getPersistenceCache().upsertAlias(guildId, alias);
 
     const str = client.intlGet(guildId, 'aliasWasAdded');
     await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));
@@ -139,7 +140,7 @@ async function removeAlias(client: DiscordBot, interaction: any) {
     }
 
     instance.aliases = instance.aliases.filter((e: any) => e.index !== indexParameter);
-    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+    await getPersistenceCache().deleteAlias(guildId, indexParameter);
 
     const str = client.intlGet(guildId, 'aliasWasRemoved');
     await client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(0, str));

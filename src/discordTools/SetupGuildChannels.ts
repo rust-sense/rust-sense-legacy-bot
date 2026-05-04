@@ -50,7 +50,7 @@ async function addTextChannel(
         );
         if (channel && !botCanUseTextChannel(guild, channel)) {
             (instance.channelId as unknown as Record<string, string | null>)[idName] = null;
-            await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+            await getPersistenceCache().setDiscordReferencedIds(guild.id, [{ key: `channel.${idName}`, value: null }]);
             channel = undefined;
         }
     }
@@ -62,7 +62,9 @@ async function addTextChannel(
             return;
         }
         (instance.channelId as unknown as Record<string, string | null>)[idName] = channel.id;
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().setDiscordReferencedIds(guild.id, [
+            { key: `channel.${idName}`, value: channel.id },
+        ]);
     }
 
     if (channel && (instance.firstTime || channel.parentId !== parent.id)) {

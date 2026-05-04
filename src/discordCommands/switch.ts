@@ -150,11 +150,21 @@ export default {
                     if (image !== null) {
                         if (isSmartSwitchGroup) {
                             instance.serverList[device.serverId].switchGroups[entityId].image = `${image}.png`;
+                            await getPersistenceCache().updateSmartSwitchGroupFields(
+                                guildId,
+                                device.serverId,
+                                entityId,
+                                {
+                                    image: `${image}.png`,
+                                },
+                            );
                         } else {
                             instance.serverList[device.serverId].switches[entityId].image = `${image}.png`;
+                            await getPersistenceCache().updateSmartSwitchFields(guildId, device.serverId, entityId, {
+                                image: `${image}.png`,
+                            });
                         }
                     }
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),

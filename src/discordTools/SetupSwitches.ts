@@ -27,7 +27,10 @@ export default async function setupSwitches(client: DiscordBot, rustplus: any) {
 
         if (entity.reachable) entity.active = info.entityInfo.payload.value;
 
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchFields(guildId, serverId, entityId, {
+            active: entity.active,
+            reachable: entity.reachable,
+        });
 
         await DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);
     }

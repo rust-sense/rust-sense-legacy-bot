@@ -73,7 +73,7 @@ export default {
                         successful = 1;
                     } else {
                         instance.whitelist['steamIds'].push(steamid);
-                        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                        await getPersistenceCache().addWhitelistSteamId(guildId, steamid);
                         str = client.intlGet(guildId, 'userAddedToWhitelist', { user: steamName });
                     }
 
@@ -106,7 +106,7 @@ export default {
                         instance.whitelist['steamIds'] = instance.whitelist['steamIds'].filter(
                             (e: string) => e !== steamid,
                         );
-                        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                        await getPersistenceCache().removeWhitelistSteamId(guildId, steamid);
                         str = client.intlGet(guildId, 'userRemovedFromWhitelist', { user: steamName });
                     }
 

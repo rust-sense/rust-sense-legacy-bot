@@ -100,7 +100,7 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['discordIds'].push(discordUser.id);
-                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                            await getPersistenceCache().addBlacklistEntry(guildId, 'discord', discordUser.id);
 
                             await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
@@ -125,7 +125,7 @@ export default {
                             successful = 1;
                         } else {
                             instance.blacklist['steamIds'].push(steamid);
-                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                            await getPersistenceCache().addBlacklistEntry(guildId, 'steam', steamid);
                             str +=
                                 client.intlGet(guildId, 'userAddedToBlacklist', {
                                     user: name,
@@ -174,7 +174,7 @@ export default {
                             instance.blacklist['discordIds'] = instance.blacklist['discordIds'].filter(
                                 (e: string) => e !== discordUser.id,
                             );
-                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                            await getPersistenceCache().removeBlacklistEntry(guildId, 'discord', discordUser.id);
 
                             await PermissionHandler.resetPermissionsAllChannels(client, guild!);
 
@@ -201,7 +201,7 @@ export default {
                             instance.blacklist['steamIds'] = instance.blacklist['steamIds'].filter(
                                 (e: string) => e !== steamid,
                             );
-                            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                            await getPersistenceCache().removeBlacklistEntry(guildId, 'steam', steamid);
                             str +=
                                 client.intlGet(guildId, 'userRemovedFromBlacklist', {
                                     user: name,

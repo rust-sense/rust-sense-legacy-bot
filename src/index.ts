@@ -24,15 +24,14 @@ ensureAppStateDirs().then(async () => {
 });
 
 process.on('unhandledRejection', (error) => {
+    const errorText = error instanceof Error ? (error.stack ?? error.message) : String(error);
     client.log(
         client.intlGet(null, 'errorCap'),
         client.intlGet(null, 'unhandledRejection', {
-            error: error,
+            error: errorText,
         }),
         'error',
     );
-
-    console.error(error);
 });
 
 async function shutdown(signal: NodeJS.Signals): Promise<void> {

@@ -75,7 +75,7 @@ export async function TurnOnOffGroup(
     for (const entityId of actionSwitches) {
         const prevActive = instance.serverList[serverId].switches[entityId].active;
         instance.serverList[serverId].switches[entityId].active = value;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchFields(guildId, serverId, entityId, { active: value });
 
         rustplus.interactionSwitches.push(entityId);
 
@@ -86,12 +86,15 @@ export async function TurnOnOffGroup(
             }
             instance.serverList[serverId].switches[entityId].reachable = false;
             instance.serverList[serverId].switches[entityId].active = prevActive;
-            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+            await getPersistenceCache().updateSmartSwitchFields(guildId, serverId, entityId, {
+                active: prevActive,
+                reachable: false,
+            });
 
             rustplus.interactionSwitches = rustplus.interactionSwitches.filter((e: string) => e !== entityId);
         } else {
             instance.serverList[serverId].switches[entityId].reachable = true;
-            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+            await getPersistenceCache().updateSmartSwitchFields(guildId, serverId, entityId, { reachable: true });
         }
 
         DiscordMessages.sendSmartSwitchMessage(guildId, serverId, entityId);

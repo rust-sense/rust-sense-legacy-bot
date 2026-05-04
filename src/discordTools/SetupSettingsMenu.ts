@@ -28,7 +28,7 @@ export default async (client: DiscordBot, guild: any, forced: boolean = false) =
         await setupNotificationSettings(client, guild.id, channel);
 
         instance.firstTime = false;
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().markFirstTimeComplete(guild.id);
     }
 };
 

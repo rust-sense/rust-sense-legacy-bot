@@ -22,6 +22,7 @@ import {
 } from './guildSettingsRegistry.js';
 import { JsonAdapter } from './JsonAdapter.js';
 import { migrateFromJsonAdapter } from './jsonMigration.js';
+import { persistenceLogger } from './logger.js';
 import {
     CHANNEL_ID_KEYS,
     credentialEntries,
@@ -31,11 +32,17 @@ import {
     normalizeTracker,
 } from './relational/mapping.js';
 import type {
+    DiscordReferenceUpdate,
     GuildCollectionsState,
+    GuildCorePatch,
     GuildCoreState,
     GuildSettingsState,
-    GuildStateDomain,
+    GuildSettingUpdate,
     PersistenceAdapter,
+    SmartAlarmPatch,
+    SmartSwitchGroupPatch,
+    SmartSwitchPatch,
+    StorageMonitorPatch,
 } from './types.js';
 
 type Row = Record<string, any>;
@@ -59,7 +66,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         if (this.migrateLegacyJsonOnInit) {
             await this.migrateLegacyJson();
         } else {
-            console.info(
+            persistenceLogger.info(
                 '[persistence] Legacy JSON migration is disabled for SQLite by RPP_MIGRATE_LEGACY_JSON=false.',
             );
         }
@@ -102,6 +109,26 @@ export class SqliteAdapter implements PersistenceAdapter {
         this.withTransaction(() => this.writeGuild(guildId, core));
     }
 
+    updateGuildCoreFields(guildId: string, patch: GuildCorePatch): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['firstTime', 'first_time'],
+            ['role', 'role_id'],
+            ['adminRole', 'admin_role_id'],
+            ['activeServer', 'active_server_id'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(property === 'firstTime' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(`UPDATE guilds SET ${updates.join(', ')} WHERE guild_id = ?`)
+            .run(...values, guildId);
+    }
+
     readGuildSettings(guildId: string): GuildSettingsState {
         if (!this.hasGuild(guildId)) throw new Error(`No persisted guild state found for ${guildId}`);
         const instance = createEmptyInstance();
@@ -120,10 +147,663 @@ export class SqliteAdapter implements PersistenceAdapter {
         });
     }
 
+    setGuildSettings(guildId: string, updates: GuildSettingUpdate[]): void {
+        if (updates.length === 0) return;
+        this.withTransaction(() => {
+            this.database()
+                .prepare(
+                    `INSERT INTO guild_settings (guild_id, setting_key, setting_value)
+                    VALUES ${updates.map(() => '(?, ?, ?)').join(', ')}
+                    ON CONFLICT(guild_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value`,
+                )
+                .run(...updates.flatMap((update) => [guildId, update.key, update.value]));
+        });
+    }
+
+    setDiscordReferencedIds(guildId: string, updates: DiscordReferenceUpdate[]): void {
+        if (updates.length === 0) return;
+        const upserts = updates.filter((update) => update.value !== null);
+        const deletes = updates.filter((update) => update.value === null);
+
+        this.withTransaction(() => {
+            if (upserts.length > 0) {
+                this.database()
+                    .prepare(
+                        `INSERT INTO guild_discord_ids (guild_id, id_key, id_value)
+                        VALUES ${upserts.map(() => '(?, ?, ?)').join(', ')}
+                        ON CONFLICT(guild_id, id_key) DO UPDATE SET id_value = excluded.id_value`,
+                    )
+                    .run(...upserts.flatMap((update) => [guildId, update.key, update.value]));
+            }
+
+            if (deletes.length > 0) {
+                this.database()
+                    .prepare(
+                        `DELETE FROM guild_discord_ids
+                        WHERE guild_id = ? AND id_key IN (${deletes.map(() => '?').join(', ')})`,
+                    )
+                    .run(guildId, ...deletes.map((update) => update.key));
+            }
+        });
+    }
+
     readServers(guildId: string): Record<string, Server> {
         const instance = createEmptyInstance();
         this.hydrateServers(this.database(), guildId, instance);
         return instance.serverList;
+    }
+
+    readServerLiteEntries(guildId: string): Instance['serverListLite'] {
+        const serverListLite: Instance['serverListLite'] = {};
+        for (const row of this.database()
+            .prepare('SELECT * FROM server_lite_entries WHERE guild_id = ?')
+            .all(guildId) as Row[]) {
+            if (!serverListLite[row.server_id]) serverListLite[row.server_id] = {};
+            serverListLite[row.server_id][row.steam_id] = {
+                serverIp: row.server_ip,
+                appPort: row.app_port,
+                steamId: row.steam_id,
+                playerToken: row.player_token,
+            };
+        }
+        return serverListLite;
+    }
+
+    replaceServerTimeSamples(
+        guildId: string,
+        serverId: string,
+        timeTillDay: Server['timeTillDay'],
+        timeTillNight: Server['timeTillNight'],
+    ): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare('DELETE FROM server_time_samples WHERE guild_id = ? AND server_id = ?').run(guildId, serverId);
+            const insert = db.prepare(
+                'INSERT INTO server_time_samples (guild_id, server_id, phase, sample_key, seconds) VALUES (?, ?, ?, ?, ?)',
+            );
+            for (const [phase, samples] of [
+                ['day', timeTillDay],
+                ['night', timeTillNight],
+            ] as const) {
+                for (const [sampleKey, seconds] of Object.entries(samples ?? {})) {
+                    insert.run(guildId, serverId, phase, sampleKey, seconds);
+                }
+            }
+        });
+    }
+
+    setServerMessageId(guildId: string, serverId: string, messageId: string | null): void {
+        this.database()
+            .prepare('UPDATE servers SET message_id = ? WHERE guild_id = ? AND server_id = ?')
+            .run(messageId, guildId, serverId);
+    }
+
+    updateServerFields(
+        guildId: string,
+        serverId: string,
+        patch: Parameters<PersistenceAdapter['updateServerFields']>[2],
+    ): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['battlemetricsId', 'battlemetrics_id'],
+            ['connect', 'connect'],
+            ['cargoShipEgressTimeMs', 'cargo_ship_egress_time_ms'],
+            ['oilRigLockedCrateUnlockTimeMs', 'oil_rig_locked_crate_unlock_time_ms'],
+            ['deepSeaMinWipeCooldownMs', 'deep_sea_min_wipe_cooldown_ms'],
+            ['deepSeaMaxWipeCooldownMs', 'deep_sea_max_wipe_cooldown_ms'],
+            ['deepSeaWipeDurationMs', 'deep_sea_wipe_duration_ms'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(`UPDATE servers SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ?`)
+            .run(...values, guildId, serverId);
+    }
+
+    upsertServer(guildId: string, serverId: string, server: Server): void {
+        this.withTransaction(() => {
+            this.database().prepare('DELETE FROM servers WHERE guild_id = ? AND server_id = ?').run(guildId, serverId);
+            this.insertServers(guildId, { serverList: { [serverId]: server } } as Instance);
+        });
+    }
+
+    deleteServer(guildId: string, serverId: string): void {
+        this.withTransaction(() => {
+            this.database()
+                .prepare('DELETE FROM server_lite_entries WHERE guild_id = ? AND server_id = ?')
+                .run(guildId, serverId);
+            this.database().prepare('DELETE FROM servers WHERE guild_id = ? AND server_id = ?').run(guildId, serverId);
+        });
+    }
+
+    upsertServerLiteEntry(
+        guildId: string,
+        serverId: string,
+        steamId: string,
+        entry: Parameters<PersistenceAdapter['upsertServerLiteEntry']>[3],
+    ): void {
+        this.database()
+            .prepare(
+                `INSERT INTO server_lite_entries (guild_id, server_id, steam_id, server_ip, app_port, player_token)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, steam_id) DO UPDATE SET
+                    server_ip = excluded.server_ip,
+                    app_port = excluded.app_port,
+                    player_token = excluded.player_token`,
+            )
+            .run(guildId, serverId, steamId, entry.serverIp, entry.appPort, entry.playerToken);
+    }
+
+    upsertMarker(
+        guildId: string,
+        serverId: string,
+        markerKey: string,
+        marker: Parameters<PersistenceAdapter['upsertMarker']>[3],
+    ): void {
+        this.database()
+            .prepare(
+                `INSERT INTO markers (guild_id, server_id, marker_key, x, y, location)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, marker_key) DO UPDATE SET
+                    x = excluded.x,
+                    y = excluded.y,
+                    location = excluded.location`,
+            )
+            .run(guildId, serverId, markerKey, marker.x, marker.y, marker.location);
+    }
+
+    deleteMarker(guildId: string, serverId: string, markerKey: string): void {
+        this.database()
+            .prepare('DELETE FROM markers WHERE guild_id = ? AND server_id = ? AND marker_key = ?')
+            .run(guildId, serverId, markerKey);
+    }
+
+    upsertNote(guildId: string, serverId: string, noteId: string | number, note: string): void {
+        this.database()
+            .prepare(
+                `INSERT INTO notes (guild_id, server_id, note_id, note)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, note_id) DO UPDATE SET note = excluded.note`,
+            )
+            .run(guildId, serverId, noteId, note);
+    }
+
+    deleteNote(guildId: string, serverId: string, noteId: string | number): void {
+        this.database()
+            .prepare('DELETE FROM notes WHERE guild_id = ? AND server_id = ? AND note_id = ?')
+            .run(guildId, serverId, noteId);
+    }
+
+    setTrackerMessageId(guildId: string, trackerId: string, messageId: string | null): void {
+        this.database()
+            .prepare('UPDATE trackers SET message_id = ? WHERE guild_id = ? AND tracker_id = ?')
+            .run(messageId, guildId, trackerId);
+    }
+
+    updateTrackerFields(
+        guildId: string,
+        trackerId: string,
+        patch: Parameters<PersistenceAdapter['updateTrackerFields']>[2],
+    ): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['name', 'name'],
+            ['battlemetricsId', 'battlemetrics_id'],
+            ['clanTag', 'clan_tag'],
+            ['img', 'img'],
+            ['title', 'title'],
+            ['serverId', 'server_id'],
+            ['everyone', 'everyone'],
+            ['inGame', 'in_game'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(typeof patch[property] === 'boolean' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(`UPDATE trackers SET ${updates.join(', ')} WHERE guild_id = ? AND tracker_id = ?`)
+            .run(...values, guildId, trackerId);
+    }
+
+    upsertTracker(guildId: string, trackerId: string, tracker: Tracker): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare(
+                `INSERT INTO trackers (
+                    guild_id, tracker_id, id, name, battlemetrics_id, status, last_screenshot, last_online, last_wipe,
+                    message_id, clan_tag, everyone, in_game, img, title, server_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, tracker_id) DO UPDATE SET
+                    id = excluded.id,
+                    name = excluded.name,
+                    battlemetrics_id = excluded.battlemetrics_id,
+                    status = excluded.status,
+                    last_screenshot = excluded.last_screenshot,
+                    last_online = excluded.last_online,
+                    last_wipe = excluded.last_wipe,
+                    message_id = excluded.message_id,
+                    clan_tag = excluded.clan_tag,
+                    everyone = excluded.everyone,
+                    in_game = excluded.in_game,
+                    img = excluded.img,
+                    title = excluded.title,
+                    server_id = excluded.server_id`,
+            ).run(
+                guildId,
+                trackerId,
+                tracker.id,
+                tracker.name,
+                tracker.battlemetricsId,
+                dbBool(tracker.status),
+                tracker.lastScreenshot,
+                tracker.lastOnline,
+                tracker.lastWipe,
+                tracker.messageId,
+                tracker.clanTag,
+                dbBool(tracker.everyone),
+                dbBool(tracker.inGame),
+                tracker.img ?? null,
+                tracker.title ?? null,
+                tracker.serverId ?? null,
+            );
+            db.prepare('DELETE FROM tracker_players WHERE guild_id = ? AND tracker_id = ?').run(guildId, trackerId);
+        });
+        this.replaceTrackerPlayers(guildId, trackerId, tracker.players);
+    }
+
+    deleteTracker(guildId: string, trackerId: string): void {
+        this.database().prepare('DELETE FROM trackers WHERE guild_id = ? AND tracker_id = ?').run(guildId, trackerId);
+    }
+
+    replaceTrackerPlayers(guildId: string, trackerId: string, players: Tracker['players']): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare('DELETE FROM tracker_players WHERE guild_id = ? AND tracker_id = ?').run(guildId, trackerId);
+            const insert = db.prepare(
+                `INSERT INTO tracker_players (guild_id, tracker_id, player_index, name, steam_id, player_id)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+            );
+            players.forEach((player, index) => {
+                insert.run(guildId, trackerId, index, player.name ?? null, player.steamId, player.playerId);
+            });
+        });
+    }
+
+    setSmartSwitchMessageId(guildId: string, serverId: string, switchId: string, messageId: string | null): void {
+        this.database()
+            .prepare('UPDATE smart_switches SET message_id = ? WHERE guild_id = ? AND server_id = ? AND switch_id = ?')
+            .run(messageId, guildId, serverId, switchId);
+    }
+
+    updateSmartSwitchFields(guildId: string, serverId: string, switchId: string, patch: SmartSwitchPatch): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['name', 'name'],
+            ['active', 'active'],
+            ['reachable', 'reachable'],
+            ['location', 'location'],
+            ['x', 'x'],
+            ['y', 'y'],
+            ['command', 'command'],
+            ['autoDayNightOnOff', 'auto_day_night_on_off'],
+            ['proximity', 'proximity'],
+            ['image', 'image'],
+            ['everyone', 'everyone'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(typeof patch[property] === 'boolean' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(
+                `UPDATE smart_switches SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ? AND switch_id = ?`,
+            )
+            .run(...values, guildId, serverId, switchId);
+    }
+
+    upsertSmartSwitch(guildId: string, serverId: string, switchId: string, smartSwitch: SmartSwitch): void {
+        this.database()
+            .prepare(
+                `INSERT INTO smart_switches (
+                    guild_id, server_id, switch_id, name, active, reachable, location, x, y, image, command,
+                    auto_day_night_on_off, proximity, message_id, everyone
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, switch_id) DO UPDATE SET
+                    name = excluded.name,
+                    active = excluded.active,
+                    reachable = excluded.reachable,
+                    location = excluded.location,
+                    x = excluded.x,
+                    y = excluded.y,
+                    image = excluded.image,
+                    command = excluded.command,
+                    auto_day_night_on_off = excluded.auto_day_night_on_off,
+                    proximity = excluded.proximity,
+                    message_id = excluded.message_id,
+                    everyone = excluded.everyone`,
+            )
+            .run(
+                guildId,
+                serverId,
+                switchId,
+                smartSwitch.name,
+                dbBool(smartSwitch.active),
+                dbBool(smartSwitch.reachable),
+                smartSwitch.location,
+                smartSwitch.x,
+                smartSwitch.y,
+                smartSwitch.image,
+                smartSwitch.command,
+                smartSwitch.autoDayNightOnOff,
+                smartSwitch.proximity,
+                smartSwitch.messageId,
+                smartSwitch.everyone == null ? null : dbBool(smartSwitch.everyone),
+            );
+    }
+
+    deleteSmartSwitch(guildId: string, serverId: string, switchId: string): void {
+        this.database()
+            .prepare('DELETE FROM smart_switches WHERE guild_id = ? AND server_id = ? AND switch_id = ?')
+            .run(guildId, serverId, switchId);
+    }
+
+    setSmartAlarmMessageId(guildId: string, serverId: string, alarmId: string, messageId: string | null): void {
+        this.database()
+            .prepare('UPDATE smart_alarms SET message_id = ? WHERE guild_id = ? AND server_id = ? AND alarm_id = ?')
+            .run(messageId, guildId, serverId, alarmId);
+    }
+
+    updateSmartAlarmFields(guildId: string, serverId: string, alarmId: string, patch: SmartAlarmPatch): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['name', 'name'],
+            ['active', 'active'],
+            ['reachable', 'reachable'],
+            ['location', 'location'],
+            ['x', 'x'],
+            ['y', 'y'],
+            ['lastTrigger', 'last_trigger'],
+            ['message', 'message'],
+            ['command', 'command'],
+            ['inGame', 'in_game'],
+            ['image', 'image'],
+            ['everyone', 'everyone'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(typeof patch[property] === 'boolean' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(
+                `UPDATE smart_alarms SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ? AND alarm_id = ?`,
+            )
+            .run(...values, guildId, serverId, alarmId);
+    }
+
+    upsertSmartAlarm(guildId: string, serverId: string, alarmId: string, smartAlarm: SmartAlarm): void {
+        this.database()
+            .prepare(
+                `INSERT INTO smart_alarms (
+                    guild_id, server_id, alarm_id, name, active, reachable, location, x, y, image, message, command,
+                    last_trigger, in_game, message_id, everyone
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, alarm_id) DO UPDATE SET
+                    name = excluded.name,
+                    active = excluded.active,
+                    reachable = excluded.reachable,
+                    location = excluded.location,
+                    x = excluded.x,
+                    y = excluded.y,
+                    image = excluded.image,
+                    message = excluded.message,
+                    command = excluded.command,
+                    last_trigger = excluded.last_trigger,
+                    in_game = excluded.in_game,
+                    message_id = excluded.message_id,
+                    everyone = excluded.everyone`,
+            )
+            .run(
+                guildId,
+                serverId,
+                alarmId,
+                smartAlarm.name,
+                dbBool(smartAlarm.active),
+                dbBool(smartAlarm.reachable),
+                smartAlarm.location,
+                smartAlarm.x,
+                smartAlarm.y,
+                smartAlarm.image,
+                smartAlarm.message,
+                smartAlarm.command,
+                smartAlarm.lastTrigger,
+                dbBool(smartAlarm.inGame),
+                smartAlarm.messageId,
+                dbBool(smartAlarm.everyone),
+            );
+    }
+
+    deleteSmartAlarm(guildId: string, serverId: string, alarmId: string): void {
+        this.database()
+            .prepare('DELETE FROM smart_alarms WHERE guild_id = ? AND server_id = ? AND alarm_id = ?')
+            .run(guildId, serverId, alarmId);
+    }
+
+    setStorageMonitorMessageId(
+        guildId: string,
+        serverId: string,
+        storageMonitorId: string,
+        messageId: string | null,
+    ): void {
+        this.database()
+            .prepare(
+                'UPDATE storage_monitors SET message_id = ? WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+            )
+            .run(messageId, guildId, serverId, storageMonitorId);
+    }
+
+    updateStorageMonitorFields(
+        guildId: string,
+        serverId: string,
+        storageMonitorId: string,
+        patch: StorageMonitorPatch,
+    ): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['name', 'name'],
+            ['reachable', 'reachable'],
+            ['location', 'location'],
+            ['x', 'x'],
+            ['y', 'y'],
+            ['type', 'type'],
+            ['capacity', 'capacity'],
+            ['decaying', 'decaying'],
+            ['inGame', 'in_game'],
+            ['image', 'image'],
+            ['everyone', 'everyone'],
+            ['upkeep', 'upkeep'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(typeof patch[property] === 'boolean' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(
+                `UPDATE storage_monitors SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?`,
+            )
+            .run(...values, guildId, serverId, storageMonitorId);
+    }
+
+    upsertStorageMonitor(
+        guildId: string,
+        serverId: string,
+        storageMonitorId: string,
+        storageMonitor: StorageMonitor,
+    ): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare(
+                `INSERT INTO storage_monitors (
+                    guild_id, server_id, storage_monitor_id, name, type, image, reachable, location, x, y, capacity,
+                    decaying, in_game, message_id, everyone, upkeep
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, storage_monitor_id) DO UPDATE SET
+                    name = excluded.name,
+                    type = excluded.type,
+                    image = excluded.image,
+                    reachable = excluded.reachable,
+                    location = excluded.location,
+                    x = excluded.x,
+                    y = excluded.y,
+                    capacity = excluded.capacity,
+                    decaying = excluded.decaying,
+                    in_game = excluded.in_game,
+                    message_id = excluded.message_id,
+                    everyone = excluded.everyone,
+                    upkeep = excluded.upkeep`,
+            ).run(
+                guildId,
+                serverId,
+                storageMonitorId,
+                storageMonitor.name,
+                storageMonitor.type,
+                storageMonitor.image,
+                dbBool(storageMonitor.reachable),
+                storageMonitor.location,
+                storageMonitor.x,
+                storageMonitor.y,
+                storageMonitor.capacity,
+                storageMonitor.decaying == null ? null : dbBool(storageMonitor.decaying),
+                storageMonitor.inGame == null ? null : dbBool(storageMonitor.inGame),
+                storageMonitor.messageId,
+                dbBool(storageMonitor.everyone),
+                storageMonitor.upkeep ?? null,
+            );
+            db.prepare(
+                'DELETE FROM storage_monitor_items WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?',
+            ).run(guildId, serverId, storageMonitorId);
+            const insertItem = db.prepare(
+                'INSERT INTO storage_monitor_items (guild_id, server_id, storage_monitor_id, item_id, quantity) VALUES (?, ?, ?, ?, ?)',
+            );
+            for (const item of storageMonitor.items ?? []) {
+                insertItem.run(guildId, serverId, storageMonitorId, item.itemId, item.quantity);
+            }
+        });
+    }
+
+    deleteStorageMonitor(guildId: string, serverId: string, storageMonitorId: string): void {
+        this.database()
+            .prepare('DELETE FROM storage_monitors WHERE guild_id = ? AND server_id = ? AND storage_monitor_id = ?')
+            .run(guildId, serverId, storageMonitorId);
+    }
+
+    setSmartSwitchGroupMessageId(guildId: string, serverId: string, groupId: string, messageId: string | null): void {
+        this.database()
+            .prepare('UPDATE switch_groups SET message_id = ? WHERE guild_id = ? AND server_id = ? AND group_id = ?')
+            .run(messageId, guildId, serverId, groupId);
+    }
+
+    updateSmartSwitchGroupFields(
+        guildId: string,
+        serverId: string,
+        groupId: string,
+        patch: SmartSwitchGroupPatch,
+    ): void {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        for (const [property, column] of [
+            ['name', 'name'],
+            ['active', 'active'],
+            ['command', 'command'],
+            ['image', 'image'],
+        ] as const) {
+            if (property in patch) {
+                updates.push(`${column} = ?`);
+                values.push(typeof patch[property] === 'boolean' ? dbBool(patch[property]) : patch[property]);
+            }
+        }
+        if (updates.length === 0) return;
+        this.database()
+            .prepare(
+                `UPDATE switch_groups SET ${updates.join(', ')} WHERE guild_id = ? AND server_id = ? AND group_id = ?`,
+            )
+            .run(...values, guildId, serverId, groupId);
+    }
+
+    upsertSmartSwitchGroup(guildId: string, serverId: string, groupId: string, switchGroup: SwitchGroup): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare(
+                `INSERT INTO switch_groups (guild_id, server_id, group_id, name, active, image, command, message_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(guild_id, server_id, group_id) DO UPDATE SET
+                    name = excluded.name,
+                    active = excluded.active,
+                    image = excluded.image,
+                    command = excluded.command,
+                    message_id = excluded.message_id`,
+            ).run(
+                guildId,
+                serverId,
+                groupId,
+                switchGroup.name,
+                dbBool(switchGroup.active),
+                switchGroup.image,
+                switchGroup.command,
+                switchGroup.messageId,
+            );
+            db.prepare('DELETE FROM switch_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?').run(
+                guildId,
+                serverId,
+                groupId,
+            );
+            const insert = db.prepare(
+                'INSERT INTO switch_group_members (guild_id, server_id, group_id, switch_id) VALUES (?, ?, ?, ?)',
+            );
+            for (const switchId of switchGroup.switches) insert.run(guildId, serverId, groupId, switchId);
+        });
+    }
+
+    deleteSmartSwitchGroup(guildId: string, serverId: string, groupId: string): void {
+        this.database()
+            .prepare('DELETE FROM switch_groups WHERE guild_id = ? AND server_id = ? AND group_id = ?')
+            .run(guildId, serverId, groupId);
+    }
+
+    replaceSmartSwitchGroupSwitches(
+        guildId: string,
+        serverId: string,
+        groupId: string,
+        switches: SwitchGroup['switches'],
+    ): void {
+        this.withTransaction(() => {
+            const db = this.database();
+            db.prepare('DELETE FROM switch_group_members WHERE guild_id = ? AND server_id = ? AND group_id = ?').run(
+                guildId,
+                serverId,
+                groupId,
+            );
+            const insert = db.prepare(
+                'INSERT INTO switch_group_members (guild_id, server_id, group_id, switch_id) VALUES (?, ?, ?, ?)',
+            );
+            for (const switchId of switches) insert.run(guildId, serverId, groupId, switchId);
+        });
     }
 
     replaceServers(guildId: string, servers: Record<string, Server>): void {
@@ -147,6 +827,92 @@ export class SqliteAdapter implements PersistenceAdapter {
             aliases: instance.aliases,
             customIntlMessages: instance.customIntlMessages,
         };
+    }
+
+    upsertAlias(guildId: string, alias: Alias): void {
+        this.database()
+            .prepare(
+                `INSERT INTO aliases (guild_id, alias_index, alias, value)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(guild_id, alias_index) DO UPDATE SET alias = excluded.alias, value = excluded.value`,
+            )
+            .run(guildId, alias.index, alias.alias, alias.value);
+    }
+
+    deleteAlias(guildId: string, index: number): void {
+        this.database().prepare('DELETE FROM aliases WHERE guild_id = ? AND alias_index = ?').run(guildId, index);
+    }
+
+    setCustomIntlMessage(guildId: string, key: string, message: string | null): void {
+        if (message === null) {
+            this.database()
+                .prepare('DELETE FROM custom_intl_messages WHERE guild_id = ? AND message_key = ?')
+                .run(guildId, key);
+            return;
+        }
+        this.database()
+            .prepare(
+                `INSERT INTO custom_intl_messages (guild_id, message_key, message)
+                VALUES (?, ?, ?)
+                ON CONFLICT(guild_id, message_key) DO UPDATE SET message = excluded.message`,
+            )
+            .run(guildId, key, message);
+    }
+
+    addBlacklistEntry(guildId: string, entryType: 'discord' | 'steam', entryId: string): void {
+        this.database()
+            .prepare('INSERT OR IGNORE INTO blacklist_entries (guild_id, entry_type, entry_id) VALUES (?, ?, ?)')
+            .run(guildId, entryType, entryId);
+    }
+
+    removeBlacklistEntry(guildId: string, entryType: 'discord' | 'steam', entryId: string): void {
+        this.database()
+            .prepare('DELETE FROM blacklist_entries WHERE guild_id = ? AND entry_type = ? AND entry_id = ?')
+            .run(guildId, entryType, entryId);
+    }
+
+    addWhitelistSteamId(guildId: string, steamId: string): void {
+        this.database()
+            .prepare('INSERT OR IGNORE INTO whitelist_entries (guild_id, steam_id) VALUES (?, ?)')
+            .run(guildId, steamId);
+    }
+
+    removeWhitelistSteamId(guildId: string, steamId: string): void {
+        this.database()
+            .prepare('DELETE FROM whitelist_entries WHERE guild_id = ? AND steam_id = ?')
+            .run(guildId, steamId);
+    }
+
+    addMarketSubscription(guildId: string, listType: 'all' | 'buy' | 'sell', item: string): void {
+        this.database()
+            .prepare('INSERT OR IGNORE INTO market_subscriptions (guild_id, list_type, item) VALUES (?, ?, ?)')
+            .run(guildId, listType, item);
+    }
+
+    removeMarketSubscription(guildId: string, listType: 'all' | 'buy' | 'sell', item: string): void {
+        this.database()
+            .prepare('DELETE FROM market_subscriptions WHERE guild_id = ? AND list_type = ? AND item = ?')
+            .run(guildId, listType, item);
+    }
+
+    addMarketBlacklistItem(guildId: string, item: string): void {
+        this.database()
+            .prepare('INSERT OR IGNORE INTO market_blacklist (guild_id, item) VALUES (?, ?)')
+            .run(guildId, item);
+    }
+
+    removeMarketBlacklistItem(guildId: string, item: string): void {
+        this.database().prepare('DELETE FROM market_blacklist WHERE guild_id = ? AND item = ?').run(guildId, item);
+    }
+
+    setTeamChatColor(guildId: string, steamId: string, color: string): void {
+        this.database()
+            .prepare(
+                `INSERT INTO team_chat_colors (guild_id, steam_id, color)
+                VALUES (?, ?, ?)
+                ON CONFLICT(guild_id, steam_id) DO UPDATE SET color = excluded.color`,
+            )
+            .run(guildId, steamId, color);
     }
 
     replaceGuildCollections(guildId: string, collections: GuildCollectionsState): void {
@@ -177,6 +943,7 @@ export class SqliteAdapter implements PersistenceAdapter {
             this.writeGuild(guildId, instance);
             this.writeSettings(guildId, instance);
             this.insertServers(guildId, instance);
+            this.insertServerLiteEntries(guildId, instance);
             this.insertGuildCollections(guildId, instance);
             if (existingCredentials) this.writeCredentialsRows(guildId, existingCredentials);
             db.exec('COMMIT');
@@ -230,47 +997,6 @@ export class SqliteAdapter implements PersistenceAdapter {
 
     bootstrapGuildState(guildId: string, instance: Instance): void {
         this.writeInstance(guildId, instance);
-    }
-
-    patchGuildState(guildId: string, base: Instance, next: Instance): void {
-        this.withTransaction(() => {
-            this.patchGuildCore(guildId, base, next);
-            this.patchGuildSettings(guildId, base, next);
-            this.patchServers(guildId, base, next);
-            this.patchGuildCollections(guildId, base, next);
-        });
-    }
-
-    writeGuildDomains(guildId: string, instance: Instance, domains: GuildStateDomain[]): void {
-        this.withTransaction(() => {
-            const db = this.database();
-            if (domains.includes('core')) {
-                this.writeGuild(guildId, instance);
-            }
-            if (domains.includes('settings')) {
-                db.prepare('DELETE FROM guild_settings WHERE guild_id = ?').run(guildId);
-                this.writeSettings(guildId, instance);
-            }
-            if (domains.includes('servers')) {
-                db.prepare('DELETE FROM servers WHERE guild_id = ?').run(guildId);
-                this.insertServers(guildId, instance);
-            }
-            if (domains.includes('collections')) {
-                for (const table of [
-                    'trackers',
-                    'market_subscriptions',
-                    'market_blacklist',
-                    'blacklist_entries',
-                    'whitelist_entries',
-                    'aliases',
-                    'custom_intl_messages',
-                    'team_chat_colors',
-                ]) {
-                    db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(guildId);
-                }
-                this.insertGuildCollections(guildId, instance);
-            }
-        });
     }
 
     async flush(): Promise<void> {}
@@ -967,13 +1693,13 @@ export class SqliteAdapter implements PersistenceAdapter {
         if (status === 'completed') {
             const migratedGuildCount = this.readMetaValue('legacy_json_migration_source_guild_count') ?? 'unknown';
             const migratedChecksum = this.readMetaValue('legacy_json_migration_source_checksum') ?? 'unknown';
-            console.info(
+            persistenceLogger.info(
                 `[persistence] Legacy JSON migration already completed for SQLite; skipping. ` +
                     `Recorded source guilds=${migratedGuildCount}, recorded checksum=${migratedChecksum}, ` +
                     `current source guilds=${manifest.guildCount}, current checksum=${manifest.checksum}.`,
             );
             if (migratedChecksum !== 'unknown' && migratedChecksum !== manifest.checksum) {
-                console.warn(
+                persistenceLogger.warn(
                     '[persistence] Legacy JSON source files differ from the completed migration checksum. ' +
                         'The migration will not be re-run automatically; inspect the target database and legacy JSON files manually.',
                 );
@@ -986,13 +1712,13 @@ export class SqliteAdapter implements PersistenceAdapter {
             );
         }
         if (status) {
-            console.warn(
+            persistenceLogger.warn(
                 `[persistence] Legacy JSON migration has unexpected SQLite status '${status}'. ` +
                     'The adapter will attempt a new migration and overwrite that status.',
             );
         }
 
-        console.info(
+        persistenceLogger.info(
             `[persistence] Starting one-time legacy JSON to SQLite migration. ` +
                 `Target state key: _persistence_meta.legacy_json_migration_status. ` +
                 `Source guilds=${manifest.guildCount}, source checksum=${manifest.checksum}.`,
@@ -1002,9 +1728,9 @@ export class SqliteAdapter implements PersistenceAdapter {
         ).run();
         let migratedManifest: { guildCount: number; checksum: string };
         try {
-            migratedManifest = await migrateFromJsonAdapter(source, this);
+            migratedManifest = await migrateFromJsonAdapter(source, this, persistenceLogger);
         } catch (error) {
-            console.error(
+            persistenceLogger.error(
                 `[persistence] Legacy JSON to SQLite migration failed while status is in_progress. ` +
                     `The next startup will stop until _persistence_meta is inspected. Error: ${error}`,
             );
@@ -1019,7 +1745,7 @@ export class SqliteAdapter implements PersistenceAdapter {
         db.prepare(
             "INSERT OR REPLACE INTO _persistence_meta (key, value, updated_at) VALUES ('legacy_json_migration_source_checksum', ?, CURRENT_TIMESTAMP)",
         ).run(migratedManifest.checksum);
-        console.info(
+        persistenceLogger.info(
             `[persistence] Completed legacy JSON to SQLite migration. ` +
                 `Migrated guilds=${migratedManifest.guildCount}, source checksum=${migratedManifest.checksum}. ` +
                 'Future startups will skip this migration because legacy_json_migration_status=completed.',
@@ -1303,6 +2029,22 @@ export class SqliteAdapter implements PersistenceAdapter {
 
             for (const [noteId, note] of Object.entries(server.notes ?? {})) {
                 insertNote.run(guildId, serverId, noteId, note);
+            }
+        }
+    }
+
+    private insertServerLiteEntries(guildId: string, instance: Pick<Instance, 'serverListLite'>): void {
+        const insertLiteEntry = this.database().prepare(
+            `INSERT INTO server_lite_entries (guild_id, server_id, steam_id, server_ip, app_port, player_token)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(guild_id, server_id, steam_id) DO UPDATE SET
+                server_ip = excluded.server_ip,
+                app_port = excluded.app_port,
+                player_token = excluded.player_token`,
+        );
+        for (const [serverId, entries] of Object.entries(instance.serverListLite ?? {})) {
+            for (const [steamId, entry] of Object.entries(entries ?? {})) {
+                insertLiteEntry.run(guildId, serverId, steamId, entry.serverIp, entry.appPort, entry.playerToken);
             }
         }
     }

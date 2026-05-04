@@ -148,5 +148,26 @@ export default async function ensureGuildState(_client: unknown, guild: { id: st
         }
     }
 
-    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+    if (!persistedInstanceExists) {
+        await getPersistenceCache().bootstrapGuildState(guild.id, instance);
+        return;
+    }
+
+    await getPersistenceCache().updateGuildCoreFields(guild.id, {
+        activeServer: instance.activeServer,
+        adminRole: instance.adminRole,
+        firstTime: instance.firstTime,
+        role: instance.role,
+    });
+    await getPersistenceCache().setGuildSettingsFromState(guild.id, instance);
+    await getPersistenceCache().setDiscordReferencedIds(guild.id, [
+        ...Object.entries(instance.channelId).map(([key, value]) => ({ key: `channel.${key}`, value })),
+        ...Object.entries(instance.informationMessageId).map(([key, value]) => ({
+            key: `informationMessage.${key}`,
+            value,
+        })),
+    ]);
+    for (const [serverId, server] of Object.entries(instance.serverList)) {
+        await getPersistenceCache().upsertServer(guild.id, serverId, server);
+    }
 }

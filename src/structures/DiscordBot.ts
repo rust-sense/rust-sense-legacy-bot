@@ -469,7 +469,9 @@ export default class DiscordBot extends Discord.Client {
                     if (bmInstance.lastUpdateSuccessful) {
                         /* Found an Id, is it a new Id? */
                         instance.serverList[activeServer].battlemetricsId = bmInstance.id;
-                        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                        await getPersistenceCache().updateServerFields(guildId, activeServer, {
+                            battlemetricsId: bmInstance.id,
+                        });
 
                         if (Object.hasOwn(this.battlemetricsInstances, bmInstance.id as string)) {
                             if (!activeInstances.includes(bmInstance.id as string)) {

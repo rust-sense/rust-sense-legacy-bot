@@ -32,7 +32,9 @@ export async function syncStorageMonitors(rustplus: any, client: DiscordBot) {
             } else {
                 instance.serverList[serverId].storageMonitors[entityId].reachable = true;
             }
-            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+            await getPersistenceCache().updateStorageMonitorFields(guildId, serverId, entityId, {
+                reachable: instance.serverList[serverId].storageMonitors[entityId].reachable,
+            });
 
             if (instance.serverList[serverId].storageMonitors[entityId].reachable) {
                 if (
@@ -78,7 +80,10 @@ export async function syncStorageMonitors(rustplus: any, client: DiscordBot) {
                     } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                         instance.serverList[serverId].storageMonitors[entityId].type = 'largeWoodBox';
                     }
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                    await getPersistenceCache().updateStorageMonitorFields(guildId, serverId, entityId, {
+                        decaying: instance.serverList[serverId].storageMonitors[entityId].decaying,
+                        type: instance.serverList[serverId].storageMonitors[entityId].type,
+                    });
                 }
             }
 

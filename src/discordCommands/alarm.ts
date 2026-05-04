@@ -127,8 +127,12 @@ export default {
 
                     const entity = instance.serverList[device.serverId].alarms[entityId];
 
-                    if (image !== null) instance.serverList[device.serverId].alarms[entityId].image = `${image}.png`;
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                    if (image !== null) {
+                        instance.serverList[device.serverId].alarms[entityId].image = `${image}.png`;
+                        await getPersistenceCache().updateSmartAlarmFields(guildId, device.serverId, entityId, {
+                            image: `${image}.png`,
+                        });
+                    }
 
                     client.log(
                         client.intlGet(null, 'infoCap'),

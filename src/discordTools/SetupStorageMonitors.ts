@@ -25,7 +25,9 @@ export default async function setupStorageMonitors(client: DiscordBot, rustplus:
         } else {
             entity.reachable = true;
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateStorageMonitorFields(guildId, serverId, entityId, {
+            reachable: entity.reachable,
+        });
 
         if (entity.reachable) {
             rustplus.storageMonitors[entityId] = {
@@ -48,7 +50,10 @@ export default async function setupStorageMonitors(client: DiscordBot, rustplus:
                 } else if (info.entityInfo.payload.capacity === Constants.STORAGE_MONITOR_LARGE_WOOD_BOX_CAPACITY) {
                     entity.type = 'largeWoodBox';
                 }
-                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                await getPersistenceCache().updateStorageMonitorFields(guildId, serverId, entityId, {
+                    decaying: entity.decaying,
+                    type: entity.type,
+                });
             }
         }
 

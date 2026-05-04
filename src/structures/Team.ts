@@ -115,6 +115,7 @@ export default class Team {
                 let color = '#';
                 for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * 16)];
                 instance.teamChatColors[steamId] = color;
+                await getPersistenceCache().setTeamChatColor(this.rustplus.guildId, steamId, color);
             }
         }
 
@@ -133,8 +134,6 @@ export default class Team {
 
         const leader = this.getPlayer(this.leaderSteamId);
         if (leader !== null) leader.teamLeader = true;
-
-        await getPersistenceCache().saveGuildStateChanges(this.rustplus.guildId, instance);
     }
 
     addPlayer(player: ConstructorParameters<typeof Player>[0]): void {

@@ -37,7 +37,9 @@ export async function syncBattlemetrics(client: DiscordBot, firstTime = false) {
                 );
 
                 instance.informationMessageId.battlemetricsPlayers = null;
-                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                await getPersistenceCache().setDiscordReferencedIds(guildId, [
+                    { key: 'informationMessage.battlemetricsPlayers', value: null },
+                ]);
             }
         }
 
@@ -74,7 +76,7 @@ export async function syncBattlemetrics(client: DiscordBot, firstTime = false) {
                     }
                 }
 
-                await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                await getPersistenceCache().replaceTrackerPlayers(guildId, trackerId, content.players);
 
                 if (firstTime) {
                     await DiscordMessages.sendTrackerMessage(guildId, trackerId);
@@ -165,8 +167,6 @@ export async function syncBattlemetrics(client: DiscordBot, firstTime = false) {
                     }
                 }
             }
-
-            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
 
             await DiscordMessages.sendTrackerMessage(guildId, trackerId);
         }

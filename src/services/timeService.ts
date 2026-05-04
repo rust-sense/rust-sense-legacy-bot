@@ -96,7 +96,12 @@ export async function checkChanges(rustplus: any, client: DiscordBot, time: any)
 
         instance.serverList[rustplus.serverId].timeTillDay = rustplus.time.timeTillDay;
         instance.serverList[rustplus.serverId].timeTillNight = rustplus.time.timeTillNight;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().replaceServerTimeSamples(
+            rustplus.guildId,
+            rustplus.serverId,
+            rustplus.time.timeTillDay,
+            rustplus.time.timeTillNight,
+        );
 
         rustplus.log(client.intlGet(null, 'timeCap'), client.intlGet(null, '24HoursInGameTimePassed'), 'info');
         return;

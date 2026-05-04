@@ -302,38 +302,6 @@ async function sqliteRollbackSmoke(): Promise<void> {
     }
 }
 
-async function sqliteFullGuildRollbackSmoke(): Promise<void> {
-    const root = prepareTempCwd('rpp-sqlite-full-guild-rollback-smoke-');
-    const databasePath = path.join(root, 'data', 'state.sqlite');
-    migrateSqlite(databasePath);
-    const originalCwd = process.cwd();
-    process.chdir(root);
-    try {
-        const adapter = new SqliteAdapter(databasePath);
-        await adapter.init();
-        const service = new PersistenceService(adapter);
-        const original = buildInstance();
-        await service.saveGuildStateChanges('guild-full-rollback', original);
-
-        const broken = structuredClone(original);
-        broken.role = 'changed-before-failure';
-        broken.serverList['server-1'].switches[123] = {
-            ...broken.serverList['server-1'].switches[7],
-            id: 123,
-            name: null as unknown as string,
-        };
-
-        await assert.rejects(() => service.saveGuildStateChanges('guild-full-rollback', broken));
-        const roundTripped = await service.readGuildState('guild-full-rollback');
-        assert.equal(roundTripped.role, 'role-id');
-        assert.equal(roundTripped.serverList['server-1'].switches[7].name, 'Switch');
-        assert.equal(roundTripped.serverList['server-1'].switches[123], undefined);
-        await adapter.close();
-    } finally {
-        process.chdir(originalCwd);
-    }
-}
-
 async function sqliteConcurrentTargetedPatchSmoke(): Promise<void> {
     const root = prepareTempCwd('rpp-sqlite-targeted-patch-smoke-');
     const databasePath = path.join(root, 'data', 'state.sqlite');
@@ -344,19 +312,59 @@ async function sqliteConcurrentTargetedPatchSmoke(): Promise<void> {
         const adapter = new SqliteAdapter(databasePath);
         await adapter.init();
         const service = new PersistenceService(adapter);
-        await service.saveGuildStateChanges('guild-targeted-patch', buildInstance());
+        await service.bootstrapGuildState('guild-targeted-patch', buildInstance());
 
         const firstSnapshot = await service.readGuildState('guild-targeted-patch');
         const secondSnapshot = await service.readGuildState('guild-targeted-patch');
         firstSnapshot.serverList['server-1'].switches[7].active = false;
         secondSnapshot.serverList['server-1'].switches[13].reachable = false;
 
-        await service.saveGuildStateChanges('guild-targeted-patch', firstSnapshot);
-        await service.saveGuildStateChanges('guild-targeted-patch', secondSnapshot);
+        await service.updateSmartSwitchFields('guild-targeted-patch', 'server-1', '7', {
+            active: firstSnapshot.serverList['server-1'].switches[7].active,
+        });
+        await service.updateSmartSwitchFields('guild-targeted-patch', 'server-1', '13', {
+            reachable: secondSnapshot.serverList['server-1'].switches[13].reachable,
+        });
 
         const roundTripped = await service.readGuildState('guild-targeted-patch');
         assert.equal(roundTripped.serverList['server-1'].switches[7].active, false);
         assert.equal(roundTripped.serverList['server-1'].switches[13].reachable, false);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteTargetedKeyValueSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-targeted-key-value-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.bootstrapGuildState('guild-targeted-key-value', buildInstance());
+
+        await service.setDiscordReferencedIds('guild-targeted-key-value', [
+            { key: 'channel.commands', value: 'commands-updated' },
+            { key: 'informationMessage.map', value: null },
+        ]);
+        await adapter.setGuildSettings('guild-targeted-key-value', [
+            { key: 'general.prefix', value: '$' },
+            { key: 'notification.cargoShipDetectedSetting.discord', value: 'true' },
+        ]);
+
+        const roundTripped = await service.readGuildState('guild-targeted-key-value');
+        assert.equal(roundTripped.channelId.commands, 'commands-updated');
+        assert.equal(roundTripped.channelId.category, 'category-channel');
+        assert.equal(roundTripped.informationMessageId.map, null);
+        assert.equal(roundTripped.informationMessageId.battlemetricsPlayers, 'battlemetrics-message');
+        assert.equal(roundTripped.generalSettings.prefix, '$');
+        assert.equal(roundTripped.generalSettings.commandDelay, 250);
+        assert.equal(roundTripped.notificationSettings.cargoShipDetectedSetting.discord, true);
+        assert.equal(roundTripped.notificationSettings.cargoShipDetectedSetting.inGame, true);
         await adapter.close();
     } finally {
         process.chdir(originalCwd);
@@ -448,7 +456,7 @@ async function sqliteSettingsRegistryFallbackSmoke(): Promise<void> {
         const adapter = new SqliteAdapter(databasePath);
         await adapter.init();
         const service = new PersistenceService(adapter);
-        await service.saveGuildStateChanges('guild-settings-registry', buildInstance());
+        await service.bootstrapGuildState('guild-settings-registry', buildInstance());
         await adapter.close();
 
         const database = new Database(databasePath);
@@ -526,8 +534,8 @@ async function postgresLegacyMigrationSmoke(): Promise<void> {
 
 await sqliteSmoke();
 await sqliteRollbackSmoke();
-await sqliteFullGuildRollbackSmoke();
 await sqliteConcurrentTargetedPatchSmoke();
+await sqliteTargetedKeyValueSmoke();
 await sqliteLegacyMigrationSmoke();
 await sqliteSettingsRegistryFallbackSmoke();
 await postgresSmoke();

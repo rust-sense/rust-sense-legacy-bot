@@ -57,7 +57,7 @@ export default {
                 {
                     const mode = normalizeAccessMode(interaction.options.getString('mode'));
                     instance.generalSettings.inGameCommandAccessMode = mode;
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                    await getPersistenceCache().setGeneralSetting(guildId, 'inGameCommandAccessMode', mode);
 
                     if (rustplus) rustplus.generalSettings.inGameCommandAccessMode = mode;
 

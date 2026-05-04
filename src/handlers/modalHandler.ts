@@ -71,7 +71,13 @@ export default async (client: DiscordBot, interaction: any) => {
         if (deepSeaWipeDuration && deepSeaWipeDuration * 1000 !== server.deepSeaWipeDurationMs) {
             server.deepSeaWipeDurationMs = deepSeaWipeDuration * 1000;
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateServerFields(guildId, ids.serverId, {
+            cargoShipEgressTimeMs: server.cargoShipEgressTimeMs,
+            oilRigLockedCrateUnlockTimeMs: server.oilRigLockedCrateUnlockTimeMs,
+            deepSeaMinWipeCooldownMs: server.deepSeaMinWipeCooldownMs,
+            deepSeaMaxWipeCooldownMs: server.deepSeaMaxWipeCooldownMs,
+            deepSeaWipeDurationMs: server.deepSeaWipeDurationMs,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -103,7 +109,10 @@ export default async (client: DiscordBot, interaction: any) => {
                 }
             }
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateServerFields(guildId, ids.serverId, {
+            battlemetricsId: server.battlemetricsId,
+            connect: server.connect ?? null,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -146,7 +155,11 @@ export default async (client: DiscordBot, interaction: any) => {
         if (smartSwitchProximity !== null && smartSwitchProximity >= 0) {
             server.switches[ids.entityId].proximity = smartSwitchProximity;
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchFields(guildId, ids.serverId, ids.entityId, {
+            name: server.switches[ids.entityId].name,
+            command: server.switches[ids.entityId].command,
+            proximity: server.switches[ids.entityId].proximity,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -176,7 +189,10 @@ export default async (client: DiscordBot, interaction: any) => {
         ) {
             server.switchGroups[ids.groupId].command = groupCommand;
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchGroupFields(guildId, ids.serverId, ids.groupId, {
+            name: server.switchGroups[ids.groupId].name,
+            command: server.switchGroups[ids.groupId].command,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -206,7 +222,12 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         server.switchGroups[ids.groupId].switches.push(switchId);
-        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+        await getPersistenceCache().replaceSmartSwitchGroupSwitches(
+            interaction.guildId,
+            ids.serverId,
+            ids.groupId,
+            server.switchGroups[ids.groupId].switches,
+        );
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -230,7 +251,12 @@ export default async (client: DiscordBot, interaction: any) => {
         server.switchGroups[ids.groupId].switches = server.switchGroups[ids.groupId].switches.filter(
             (e: any) => e !== switchId,
         );
-        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+        await getPersistenceCache().replaceSmartSwitchGroupSwitches(
+            interaction.guildId,
+            ids.serverId,
+            ids.groupId,
+            server.switchGroups[ids.groupId].switches,
+        );
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -262,7 +288,11 @@ export default async (client: DiscordBot, interaction: any) => {
         ) {
             server.alarms[ids.entityId].command = smartAlarmCommand;
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartAlarmFields(guildId, ids.serverId, ids.entityId, {
+            name: server.alarms[ids.entityId].name,
+            message: server.alarms[ids.entityId].message,
+            command: server.alarms[ids.entityId].command,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -284,7 +314,9 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         server.storageMonitors[ids.entityId].name = storageMonitorName;
-        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+        await getPersistenceCache().updateStorageMonitorFields(interaction.guildId, ids.serverId, ids.entityId, {
+            name: server.storageMonitors[ids.entityId].name,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -333,7 +365,14 @@ export default async (client: DiscordBot, interaction: any) => {
                 }
             }
         }
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateTrackerFields(guildId, ids.trackerId, {
+            name: tracker.name,
+            battlemetricsId: tracker.battlemetricsId,
+            clanTag: tracker.clanTag,
+            img: tracker.img ?? null,
+            title: tracker.title ?? null,
+            serverId: tracker.serverId ?? null,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -411,7 +450,7 @@ export default async (client: DiscordBot, interaction: any) => {
             steamId: steamId,
             playerId: playerId,
         });
-        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+        await getPersistenceCache().replaceTrackerPlayers(interaction.guildId, ids.trackerId, tracker.players);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -465,7 +504,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+        await getPersistenceCache().replaceTrackerPlayers(interaction.guildId, ids.trackerId, tracker.players);
 
         client.log(
             client.intlGet(null, 'infoCap'),

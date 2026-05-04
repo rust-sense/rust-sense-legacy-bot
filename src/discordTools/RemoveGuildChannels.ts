@@ -20,5 +20,8 @@ export default async function removeGuildChannels(client: DiscordBot, guild: Gui
     await DiscordTools.removeCategory(guild.id, categoryId);
     instance.channelId.category = null;
 
-    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+    await getPersistenceCache().setDiscordReferencedIds(
+        guild.id,
+        Object.keys(instance.channelId).map((channelName) => ({ key: `channel.${channelName}`, value: null })),
+    );
 }

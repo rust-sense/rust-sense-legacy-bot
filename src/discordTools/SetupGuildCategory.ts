@@ -27,7 +27,9 @@ export default async function setupGuildCategory(
             return undefined;
         }
         instance.channelId.category = category.id;
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().setDiscordReferencedIds(guild.id, [
+            { key: 'channel.category', value: category.id },
+        ]);
     }
 
     try {

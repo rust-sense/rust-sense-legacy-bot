@@ -91,11 +91,11 @@ export default {
 
                 if (subcommandGroup === 'admin') {
                     instance.adminRole = role.id;
+                    await getPersistenceCache().updateGuildCoreFields(interaction.guildId, { adminRole: role.id });
                 } else {
                     instance.role = role.id;
+                    await getPersistenceCache().updateGuildCoreFields(interaction.guildId, { role: role.id });
                 }
-
-                await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
 
                 await postRoleChangeHook();
 
@@ -109,11 +109,11 @@ export default {
             } else if (subcommand === 'clear') {
                 if (subcommandGroup === 'admin') {
                     instance.adminRole = null;
+                    await getPersistenceCache().updateGuildCoreFields(interaction.guildId, { adminRole: null });
                 } else {
                     instance.role = null;
+                    await getPersistenceCache().updateGuildCoreFields(interaction.guildId, { role: null });
                 }
-
-                await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
 
                 await postRoleChangeHook();
 

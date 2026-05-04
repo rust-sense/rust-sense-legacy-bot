@@ -894,6 +894,10 @@ export default class RustPlus extends RustPlusLib {
 
         for (const [id, timer] of Object.entries(this.mapMarkers.cargoShipEgressTimers)) {
             const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, parseInt(id));
+            if (!cargoShip?.location) {
+                unhandled = unhandled.filter((e: any) => e !== parseInt(id));
+                continue;
+            }
             const time = Timer.getTimeLeftOfTimer(timer as any);
             if (time) {
                 if (isInfoChannel)
@@ -913,6 +917,7 @@ export default class RustPlus extends RustPlusLib {
 
         for (const id of unhandled) {
             const cargoShip = this.mapMarkers.getMarkerByTypeId(this.mapMarkers.types.CargoShip, id);
+            if (!cargoShip?.location) continue;
             const key = cargoShip.onItsWayOut
                 ? isInfoChannel
                     ? 'leavingMapAt'
@@ -1407,7 +1412,11 @@ export default class RustPlus extends RustPlusLib {
                         y: player.y,
                         location: location.location,
                     };
-                    await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+                    await getPersistenceCache().upsertMarker(this.guildId, this.serverId, name, {
+                        x: player.x,
+                        y: player.y,
+                        location: location.location,
+                    });
                     this.markers[name] = { x: player.x, y: player.y, location: location.location };
                     return client.intlGet(this.guildId, 'markerAdded', { name, location: location.location });
                 }
@@ -1421,7 +1430,7 @@ export default class RustPlus extends RustPlusLib {
             const instance = await getPersistenceCache().readGuildState(this.guildId);
             delete this.markers[name];
             delete instance.serverList[this.serverId].markers[name];
-            await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+            await getPersistenceCache().deleteMarker(this.guildId, this.serverId, name);
             return client.intlGet(this.guildId, 'markerRemoved', { name, location });
         } else {
             if (!(rest in this.markers)) return client.intlGet(this.guildId, 'markerDoesNotExist', { name: rest });
@@ -1468,7 +1477,10 @@ export default class RustPlus extends RustPlusLib {
         const orderType = args.replace(/ .*/, '');
         const name = args.slice(orderType.length + 1);
 
-        const validOrders = ['all', 'buy', 'sell'];
+        const validOrders = ['all', 'buy', 'sell'] as const;
+        type MarketOrderType = (typeof validOrders)[number];
+        const isMarketOrderType = (orderType: string): orderType is MarketOrderType =>
+            (validOrders as readonly string[]).includes(orderType);
         const resolveItem = (n: string) => {
             const itemId = client.items.getClosestItemIdByName(n);
             if (!itemId) return { err: client.intlGet(this.guildId, 'noItemWithNameFound', { name: n }) };
@@ -1477,7 +1489,7 @@ export default class RustPlus extends RustPlusLib {
 
         const sub = subcommand.toLowerCase();
         if (sub === cmdSearch.toLowerCase() || sub === cmdSearchEn.toLowerCase()) {
-            if (!validOrders.includes(orderType))
+            if (!isMarketOrderType(orderType))
                 return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
@@ -1497,7 +1509,7 @@ export default class RustPlus extends RustPlusLib {
             }
             return locations.length > 0 ? locations.join(', ') : client.intlGet(this.guildId, 'noItemFound');
         } else if (sub === cmdSub.toLowerCase() || sub === cmdSubEn.toLowerCase()) {
-            if (!validOrders.includes(orderType))
+            if (!isMarketOrderType(orderType))
                 return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
@@ -1505,10 +1517,10 @@ export default class RustPlus extends RustPlusLib {
                 return client.intlGet(this.guildId, 'alreadySubscribedToItem', { name: r.itemName });
             instance.marketSubscriptionList[orderType].push(r.itemId);
             this.firstPollItems[orderType].push(r.itemId);
-            await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+            await getPersistenceCache().addMarketSubscription(this.guildId, orderType, r.itemId);
             return client.intlGet(this.guildId, 'justSubscribedToItem', { name: r.itemName });
         } else if (sub === cmdUnsub.toLowerCase() || sub === cmdUnsubEn.toLowerCase()) {
-            if (!validOrders.includes(orderType))
+            if (!isMarketOrderType(orderType))
                 return client.intlGet(this.guildId, 'notAValidOrderType', { order: orderType });
             const r = resolveItem(name);
             if (r.err) return r.err;
@@ -1517,7 +1529,7 @@ export default class RustPlus extends RustPlusLib {
             instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
                 (e: any) => e !== r.itemId,
             );
-            await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+            await getPersistenceCache().removeMarketSubscription(this.guildId, orderType, r.itemId);
             return client.intlGet(this.guildId, 'removedSubscribeItem', { name: r.itemName });
         } else if (sub === cmdList.toLowerCase() || sub === cmdListEn.toLowerCase()) {
             const parts: string[] = [];
@@ -1537,7 +1549,7 @@ export default class RustPlus extends RustPlusLib {
         const instance = await getPersistenceCache().readGuildState(this.guildId);
         instance.generalSettings.muteInGameBotMessages = true;
         this.generalSettings.muteInGameBotMessages = true;
-        await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+        await getPersistenceCache().setGeneralSetting(this.guildId, 'muteInGameBotMessages', true);
         return client.intlGet(this.guildId, 'inGameBotMessagesMuted');
     }
 
@@ -1571,7 +1583,7 @@ export default class RustPlus extends RustPlusLib {
             let index = 0;
             while (Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(index)) index++;
             instance.serverList[this.serverId].notes[index] = value;
-            await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+            await getPersistenceCache().upsertNote(this.guildId, this.serverId, index, value);
             return client.intlGet(this.guildId, 'noteSaved');
         } else if (
             subcommand.toLowerCase() === cmdRemove.toLowerCase() ||
@@ -1582,7 +1594,7 @@ export default class RustPlus extends RustPlusLib {
             if (!Object.keys(instance.serverList[this.serverId].notes).map(Number).includes(id))
                 return client.intlGet(this.guildId, 'noteIdDoesNotExist', { id });
             delete instance.serverList[this.serverId].notes[id];
-            await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+            await getPersistenceCache().deleteNote(this.guildId, this.serverId, id);
             return client.intlGet(this.guildId, 'noteIdWasRemoved', { id });
         }
         return null;
@@ -2033,7 +2045,7 @@ export default class RustPlus extends RustPlusLib {
         const instance = await getPersistenceCache().readGuildState(this.guildId);
         instance.generalSettings.muteInGameBotMessages = false;
         this.generalSettings.muteInGameBotMessages = false;
-        await getPersistenceCache().saveGuildStateChanges(this.guildId, instance);
+        await getPersistenceCache().setGeneralSetting(this.guildId, 'muteInGameBotMessages', false);
         return client.intlGet(this.guildId, 'inGameBotMessagesUnmuted');
     }
 

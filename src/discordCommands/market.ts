@@ -322,7 +322,7 @@ export default {
                     } else {
                         instance.marketSubscriptionList[orderType].push(itemId);
                         rustplus.firstPollItems[orderType].push(itemId);
-                        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+                        await getPersistenceCache().addMarketSubscription(interaction.guildId, orderType, itemId);
 
                         const str = client.intlGet(interaction.guildId, 'justSubscribedToItem', {
                             name: itemName,
@@ -387,7 +387,7 @@ export default {
                         instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
                             (e: string) => e !== itemId,
                         );
-                        await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+                        await getPersistenceCache().removeMarketSubscription(interaction.guildId, orderType, itemId);
 
                         const str = client.intlGet(interaction.guildId, 'removedSubscribeItem', {
                             name: itemName,
@@ -490,7 +490,7 @@ export default {
                             rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
                         } else {
                             instance.marketBlacklist.push(name);
-                            await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+                            await getPersistenceCache().addMarketBlacklistItem(interaction.guildId, name);
 
                             const str = client.intlGet(interaction.guildId, 'justBlacklisted', {
                                 name: name,
@@ -501,7 +501,7 @@ export default {
                     } else if (choice === 'remove' && name !== null) {
                         if (instance.marketBlacklist.includes(name)) {
                             instance.marketBlacklist = instance.marketBlacklist.filter((e: string) => e !== name);
-                            await getPersistenceCache().saveGuildStateChanges(interaction.guildId, instance);
+                            await getPersistenceCache().removeMarketBlacklistItem(interaction.guildId, name);
 
                             const str = client.intlGet(interaction.guildId, 'removedBlacklist', {
                                 name: name,

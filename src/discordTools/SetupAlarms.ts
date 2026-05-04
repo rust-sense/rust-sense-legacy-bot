@@ -22,7 +22,10 @@ export default async function setupAlarms(client: DiscordBot, rustplus: any) {
 
         if (entity.reachable) entity.active = info.entityInfo.payload.value;
 
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateSmartAlarmFields(guildId, serverId, entityId, {
+            active: entity.active,
+            reachable: entity.reachable,
+        });
 
         await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
     }

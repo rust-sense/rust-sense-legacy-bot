@@ -71,8 +71,7 @@ export async function sendServerMessage(guildId: string, serverId: string, state
     const message = await sendMessage(guildId, content, server.messageId, instance.channelId.servers, interaction);
 
     if (!interaction && message) {
-        instance.serverList[serverId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setServerMessageId(guildId, serverId, message.id);
     }
 }
 
@@ -88,8 +87,7 @@ export async function sendTrackerMessage(guildId: string, trackerId: string, int
     const message = await sendMessage(guildId, content, tracker.messageId, instance.channelId.trackers, interaction);
 
     if (!interaction && message) {
-        instance.trackers[trackerId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setTrackerMessageId(guildId, trackerId, message.id);
     }
 }
 
@@ -118,8 +116,7 @@ export async function sendSmartSwitchMessage(
     const message = await sendMessage(guildId, content, entity.messageId, instance.channelId.switches, interaction);
 
     if (!interaction && message) {
-        instance.serverList[serverId].switches[entityId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setSmartSwitchMessageId(guildId, serverId, entityId, message.id);
     }
 }
 
@@ -145,8 +142,7 @@ export async function sendSmartAlarmMessage(
     const message = await sendMessage(guildId, content, entity.messageId, instance.channelId.alarms, interaction);
 
     if (!interaction && message) {
-        instance.serverList[serverId].alarms[entityId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setSmartAlarmMessageId(guildId, serverId, entityId, message.id);
     }
 }
 
@@ -182,8 +178,7 @@ export async function sendStorageMonitorMessage(
     );
 
     if (!interaction && message) {
-        instance.serverList[serverId].storageMonitors[entityId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setStorageMonitorMessageId(guildId, serverId, entityId, message.id);
     }
 }
 
@@ -205,8 +200,7 @@ export async function sendSmartSwitchGroupMessage(
     const message = await sendMessage(guildId, content, group.messageId, instance.channelId.switchGroups, interaction);
 
     if (!interaction && message) {
-        instance.serverList[serverId].switchGroups[groupId].messageId = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setSmartSwitchGroupMessageId(guildId, serverId, groupId, message.id);
     }
 }
 
@@ -355,8 +349,9 @@ export async function sendInformationMapMessage(guildId: string) {
     );
 
     if (message) {
-        instance.informationMessageId.map = message.id;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(guildId, [
+            { key: 'informationMessage.map', value: message.id },
+        ]);
     }
 }
 
@@ -453,8 +448,9 @@ export async function sendUpdateMapInformationMessage(rustplus: any) {
     );
 
     if (message && message.id !== instance.informationMessageId.map) {
-        instance.informationMessageId.map = message.id;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(rustplus.guildId, [
+            { key: 'informationMessage.map', value: message.id },
+        ]);
     }
 }
 
@@ -474,8 +470,9 @@ export async function sendUpdateServerInformationMessage(rustplus: any) {
     );
 
     if (message && message.id !== instance.informationMessageId.server) {
-        instance.informationMessageId.server = message.id;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(rustplus.guildId, [
+            { key: 'informationMessage.server', value: message.id },
+        ]);
     }
 }
 
@@ -495,8 +492,9 @@ export async function sendUpdateEventInformationMessage(rustplus: any) {
     );
 
     if (message && message.id !== instance.informationMessageId.event) {
-        instance.informationMessageId.event = message.id;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(rustplus.guildId, [
+            { key: 'informationMessage.event', value: message.id },
+        ]);
     }
 }
 
@@ -516,8 +514,9 @@ export async function sendUpdateTeamInformationMessage(rustplus: any) {
     );
 
     if (message && message.id !== instance.informationMessageId.team) {
-        instance.informationMessageId.team = message.id;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(rustplus.guildId, [
+            { key: 'informationMessage.team', value: message.id },
+        ]);
     }
 }
 
@@ -536,8 +535,9 @@ export async function sendUpdateBattlemetricsOnlinePlayersInformationMessage(rus
     );
 
     if (message && message.id !== instance.informationMessageId.battlemetricsPlayers) {
-        instance.informationMessageId.battlemetricsPlayers = message.id;
-        await getPersistenceCache().saveGuildStateChanges(rustplus.guildId, instance);
+        await getPersistenceCache().setDiscordReferencedIds(rustplus.guildId, [
+            { key: 'informationMessage.battlemetricsPlayers', value: message.id },
+        ]);
     }
 }
 

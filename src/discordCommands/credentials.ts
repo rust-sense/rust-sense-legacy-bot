@@ -318,7 +318,7 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
     const rustplus = client.rustplusInstances[guildId];
     if (rustplus) {
         instance.activeServer = null;
-        await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+        await getPersistenceCache().updateGuildCoreFields(guildId, { activeServer: null });
         client.resetRustplusVariables(guildId);
         rustplus.disconnect();
         delete client.rustplusInstances[guildId];

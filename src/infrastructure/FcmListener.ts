@@ -389,7 +389,12 @@ async function pairingServer(
             steamId: body.playerId,
             playerToken: body.playerToken,
         };
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().upsertServerLiteEntry(guild.id, serverId, activeSteamId, {
+            serverIp: body.ip,
+            appPort: body.port,
+            steamId: body.playerId,
+            playerToken: body.playerToken,
+        });
 
         const rustplus = client.rustplusInstances[guild.id];
         if (rustplus && rustplus.serverId === serverId && rustplus.team.leaderSteamId === activeSteamId) {
@@ -460,7 +465,13 @@ async function pairingServer(
             playerToken: body.playerToken,
         };
 
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().upsertServer(guild.id, serverId, instance.serverList[serverId]);
+        await getPersistenceCache().upsertServerLiteEntry(guild.id, serverId, body.playerId, {
+            serverIp: body.ip,
+            appPort: body.port,
+            steamId: body.playerId,
+            playerToken: body.playerToken,
+        });
 
         await DiscordMessages.sendServerMessage(guild.id, serverId, null);
     }
@@ -488,7 +499,12 @@ async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPl
         proximity: entityExist ? switches[body.entityId].proximity : Constants.PROXIMITY_SETTING_DEFAULT_METERS,
         messageId: entityExist ? switches[body.entityId].messageId : null,
     };
-    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+    await getPersistenceCache().upsertSmartSwitch(
+        guild.id,
+        serverId,
+        body.entityId,
+        instance.serverList[serverId].switches[body.entityId],
+    );
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -511,7 +527,12 @@ async function pairingEntitySwitch(client: any, guild: any, body: any, pairingPl
         if (instance.serverList[serverId].switches[body.entityId].reachable) {
             instance.serverList[serverId].switches[body.entityId].active = info.entityInfo.payload.value;
         }
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().upsertSmartSwitch(
+            guild.id,
+            serverId,
+            body.entityId,
+            instance.serverList[serverId].switches[body.entityId],
+        );
 
         await DiscordMessages.sendSmartSwitchMessage(guild.id, serverId, body.entityId);
     }
@@ -541,7 +562,12 @@ async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairi
         inGame: entityExist ? alarms[body.entityId].inGame : true,
         messageId: entityExist ? alarms[body.entityId].messageId : null,
     };
-    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+    await getPersistenceCache().upsertSmartAlarm(
+        guild.id,
+        serverId,
+        body.entityId,
+        instance.serverList[serverId].alarms[body.entityId],
+    );
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -562,7 +588,12 @@ async function pairingEntitySmartAlarm(client: any, guild: any, body: any, pairi
         if (instance.serverList[serverId].alarms[body.entityId].reachable) {
             instance.serverList[serverId].alarms[body.entityId].active = info.entityInfo.payload.value;
         }
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().upsertSmartAlarm(
+            guild.id,
+            serverId,
+            body.entityId,
+            instance.serverList[serverId].alarms[body.entityId],
+        );
     }
 
     await DiscordMessages.sendSmartAlarmMessage(guild.id, serverId, body.entityId);
@@ -593,7 +624,12 @@ async function pairingEntityStorageMonitor(client: any, guild: any, body: any, p
         server: entityExist ? storageMonitors[body.entityId].server : body.name,
         messageId: entityExist ? storageMonitors[body.entityId].messageId : null,
     };
-    await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+    await getPersistenceCache().upsertStorageMonitor(
+        guild.id,
+        serverId,
+        body.entityId,
+        instance.serverList[serverId].storageMonitors[body.entityId],
+    );
 
     const rustplus = client.rustplusInstances[guild.id];
     if (rustplus && serverId === rustplus.serverId) {
@@ -633,7 +669,12 @@ async function pairingEntityStorageMonitor(client: any, guild: any, body: any, p
                 hasProtection: info.entityInfo.payload.hasProtection,
             };
         }
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().upsertStorageMonitor(
+            guild.id,
+            serverId,
+            body.entityId,
+            instance.serverList[serverId].storageMonitors[body.entityId],
+        );
 
         await DiscordMessages.sendStorageMonitorMessage(guild.id, serverId, body.entityId);
     }
@@ -660,7 +701,9 @@ async function alarmAlarm(client: any, guild: any, title: any, message: any, bod
 
     if ((!rustplus || rustplus.serverId !== serverId) && instance.generalSettings.fcmAlarmNotificationEnabled) {
         server.alarms[entityId].lastTrigger = Math.floor(Date.now() / 1000);
-        await getPersistenceCache().saveGuildStateChanges(guild.id, instance);
+        await getPersistenceCache().updateSmartAlarmFields(guild.id, serverId, entityId, {
+            lastTrigger: server.alarms[entityId].lastTrigger,
+        });
         await DiscordMessages.sendSmartAlarmTriggerMessage(guild.id, serverId, entityId);
         client.log(client.intlGet(null, 'infoCap'), `${title}: ${message}`);
     }

@@ -1,15 +1,12 @@
 import type { JsonAdapter } from './JsonAdapter.js';
+import { type PersistenceLogger, persistenceLogger } from './logger.js';
 import { PersistenceService } from './PersistenceService.js';
 import type { PersistenceAdapter } from './types.js';
-
-interface LegacyJsonMigrationLogger {
-    info(message: string): void;
-}
 
 export async function migrateFromJsonAdapter(
     source: JsonAdapter,
     target: PersistenceAdapter,
-    logger: LegacyJsonMigrationLogger = console,
+    logger: PersistenceLogger = persistenceLogger,
 ): Promise<{ guildCount: number; checksum: string }> {
     const manifest = source.sourceManifest();
     const sourceService = new PersistenceService(source);

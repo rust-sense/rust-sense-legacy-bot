@@ -30,7 +30,7 @@ export default {
             );
 
             instance.activeServer = null;
-            await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+            await getPersistenceCache().updateGuildCoreFields(guildId, { activeServer: null });
 
             await DiscordMessages.sendServerConnectionInvalidMessage(guildId, serverId);
             await DiscordMessages.sendServerMessage(guildId, serverId, null);

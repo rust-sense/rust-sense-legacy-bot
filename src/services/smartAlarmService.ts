@@ -28,14 +28,18 @@ export async function syncSmartAlarms(rustplus: any, client: DiscordBot) {
                     await DiscordMessages.sendSmartAlarmNotFoundMessage(guildId, serverId, entityId);
 
                     instance.serverList[serverId].alarms[entityId].reachable = false;
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                    await getPersistenceCache().updateSmartAlarmFields(guildId, serverId, entityId, {
+                        reachable: false,
+                    });
 
                     await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                 }
             } else {
                 if (!instance.serverList[serverId].alarms[entityId].reachable) {
                     instance.serverList[serverId].alarms[entityId].reachable = true;
-                    await getPersistenceCache().saveGuildStateChanges(guildId, instance);
+                    await getPersistenceCache().updateSmartAlarmFields(guildId, serverId, entityId, {
+                        reachable: true,
+                    });
 
                     await DiscordMessages.sendSmartAlarmMessage(guildId, serverId, entityId);
                 }
