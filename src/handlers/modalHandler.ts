@@ -1,38 +1,19 @@
+import * as Constants from '../domain/constants.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as ConstantsModule from '../util/constants.js';
-
-const Constants: any = ConstantsModule;
-
-import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
-
-const DiscordEmbeds: any = DiscordEmbedsModule;
-
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
-
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as KeywordsModule from '../util/keywords.js';
-
-const Keywords: any = KeywordsModule;
-
-import * as ScrapeModule from '../util/scrape.js';
-
-const Scrape: any = ScrapeModule;
-
-import * as TrackerInputParserModule from '../util/trackerInputParser.js';
-
-const TrackerInputParser: any = TrackerInputParserModule;
-
-import * as UtilsModule from '../util/utils.js';
-
-const Utils: any = UtilsModule;
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Keywords from '../services/keywordsService.js';
+import * as Scrape from '../infrastructure/scrape.js';
+import * as TrackerInputParser from '../domain/trackerInputParser.js';
+import * as Utils from '../discordTools/discordInteractionUtils.js';
+import { getPersistenceCache } from '../persistence/index.js';
 
 export default async (client: DiscordBot, interaction: any) => {
-    const instance = client.getInstance(interaction.guildId);
+    const instance = await getPersistenceCache().readGuildState(interaction.guildId);
     const guildId = interaction.guildId;
 
-    const verifyId = Utils.generateVerifyId();
+    const verifyId = Utils.generateVerifyId().toString();
     client.logInteraction(interaction, verifyId, 'userModal');
 
     if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
@@ -47,26 +28,36 @@ export default async (client: DiscordBot, interaction: any) => {
         const deepSeaWipeDuration = parseInt(interaction.fields.getTextInputValue('DeepSeaWipeDurationTime'));
 
         if (!server) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
         if (cargoShipEgressTime && cargoShipEgressTime * 1000 !== server.cargoShipEgressTimeMs) {
             server.cargoShipEgressTimeMs = cargoShipEgressTime * 1000;
         }
+
         if (oilRigCrateUnlockTime && oilRigCrateUnlockTime * 1000 !== server.oilRigLockedCrateUnlockTimeMs) {
             server.oilRigLockedCrateUnlockTimeMs = oilRigCrateUnlockTime * 1000;
         }
+
         if (deepSeaMinWipeCooldown && deepSeaMinWipeCooldown * 1000 !== server.deepSeaMinWipeCooldownMs) {
             server.deepSeaMinWipeCooldownMs = deepSeaMinWipeCooldown * 1000;
         }
+
         if (deepSeaMaxWipeCooldown && deepSeaMaxWipeCooldown * 1000 !== server.deepSeaMaxWipeCooldownMs) {
             server.deepSeaMaxWipeCooldownMs = deepSeaMaxWipeCooldown * 1000;
         }
+
         if (deepSeaWipeDuration && deepSeaWipeDuration * 1000 !== server.deepSeaWipeDurationMs) {
             server.deepSeaWipeDurationMs = deepSeaWipeDuration * 1000;
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateServerFields(guildId, ids.serverId, {
+            cargoShipEgressTimeMs: server.cargoShipEgressTimeMs,
+            oilRigLockedCrateUnlockTimeMs: server.oilRigLockedCrateUnlockTimeMs,
+            deepSeaMinWipeCooldownMs: server.deepSeaMinWipeCooldownMs,
+            deepSeaMaxWipeCooldownMs: server.deepSeaMaxWipeCooldownMs,
+            deepSeaWipeDurationMs: server.deepSeaWipeDurationMs,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -98,7 +89,10 @@ export default async (client: DiscordBot, interaction: any) => {
                 }
             }
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateServerFields(guildId, ids.serverId, {
+            battlemetricsId: server.battlemetricsId,
+            connect: server.connect ?? null,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -125,7 +119,7 @@ export default async (client: DiscordBot, interaction: any) => {
         }
 
         if (!server || (server && !Object.hasOwn(server.switches, ids.entityId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -133,7 +127,7 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             smartSwitchCommand !== server.switches[ids.entityId].command &&
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartSwitchCommand)
+            !(await Keywords.getListOfUsedKeywords(client, guildId, ids.serverId)).includes(smartSwitchCommand)
         ) {
             server.switches[ids.entityId].command = smartSwitchCommand;
         }
@@ -141,7 +135,11 @@ export default async (client: DiscordBot, interaction: any) => {
         if (smartSwitchProximity !== null && smartSwitchProximity >= 0) {
             server.switches[ids.entityId].proximity = smartSwitchProximity;
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchFields(guildId, ids.serverId, ids.entityId, {
+            name: server.switches[ids.entityId].name,
+            command: server.switches[ids.entityId].command,
+            proximity: server.switches[ids.entityId].proximity,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -159,7 +157,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const groupCommand = interaction.fields.getTextInputValue('GroupCommand');
 
         if (!server || (server && !Object.hasOwn(server.switchGroups, ids.groupId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -167,11 +165,14 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             groupCommand !== server.switchGroups[ids.groupId].command &&
-            !Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId).includes(groupCommand)
+            !(await Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId)).includes(groupCommand)
         ) {
             server.switchGroups[ids.groupId].command = groupCommand;
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateSmartSwitchGroupFields(guildId, ids.serverId, ids.groupId, {
+            name: server.switchGroups[ids.groupId].name,
+            command: server.switchGroups[ids.groupId].command,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -188,7 +189,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const switchId = interaction.fields.getTextInputValue('GroupAddSwitchId');
 
         if (!server || (server && !Object.hasOwn(server.switchGroups, ids.groupId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -196,12 +197,17 @@ export default async (client: DiscordBot, interaction: any) => {
             !Object.keys(server.switches).includes(switchId) ||
             server.switchGroups[ids.groupId].switches.includes(switchId)
         ) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
         server.switchGroups[ids.groupId].switches.push(switchId);
-        client.setInstance(interaction.guildId, instance);
+        await getPersistenceCache().replaceSmartSwitchGroupSwitches(
+            interaction.guildId,
+            ids.serverId,
+            ids.groupId,
+            server.switchGroups[ids.groupId].switches,
+        );
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -218,14 +224,19 @@ export default async (client: DiscordBot, interaction: any) => {
         const switchId = interaction.fields.getTextInputValue('GroupRemoveSwitchId');
 
         if (!server || (server && !Object.hasOwn(server.switchGroups, ids.groupId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
         server.switchGroups[ids.groupId].switches = server.switchGroups[ids.groupId].switches.filter(
             (e: any) => e !== switchId,
         );
-        client.setInstance(interaction.guildId, instance);
+        await getPersistenceCache().replaceSmartSwitchGroupSwitches(
+            interaction.guildId,
+            ids.serverId,
+            ids.groupId,
+            server.switchGroups[ids.groupId].switches,
+        );
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -244,7 +255,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const smartAlarmCommand = interaction.fields.getTextInputValue('SmartAlarmCommand');
 
         if (!server || (server && !Object.hasOwn(server.alarms, ids.entityId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -253,11 +264,15 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             smartAlarmCommand !== server.alarms[ids.entityId].command &&
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartAlarmCommand)
+            !(await Keywords.getListOfUsedKeywords(client, guildId, ids.serverId)).includes(smartAlarmCommand)
         ) {
             server.alarms[ids.entityId].command = smartAlarmCommand;
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateSmartAlarmFields(guildId, ids.serverId, ids.entityId, {
+            name: server.alarms[ids.entityId].name,
+            message: server.alarms[ids.entityId].message,
+            command: server.alarms[ids.entityId].command,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -274,12 +289,14 @@ export default async (client: DiscordBot, interaction: any) => {
         const storageMonitorName = interaction.fields.getTextInputValue('StorageMonitorName');
 
         if (!server || (server && !Object.hasOwn(server.storageMonitors, ids.entityId))) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
         server.storageMonitors[ids.entityId].name = storageMonitorName;
-        client.setInstance(interaction.guildId, instance);
+        await getPersistenceCache().updateStorageMonitorFields(interaction.guildId, ids.serverId, ids.entityId, {
+            name: server.storageMonitors[ids.entityId].name,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -298,7 +315,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const trackerClanTag = interaction.fields.getTextInputValue('TrackerClanTag');
 
         if (!tracker) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -328,7 +345,14 @@ export default async (client: DiscordBot, interaction: any) => {
                 }
             }
         }
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateTrackerFields(guildId, ids.trackerId, {
+            name: tracker.name,
+            battlemetricsId: tracker.battlemetricsId,
+            clanTag: tracker.clanTag,
+            img: tracker.img ?? null,
+            title: tracker.title ?? null,
+            serverId: tracker.serverId ?? null,
+        });
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -345,7 +369,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const input = interaction.fields.getTextInputValue('TrackerAddPlayerId');
 
         if (!tracker) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -376,7 +400,7 @@ export default async (client: DiscordBot, interaction: any) => {
             (isSteamId64 && tracker.players.some((e: any) => e.steamId === id)) ||
             (!isSteamId64 && tracker.players.some((e: any) => e.playerId === id && e.steamId === null))
         ) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -406,7 +430,7 @@ export default async (client: DiscordBot, interaction: any) => {
             steamId: steamId,
             playerId: playerId,
         });
-        client.setInstance(interaction.guildId, instance);
+        await getPersistenceCache().replaceTrackerPlayers(interaction.guildId, ids.trackerId, tracker.players);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -423,7 +447,7 @@ export default async (client: DiscordBot, interaction: any) => {
         const input = interaction.fields.getTextInputValue('TrackerRemovePlayerId');
 
         if (!tracker) {
-            interaction.deferUpdate();
+            await interaction.deferUpdate();
             return;
         }
 
@@ -460,7 +484,7 @@ export default async (client: DiscordBot, interaction: any) => {
             return;
         }
 
-        client.setInstance(interaction.guildId, instance);
+        await getPersistenceCache().replaceTrackerPlayers(interaction.guildId, ids.trackerId, tracker.players);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -480,5 +504,5 @@ export default async (client: DiscordBot, interaction: any) => {
         }),
     );
 
-    interaction.deferUpdate();
+    await interaction.deferUpdate();
 };

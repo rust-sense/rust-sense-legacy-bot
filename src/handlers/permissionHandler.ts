@@ -1,11 +1,12 @@
 import * as Discord from 'discord.js';
 import config from '../config.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import { getPersistenceCache } from '../persistence/index.js';
 
 const writeableChannels = ['commands', 'teamchat'];
 
-export function getPermissionsReset(client, guild, permissionWrite = false) {
-    const instance = client.getInstance(guild.id);
+export async function getPermissionsReset(client, guild, permissionWrite = false) {
+    const instance = await getPersistenceCache().readGuildState(guild.id);
 
     const perms = [];
     const everyoneAllow = [];
@@ -80,8 +81,8 @@ export function getPermissionsReset(client, guild, permissionWrite = false) {
     return perms;
 }
 
-export function getPermissionsRemoved(client, guild) {
-    const instance = client.getInstance(guild.id);
+export async function getPermissionsRemoved(client, guild) {
+    const instance = await getPersistenceCache().readGuildState(guild.id);
 
     const perms = [];
 
@@ -111,13 +112,13 @@ export function getPermissionsRemoved(client, guild) {
 }
 
 export async function resetPermissionsAllChannels(client, guild) {
-    const instance = client.getInstance(guild.id);
+    const instance = await getPersistenceCache().readGuildState(guild.id);
 
     if (instance.channelId.category === null) return;
 
     const category = await DiscordTools.getCategoryById(guild.id, instance.channelId.category);
     if (category) {
-        const perms = getPermissionsReset(client, guild);
+        const perms = await getPermissionsReset(client, guild);
         await category.permissionOverwrites.set(perms).catch((e) => {
             client.log(client.intlGet(null, 'warningCap'), `Failed to set category permissions: ${e.message}`, 'warn');
         });
@@ -128,7 +129,7 @@ export async function resetPermissionsAllChannels(client, guild) {
 
         const channel = DiscordTools.getTextChannelById(guild.id, id as string);
         if (channel) {
-            const perms = getPermissionsReset(client, guild, permissionWrite);
+            const perms = await getPermissionsReset(client, guild, permissionWrite);
             await channel.permissionOverwrites.set(perms).catch((e) => {
                 client.log(
                     client.intlGet(null, 'warningCap'),

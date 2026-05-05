@@ -1,5 +1,6 @@
 import * as Discord from 'discord.js';
 import { registerSingleton } from './container.js';
+import { closePersistence, initPersistence } from './persistence/index.js';
 import DiscordBot from './structures/DiscordBot.js';
 import { ensureAppStateDirs } from './utils/filesystemUtils.js';
 
@@ -17,18 +18,35 @@ export const client = new DiscordBot({
 
 registerSingleton('discordBot', client);
 
-ensureAppStateDirs().then(() => {
+ensureAppStateDirs().then(async () => {
+    await initPersistence();
     client.build();
 });
 
 process.on('unhandledRejection', (error) => {
+    const errorText = error instanceof Error ? (error.stack ?? error.message) : String(error);
     client.log(
         client.intlGet(null, 'errorCap'),
         client.intlGet(null, 'unhandledRejection', {
-            error: error,
+            error: errorText,
         }),
         'error',
     );
+});
 
-    console.error(error);
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+    client.log(client.intlGet(null, 'infoCap'), `Received ${signal}, closing persistence`, 'info');
+    try {
+        await closePersistence();
+    } finally {
+        process.exit(0);
+    }
+}
+
+process.once('SIGINT', (signal) => {
+    void shutdown(signal);
+});
+
+process.once('SIGTERM', (signal) => {
+    void shutdown(signal);
 });

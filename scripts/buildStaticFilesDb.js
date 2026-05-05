@@ -2,7 +2,7 @@
 
 const Path = require('path');
 
-const RustlabsStaticStorage = require('../src/util/RustlabsStaticStorage');
+const RustlabsStaticStorage = require('../src/infrastructure/RustlabsStaticStorage');
 
 function parseArgs(argv) {
     const options = {

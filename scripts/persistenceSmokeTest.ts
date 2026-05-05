@@ -1,0 +1,543 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import Database from 'better-sqlite3';
+import { createEmptyInstance } from '../src/domain/guildState.js';
+import { PersistenceService } from '../src/persistence/PersistenceService.js';
+import { PostgresAdapter } from '../src/persistence/PostgresAdapter.js';
+import { SqliteAdapter } from '../src/persistence/SqliteAdapter.js';
+import { instanceToCompatibilityState, type PersistenceAdapter } from '../src/persistence/types.js';
+import type { Credentials, Instance } from '../src/types/instance.js';
+
+const repoRoot = process.cwd();
+
+function prepareTempCwd(prefix: string): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+    fs.mkdirSync(path.join(root, 'instances'), { recursive: true });
+    fs.mkdirSync(path.join(root, 'credentials'), { recursive: true });
+    fs.symlinkSync(path.join(repoRoot, 'resources'), path.join(root, 'resources'), 'dir');
+    return root;
+}
+
+function runDbmate(args: string[]): void {
+    execFileSync('pnpm', ['exec', 'dbmate', ...args], {
+        cwd: repoRoot,
+        stdio: 'pipe',
+    });
+}
+
+function migrateSqlite(databasePath: string): void {
+    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+    runDbmate([
+        '--url',
+        `sqlite3:${databasePath}`,
+        '--migrations-dir',
+        path.join(repoRoot, 'db', 'migrations', 'sqlite'),
+        '--schema-file',
+        path.join(os.tmpdir(), `rust-sense-smoke-${process.pid}.sql`),
+        'up',
+    ]);
+}
+
+function migratePostgres(postgresUrl: string): void {
+    runDbmate([
+        '--url',
+        postgresUrl,
+        '--migrations-dir',
+        path.join(repoRoot, 'db', 'migrations', 'postgresql'),
+        '--schema-file',
+        path.join(os.tmpdir(), `rust-sense-smoke-pg-${process.pid}.sql`),
+        'up',
+    ]);
+}
+
+function buildInstance(): Instance {
+    const instance = createEmptyInstance();
+    instance.firstTime = false;
+    instance.role = 'role-id';
+    instance.adminRole = 'admin-role-id';
+    instance.activeServer = 'server-1';
+    instance.generalSettings.prefix = '?';
+    instance.generalSettings.commandDelay = 250;
+    instance.notificationSettings.cargoShipDetectedSetting.discord = false;
+    instance.notificationSettings.cargoShipDetectedSetting.inGame = true;
+    instance.channelId.category = 'category-channel';
+    instance.channelId.commands = 'commands-channel';
+    instance.channelId.storageMonitors = 'storage-channel';
+    instance.informationMessageId.map = 'map-message';
+    instance.informationMessageId.battlemetricsPlayers = 'battlemetrics-message';
+    instance.marketSubscriptionList.all.push('rifle.ak');
+    instance.marketBlacklist.push('stones');
+    instance.blacklist.discordIds.push('discord-blocked');
+    instance.blacklist.steamIds.push('steam-blocked');
+    instance.whitelist.steamIds.push('steam-allowed');
+    instance.aliases.push({ index: 1, alias: 'ak', value: 'rifle.ak' });
+    instance.customIntlMessages.greeting = 'Hello {name}';
+    instance.teamChatColors['765'] = '#ffffff';
+    instance.trackers['99'] = {
+        id: 99,
+        name: 'Tracker',
+        battlemetricsId: 'bm',
+        status: true,
+        lastScreenshot: null,
+        lastOnline: 'online',
+        lastWipe: 'wipe',
+        messageId: 'tracker-message',
+        clanTag: 'TAG',
+        everyone: true,
+        inGame: false,
+        players: [{ name: 'Player', steamId: '765', playerId: 'player-id' }],
+    };
+    instance.serverList['server-1'] = {
+        serverId: 'server-1',
+        title: 'Smoke Server',
+        serverIp: '127.0.0.1',
+        appPort: 28082,
+        steamId: '765',
+        playerToken: 'player-token',
+        battlemetricsId: 'bm-server',
+        switches: {
+            7: {
+                id: 7,
+                name: 'Switch',
+                active: true,
+                reachable: true,
+                location: 'A1',
+                x: 1,
+                y: 2,
+                image: null,
+                command: 'switch',
+                autoDayNightOnOff: 0,
+                proximity: 10,
+                messageId: 'switch-message',
+                everyone: true,
+            },
+            13: {
+                id: 13,
+                name: 'Second Switch',
+                active: false,
+                reachable: true,
+                location: 'A2',
+                x: 9,
+                y: 10,
+                image: null,
+                command: 'second-switch',
+                autoDayNightOnOff: 0,
+                proximity: 10,
+                messageId: 'second-switch-message',
+                everyone: false,
+            },
+        },
+        alarms: {
+            8: {
+                id: 8,
+                name: 'Alarm',
+                active: false,
+                reachable: true,
+                location: 'B2',
+                x: 3,
+                y: 4,
+                image: null,
+                message: 'alarm',
+                command: 'alarm',
+                lastTrigger: 123,
+                inGame: true,
+                messageId: 'alarm-message',
+                everyone: false,
+            },
+        },
+        storageMonitors: {
+            9: {
+                id: 9,
+                name: 'Box',
+                type: 'largeWoodBox',
+                image: null,
+                reachable: true,
+                location: 'C3',
+                x: 5,
+                y: 6,
+                items: [{ itemId: 123, quantity: 456 }],
+                capacity: 48,
+                decaying: false,
+                inGame: true,
+                messageId: 'storage-message',
+                everyone: true,
+                upkeep: null,
+            },
+        },
+        markers: {
+            marker: { x: 7, y: 8, location: 'D4' },
+        },
+        switchGroups: {
+            10: {
+                id: 10,
+                name: 'Group',
+                switches: [7],
+                active: true,
+                image: null,
+                command: 'group',
+                serverId: 'server-1',
+                messageId: 'group-message',
+            },
+        },
+        customCameraGroups: {
+            11: {
+                id: 11,
+                name: 'Cameras',
+                cameras: ['CAM1'],
+            },
+        },
+        notes: {
+            12: 'note',
+        },
+        cargoShipEgressTimeMs: 1,
+        oilRigLockedCrateUnlockTimeMs: 2,
+        deepSeaMinWipeCooldownMs: 3,
+        deepSeaMaxWipeCooldownMs: 4,
+        deepSeaWipeDurationMs: 5,
+        timeTillDay: { sample: 42 },
+        timeTillNight: { sample: 84 },
+        messageId: 'server-message',
+        connect: 'client.connect 127.0.0.1',
+        img: 'image',
+        url: 'url',
+        description: 'description',
+    };
+
+    return instance;
+}
+
+function buildCredentials(): Credentials {
+    return {
+        hoster: '765',
+        765: {
+            discord_user_id: 'discord-user',
+            gcm: {
+                android_id: 'android-id',
+                security_token: 'security-token',
+            },
+            issuedDate: 'issued',
+            expireDate: 'expires',
+        },
+    } as Credentials;
+}
+
+function assertRoundTrip(instance: Instance, credentials: Credentials): void {
+    assert.equal(instance.role, 'role-id');
+    assert.equal(instance.channelId.category, 'category-channel');
+    assert.equal(instance.channelId.commands, 'commands-channel');
+    assert.equal(instance.channelId.storageMonitors, 'storage-channel');
+    assert.equal(instance.informationMessageId.map, 'map-message');
+    assert.equal(instance.informationMessageId.battlemetricsPlayers, 'battlemetrics-message');
+    assert.equal(instance.generalSettings.prefix, '?');
+    assert.equal(instance.generalSettings.commandDelay, 250);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.discord, false);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.inGame, true);
+    assert.equal(instance.notificationSettings.cargoShipDetectedSetting.image, 'cargoship_logo.png');
+    assert.equal(instance.serverList['server-1'].switches[7].name, 'Switch');
+    assert.equal(instance.serverList['server-1'].alarms[8].message, 'alarm');
+    assert.equal(instance.serverList['server-1'].storageMonitors[9].items[0]?.quantity, 456);
+    assert.equal(instance.serverList['server-1'].switchGroups[10].switches[0], 7);
+    assert.equal(instance.serverList['server-1'].customCameraGroups[11].cameras[0], 'CAM1');
+    assert.equal(instance.serverList['server-1'].markers.marker.location, 'D4');
+    assert.equal(instance.serverList['server-1'].notes[12], 'note');
+    assert.equal(instance.trackers[99].players[0]?.steamId, '765');
+    assert.equal(instance.marketSubscriptionList.all[0], 'rifle.ak');
+    assert.equal(instance.aliases[0]?.alias, 'ak');
+    assert.equal(credentials.hoster, '765');
+    assert.equal((credentials as any)[765].gcm.security_token, 'security-token');
+}
+
+async function adapterRoundTrip(adapter: PersistenceAdapter): Promise<void> {
+    await adapter.init();
+    const service = new PersistenceService(adapter);
+    const instanceState = instanceToCompatibilityState(buildInstance());
+    await adapter.writeGuildCore('guild-smoke', instanceState);
+    await adapter.writeGuildSettings('guild-smoke', instanceState);
+    await adapter.replaceServers('guild-smoke', instanceState.serverList);
+    await adapter.replaceGuildCollections('guild-smoke', instanceState);
+    await adapter.writeCredentials('guild-smoke', buildCredentials());
+    await adapter.flush();
+    const roundTripped = createEmptyInstance(
+        (await adapter.readGuildSettings('guild-smoke')).generalSettings,
+        (await adapter.readGuildSettings('guild-smoke')).notificationSettings,
+    );
+    Object.assign(roundTripped, await adapter.readGuildCore('guild-smoke'));
+    roundTripped.serverList = await adapter.readServers('guild-smoke');
+    Object.assign(roundTripped, await adapter.readGuildCollections('guild-smoke'));
+    assertRoundTrip(roundTripped, await adapter.readCredentials('guild-smoke'));
+    assertRoundTrip(await service.readGuildState('guild-smoke'), await service.getCredentials('guild-smoke'));
+    await adapter.close();
+}
+
+async function sqliteRollbackSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-rollback-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const state = instanceToCompatibilityState(buildInstance());
+        await adapter.writeGuildCore('guild-rollback', state);
+        await adapter.writeGuildSettings('guild-rollback', state);
+        await adapter.replaceServers('guild-rollback', state.serverList);
+
+        const brokenServers = structuredClone(state.serverList);
+        brokenServers['server-1'].switches[123] = {
+            ...brokenServers['server-1'].switches[7],
+            id: 123,
+            name: null as unknown as string,
+        };
+
+        assert.throws(() => adapter.replaceServers('guild-rollback', brokenServers));
+        assert.equal((await adapter.readServers('guild-rollback'))['server-1'].switches[7].name, 'Switch');
+        assert.equal((await adapter.readServers('guild-rollback'))['server-1'].switches[123], undefined);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteConcurrentTargetedPatchSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-targeted-patch-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.bootstrapGuildState('guild-targeted-patch', buildInstance());
+
+        const firstSnapshot = await service.readGuildState('guild-targeted-patch');
+        const secondSnapshot = await service.readGuildState('guild-targeted-patch');
+        firstSnapshot.serverList['server-1'].switches[7].active = false;
+        secondSnapshot.serverList['server-1'].switches[13].reachable = false;
+
+        await service.updateSmartSwitchFields('guild-targeted-patch', 'server-1', '7', {
+            active: firstSnapshot.serverList['server-1'].switches[7].active,
+        });
+        await service.updateSmartSwitchFields('guild-targeted-patch', 'server-1', '13', {
+            reachable: secondSnapshot.serverList['server-1'].switches[13].reachable,
+        });
+
+        const roundTripped = await service.readGuildState('guild-targeted-patch');
+        assert.equal(roundTripped.serverList['server-1'].switches[7].active, false);
+        assert.equal(roundTripped.serverList['server-1'].switches[13].reachable, false);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteTargetedKeyValueSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-targeted-key-value-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.bootstrapGuildState('guild-targeted-key-value', buildInstance());
+
+        await service.setDiscordReferencedIds('guild-targeted-key-value', [
+            { key: 'channel.commands', value: 'commands-updated' },
+            { key: 'informationMessage.map', value: null },
+        ]);
+        await adapter.setGuildSettings('guild-targeted-key-value', [
+            { key: 'general.prefix', value: '$' },
+            { key: 'notification.cargoShipDetectedSetting.discord', value: 'true' },
+        ]);
+
+        const roundTripped = await service.readGuildState('guild-targeted-key-value');
+        assert.equal(roundTripped.channelId.commands, 'commands-updated');
+        assert.equal(roundTripped.channelId.category, 'category-channel');
+        assert.equal(roundTripped.informationMessageId.map, null);
+        assert.equal(roundTripped.informationMessageId.battlemetricsPlayers, 'battlemetrics-message');
+        assert.equal(roundTripped.generalSettings.prefix, '$');
+        assert.equal(roundTripped.generalSettings.commandDelay, 250);
+        assert.equal(roundTripped.notificationSettings.cargoShipDetectedSetting.discord, true);
+        assert.equal(roundTripped.notificationSettings.cargoShipDetectedSetting.inGame, true);
+        await adapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        await adapterRoundTrip(new SqliteAdapter(databasePath));
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function sqliteLegacyMigrationSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-legacy-smoke-');
+    fs.writeFileSync(path.join(root, 'instances', 'guild-legacy.json'), JSON.stringify(buildInstance(), null, 2));
+    fs.writeFileSync(path.join(root, 'credentials', 'guild-legacy.json'), JSON.stringify(buildCredentials(), null, 2));
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const settings = await adapter.readGuildSettings('guild-legacy');
+        const instance = createEmptyInstance(settings.generalSettings, settings.notificationSettings);
+        Object.assign(instance, await adapter.readGuildCore('guild-legacy'));
+        instance.serverList = await adapter.readServers('guild-legacy');
+        Object.assign(instance, await adapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(instance, await adapter.readCredentials('guild-legacy'));
+        await adapter.close();
+
+        const migrationStateAfterFirstInit = readSqliteMigrationState(databasePath);
+        assert.equal(migrationStateAfterFirstInit.status, 'completed');
+        assert.equal(migrationStateAfterFirstInit.guildCount, '1');
+        assert.ok(migrationStateAfterFirstInit.checksum);
+
+        const secondAdapter = new SqliteAdapter(databasePath);
+        await secondAdapter.init();
+        const migrationStateAfterSecondInit = readSqliteMigrationState(databasePath);
+        assert.deepEqual(migrationStateAfterSecondInit, migrationStateAfterFirstInit);
+        const secondSettings = await secondAdapter.readGuildSettings('guild-legacy');
+        const secondInstance = createEmptyInstance(secondSettings.generalSettings, secondSettings.notificationSettings);
+        Object.assign(secondInstance, await secondAdapter.readGuildCore('guild-legacy'));
+        secondInstance.serverList = await secondAdapter.readServers('guild-legacy');
+        Object.assign(secondInstance, await secondAdapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(secondInstance, await secondAdapter.readCredentials('guild-legacy'));
+        await secondAdapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+function readSqliteMigrationState(databasePath: string): {
+    status: string | null;
+    guildCount: string | null;
+    checksum: string | null;
+} {
+    const db = new Database(databasePath);
+    try {
+        const readValue = (key: string): string | null =>
+            (db.prepare('SELECT value FROM _persistence_meta WHERE key = ?').get(key) as { value: string } | undefined)
+                ?.value ?? null;
+        return {
+            status: readValue('legacy_json_migration_status'),
+            guildCount: readValue('legacy_json_migration_source_guild_count'),
+            checksum: readValue('legacy_json_migration_source_checksum'),
+        };
+    } finally {
+        db.close();
+    }
+}
+
+async function sqliteSettingsRegistryFallbackSmoke(): Promise<void> {
+    const root = prepareTempCwd('rpp-sqlite-settings-registry-smoke-');
+    const databasePath = path.join(root, 'data', 'state.sqlite');
+    migrateSqlite(databasePath);
+
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new SqliteAdapter(databasePath);
+        await adapter.init();
+        const service = new PersistenceService(adapter);
+        await service.bootstrapGuildState('guild-settings-registry', buildInstance());
+        await adapter.close();
+
+        const database = new Database(databasePath);
+        database
+            .prepare("DELETE FROM guild_settings WHERE guild_id = ? AND setting_key = 'general.prefix'")
+            .run('guild-settings-registry');
+        database
+            .prepare('INSERT INTO guild_settings (guild_id, setting_key, setting_value) VALUES (?, ?, ?)')
+            .run('guild-settings-registry', 'general.removedSetting', 'ignored');
+        database.close();
+
+        const secondAdapter = new SqliteAdapter(databasePath);
+        await secondAdapter.init();
+        const settings = await secondAdapter.readGuildSettings('guild-settings-registry');
+        assert.equal(settings.generalSettings.prefix, '!');
+        assert.equal(settings.generalSettings.removedSetting, undefined);
+        assert.equal(settings.notificationSettings.cargoShipDetectedSetting.image, 'cargoship_logo.png');
+        await secondAdapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function postgresSmoke(): Promise<void> {
+    const postgresUrl = process.env.RPP_TEST_POSTGRES_URL;
+    if (!postgresUrl) return;
+
+    const root = prepareTempCwd('rpp-postgres-smoke-');
+    migratePostgres(postgresUrl);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        await adapterRoundTrip(new PostgresAdapter(postgresUrl));
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+async function postgresLegacyMigrationSmoke(): Promise<void> {
+    const postgresUrl = process.env.RPP_TEST_POSTGRES_MIGRATION_URL;
+    if (!postgresUrl) return;
+
+    const root = prepareTempCwd('rpp-postgres-legacy-smoke-');
+    fs.writeFileSync(path.join(root, 'instances', 'guild-legacy.json'), JSON.stringify(buildInstance(), null, 2));
+    fs.writeFileSync(path.join(root, 'credentials', 'guild-legacy.json'), JSON.stringify(buildCredentials(), null, 2));
+    migratePostgres(postgresUrl);
+
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+        const adapter = new PostgresAdapter(postgresUrl);
+        await adapter.init();
+        const settings = await adapter.readGuildSettings('guild-legacy');
+        const instance = createEmptyInstance(settings.generalSettings, settings.notificationSettings);
+        Object.assign(instance, await adapter.readGuildCore('guild-legacy'));
+        instance.serverList = await adapter.readServers('guild-legacy');
+        Object.assign(instance, await adapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(instance, await adapter.readCredentials('guild-legacy'));
+        await adapter.close();
+
+        // Second init should skip migration (already completed) and still read back the same data
+        const secondAdapter = new PostgresAdapter(postgresUrl);
+        await secondAdapter.init();
+        const secondSettings = await secondAdapter.readGuildSettings('guild-legacy');
+        const secondInstance = createEmptyInstance(secondSettings.generalSettings, secondSettings.notificationSettings);
+        Object.assign(secondInstance, await secondAdapter.readGuildCore('guild-legacy'));
+        secondInstance.serverList = await secondAdapter.readServers('guild-legacy');
+        Object.assign(secondInstance, await secondAdapter.readGuildCollections('guild-legacy'));
+        assertRoundTrip(secondInstance, await secondAdapter.readCredentials('guild-legacy'));
+        await secondAdapter.close();
+    } finally {
+        process.chdir(originalCwd);
+    }
+}
+
+await sqliteSmoke();
+await sqliteRollbackSmoke();
+await sqliteConcurrentTargetedPatchSmoke();
+await sqliteTargetedKeyValueSmoke();
+await sqliteLegacyMigrationSmoke();
+await sqliteSettingsRegistryFallbackSmoke();
+await postgresSmoke();
+await postgresLegacyMigrationSmoke();
+console.log('persistence smoke passed');

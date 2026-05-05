@@ -2,8 +2,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 
 import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Timer from '../domain/timer.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Timer from '../util/timer.js';
 
 export default {
     name: 'uptime',

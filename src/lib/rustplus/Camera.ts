@@ -79,12 +79,12 @@ export class Camera extends EventEmitter {
         }
     }
 
-    private async _onRender(image: Buffer): Promise<void> {
+    private _onRender(image: Buffer): Promise<void> {
         if (!this.isSubscribed) return;
         this.emit('render', image);
     }
 
-    private async _renderCameraFrame(frames: any[], width: number, height: number): Promise<Buffer> {
+    private _renderCameraFrame(frames: any[], width: number, height: number): Promise<Buffer> {
         const samplePositionBuffer = new Int16Array(width * height * 2);
         for (let w = 0, _ = 0; _ < height; _++) {
             for (let g = 0; g < width; g++) {
@@ -260,7 +260,7 @@ export class Camera extends EventEmitter {
         this.emit('unsubscribed');
     }
 
-    async move(buttons: number, x: number, y: number): Promise<any> {
+    move(buttons: number, x: number, y: number): Promise<any> {
         return this.rustplus.sendRequestAsync({ cameraInput: { buttons, mouseDelta: { x, y } } });
     }
 

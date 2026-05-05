@@ -5,8 +5,8 @@ import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
 import { normalizeFcmNumericCredential } from '../lib/fcm/credentials.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
 
 export default {
     name: 'credentials',
@@ -119,7 +119,7 @@ export default {
 
 async function addCredentials(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const steamId = interaction.options.getString('steam_id');
     const isHoster = interaction.options.getBoolean('host') || Object.keys(credentials).length === 1;
     let androidId: string;
@@ -139,7 +139,7 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     }
 
     if (Object.keys(credentials).length !== 1 && isHoster) {
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -167,10 +167,10 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
     const prevHoster = credentials.hoster;
     if (isHoster) credentials.hoster = steamId;
 
-    InstanceUtils.writeCredentialsFile(guildId, credentials);
+    await getPersistenceCache().setCredentials(guildId, credentials);
 
     /* Start Fcm Listener */
-    const FcmListener = await import('../util/FcmListener.js');
+    const FcmListener = await import('../infrastructure/FcmListener.js');
     if (isHoster) {
         await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId));
         if (prevHoster !== null) {
@@ -208,11 +208,11 @@ async function addCredentials(client: DiscordBot, interaction: any, verifyId: st
 
 async function removeCredentials(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     let steamId = interaction.options.getString('steam_id');
 
     if (steamId && steamId in credentials && credentials[steamId].discord_user_id !== interaction.member.user.id) {
-        if (!client.isAdministrator(interaction)) {
+        if (!(await client.isAdministrator(interaction))) {
             const str = client.intlGet(interaction.guildId, 'missingPermission');
             client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
             client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -254,7 +254,7 @@ async function removeCredentials(client: DiscordBot, interaction: any, verifyId:
     }
 
     delete credentials[steamId];
-    InstanceUtils.writeCredentialsFile(guildId, credentials);
+    await getPersistenceCache().setCredentials(guildId, credentials);
 
     client.log(
         client.intlGet(null, 'infoCap'),
@@ -287,10 +287,10 @@ async function showCredentials(client: DiscordBot, interaction: any, verifyId: s
 
 async function setHosterCredentials(client: DiscordBot, interaction: any, verifyId: string) {
     const guildId = interaction.guildId;
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     let steamId = interaction.options.getString('steam_id');
 
-    if (!client.isAdministrator(interaction)) {
+    if (!(await client.isAdministrator(interaction))) {
         const str = client.intlGet(interaction.guildId, 'missingPermission');
         client.interactionEditReply(interaction, DiscordEmbeds.getActionInfoEmbed(1, str));
         client.log(client.intlGet(null, 'warningCap'), str, 'warn');
@@ -312,20 +312,20 @@ async function setHosterCredentials(client: DiscordBot, interaction: any, verify
 
     const prevHoster = credentials.hoster;
     credentials.hoster = steamId;
-    InstanceUtils.writeCredentialsFile(guildId, credentials);
+    await getPersistenceCache().setCredentials(guildId, credentials);
 
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const rustplus = client.rustplusInstances[guildId];
     if (rustplus) {
         instance.activeServer = null;
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().updateGuildCoreFields(guildId, { activeServer: null });
         client.resetRustplusVariables(guildId);
         rustplus.disconnect();
         delete client.rustplusInstances[guildId];
         await DiscordMessages.sendServerMessage(guildId, rustplus.serverId);
     }
 
-    const FcmListener = await import('../util/FcmListener.js');
+    const FcmListener = await import('../infrastructure/FcmListener.js');
     await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId));
     if (prevHoster !== null) {
         await FcmListener.default(client, DiscordTools.getGuild(interaction.guildId), prevHoster);

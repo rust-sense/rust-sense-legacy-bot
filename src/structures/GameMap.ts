@@ -5,8 +5,8 @@ import { Jimp, loadFont } from 'jimp';
 type JimpImage = Awaited<ReturnType<typeof Jimp.read>>;
 type JimpFont = Awaited<ReturnType<typeof loadFont>>;
 
+import * as Constants from '../domain/constants.js';
 import { client } from '../index.js';
-import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 
 interface Monument {
@@ -59,6 +59,26 @@ interface MonumentInfo {
     clean: string;
     map: string;
     radius: number;
+}
+
+interface MonumentLabelGroup {
+    token: string;
+    name: string;
+    x: number;
+    y: number;
+    worldX: number;
+    worldY: number;
+    count: number;
+}
+
+function normalizeMonumentToken(token?: string): string {
+    if (!token) return '';
+
+    const lowerToken = token.toLowerCase();
+    if (lowerToken.includes('underwater-lab') || lowerToken.includes('underwater_lab')) return 'underwater_lab';
+    if (lowerToken === 'radtown' || lowerToken.endsWith('/radtown.prefab')) return 'radtown';
+
+    return token;
 }
 
 export default class GameMap {
@@ -265,6 +285,11 @@ export default class GameMap {
                 map: client.intlGet(rustplus.guildId, 'powerPlant').toUpperCase(),
                 radius: 112,
             },
+            radtown: {
+                clean: client.intlGet(rustplus.guildId, 'radtown'),
+                map: client.intlGet(rustplus.guildId, 'radtown').toUpperCase(),
+                radius: 75,
+            },
             satellite_dish_display_name: {
                 clean: client.intlGet(rustplus.guildId, 'satelliteDish'),
                 map: client.intlGet(rustplus.guildId, 'satelliteDish').toUpperCase(),
@@ -380,18 +405,30 @@ export default class GameMap {
         this._monumentInfo = v;
     }
 
+    getNormalizedMonumentToken(token?: string): string {
+        return normalizeMonumentToken(token);
+    }
+
+    getMonumentInfo(token?: string): MonumentInfo | undefined {
+        return this.monumentInfo[this.getNormalizedMonumentToken(token)];
+    }
+
     isWidthChanged(map: MapData): boolean {
         return this.width !== map.width;
     }
+
     isHeightChanged(map: MapData): boolean {
         return this.height !== map.height;
     }
+
     isOceanMarginChanged(map: MapData): boolean {
         return this.oceanMargin !== map.oceanMargin;
     }
+
     isMonumentsChanged(map: MapData): boolean {
         return JSON.stringify(this.monuments) !== JSON.stringify(map.monuments);
     }
+
     isBackgroundChanged(map: MapData): boolean {
         return this.background !== map.background;
     }
@@ -412,7 +449,7 @@ export default class GameMap {
         await this.setupMapMarkerImages();
     }
 
-    async writeMapClean(): Promise<void> {
+    writeMapClean(): void {
         fs.writeFileSync(this.mapMarkerImageMeta.map.image, client.rustplusMaps[this.rustplus.guildId] as string);
     }
 
@@ -433,19 +470,62 @@ export default class GameMap {
         }
     }
 
-    async mapAppendMonuments(): Promise<void> {
+    getMonumentMapPosition(monument: Monument): { x: number; y: number } {
+        const x = monument.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info!.mapSize) + this.oceanMargin;
+        const n = this.height - 2 * this.oceanMargin;
+        const y = this.height - (monument.y * (n / this.rustplus.info!.mapSize) + this.oceanMargin);
+        return { x, y };
+    }
+
+    getMonumentLabelGroups(): MonumentLabelGroup[] {
+        const groups: MonumentLabelGroup[] = [];
+
+        for (const monument of this.monuments) {
+            if (monument.token === 'DungeonBase') continue;
+            if (monument.token === 'train_tunnel_display_name') continue;
+            if (monument.token === 'train_tunnel_link_display_name') continue;
+
+            const token = this.getNormalizedMonumentToken(monument.token);
+            const name = this.getMonumentInfo(monument.token)?.map ?? monument.token ?? '';
+            if (!name) continue;
+
+            const group = groups.find((candidate) => {
+                if (candidate.token !== token) return false;
+                return Math.hypot(candidate.worldX - monument.x, candidate.worldY - monument.y) <= 150;
+            });
+
+            if (group) {
+                const { x, y } = this.getMonumentMapPosition(monument);
+                group.x = (group.x * group.count + x) / (group.count + 1);
+                group.y = (group.y * group.count + y) / (group.count + 1);
+                group.worldX = (group.worldX * group.count + monument.x) / (group.count + 1);
+                group.worldY = (group.worldY * group.count + monument.y) / (group.count + 1);
+                group.count += 1;
+                continue;
+            }
+
+            groups.push({
+                token,
+                name,
+                ...this.getMonumentMapPosition(monument),
+                worldX: monument.x,
+                worldY: monument.y,
+                count: 1,
+            });
+        }
+
+        return groups;
+    }
+
+    mapAppendMonuments(): Promise<void> {
         if (this.rustplus.info === null) {
             this.rustplus.log(client.intlGet(null, 'warningCap'), client.intlGet(null, 'couldNotAppendMapMonuments'));
             return;
         }
 
         for (const monument of this.monuments) {
-            const x =
-                monument.x * ((this.width - 2 * this.oceanMargin) / this.rustplus.info.mapSize) + this.oceanMargin;
-            const n = this.height - 2 * this.oceanMargin;
-            const y = this.height - (monument.y * (n / this.rustplus.info.mapSize) + this.oceanMargin);
-
             try {
+                const { x, y } = this.getMonumentMapPosition(monument);
                 if (monument.token === 'train_tunnel_display_name') {
                     const size = this.mapMarkerImageMeta.tunnels.size!;
                     this.mapMarkerImageMeta.map.jimp!.composite(
@@ -460,21 +540,21 @@ export default class GameMap {
                         x - size / 2,
                         y - size / 2,
                     );
-                } else {
-                    if (monument.token === 'DungeonBase') continue;
-
-                    const name =
-                        monument.token && Object.hasOwn(this.monumentInfo, monument.token)
-                            ? this.monumentInfo[monument.token].map
-                            : (monument.token ?? '');
-                    const comp = name.length * 5;
-                    this.mapMarkerImageMeta.map.jimp!.print({
-                        font: this.font!,
-                        x: x - comp,
-                        y: y - 10,
-                        text: name,
-                    });
                 }
+            } catch (_e) {
+                /* Ignore */
+            }
+        }
+
+        for (const group of this.getMonumentLabelGroups()) {
+            try {
+                const comp = group.name.length * 5;
+                this.mapMarkerImageMeta.map.jimp!.print({
+                    font: this.font!,
+                    x: group.x - comp,
+                    y: group.y - 10,
+                    text: group.name,
+                });
             } catch (_e) {
                 /* Ignore */
             }
@@ -591,7 +671,7 @@ export default class GameMap {
         return { x, y };
     }
 
-    async gmWriteAsync(image: ReturnType<typeof Gm>, path: string): Promise<void> {
+    gmWriteAsync(image: ReturnType<typeof Gm>, path: string): Promise<void> {
         return new Promise((resolve, reject) => {
             image.write(path, (err) => {
                 if (err) reject(err);
@@ -617,7 +697,7 @@ export default class GameMap {
         return Math.floor(gridSize) * 7;
     }
 
-    static async getMapImage(rustplus: RustplusLike): Promise<Buffer | null> {
+    static getMapImage(rustplus: RustplusLike): Buffer | null {
         const mapImage = client.rustplusMaps[rustplus.guildId];
         if (!mapImage) return null;
         return Buffer.from(mapImage as string, 'base64');

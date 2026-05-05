@@ -1,6 +1,6 @@
-import * as Constants from '../util/constants.js';
-import * as GameMap from '../util/GameMap.js';
-import * as Time from '../util/timer.js';
+import * as Constants from '../domain/constants.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Time from '../domain/timer.js';
 
 interface PlayerData {
     steamId: string | number;
@@ -158,24 +158,31 @@ export default class Player {
     isSteamIdChanged(player: PlayerData): boolean {
         return this.steamId !== player.steamId.toString();
     }
+
     isNameChanged(player: PlayerData): boolean {
         return this.name !== player.name;
     }
+
     isXChanged(player: PlayerData): boolean {
         return this.x !== player.x;
     }
+
     isYChanged(player: PlayerData): boolean {
         return this.y !== player.y;
     }
+
     isOnlineChanged(player: PlayerData): boolean {
         return this.isOnline !== player.isOnline;
     }
+
     isSpawnTimeChanged(player: PlayerData): boolean {
         return this.spawnTime !== player.spawnTime;
     }
+
     isAliveChanged(player: PlayerData): boolean {
         return this.isAlive !== player.isAlive;
     }
+
     isDeathTimeChanged(player: PlayerData): boolean {
         return this.deathTime !== player.deathTime;
     }
@@ -184,21 +191,27 @@ export default class Player {
     isGoneOnline(player: PlayerData): boolean {
         return this.isOnline === false && player.isOnline === true;
     }
+
     isGoneOffline(player: PlayerData): boolean {
         return this.isOnline === true && player.isOnline === false;
     }
+
     isGoneAlive(player: PlayerData): boolean {
         return this.isAlive === false && player.isAlive === true;
     }
+
     isGoneDead(player: PlayerData): boolean {
         return (this.isAlive === true && player.isAlive === false) || this.isDeathTimeChanged(player);
     }
+
     isMoved(player: PlayerData): boolean {
         return this.isXChanged(player) || this.isYChanged(player);
     }
+
     isAfk(): boolean {
         return this.afkSeconds >= Constants.AFK_TIME_SECONDS;
     }
+
     isGoneAfk(player: PlayerData): boolean {
         return (
             !this.isAfk() &&
@@ -252,6 +265,7 @@ export default class Player {
     getAfkSeconds(): number {
         return (new Date().getTime() - this.lastMovement.getTime()) / 1000;
     }
+
     getAfkTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getAfkSeconds(), ignore);
     }
@@ -260,6 +274,7 @@ export default class Player {
         if (this.spawnTime === 0) return 0;
         return (new Date().getTime() - new Date(this.spawnTime * 1000).getTime()) / 1000;
     }
+
     getAliveTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getAliveSeconds(), ignore);
     }
@@ -268,9 +283,11 @@ export default class Player {
         if (this.deathTime === 0) return 0;
         return (new Date().getTime() - new Date(this.deathTime * 1000).getTime()) / 1000;
     }
+
     getDeathTime(ignore = ''): string {
         return Time.secondsToFullScale(this.getDeathSeconds(), ignore);
     }
+
     getOfflineTime(ignore = ''): string | null {
         if (this.wentOfflineTime === null) return null;
         const seconds = (new Date().getTime() - this.wentOfflineTime.getTime()) / 1000;

@@ -3,7 +3,7 @@ name: Translate language files
 on:
   pull_request:
     branches:
-      - master
+      - develop
 
 permissions:
   contents: write
@@ -16,6 +16,8 @@ concurrency:
 jobs:
   translate-language:
     runs-on: ubuntu-latest
+    env:
+      DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
 
     steps:
       - name: Checkout PR branch
@@ -35,20 +37,20 @@ jobs:
           pip install requests
 
       - name: Run translation script
-        env:
-          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+        if: ${{ env.DEEPL_API_KEY != '' }}
         run: |
-          python src/external/translate_language_json.py \
-            --source src/languages/en.json \
-            --output-dir src/languages \
+          python scripts/translate_language_json.py \
+            --source resources/languages/en.json \
+            --output-dir resources/languages \
             --provider deepl
 
       - name: Commit translation changes
+        if: ${{ env.DEEPL_API_KEY != '' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add src/languages/*.json
+          git add resources/languages/*.json
 
           if git diff --cached --quiet; then
             echo "No translation changes to commit."

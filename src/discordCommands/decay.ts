@@ -2,8 +2,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as Timer from '../domain/timer.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Timer from '../util/timer.js';
 
 export default {
     name: 'decay',

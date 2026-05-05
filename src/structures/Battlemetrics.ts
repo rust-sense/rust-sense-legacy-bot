@@ -1,8 +1,8 @@
 import Axios from 'axios';
 
 import { client } from '../index.js';
-import getStaticFilesStorage from '../util/getStaticFilesStorage.js';
-import * as Utils from '../util/utils.js';
+import getStaticFilesStorage from '../infrastructure/getStaticFilesStorage.js';
+import * as Utils from '../utils/stringUtils.js';
 
 const randomUsernamesData = getStaticFilesStorage().getDatasetObject('RandomUsernames') as {
     RandomUsernames?: string[];
@@ -245,6 +245,7 @@ export default class Battlemetrics {
                 url: this.GET_BATTLEMETRICS_PLAYER_URL(entity.id),
             });
         }
+
         if (Object.hasOwn(data, 'links') && Object.hasOwn(data.links, 'next')) {
             parsed.next = data.links.next;
         }
@@ -298,6 +299,7 @@ export default class Battlemetrics {
         } else if (value1 !== value2) {
             isDifferent = true;
         }
+
         if (isDifferent) {
             this.serverEvaluation[key] = { from: value1, to: value2 };
             this.#updateServerLog({ key, from: value1, to: value2, time: new Date().toISOString() });
@@ -373,6 +375,7 @@ export default class Battlemetrics {
             );
             return null;
         }
+
         for (const server of response.data.data) {
             if (server.attributes.name === originalName) return server.id;
         }

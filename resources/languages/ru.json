@@ -606,6 +606,7 @@
     "proxLocation": "{name} в {distance}m от {caller} направление {direction}° [{location}]",
     "quantity": "Количество",
     "questionMark": "Вопросительный знак",
+    "radtown": "Radtown",
     "ranch": "Ранчо",
     "ratelimited": "RATELIMITED",
     "reconnectingCap": "ПЕРЕПОДКЛЮЧЕНИЕ",

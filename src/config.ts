@@ -13,4 +13,10 @@ export default {
         token: process.env.RPP_DISCORD_TOKEN || '',
         ownerUserId: process.env.RPP_DISCORD_OWNER_USER_ID || null,
     },
+    persistence: {
+        adapter: (process.env.RPP_PERSISTENCE_ADAPTER || 'sqlite') as 'json' | 'sqlite' | 'postgres',
+        sqlitePath: process.env.RPP_SQLITE_PATH || 'data/state.sqlite',
+        postgresUrl: process.env.RPP_POSTGRES_URL || null,
+        migrateLegacyJson: process.env.RPP_MIGRATE_LEGACY_JSON !== 'false',
+    },
 };

@@ -173,6 +173,7 @@ export class PiperProvider implements TTSProvider {
                     clearTimeout(timeoutId);
                     timeoutId = null;
                 }
+
                 if (code === 0 || code === null) {
                     resolve();
                 } else {

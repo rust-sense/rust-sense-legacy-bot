@@ -3,6 +3,7 @@
     "version": "1.30.1",
     "description": "A NodeJS Discord Bot that uses the rustplus.js library to utilize the power of the Rust+ Companion App with additional Quality-of-Life features.",
     "type": "module",
+    "packageManager": "pnpm@11.0.4",
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
@@ -10,8 +11,12 @@
         "build": "pnpm run proto:gen && tsc",
         "test": "pnpm run proto:gen && tsc --noEmit",
         "dev": "pnpm run proto:gen && tsx watch src/index.ts",
+        "db:migrate": "pnpm run db:migrate:sqlite",
+        "db:migrate:sqlite": "dbmate --url sqlite3:data/state.sqlite --migrations-dir db/migrations/sqlite --schema-file /tmp/rust-sense-schema.sql up",
+        "db:migrate:postgres": "dbmate --migrations-dir db/migrations/postgresql --schema-file /tmp/rust-sense-schema.sql up",
+        "persistence:smoke": "tsx scripts/persistenceSmokeTest.ts",
         "format": "biome format --write",
-        "lint": "biome lint"
+        "lint": "biome check ."
     },
     "repository": {
         "type": "git",
@@ -30,32 +35,39 @@
         "@formatjs/intl": "^4.1.8",
         "awilix": "^13.0.3",
         "axios": "^1.15.2",
+        "better-sqlite3": "^12.9.0",
         "colors": "^1.4.0",
         "discord-api-types": "^0.38.47",
         "discord.js": "^14.26.3",
         "ffmpeg-static": "^5.3.0",
         "gm": "^1.25.1",
-        "intl-messageformat": "^11.2.3",
         "http_ece": "^1.2.0",
+        "intl-messageformat": "^11.2.3",
         "jimp": "^1.6.1",
         "lodash": "^4.18.1",
+        "pg": "^8.20.0",
         "sodium-native": "^5.1.0",
         "translate": "^3.0.1",
         "winston": "^3.19.0",
         "winston-daily-rotate-file": "^5.0.0",
         "ws": "^8.18.0"
     },
-    "resolutions": {
-        "jpeg-js": "0.4.4"
+    "pnpm": {
+        "overrides": {
+            "jpeg-js": "0.4.4"
+        }
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.13",
         "@bufbuild/buf": "^1.51.0",
         "@bufbuild/protoc-gen-es": "^2.5.2",
-        "@types/ws": "^8.5.14",
+        "@types/better-sqlite3": "^7.6.13",
         "@types/gm": "^1.25.4",
         "@types/lodash": "^4.17.16",
         "@types/node": "^24.0.0",
+        "@types/pg": "^8.20.0",
+        "@types/ws": "^8.5.14",
+        "dbmate": "^2.33.0",
         "tsx": "^4.19.4",
         "typescript": "^5.8.3"
     }

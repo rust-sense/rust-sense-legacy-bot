@@ -1,10 +1,10 @@
 import * as Discord from 'discord.js';
-
+import * as Constants from '../domain/constants.js';
+import { secondsToFullScale } from '../domain/timer.js';
 import { client } from '../index.js';
-import * as Constants from '../util/constants.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
-import { secondsToFullScale } from '../util/timer.js';
-import * as Utils from '../util/utils.js';
+import { getPersistenceCache } from '../persistence/index.js';
+import { getServerRustMapsUrl, serverIdToConnectString } from '../utils/serverUtils.js';
+import * as Utils from './discordFormattingUtils.js';
 import * as DiscordTools from './discordTools.js';
 
 function isValidUrl(url: string): boolean {
@@ -32,8 +32,8 @@ export function getEmbed(options: any = {}) {
     return embed;
 }
 
-export function getSmartSwitchEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getSmartSwitchEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].switches[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -55,8 +55,8 @@ export function getSmartSwitchEmbed(guildId, serverId, entityId) {
 }
 
 export async function getServerEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId);
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const server = instance.serverList[serverId];
     let hoster: any = client.intlGet(guildId, 'unknown');
     if (Object.hasOwn(credentials, server.steamId)) {
@@ -69,6 +69,10 @@ export async function getServerEmbed(guildId, serverId) {
         const bmId = server.battlemetricsId;
         const bmIdLink = `[${bmId}](${Constants.BATTLEMETRICS_SERVER_URL}${bmId})`;
         description += `__**${client.intlGet(guildId, 'battlemetricsId')}:**__ ${bmIdLink}\n`;
+        const rustMapsUrl = getServerRustMapsUrl(client, server);
+        if (rustMapsUrl) {
+            description += `__**RustMaps:**__ [${client.intlGet(guildId, 'map')}](${rustMapsUrl})\n`;
+        }
 
         const bmInstance = client.battlemetricsInstances[bmId];
         if (bmInstance) {
@@ -78,6 +82,8 @@ export async function getServerEmbed(guildId, serverId) {
     }
     description += `\n${server.description}`;
 
+    const connectStr = server.connect ?? serverIdToConnectString(serverId);
+
     return getEmbed({
         title: `${server.title}`,
         color: Constants.COLOR_DEFAULT,
@@ -86,7 +92,7 @@ export async function getServerEmbed(guildId, serverId) {
         fields: [
             {
                 name: client.intlGet(guildId, 'connect'),
-                value: `\`${server.connect === null ? client.intlGet(guildId, 'unavailable') : server.connect}\``,
+                value: `\`${connectStr}\``,
                 inline: true,
             },
             {
@@ -98,8 +104,8 @@ export async function getServerEmbed(guildId, serverId) {
     });
 }
 
-export function getTrackerEmbed(guildId, trackerId) {
-    const instance = client.getInstance(guildId);
+export async function getTrackerEmbed(guildId, trackerId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const tracker = instance.trackers[trackerId];
     const battlemetricsId = tracker.battlemetricsId;
     const bmInstance = client.battlemetricsInstances[battlemetricsId];
@@ -238,8 +244,8 @@ export function getTrackerEmbed(guildId, trackerId) {
     });
 }
 
-export function getSmartAlarmEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getSmartAlarmEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].alarms[entityId];
     const grid = Utils.getGridSuffix(entity.location);
     let description = `**ID**: \`${entityId}\`\n`;
@@ -274,8 +280,8 @@ export function getSmartAlarmEmbed(guildId, serverId, entityId) {
     });
 }
 
-export function getStorageMonitorEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getStorageMonitorEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
     const rustplus = client.rustplusInstances[guildId];
     const grid = Utils.getGridSuffix(entity.location);
@@ -324,14 +330,11 @@ export function getStorageMonitorEmbed(guildId, serverId, entityId) {
         let upkeep = null;
         if (seconds === 0) {
             upkeep = `:warning:\`${client.intlGet(guildId, 'decayingCap')}\`:warning:`;
-            instance.serverList[serverId].storageMonitors[entityId].upkeep = client.intlGet(guildId, 'decayingCap');
         } else {
             let upkeepTime = secondsToFullScale(seconds);
             upkeep = `\`${upkeepTime}\``;
-            instance.serverList[serverId].storageMonitors[entityId].upkeep = `${upkeepTime}`;
         }
         description += `\n**${client.intlGet(guildId, 'upkeep')}** ${upkeep}`;
-        client.setInstance(guildId, instance);
     }
 
     let itemName = '',
@@ -367,8 +370,8 @@ export function getStorageMonitorEmbed(guildId, serverId, entityId) {
     });
 }
 
-export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
-    const instance = client.getInstance(guildId);
+export async function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const group = instance.serverList[serverId].switchGroups[groupId];
 
     let switchName = '',
@@ -385,13 +388,8 @@ export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
             } else {
                 switchActive += `${Constants.NOT_FOUND_EMOJI}\n`;
             }
-        } else {
-            instance.serverList[serverId].switchGroups[groupId].switches = instance.serverList[serverId].switchGroups[
-                groupId
-            ].switches.filter((e) => e !== groupSwitchId);
         }
     }
-    client.setInstance(guildId, instance);
 
     if (switchName === '') switchName = client.intlGet(guildId, 'none');
     if (switchId === '') switchId = client.intlGet(guildId, 'none');
@@ -418,8 +416,8 @@ export function getSmartSwitchGroupEmbed(guildId, serverId, groupId) {
     });
 }
 
-export function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
-    const instance = client.getInstance(guildId);
+export async function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId][type][entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -433,8 +431,8 @@ export function getNotFoundSmartDeviceEmbed(guildId, serverId, entityId, type) {
     });
 }
 
-export function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items) {
-    const instance = client.getInstance(guildId);
+export async function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -464,8 +462,8 @@ export function getStorageMonitorRecycleEmbed(guildId, serverId, entityId, items
     return embed;
 }
 
-export function getDecayingNotificationEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getDecayingNotificationEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -481,8 +479,8 @@ export function getDecayingNotificationEmbed(guildId, serverId, entityId) {
     });
 }
 
-export function getStorageMonitorDisconnectNotificationEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getStorageMonitorDisconnectNotificationEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].storageMonitors[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -499,10 +497,10 @@ export function getStorageMonitorDisconnectNotificationEmbed(guildId, serverId, 
 }
 
 export async function getStorageMonitorNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = server.storageMonitors[entityId];
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -520,10 +518,10 @@ export async function getStorageMonitorNotFoundEmbed(guildId, serverId, entityId
 }
 
 export async function getSmartSwitchNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = instance.serverList[serverId].switches[entityId];
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -541,10 +539,10 @@ export async function getSmartSwitchNotFoundEmbed(guildId, serverId, entityId) {
 }
 
 export async function getSmartAlarmNotFoundEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     const entity = server.alarms[entityId];
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     const user = await DiscordTools.getUserById(guildId, credentials[server.steamId].discord_user_id);
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -606,8 +604,8 @@ export function getAlarmRaidAlarmEmbed(data, body) {
     });
 }
 
-export function getAlarmEmbed(guildId, serverId, entityId) {
-    const instance = client.getInstance(guildId);
+export async function getAlarmEmbed(guildId, serverId, entityId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].alarms[entityId];
     const grid = Utils.getGridSuffix(entity.location);
 
@@ -624,8 +622,8 @@ export function getAlarmEmbed(guildId, serverId, entityId) {
     });
 }
 
-export function getEventEmbed(guildId, serverId, text, image, color = Constants.COLOR_DEFAULT) {
-    const instance = client.getInstance(guildId);
+export async function getEventEmbed(guildId, serverId, text, image, color = Constants.COLOR_DEFAULT) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: color,
@@ -649,8 +647,8 @@ export function getActionInfoEmbed(color, str, footer = null, ephemeral = true) 
     };
 }
 
-export function getServerChangedStateEmbed(guildId, serverId, state) {
-    const instance = client.getInstance(guildId);
+export async function getServerChangedStateEmbed(guildId, serverId, state) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: state ? Constants.COLOR_INACTIVE : Constants.COLOR_ACTIVE,
@@ -661,8 +659,8 @@ export function getServerChangedStateEmbed(guildId, serverId, state) {
     });
 }
 
-export function getServerWipeDetectedEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId);
+export async function getServerWipeDetectedEmbed(guildId, serverId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
@@ -673,8 +671,8 @@ export function getServerWipeDetectedEmbed(guildId, serverId) {
     });
 }
 
-export function getServerConnectionInvalidEmbed(guildId, serverId) {
-    const instance = client.getInstance(guildId);
+export async function getServerConnectionInvalidEmbed(guildId, serverId) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_INACTIVE,
@@ -685,8 +683,8 @@ export function getServerConnectionInvalidEmbed(guildId, serverId) {
     });
 }
 
-export function getActivityNotificationEmbed(guildId, serverId, color, text, steamId, png, title = null) {
-    const instance = client.getInstance(guildId);
+export async function getActivityNotificationEmbed(guildId, serverId, color, text, steamId, png, title = null) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const footerTitle = title !== null ? title : instance.serverList[serverId].title;
     return getEmbed({
         color: color,
@@ -700,9 +698,9 @@ export function getActivityNotificationEmbed(guildId, serverId, color, text, ste
     });
 }
 
-export function getUpdateServerInformationEmbed(rustplus) {
+export async function getUpdateServerInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     const time = rustplus.getCommandTime(true);
     const timeLeftTitle = client.intlGet(rustplus.guildId, 'timeTill', {
@@ -715,6 +713,8 @@ export function getUpdateServerInformationEmbed(rustplus) {
     const mapSeedFieldName = client.intlGet(guildId, 'mapSeed');
     const mapSaltFieldName = client.intlGet(guildId, 'mapSalt');
     const mapFieldName = client.intlGet(guildId, 'map');
+    const mapSalt = rustplus.info.salt ?? client.intlGet(guildId, 'unavailable');
+    const rustMapsUrl = getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]);
 
     const embed = getEmbed({
         title: client.intlGet(guildId, 'serverInfo'),
@@ -742,8 +742,13 @@ export function getUpdateServerInformationEmbed(rustplus) {
     embed.addFields(
         { name: mapSizeFieldName, value: `\`${rustplus.info.mapSize}\``, inline: true },
         { name: mapSeedFieldName, value: `\`${rustplus.info.seed}\``, inline: true },
-        { name: mapSaltFieldName, value: `\`${rustplus.info.salt}\``, inline: true },
+        { name: mapSaltFieldName, value: `\`${mapSalt}\``, inline: true },
         { name: mapFieldName, value: `\`${rustplus.info.map}\``, inline: true },
+        {
+            name: 'RustMaps Link',
+            value: rustMapsUrl ? `[${mapFieldName}](${rustMapsUrl})` : `\`${client.intlGet(guildId, 'unavailable')}\``,
+            inline: true,
+        },
     );
 
     if (instance.serverList[rustplus.serverId].connect !== null) {
@@ -757,9 +762,9 @@ export function getUpdateServerInformationEmbed(rustplus) {
     return embed;
 }
 
-export function getUpdateEventInformationEmbed(rustplus) {
+export async function getUpdateEventInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     const cargoshipFieldName = client.intlGet(guildId, 'cargoship');
     const patrolHelicopterFieldName = client.intlGet(guildId, 'patrolHelicopter');
@@ -796,9 +801,9 @@ export function getUpdateEventInformationEmbed(rustplus) {
     });
 }
 
-export function getUpdateTeamInformationEmbed(rustplus) {
+export async function getUpdateTeamInformationEmbed(rustplus) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     const title = client.intlGet(guildId, 'teamMemberInfo');
     const teamMemberFieldName = client.intlGet(guildId, 'teamMember');
@@ -988,8 +993,8 @@ export function getUpdateBattlemetricsOnlinePlayersInformationEmbed(rustplus, ba
     return embed;
 }
 
-export function getDiscordCommandResponseEmbed(rustplus, response) {
-    const instance = client.getInstance(rustplus.guildId);
+export async function getDiscordCommandResponseEmbed(rustplus, response) {
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
 
     let string = '';
     if (Array.isArray(response)) {
@@ -1008,7 +1013,7 @@ export function getDiscordCommandResponseEmbed(rustplus, response) {
 }
 
 export async function getCredentialsShowEmbed(guildId) {
-    const credentials = InstanceUtils.readCredentialsFile(guildId);
+    const credentials = await getPersistenceCache().getCredentials(guildId);
     let names = '';
     let steamIds = '';
     let hoster = '';
@@ -1037,8 +1042,8 @@ export async function getCredentialsShowEmbed(guildId) {
     });
 }
 
-export function getItemAvailableVendingMachineEmbed(guildId, serverId, str) {
-    const instance = client.getInstance(guildId);
+export async function getItemAvailableVendingMachineEmbed(guildId, serverId, str) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
@@ -1050,8 +1055,8 @@ export function getItemAvailableVendingMachineEmbed(guildId, serverId, str) {
     });
 }
 
-export function getUserSendEmbed(guildId, serverId, sender, str) {
-    const instance = client.getInstance(guildId);
+export async function getUserSendEmbed(guildId, serverId, sender, str) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const server = instance.serverList[serverId];
     return getEmbed({
         color: Constants.COLOR_DEFAULT,
@@ -1085,6 +1090,7 @@ export function getCctvEmbed(guildId, monument, cctvCodes, dynamic) {
     for (const cctvCode of cctvCodes) {
         code += `${cctvCode} \n`;
     }
+
     if (dynamic) {
         code += client.intlGet(guildId, 'asteriskCctvDesc');
     }
@@ -1152,6 +1158,7 @@ export function getResearchEmbed(guildId, researchDetails) {
         typeString += `${client.intlGet(guildId, 'researchTable')}\n`;
         scrapString += `${researchDetails[2].researchTable}\n`;
     }
+
     if (researchDetails[2].workbench !== null) {
         typeString += `${(client.items).getName(researchDetails[2].workbench.type)}\n`;
         const scrap = researchDetails[2].workbench.scrap;
@@ -1206,8 +1213,8 @@ export function getRecycleEmbed(guildId, recycleDetails, quantity, recyclerType)
     });
 }
 
-export function getBattlemetricsEventEmbed(guildId, battlemetricsId, title, description, fields = null) {
-    const instance = client.getInstance(guildId);
+export async function getBattlemetricsEventEmbed(guildId, battlemetricsId, title, description, fields = null) {
+    const instance = await getPersistenceCache().readGuildState(guildId);
     const bmInstance = client.battlemetricsInstances[battlemetricsId];
 
     const serverId = `${bmInstance.server_ip}-${bmInstance.server_port}`;

@@ -1,5 +1,6 @@
 [tools]
 node = "24"
+dbmate = "latest"
 
 [env]
 _.file = ".env.json"

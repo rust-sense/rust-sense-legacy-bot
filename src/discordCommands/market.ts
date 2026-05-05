@@ -1,8 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as Constants from '../domain/constants.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 
 export default {
     name: 'market',
@@ -123,7 +124,7 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
         const verifyId = client.generateVerifyId();
@@ -321,7 +322,7 @@ export default {
                     } else {
                         instance.marketSubscriptionList[orderType].push(itemId);
                         rustplus.firstPollItems[orderType].push(itemId);
-                        client.setInstance(interaction.guildId, instance);
+                        await getPersistenceCache().addMarketSubscription(interaction.guildId, orderType, itemId);
 
                         const str = client.intlGet(interaction.guildId, 'justSubscribedToItem', {
                             name: itemName,
@@ -386,7 +387,7 @@ export default {
                         instance.marketSubscriptionList[orderType] = instance.marketSubscriptionList[orderType].filter(
                             (e: string) => e !== itemId,
                         );
-                        client.setInstance(interaction.guildId, instance);
+                        await getPersistenceCache().removeMarketSubscription(interaction.guildId, orderType, itemId);
 
                         const str = client.intlGet(interaction.guildId, 'removedSubscribeItem', {
                             name: itemName,
@@ -489,7 +490,7 @@ export default {
                             rustplus.log(client.intlGet(interaction.guildId, 'warningCap'), str, 'warn');
                         } else {
                             instance.marketBlacklist.push(name);
-                            client.setInstance(interaction.guildId, instance);
+                            await getPersistenceCache().addMarketBlacklistItem(interaction.guildId, name);
 
                             const str = client.intlGet(interaction.guildId, 'justBlacklisted', {
                                 name: name,
@@ -500,7 +501,7 @@ export default {
                     } else if (choice === 'remove' && name !== null) {
                         if (instance.marketBlacklist.includes(name)) {
                             instance.marketBlacklist = instance.marketBlacklist.filter((e: string) => e !== name);
-                            client.setInstance(interaction.guildId, instance);
+                            await getPersistenceCache().removeMarketBlacklistItem(interaction.guildId, name);
 
                             const str = client.intlGet(interaction.guildId, 'removedBlacklist', {
                                 name: name,

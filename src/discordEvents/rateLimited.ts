@@ -1,6 +1,6 @@
 export default {
     name: 'rateLimited',
-    async execute(client, info) {
+    execute(client, info) {
         client.log(
             client.intlGet(null, 'ratelimited'),
             `Timeout: ${info.timeToReset}, ` +

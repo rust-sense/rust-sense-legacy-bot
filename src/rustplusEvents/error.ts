@@ -58,8 +58,7 @@ function errorNotFound(rustplus: any, client: any, err: any) {
         );
     }
 }
-
-async function errorConnRefused(rustplus: any, client: any, err: any) {
+function errorConnRefused(rustplus: any, client: any, err: any) {
     rustplus.log(
         client.intlGet(null, 'errorCap'),
         client.intlGet(null, 'connectionRefusedTo', {

@@ -1,6 +1,7 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import * as TeamHandler from '../handlers/teamHandler.js';
-import * as Constants from '../util/constants.js';
+import * as Constants from '../domain/constants.js';
+import { getPersistenceCache } from '../persistence/index.js';
+import * as TeamHandler from '../services/teamService.js';
 
 export default {
     name: 'message',
@@ -12,43 +13,40 @@ export default {
         if (Object.hasOwn(message, 'response')) {
             messageResponse(rustplus, client, message);
         } else if (Object.hasOwn(message, 'broadcast')) {
-            messageBroadcast(rustplus, client, message);
+            await messageBroadcast(rustplus, client, message);
         }
     },
 };
-
-async function messageResponse(rustplus: any, client: any, message: any) {
+function messageResponse(rustplus: any, client: any, message: any) {
     /* Not implemented */
 }
-
 async function messageBroadcast(rustplus: any, client: any, message: any) {
     if (Object.hasOwn(message.broadcast, 'teamChanged')) {
-        messageBroadcastTeamChanged(rustplus, client, message);
+        await messageBroadcastTeamChanged(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'teamMessage')) {
-        messageBroadcastTeamMessage(rustplus, client, message);
+        await messageBroadcastTeamMessage(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'entityChanged')) {
-        messageBroadcastEntityChanged(rustplus, client, message);
+        await messageBroadcastEntityChanged(rustplus, client, message);
     } else if (Object.hasOwn(message.broadcast, 'cameraRays')) {
         messageBroadcastCameraRays(rustplus, client, message);
     }
 }
-
 async function messageBroadcastTeamChanged(rustplus: any, client: any, message: any) {
-    TeamHandler.handler(rustplus, client, message.broadcast.teamChanged.teamInfo);
+    await TeamHandler.processTeamUpdate(rustplus, client, message.broadcast.teamChanged.teamInfo);
     const changed = rustplus.team.isLeaderSteamIdChanged(message.broadcast.teamChanged.teamInfo);
     rustplus.team.updateTeam(message.broadcast.teamChanged.teamInfo);
     if (changed) rustplus.updateLeaderRustPlusLiteInstance();
 }
 
 async function messageBroadcastTeamMessage(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const steamId = message.broadcast.teamMessage.message.steamId.toString();
 
     if (steamId === rustplus.playerId) {
         /* Delay inGameChatHandler */
         clearTimeout(rustplus.inGameChatTimeout);
         const commandDelayMs = Number.parseInt(rustplus.generalSettings.commandDelay) * 1000;
-        const InGameChatHandler = await import('../handlers/inGameChatHandler.js');
+        const InGameChatHandler = await import('../services/inGameChatService.js');
         rustplus.inGameChatTimeout = setTimeout(InGameChatHandler.inGameChatHandler, commandDelayMs, rustplus, client);
     }
 
@@ -76,7 +74,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
             }),
             'info',
         );
-        const TeamChatHandler = await import('../handlers/teamChatHandler.js');
+        const TeamChatHandler = await import('../services/teamChatService.js');
         TeamChatHandler.default(rustplus, client, message.broadcast.teamMessage.message);
         return;
     }
@@ -91,7 +89,7 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         return;
     }
 
-    const CommandHandler = await import('../handlers/inGameCommandHandler.js');
+    const CommandHandler = await import('../services/inGameCommandService.js');
     const isCommand = await CommandHandler.inGameCommandHandler(rustplus, client, message);
     if (isCommand) return;
 
@@ -104,29 +102,28 @@ async function messageBroadcastTeamMessage(rustplus: any, client: any, message: 
         'info',
     );
 
-    const TeamChatHandler = await import('../handlers/teamChatHandler.js');
+    const TeamChatHandler = await import('../services/teamChatService.js');
     TeamChatHandler.default(rustplus, client, message.broadcast.teamMessage.message);
 }
 
 async function messageBroadcastEntityChanged(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const entityId = message.broadcast.entityChanged.entityId;
 
     if (Object.hasOwn(instance.serverList[rustplus.serverId].switches, entityId)) {
-        messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
+        await messageBroadcastEntityChangedSmartSwitch(rustplus, client, message);
     } else if (Object.hasOwn(instance.serverList[rustplus.serverId].alarms, entityId)) {
-        messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
+        await messageBroadcastEntityChangedSmartAlarm(rustplus, client, message);
     } else if (Object.hasOwn(instance.serverList[rustplus.serverId].storageMonitors, entityId)) {
-        messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
+        await messageBroadcastEntityChangedStorageMonitor(rustplus, client, message);
     }
 }
-
-async function messageBroadcastCameraRays(rustplus: any, client: any, message: any) {
+function messageBroadcastCameraRays(rustplus: any, client: any, message: any) {
     /* Not implemented */
 }
 
 async function messageBroadcastEntityChangedSmartSwitch(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const serverId = rustplus.serverId;
     const entityId = message.broadcast.entityChanged.entityId;
     const server = instance.serverList[serverId];
@@ -145,15 +142,15 @@ async function messageBroadcastEntityChangedSmartSwitch(rustplus: any, client: a
 
     const active = message.broadcast.entityChanged.payload.value;
     server.switches[entityId].active = active;
-    client.setInstance(rustplus.guildId, instance);
+    await getPersistenceCache().updateSmartSwitchFields(rustplus.guildId, serverId, entityId, { active });
 
-    DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
-    const SmartSwitchGroupHandler = await import('../handlers/smartSwitchGroupHandler.js');
-    SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
+    await DiscordMessages.sendSmartSwitchMessage(rustplus.guildId, serverId, entityId);
+    const SmartSwitchGroupHandler = await import('../services/smartSwitchGroupService.js');
+    await SmartSwitchGroupHandler.updateSwitchGroupIfContainSwitch(client, rustplus.guildId, serverId, entityId);
 }
 
 async function messageBroadcastEntityChangedSmartAlarm(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const serverId = rustplus.serverId;
     const entityId = message.broadcast.entityChanged.entityId;
     const server = instance.serverList[serverId];
@@ -163,11 +160,16 @@ async function messageBroadcastEntityChangedSmartAlarm(rustplus: any, client: an
     const active = message.broadcast.entityChanged.payload.value;
     server.alarms[entityId].active = active;
     server.alarms[entityId].reachable = true;
-    client.setInstance(rustplus.guildId, instance);
+    await getPersistenceCache().updateSmartAlarmFields(rustplus.guildId, serverId, entityId, {
+        active,
+        reachable: true,
+    });
 
     if (active) {
         server.alarms[entityId].lastTrigger = Math.floor(Date.now() / 1000);
-        client.setInstance(rustplus.guildId, instance);
+        await getPersistenceCache().updateSmartAlarmFields(rustplus.guildId, serverId, entityId, {
+            lastTrigger: server.alarms[entityId].lastTrigger,
+        });
         await DiscordMessages.sendSmartAlarmTriggerMessage(rustplus.guildId, serverId, entityId);
 
         if (instance.generalSettings.smartAlarmNotifyInGame) {
@@ -175,11 +177,11 @@ async function messageBroadcastEntityChangedSmartAlarm(rustplus: any, client: an
         }
     }
 
-    DiscordMessages.sendSmartAlarmMessage(rustplus.guildId, rustplus.serverId, entityId);
+    await DiscordMessages.sendSmartAlarmMessage(rustplus.guildId, rustplus.serverId, entityId);
 }
 
 async function messageBroadcastEntityChangedStorageMonitor(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const serverId = rustplus.serverId;
     const entityId = message.broadcast.entityChanged.entityId;
     const server = instance.serverList[serverId];
@@ -211,20 +213,25 @@ async function messageBroadcastEntityChangedStorageMonitor(rustplus: any, client
                 server.storageMonitors[entityId].type = 'largeWoodBox';
             }
         }
-        client.setInstance(rustplus.guildId, instance);
+        await getPersistenceCache().updateStorageMonitorFields(rustplus.guildId, serverId, entityId, {
+            reachable: server.storageMonitors[entityId].reachable,
+            type: server.storageMonitors[entityId].type,
+        });
 
         await DiscordMessages.sendStorageMonitorMessage(rustplus.guildId, serverId, entityId);
     }
 }
 
 async function updateToolCupboard(rustplus: any, client: any, message: any) {
-    const instance = client.getInstance(rustplus.guildId);
+    const instance = await getPersistenceCache().readGuildState(rustplus.guildId);
     const server = instance.serverList[rustplus.serverId];
     const entityId = message.broadcast.entityChanged.entityId;
 
     const info = await rustplus.getEntityInfoAsync(entityId);
     server.storageMonitors[entityId].reachable = rustplus.isResponseValid(info) ? true : false;
-    client.setInstance(rustplus.guildId, instance);
+    await getPersistenceCache().updateStorageMonitorFields(rustplus.guildId, rustplus.serverId, entityId, {
+        reachable: server.storageMonitors[entityId].reachable,
+    });
 
     if (server.storageMonitors[entityId].reachable) {
         rustplus.storageMonitors[entityId] = {
@@ -251,7 +258,10 @@ async function updateToolCupboard(rustplus: any, client: any, message: any) {
         } else if (info.entityInfo.payload.protectionExpiry !== 0) {
             server.storageMonitors[entityId].decaying = false;
         }
-        client.setInstance(rustplus.guildId, instance);
+        await getPersistenceCache().updateStorageMonitorFields(rustplus.guildId, rustplus.serverId, entityId, {
+            decaying: server.storageMonitors[entityId].decaying,
+            type: server.storageMonitors[entityId].type,
+        });
     }
 
     await DiscordMessages.sendStorageMonitorMessage(rustplus.guildId, rustplus.serverId, entityId);

@@ -1,10 +1,11 @@
 import * as DiscordMessages from '../discordTools/discordMessages.js';
 import * as DiscordTools from '../discordTools/discordTools.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export async function discordCommandHandler(rustplus: any, client: DiscordBot, message: any) {
     const guildId = rustplus.guildId;
-    const instance = client.getInstance(guildId);
+    const instance = await getPersistenceCache().readGuildState(guildId);
 
     let command = message.cleanContent;
     for (const alias of instance.aliases) {

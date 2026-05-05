@@ -32,13 +32,15 @@
     "files": {
         "includes": [
             "**/src/**/*.{ts,js}",
+            "**/scripts/persistenceSmokeTest.ts",
             "**/examples/**/*.{ts,js}",
             "**/.github/workflows/**/*.{ts,js,yml,yaml}",
             "**/biome.json",
             "**/package.json",
             "**/tsconfig.json",
             "**/renovate.json",
-            "**/*.md"
+            "**/*.md",
+            "!**/*_pb.ts"
         ]
     },
     "vcs": {

@@ -1,5 +1,5 @@
+import { getPersistenceCache } from '../persistence/index.js';
 import type { DiscordBot } from '../types/discord.js';
-import * as InstanceUtils from '../util/instanceUtils.js';
 
 export default {
     name: 'guildMemberRemove',
@@ -7,7 +7,7 @@ export default {
         const guildId = member.guild.id;
         const userId = member.user.id;
 
-        const credentials = InstanceUtils.readCredentialsFile(guildId);
+        const credentials = await getPersistenceCache().getCredentials(guildId);
 
         const steamId = Object.keys(credentials).find(
             (e) => credentials[e] && credentials[e].discord_user_id === userId,
@@ -29,6 +29,6 @@ export default {
         }
 
         delete credentials[steamId];
-        InstanceUtils.writeCredentialsFile(guildId, credentials);
+        await getPersistenceCache().setCredentials(guildId, credentials);
     },
 };

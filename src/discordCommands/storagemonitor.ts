@@ -3,7 +3,8 @@ import { MessageFlags } from 'discord.js';
 
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
 import * as DiscordMessages from '../discordTools/discordMessages.js';
-import { getSmartDevice } from '../service/smartDevice.js';
+import { getPersistenceCache } from '../persistence/index.js';
+import { getSmartDevice } from '../services/smartDevice.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 
 export default {
@@ -52,7 +53,7 @@ export default {
 
     async execute(client: DiscordBot, interaction: any) {
         const guildId = interaction.guildId;
-        const instance = client.getInstance(guildId);
+        const instance = await getPersistenceCache().readGuildState(guildId);
         const rustplus = client.rustplusInstances[guildId];
 
         const verifyId = client.generateVerifyId();
@@ -67,7 +68,7 @@ export default {
                     const entityId = interaction.options.getString('id');
                     const image = interaction.options.getString('image');
 
-                    const device = getSmartDevice(guildId, entityId);
+                    const device = await getSmartDevice(guildId, entityId);
                     if (device === null) {
                         const str = client.intlGet(guildId, 'invalidId', {
                             id: entityId,
@@ -81,8 +82,10 @@ export default {
 
                     if (image !== null) {
                         instance.serverList[device.serverId].storageMonitors[entityId].image = `${image}.png`;
+                        await getPersistenceCache().updateStorageMonitorFields(guildId, device.serverId, entityId, {
+                            image: `${image}.png`,
+                        });
                     }
-                    client.setInstance(guildId, instance);
 
                     client.log(
                         client.intlGet(null, 'infoCap'),

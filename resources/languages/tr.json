@@ -606,6 +606,7 @@
     "proxLocation": "{name}, {caller} {direction}° [{location}] yönünde {distance}m",
     "quantity": "Miktar",
     "questionMark": "Soru İşareti",
+    "radtown": "Radtown",
     "ranch": "Ahır",
     "ratelimited": "HIZ LİMİTİ",
     "reconnectingCap": "TEKRAR BAĞLANILIYOR",

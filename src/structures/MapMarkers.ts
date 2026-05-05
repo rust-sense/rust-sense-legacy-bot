@@ -1,6 +1,7 @@
-import * as Constants from '../util/constants.js';
-import * as GameMap from '../util/GameMap.js';
-import * as Timer from '../util/timer.js';
+import * as Constants from '../domain/constants.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Timer from '../domain/timer.js';
+import { getPersistenceCache } from '../persistence/index.js';
 
 interface Monument {
     token?: string;
@@ -62,10 +63,6 @@ interface RustplusLike {
 }
 
 interface ClientLike {
-    getInstance: (guildId: string) => {
-        serverList: Record<string, { oilRigLockedCrateUnlockTimeMs: number; cargoShipEgressTimeMs: number }>;
-        marketBlacklist: string[];
-    };
     intlGet: (guildId: string | null, key: string, options?: Record<string, unknown>) => string;
 }
 
@@ -287,9 +284,9 @@ export default class MapMarkers {
         return markers.filter((m) => this.isMarkerPresentByTypeXY(type, m.x, m.y));
     }
 
-    isVendingMachineBlacklisted(marker: Marker): boolean {
+    async isVendingMachineBlacklisted(marker: Marker): Promise<boolean> {
         if (marker.type !== this.types.VendingMachine) return false;
-        const instance = this.client.getInstance(this.rustplus.guildId);
+        const instance = await getPersistenceCache().readGuildState(this.rustplus.guildId);
         return instance.marketBlacklist.some((b) => marker.name?.toLowerCase().includes(b.toLowerCase()));
     }
 
@@ -402,7 +399,7 @@ export default class MapMarkers {
         }
     }
 
-    updateCH47s(mapMarkers: MapMarkersData): void {
+    async updateCH47s(mapMarkers: MapMarkersData): Promise<void> {
         const newMarkers = this.getNewMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
         const leftMarkers = this.getLeftMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
         const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CH47, mapMarkers.markers);
@@ -443,7 +440,7 @@ export default class MapMarkers {
 
                         if (this.crateSmallOilRigTimer) this.crateSmallOilRigTimer.stop();
 
-                        const instance = this.client.getInstance(this.rustplus.guildId);
+                        const instance = await getPersistenceCache().readGuildState(this.rustplus.guildId);
                         this.crateSmallOilRigTimer = new Timer.Timer(
                             this.notifyCrateSmallOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
@@ -481,7 +478,7 @@ export default class MapMarkers {
 
                         if (this.crateLargeOilRigTimer) this.crateLargeOilRigTimer.stop();
 
-                        const instance = this.client.getInstance(this.rustplus.guildId);
+                        const instance = await getPersistenceCache().readGuildState(this.rustplus.guildId);
                         this.crateLargeOilRigTimer = new Timer.Timer(
                             this.notifyCrateLargeOilRigOpen.bind(this),
                             instance.serverList[this.rustplus.serverId].oilRigLockedCrateUnlockTimeMs,
@@ -538,7 +535,7 @@ export default class MapMarkers {
         }
     }
 
-    updateCargoShips(mapMarkers: MapMarkersData): void {
+    async updateCargoShips(mapMarkers: MapMarkersData): Promise<void> {
         const newMarkers = this.getNewMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
         const leftMarkers = this.getLeftMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
         const remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.CargoShip, mapMarkers.markers);
@@ -559,7 +556,7 @@ export default class MapMarkers {
                     'cargo',
                     Constants.COLOR_CARGO_SHIP_ENTERS_MAP,
                 );
-                const instance = this.client.getInstance(this.rustplus.guildId);
+                const instance = await getPersistenceCache().readGuildState(this.rustplus.guildId);
                 this.cargoShipEgressTimers[marker.id] = new Timer.Timer(
                     this.notifyCargoShipEgress.bind(this),
                     instance.serverList[this.rustplus.serverId].cargoShipEgressTimeMs,
@@ -658,9 +655,11 @@ export default class MapMarkers {
         for (const marker of newMarkers) {
             this.genericRadiuses.push(marker);
         }
+
         for (const marker of leftMarkers) {
             this.genericRadiuses = this.genericRadiuses.filter((e) => e.id !== marker.id);
         }
+
         for (const marker of remainingMarkers) {
             const gr = this.getMarkerByTypeId(this.types.GenericRadius, marker.id)!;
             gr.x = marker.x;

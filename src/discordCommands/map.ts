@@ -1,9 +1,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { AttachmentBuilder, MessageFlags } from 'discord.js';
 import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as Constants from '../domain/constants.js';
+import { getPersistenceCache } from '../persistence/index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-import * as Constants from '../util/constants.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
+import { getServerRustMapsUrl } from '../utils/serverUtils.js';
 
 export default {
     name: 'map',
@@ -27,7 +29,7 @@ export default {
     },
 
     async execute(client: DiscordBot, interaction: any) {
-        const instance = client.getInstance(interaction.guildId);
+        const instance = await getPersistenceCache().readGuildState(interaction.guildId);
         const rustplus = client.rustplusInstances[interaction.guildId];
 
         const verifyId = client.generateVerifyId();
@@ -91,16 +93,21 @@ export default {
         );
 
         const fileName = interaction.options.getSubcommand() === 'clean' ? 'clean' : 'full';
+        const rustMapsUrl = getServerRustMapsUrl(client, instance.serverList[rustplus.serverId]);
+        const embedOptions: any = {
+            color: Constants.COLOR_DEFAULT,
+            image: `attachment://${interaction.guildId}_map_${fileName}.png`,
+            footer: {
+                text: instance.serverList[rustplus.serverId].title,
+            },
+        };
+        if (rustMapsUrl) {
+            embedOptions.title = 'RustMaps';
+            embedOptions.url = rustMapsUrl;
+        }
+
         await client.interactionEditReply(interaction, {
-            embeds: [
-                DiscordEmbeds.getEmbed({
-                    color: Constants.COLOR_DEFAULT,
-                    image: `attachment://${interaction.guildId}_map_${fileName}.png`,
-                    footer: {
-                        text: instance.serverList[rustplus.serverId].title,
-                    },
-                }),
-            ],
+            embeds: [DiscordEmbeds.getEmbed(embedOptions)],
             files: [file],
             flags: MessageFlags.Ephemeral,
         });

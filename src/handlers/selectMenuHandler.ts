@@ -1,20 +1,13 @@
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';
+import * as DiscordSelectMenus from '../discordTools/discordSelectMenus.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as DiscordSelectMenusModule from '../discordTools/discordSelectMenus.js';
-
-const DiscordSelectMenus: any = DiscordSelectMenusModule;
-
-import * as DiscordToolsModule from '../discordTools/discordTools.js';
-
-const DiscordTools: any = DiscordToolsModule;
-
-import * as Utils from '../util/utils.js';
+import * as Utils from '../discordTools/discordInteractionUtils.js';
+import { getPersistenceCache } from '../persistence/index.js';
 
 export default async (client: DiscordBot, interaction: any) => {
-    const instance = client.getInstance(interaction.guildId);
+    const instance = await getPersistenceCache().readGuildState(interaction.guildId);
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
@@ -25,7 +18,7 @@ export default async (client: DiscordBot, interaction: any) => {
 
     if (interaction.customId === 'language') {
         instance.generalSettings.language = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'language', interaction.values[0]);
 
         if (rustplus) rustplus.generalSettings.language = interaction.values[0];
 
@@ -49,7 +42,7 @@ export default async (client: DiscordBot, interaction: any) => {
         await (await import('../discordTools/RegisterSlashCommands.js')).default(client, guild);
     } else if (interaction.customId === 'Prefix') {
         instance.generalSettings.prefix = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'prefix', interaction.values[0]);
 
         if (rustplus) rustplus.generalSettings.prefix = interaction.values[0];
 
@@ -66,7 +59,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'Trademark') {
         instance.generalSettings.trademark = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'trademark', interaction.values[0]);
 
         if (rustplus) {
             rustplus.generalSettings.trademark = interaction.values[0];
@@ -87,7 +80,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'CommandDelay') {
         instance.generalSettings.commandDelay = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'commandDelay', interaction.values[0]);
 
         if (rustplus) rustplus.generalSettings.commandDelay = interaction.values[0];
 
@@ -104,7 +97,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'VoiceGender') {
         instance.generalSettings.voiceGender = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'voiceGender', interaction.values[0]);
 
         if (rustplus) rustplus.generalSettings.voiceGender = interaction.values[0];
 
@@ -121,7 +114,7 @@ export default async (client: DiscordBot, interaction: any) => {
         });
     } else if (interaction.customId === 'TTSProvider') {
         instance.generalSettings.ttsProvider = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'ttsProvider', interaction.values[0]);
 
         if (rustplus) rustplus.generalSettings.ttsProvider = interaction.values[0];
 
@@ -141,11 +134,12 @@ export default async (client: DiscordBot, interaction: any) => {
         if (provider === 'piper') {
             instance.generalSettings.piperVoice = interaction.values[0];
             if (rustplus) rustplus.generalSettings.piperVoice = interaction.values[0];
+            await getPersistenceCache().setGeneralSetting(guildId, 'piperVoice', interaction.values[0]);
         } else {
             instance.generalSettings.voiceGender = interaction.values[0];
             if (rustplus) rustplus.generalSettings.voiceGender = interaction.values[0];
+            await getPersistenceCache().setGeneralSetting(guildId, 'voiceGender', interaction.values[0]);
         }
-        client.setInstance(guildId, instance);
 
         client.log(
             client.intlGet(null, 'infoCap'),
@@ -173,7 +167,9 @@ export default async (client: DiscordBot, interaction: any) => {
             ((value === 5 || value === 6) && server.switches[ids.entityId].location !== null)
         ) {
             server.switches[ids.entityId].autoDayNightOnOff = value;
-            client.setInstance(guildId, instance);
+            await getPersistenceCache().updateSmartSwitchFields(guildId, ids.serverId, ids.entityId, {
+                autoDayNightOnOff: value,
+            });
         }
 
         client.log(
@@ -184,10 +180,10 @@ export default async (client: DiscordBot, interaction: any) => {
             }),
         );
 
-        DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId, interaction);
+        await DiscordMessages.sendSmartSwitchMessage(guildId, ids.serverId, ids.entityId, interaction);
     } else if (interaction.customId.startsWith('TeammateNameType')) {
         instance.generalSettings.teammateNameType = interaction.values[0];
-        client.setInstance(guildId, instance);
+        await getPersistenceCache().setGeneralSetting(guildId, 'teammateNameType', interaction.values[0]);
 
         if (rustplus) {
             rustplus.generalSettings.teammateNameType = interaction.values[0];
