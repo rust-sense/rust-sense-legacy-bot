@@ -193,7 +193,7 @@ export function getCommandDelaySelectMenu(guildId: string, delay: string) {
     );
 }
 
-export async function getSmartSwitchSelectMenu(guildId: string, serverId: string, entityId: number) {
+export async function getSmartSwitchSelectMenu(guildId: string, serverId: string, entityId: string) {
     const instance = await getPersistenceCache().readGuildState(guildId);
     const entity = instance.serverList[serverId].switches[entityId];
     const identifier = JSON.stringify({ serverId: serverId, entityId: entityId });

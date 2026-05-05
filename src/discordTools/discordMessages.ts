@@ -1,31 +1,14 @@
 import * as Discord from 'discord.js';
-import * as ConstantsModule from '../domain/constants.js';
+import * as Constants from '../domain/constants.js';
 import { client } from '../index.js';
 import type DiscordBot from '../structures/DiscordBot.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
-
-const Constants: any = ConstantsModule;
-
-import * as DiscordButtonsModule from './discordButtons.js';
-
-const DiscordButtons: any = DiscordButtonsModule;
-
-import * as DiscordEmbedsModule from './discordEmbeds.js';
-
-const DiscordEmbeds: any = DiscordEmbedsModule;
-
-import * as DiscordSelectMenusModule from './discordSelectMenus.js';
-
-const DiscordSelectMenus: any = DiscordSelectMenusModule;
-
-import * as DiscordToolsModule from './discordTools.js';
-
-const DiscordTools: any = DiscordToolsModule;
-
-import * as ScrapeModule from '../infrastructure/scrape.js';
+import * as DiscordButtons from './discordButtons.js';
+import * as DiscordEmbeds from './discordEmbeds.js';
+import * as DiscordSelectMenus from './discordSelectMenus.js';
+import * as DiscordTools from './discordTools.js';
+import * as Scrape from '../infrastructure/scrape.js';
 import { getPersistenceCache } from '../persistence/index.js';
-
-const Scrape: any = ScrapeModule;
 
 export async function sendMessage(
     guildId: string,

@@ -1,15 +1,7 @@
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as DiscordSelectMenusModule from '../discordTools/discordSelectMenus.js';
-
-const DiscordSelectMenus: any = DiscordSelectMenusModule;
-
-import * as DiscordToolsModule from '../discordTools/discordTools.js';
-
-const DiscordTools: any = DiscordToolsModule;
+import * as DiscordSelectMenus from '../discordTools/discordSelectMenus.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
 
 import * as Utils from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';

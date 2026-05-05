@@ -1,39 +1,19 @@
-import * as ConstantsModule from '../domain/constants.js';
+import * as Constants from '../domain/constants.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-
-const Constants: any = ConstantsModule;
-
-import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
-
-const DiscordEmbeds: any = DiscordEmbedsModule;
-
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
-
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as KeywordsModule from '../services/keywordsService.js';
-
-const Keywords: any = KeywordsModule;
-
-import * as ScrapeModule from '../infrastructure/scrape.js';
-
-const Scrape: any = ScrapeModule;
-
-import * as TrackerInputParserModule from '../domain/trackerInputParser.js';
-
-const TrackerInputParser: any = TrackerInputParserModule;
-
-import * as UtilsModule from '../discordTools/discordInteractionUtils.js';
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as Keywords from '../services/keywordsService.js';
+import * as Scrape from '../infrastructure/scrape.js';
+import * as TrackerInputParser from '../domain/trackerInputParser.js';
+import * as Utils from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';
-
-const Utils: any = UtilsModule;
 
 export default async (client: DiscordBot, interaction: any) => {
     const instance = await getPersistenceCache().readGuildState(interaction.guildId);
     const guildId = interaction.guildId;
 
-    const verifyId = Utils.generateVerifyId();
+    const verifyId = Utils.generateVerifyId().toString();
     client.logInteraction(interaction, verifyId, 'userModal');
 
     if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
@@ -147,7 +127,7 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             smartSwitchCommand !== server.switches[ids.entityId].command &&
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartSwitchCommand)
+            !(await Keywords.getListOfUsedKeywords(client, guildId, ids.serverId)).includes(smartSwitchCommand)
         ) {
             server.switches[ids.entityId].command = smartSwitchCommand;
         }
@@ -185,7 +165,7 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             groupCommand !== server.switchGroups[ids.groupId].command &&
-            !Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId).includes(groupCommand)
+            !(await Keywords.getListOfUsedKeywords(client, interaction.guildId, ids.serverId)).includes(groupCommand)
         ) {
             server.switchGroups[ids.groupId].command = groupCommand;
         }
@@ -284,7 +264,7 @@ export default async (client: DiscordBot, interaction: any) => {
 
         if (
             smartAlarmCommand !== server.alarms[ids.entityId].command &&
-            !Keywords.getListOfUsedKeywords(client, guildId, ids.serverId).includes(smartAlarmCommand)
+            !(await Keywords.getListOfUsedKeywords(client, guildId, ids.serverId)).includes(smartAlarmCommand)
         ) {
             server.alarms[ids.entityId].command = smartAlarmCommand;
         }

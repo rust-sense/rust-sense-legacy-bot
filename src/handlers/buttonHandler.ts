@@ -1,33 +1,15 @@
 import * as Discord from 'discord.js';
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
 import type DiscordBot from '../structures/DiscordBot.js';
-
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as DiscordToolsModule from '../discordTools/discordTools.js';
-
-const DiscordTools: any = DiscordToolsModule;
-
-import * as SmartSwitchGroupHandlerModule from '../services/smartSwitchGroupService.js';
-
-const SmartSwitchGroupHandler: any = SmartSwitchGroupHandlerModule;
-
-import * as DiscordButtonsModule from '../discordTools/discordButtons.js';
-
-const DiscordButtons: any = DiscordButtonsModule;
-
-import * as DiscordModalsModule from '../discordTools/discordModals.js';
-
-const DiscordModals: any = DiscordModalsModule;
-
-import * as DiscordFormattingUtilsModule from '../discordTools/discordFormattingUtils.js';
-import * as UtilsModule from '../discordTools/discordInteractionUtils.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
+import * as SmartSwitchGroupHandler from '../services/smartSwitchGroupService.js';
+import * as DiscordButtons from '../discordTools/discordButtons.js';
+import * as DiscordModals from '../discordTools/discordModals.js';
+import * as DiscordFormattingUtils from '../discordTools/discordFormattingUtils.js';
+import * as Utils from '../discordTools/discordInteractionUtils.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import type { ServerPatch } from '../persistence/types.js';
 import type { Instance, Server } from '../types/instance.js';
-
-const Utils: any = UtilsModule;
-const DiscordFormattingUtils: any = DiscordFormattingUtilsModule;
 
 async function persistTargetedButtonState(guildId: string, base: Instance, next: Instance): Promise<void> {
     const persistence = getPersistenceCache();
@@ -159,7 +141,7 @@ export default async (client: DiscordBot, interaction: any) => {
     const guildId = interaction.guildId;
     const rustplus = client.rustplusInstances[guildId];
 
-    const verifyId = Utils.generateVerifyId();
+    const verifyId = Utils.generateVerifyId().toString();
     client.logInteraction(interaction, verifyId, 'userButton');
 
     if (Utils.isBlacklisted(client, instance, interaction, verifyId)) return;
@@ -186,9 +168,9 @@ export default async (client: DiscordBot, interaction: any) => {
                 DiscordButtons.getNotificationButtons(
                     guildId,
                     ids.setting,
-                    setting.discord,
-                    setting.inGame,
-                    setting.voice,
+                    setting.discord as boolean,
+                    setting.inGame as boolean,
+                    setting.voice as boolean,
                 ),
             ],
         });
@@ -214,9 +196,9 @@ export default async (client: DiscordBot, interaction: any) => {
                 DiscordButtons.getNotificationButtons(
                     guildId,
                     ids.setting,
-                    setting.discord,
-                    setting.inGame,
-                    setting.voice,
+                    setting.discord as boolean,
+                    setting.inGame as boolean,
+                    setting.voice as boolean,
                 ),
             ],
         });
@@ -242,9 +224,9 @@ export default async (client: DiscordBot, interaction: any) => {
                 DiscordButtons.getNotificationButtons(
                     guildId,
                     ids.setting,
-                    setting.discord,
-                    setting.inGame,
-                    setting.voice,
+                    setting.discord as boolean,
+                    setting.inGame as boolean,
+                    setting.voice as boolean,
                 ),
             ],
         });
@@ -773,7 +755,7 @@ export default async (client: DiscordBot, interaction: any) => {
         };
         await persistButtonState();
 
-        await DiscordMessages.sendTrackerMessage(guildId, trackerId);
+        await DiscordMessages.sendTrackerMessage(guildId, trackerId.toString());
     } else if (interaction.customId.startsWith('CreateGroup')) {
         const ids = JSON.parse(interaction.customId.replace('CreateGroup', ''));
         const server = instance.serverList[ids.serverId];
@@ -807,7 +789,7 @@ export default async (client: DiscordBot, interaction: any) => {
             }),
         );
 
-        await DiscordMessages.sendSmartSwitchGroupMessage(guildId, ids.serverId, groupId);
+        await DiscordMessages.sendSmartSwitchGroupMessage(guildId, ids.serverId, groupId.toString());
     } else if (
         interaction.customId.startsWith('ServerDisconnect') ||
         interaction.customId.startsWith('ServerReconnecting')

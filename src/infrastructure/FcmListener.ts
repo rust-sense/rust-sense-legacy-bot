@@ -1,34 +1,13 @@
-import * as DiscordModule from 'discord.js';
-
-const Discord: any = DiscordModule;
-
-import * as ConstantsModule from '../domain/constants.js';
+import * as Discord from 'discord.js';
+import * as Constants from '../domain/constants.js';
 import PushReceiverClient from '../lib/fcm/Client.js';
 import Battlemetrics from '../structures/Battlemetrics.js';
 import LibLoggerAdapter from '../structures/LibLoggerAdapter.js';
-
-const Constants: any = ConstantsModule;
-
-import * as DiscordEmbedsModule from '../discordTools/discordEmbeds.js';
-
-const DiscordEmbeds: any = DiscordEmbedsModule;
-
-import * as DiscordMessagesModule from '../discordTools/discordMessages.js';
-
-const DiscordMessages: any = DiscordMessagesModule;
-
-import * as DiscordToolsModule from '../discordTools/discordTools.js';
-
-const DiscordTools: any = DiscordToolsModule;
-
-import * as GameMapModule from '../domain/GameMap.js';
-
-const GameMap: any = GameMapModule;
-
-import * as ScrapeModule from './scrape.js';
-
-const Scrape: any = ScrapeModule;
-
+import * as DiscordEmbeds from '../discordTools/discordEmbeds.js';
+import * as DiscordMessages from '../discordTools/discordMessages.js';
+import * as DiscordTools from '../discordTools/discordTools.js';
+import * as GameMap from '../domain/GameMap.js';
+import * as Scrape from './scrape.js';
 import { getPersistenceCache } from '../persistence/index.js';
 import { cwdPath } from '../utils/filesystemUtils.js';
 

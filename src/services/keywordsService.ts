@@ -96,19 +96,7 @@ export function getListOfCommandKeywords(
 }
 
 export async function getListOfUsedKeywords(
-    client: {
-        intlGet: (guildId: string | null, key: string) => string;
-        getInstance: (guildId: string) => Promise<{
-            serverList: Record<
-                string,
-                {
-                    alarms: Record<number, unknown>;
-                    switches: Record<number, unknown>;
-                    switchGroups: Record<number, unknown>;
-                }
-            >;
-        }>;
-    },
+    client: { intlGet: (guildId: string | null, key: string) => string },
     guildId: string,
     serverId: string,
 ): Promise<string[]> {
